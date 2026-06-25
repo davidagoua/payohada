@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payohada | La paie moderne, simplifiée et automatisée</title>
+    <meta name="description" content="Payohada est la solution SaaS nouvelle génération pour automatiser vos bulletins de paie, gérer vos déclarations DSN et piloter vos ressources humaines en toute simplicité.">
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS v4 Browser CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    
+    <!-- Supabase JS Client CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <!-- Alpine.js for lightweight interactions -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Custom CSS animations and styles -->
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        h1, h2, h3, .font-display {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* Premium Animations */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(1deg); }
+        }
+        @keyframes float-delayed {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(10px) rotate(-1deg); }
+        }
+        @keyframes pulse-soft {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(0.98); }
+        }
+        @keyframes gradient-shift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+        .animate-float-delayed {
+            animation: float-delayed 7s ease-in-out infinite;
+        }
+        .animate-pulse-soft {
+            animation: pulse-soft 4s ease-in-out infinite;
+        }
+        .animate-gradient {
+            background-size: 200% 200%;
+            animation: gradient-shift 8s ease infinite;
+        }
+
+        /* Glassmorphism utility */
+        .glass {
+            background: rgba(255, 255, 255, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-slate-50/50 text-slate-900 selection:bg-indigo-500 selection:text-white overflow-x-hidden" x-data="authApp()" x-init="init()">
+
+    <!-- Background decorative gradients -->
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-[600px] pointer-events-none -z-10 overflow-hidden opacity-60">
+        <div class="absolute top-[-20%] left-[-10%] w-[50%] h-[80%] rounded-full bg-gradient-to-br from-indigo-200/50 to-purple-200/30 blur-3xl"></div>
+        <div class="absolute top-[-10%] right-[-10%] w-[45%] h-[70%] rounded-full bg-gradient-to-br from-blue-200/40 to-teal-100/30 blur-3xl"></div>
+    </div>
+
+    <!-- Header / Navbar -->
+    <header class="sticky top-0 z-50 glass transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <!-- Logo -->
+            <a href="#" class="flex items-center gap-2.5 group">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white shadow-md shadow-indigo-200 group-hover:scale-105 transition-transform duration-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" />
+                    </svg>
+                </div>
+                <span class="font-display font-bold text-xl tracking-tight bg-gradient-to-r from-slate-900 to-indigo-950 bg-clip-text text-transparent">payohada</span>
+            </a>
+
+            <!-- Desktop Menu -->
+            <nav class="hidden md:flex items-center gap-8 text-[15px] font-medium text-slate-600">
+                <a href="#features" class="hover:text-indigo-600 transition-colors">Fonctionnalités</a>
+                <a href="#calculator" class="hover:text-indigo-600 transition-colors">Simulateur</a>
+                <a href="#pricing" class="hover:text-indigo-600 transition-colors">Tarifs</a>
+                <a href="#faq" class="hover:text-indigo-600 transition-colors">FAQ</a>
+            </nav>
+
+            <!-- Actions (Auth dynamic) -->
+            <div class="hidden md:flex items-center gap-4">
+                <!-- If guest -->
+                <template x-if="!user">
+                    <div class="flex items-center gap-4">
+                        <button @click="openAuth('login')" class="text-[15px] font-semibold text-slate-700 hover:text-indigo-600 cursor-pointer transition-colors">Connexion</button>
+                        <button @click="openAuth('signup')" class="px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-[15px] font-semibold hover:bg-indigo-700 shadow-lg shadow-indigo-100 hover:shadow-indigo-200 cursor-pointer transition-all duration-300 hover:-translate-y-0.5">Commencer</button>
+                    </div>
+                </template>
+                <!-- If logged in -->
+                <template x-if="user">
+                    <div class="flex items-center gap-4">
+                        <span class="text-sm font-semibold text-slate-700">
+                            Bonjour, <span class="text-indigo-600" x-text="backendUser ? backendUser.prenom : user.email"></span>
+                        </span>
+                        <button @click="signOut()" class="px-4 py-2 border border-slate-200 rounded-xl text-slate-600 hover:text-red-600 hover:border-red-200 text-sm font-semibold cursor-pointer transition-all">Déconnexion</button>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Hamburger Button -->
+            <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden p-2 text-slate-600 hover:text-slate-900 focus:outline-none">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6">
+                    <path x-show="!mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                    <path x-show="mobileMenuOpen" stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div x-show="mobileMenuOpen" x-transition.opacity class="md:hidden fixed inset-0 top-20 bg-slate-900/10 backdrop-blur-md z-40" @click="mobileMenuOpen = false"></div>
+        <div x-show="mobileMenuOpen" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="-translate-y-5" x-transition:enter-end="translate-y-0" class="md:hidden absolute top-20 left-0 w-full bg-white border-b border-slate-100 px-6 py-6 flex flex-col gap-6 shadow-xl z-50">
+            <nav class="flex flex-col gap-4 text-base font-semibold text-slate-700">
+                <a href="#features" @click="mobileMenuOpen = false" class="hover:text-indigo-600 transition-colors">Fonctionnalités</a>
+                <a href="#calculator" @click="mobileMenuOpen = false" class="hover:text-indigo-600 transition-colors">Simulateur</a>
+                <a href="#pricing" @click="mobileMenuOpen = false" class="hover:text-indigo-600 transition-colors">Tarifs</a>
+                <a href="#faq" @click="mobileMenuOpen = false" class="hover:text-indigo-600 transition-colors">FAQ</a>
+            </nav>
+            <div class="h-px bg-slate-100"></div>
+            <div class="flex flex-col gap-3">
+                <template x-if="!user">
+                    <div class="flex flex-col gap-3">
+                        <button @click="mobileMenuOpen = false; openAuth('login')" class="w-full py-2.5 rounded-xl border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50">Connexion</button>
+                        <button @click="mobileMenuOpen = false; openAuth('signup')" class="w-full py-2.5 rounded-xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700">Essai gratuit</button>
+                    </div>
+                </template>
+                <template x-if="user">
+                    <div class="flex flex-col gap-3 text-center">
+                        <span class="text-sm font-semibold text-slate-700" x-text="'Bonjour, ' + (backendUser ? backendUser.prenom : user.email)"></span>
+                        <button @click="signOut()" class="w-full py-2.5 rounded-xl border border-slate-200 text-red-600 font-semibold hover:bg-red-50">Déconnexion</button>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </header>
+
+    <!-- Backend Sync banner -->
+    <template x-if="user">
+        <div class="bg-indigo-50 border-b border-indigo-100 px-6 py-2 flex items-center justify-between text-xs text-indigo-800">
+            <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full" :class="backendSyncStatus === 'success' ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500 animate-pulse'"></span>
+                <span x-text="backendSyncStatus === 'success' ? 'Connecté à Supabase & synchronisé avec le backend local' : 'Connexion Supabase active. Synchronisation backend en cours...'"></span>
+            </div>
+            <div class="flex gap-2">
+                <button @click="alert('Token d\'accès JWT :\n\n' + session.access_token)" class="underline hover:text-indigo-950 font-bold cursor-pointer">Copier Token JWT</button>
+            </div>
+        </div>
+    </template>
+
+    <!-- Hero Section -->
+    <section class="max-w-7xl mx-auto px-6 pt-16 pb-20 md:py-28 grid md:grid-cols-12 items-center gap-12 lg:gap-16">
+        <!-- Text Content -->
+        <div class="md:col-span-6 flex flex-col gap-6 lg:gap-8">
+            <div class="inline-flex items-center gap-2 bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-semibold px-3 py-1.5 rounded-full w-fit">
+                <span class="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></span>
+                <span>Calculateur de paie nouvelle génération conforme DSN</span>
+            </div>
+
+            <h1 class="font-display font-extrabold text-4xl sm:text-5xl lg:text-6xl text-slate-900 leading-[1.1] tracking-tight">
+                La paie de vos salariés, <br class="hidden sm:inline" />
+                <span class="bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent animate-gradient">sans les maux de tête.</span>
+            </h1>
+
+            <p class="text-slate-600 text-lg leading-relaxed max-w-xl">
+                Automatisez la création de vos bulletins de paie, déclarez vos DSN en un clic, et centralisez les variables de vos salariés sur un logiciel moderne, intuitif et 100% conforme.
+            </p>
+
+            <div class="flex flex-col sm:flex-row items-center gap-4">
+                <button @click="user ? document.getElementById('calculator').scrollIntoView() : openAuth('signup')" class="w-full sm:w-auto text-center px-8 py-4 rounded-2xl bg-indigo-600 text-white font-semibold hover:bg-indigo-700 shadow-xl shadow-indigo-100 hover:shadow-indigo-200 cursor-pointer transition-all duration-300 hover:-translate-y-1">
+                    Commencer l'essai gratuit
+                </button>
+                <a href="#features" class="w-full sm:w-auto text-center px-8 py-4 rounded-2xl bg-white border border-slate-200 text-slate-700 font-semibold hover:bg-slate-50 transition-all duration-300 hover:border-slate-300">
+                    Découvrir l'outil
+                </a>
+            </div>
+
+            <!-- Trust / Stats badges -->
+            <div class="pt-6 border-t border-slate-100 flex flex-wrap items-center gap-8 text-slate-500 text-sm">
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                    <span>Conforme DSN & URSSAF</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>
+                    <span>Calcul instantané</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visual / Mockup Content -->
+        <div class="md:col-span-6 relative flex justify-center">
+            <!-- Decorative circle backgrounds -->
+            <div class="absolute inset-0 bg-gradient-to-tr from-indigo-100 to-purple-100 rounded-full blur-3xl opacity-50 -z-10 animate-pulse-soft"></div>
+            
+            <!-- Mockup Container -->
+            <div class="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl shadow-indigo-900/5 border border-slate-100/80 p-5 overflow-hidden animate-float">
+                <!-- Header mockup -->
+                <div class="flex items-center justify-between pb-4 border-b border-slate-100">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-red-400"></span>
+                        <span class="w-3 h-3 rounded-full bg-yellow-400"></span>
+                        <span class="w-3 h-3 rounded-full bg-green-400"></span>
+                    </div>
+                    <span class="text-xs font-semibold text-slate-400 tracking-wider font-display">PAYOHADA BACKOFFICE</span>
+                </div>
+
+                <!-- Simulation interface inside mockup -->
+                <div class="pt-4 flex flex-col gap-4">
+                    <div class="p-4 rounded-2xl bg-slate-50/70 border border-slate-100/50">
+                        <span class="text-xs font-bold text-slate-400 block mb-1">SALARIÉ</span>
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold font-display">JD</div>
+                            <div>
+                                <h4 class="text-sm font-bold text-slate-800">Jean Dupont</h4>
+                                <p class="text-xs text-slate-500">CDI • Temps plein (35h/semaine)</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="p-4 rounded-2xl bg-emerald-50/50 border border-emerald-100/50">
+                            <span class="text-[10px] font-bold text-emerald-600 block uppercase mb-1">Salaire Net</span>
+                            <span class="text-xl font-extrabold text-emerald-700 font-display">2 343,32 €</span>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100/50">
+                            <span class="text-[10px] font-bold text-indigo-600 block uppercase mb-1">Salaire Brut</span>
+                            <span class="text-xl font-extrabold text-indigo-700 font-display">3 185,17 €</span>
+                        </div>
+                    </div>
+
+                    <!-- Bullet points variables -->
+                    <div class="flex flex-col gap-2.5">
+                        <div class="flex items-center justify-between text-xs py-2 px-3 bg-slate-50 rounded-xl">
+                            <span class="text-slate-600">Salaire de base</span>
+                            <span class="font-bold text-slate-800">3 000,00 €</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs py-2 px-3 bg-red-50/50 text-red-700 rounded-xl">
+                            <span>Absence Maladie (7h)</span>
+                            <span class="font-bold">-138,46 €</span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs py-2 px-3 bg-emerald-50/60 text-emerald-700 rounded-xl">
+                            <span>Heures Sup +25% (5h)</span>
+                            <span class="font-bold">+123,62 €</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Floating card absolute -->
+                <div class="absolute bottom-6 right-[-20px] bg-white rounded-2xl shadow-xl border border-slate-100 p-4 flex items-center gap-3 animate-float-delayed">
+                    <div class="w-10 h-10 rounded-xl bg-purple-500 flex items-center justify-center text-white">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    </div>
+                    <div>
+                        <h5 class="text-xs font-bold text-slate-800">Déclaration DSN</h5>
+                        <p class="text-[10px] text-slate-500 font-semibold">Envoyée & acceptée</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Logo Cloud / Social proof -->
+    <section class="max-w-7xl mx-auto px-6 py-12 border-t border-b border-slate-100 flex flex-col gap-6 items-center">
+        <p class="text-xs font-bold uppercase tracking-widest text-slate-400 text-center">Ils automatisent leur paie avec payohada</p>
+        <div class="w-full flex flex-wrap justify-center items-center gap-10 md:gap-16 opacity-50 grayscale hover:grayscale-0 transition-all">
+            <!-- Mock Logotypes -->
+            <span class="font-display font-extrabold text-2xl text-slate-700 tracking-tight">Vercel</span>
+            <span class="font-display font-extrabold text-2xl text-slate-700 tracking-tight">Algolia</span>
+            <span class="font-display font-extrabold text-2xl text-slate-700 tracking-tight">Qonto</span>
+            <span class="font-display font-extrabold text-2xl text-slate-700 tracking-tight">Alan</span>
+            <span class="font-display font-extrabold text-2xl text-slate-700 tracking-tight">PayFit</span>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="max-w-7xl mx-auto px-6 py-20 md:py-28 flex flex-col gap-16">
+        <div class="text-center flex flex-col gap-4 max-w-2xl mx-auto">
+            <span class="text-indigo-600 text-sm font-extrabold uppercase tracking-wider">Fonctionnalités</span>
+            <h2 class="font-display font-bold text-3xl sm:text-4xl text-slate-900">Tout ce dont vous avez besoin pour gérer vos salaires</h2>
+            <p class="text-slate-600">
+                Une suite complète d'outils automatisés pour piloter vos déclarations sociales et vos variables sans aucune complexité.
+            </p>
+        </div>
+
+        <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Feature 1 -->
+            <div class="p-8 rounded-3xl bg-white border border-slate-100 shadow-lg shadow-slate-100/30 hover:shadow-xl hover:shadow-indigo-500/5 hover:-translate-y-1.5 transition-all duration-300 flex flex-col gap-5 group">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:bg-indigo-600 group-hover:text-white transition-all duration-300">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"></path></svg>
+                </div>
+                <h3 class="font-display font-bold text-xl text-slate-900">Bulletins automatisés</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">
+                    Les bulletins de paie se calculent automatiquement en prenant en compte les salaires contractuels et les heures travaillées.
+                </p>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="p-8 rounded-3xl bg-white border border-slate-100 shadow-lg shadow-slate-100/30 hover:shadow-xl hover:shadow-indigo-500/5 hover:-translate-y-1.5 transition-all duration-300 flex flex-col gap-5 group">
+                <div class="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition-all duration-300">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <h3 class="font-display font-bold text-xl text-slate-900">Conformité DSN intégrée</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">
+                    Générez vos fichiers DSN mensuels conformes et téléversez-les directement à l'URSSAF et aux caisses de retraite.
+                </p>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="p-8 rounded-3xl bg-white border border-slate-100 shadow-lg shadow-slate-100/30 hover:shadow-xl hover:shadow-indigo-500/5 hover:-translate-y-1.5 transition-all duration-300 flex flex-col gap-5 group">
+                <div class="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </div>
+                <h3 class="font-display font-bold text-xl text-slate-900">Saisie des absences</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">
+                    Saisissez les congés payés, arrêts maladie ou RTT. Le logiciel calcule automatiquement les retenues correspondantes.
+                </p>
+            </div>
+
+            <!-- Feature 4 -->
+            <div class="p-8 rounded-3xl bg-white border border-slate-100 shadow-lg shadow-slate-100/30 hover:shadow-xl hover:shadow-indigo-500/5 hover:-translate-y-1.5 transition-all duration-300 flex flex-col gap-5 group">
+                <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-all duration-300">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+                <h3 class="font-display font-bold text-xl text-slate-900">Gestion des Heures Sup</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">
+                    Saisie simple des heures supplémentaires avec taux de majoration configurables (25%, 50%) directement imputées sur le brut.
+                </p>
+            </div>
+
+            <!-- Feature 5 -->
+            <div class="p-8 rounded-3xl bg-white border border-slate-100 shadow-lg shadow-slate-100/30 hover:shadow-xl hover:shadow-indigo-500/5 hover:-translate-y-1.5 transition-all duration-300 flex flex-col gap-5 group">
+                <div class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                </div>
+                <h3 class="font-display font-bold text-xl text-slate-900">Espace multi-établissement</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">
+                    Pilotez plusieurs filiales ou établissements géographiques sous le même compte avec des comptes bancaires distincts.
+                </p>
+            </div>
+
+            <!-- Feature 6 -->
+            <div class="p-8 rounded-3xl bg-white border border-slate-100 shadow-lg shadow-slate-100/30 hover:shadow-xl hover:shadow-indigo-500/5 hover:-translate-y-1.5 transition-all duration-300 flex flex-col gap-5 group">
+                <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center group-hover:bg-rose-600 group-hover:text-white transition-all duration-300">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                </div>
+                <h3 class="font-display font-bold text-xl text-slate-900">Sécurité et RGPD</h3>
+                <p class="text-slate-500 text-sm leading-relaxed">
+                    Toutes vos données salariales sont hautement sécurisées en France et l'authentification est totalement déléguée à Supabase.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Calculator Section -->
+    <section id="calculator" class="max-w-7xl mx-auto px-6 py-20 md:py-28 bg-gradient-to-br from-indigo-900 to-slate-900 rounded-[3rem] text-white overflow-hidden relative shadow-2xl">
+        <!-- Background glows -->
+        <div class="absolute -top-40 -left-40 w-96 h-96 rounded-full bg-indigo-500/20 blur-3xl"></div>
+        <div class="absolute -bottom-40 -right-40 w-96 h-96 rounded-full bg-purple-500/20 blur-3xl"></div>
+
+        <div class="relative grid lg:grid-cols-12 gap-12 items-center" x-data="{
+            salaireBrut: 3000,
+            absencesHeures: 0,
+            heuresSup: 0,
+            prime: 0,
+            get tauxHoraire() {
+                return (this.salaireBrut / 151.67);
+            },
+            get totalAbsence() {
+                return (this.absencesHeures * this.tauxHoraire);
+            },
+            get totalHeuresSup() {
+                return (this.heuresSup * this.tauxHoraire * 1.25);
+            },
+            get brutCalcule() {
+                return (parseFloat(this.salaireBrut) - this.totalAbsence + this.totalHeuresSup + parseFloat(this.prime));
+            },
+            get cotisationsSalariales() {
+                return (this.brutCalcule * 0.22); // ~22%
+            },
+            get cotisationsPatronales() {
+                return (this.brutCalcule * 0.42); // ~42%
+            },
+            get netAPayer() {
+                return (this.brutCalcule - this.cotisationsSalariales);
+            },
+            get netImposable() {
+                return (this.netAPayer + (this.brutCalcule * 0.029 * 0.9825)); // estimation CSG non ded
+            }
+        }">
+            <!-- Left Info -->
+            <div class="lg:col-span-5 flex flex-col gap-6">
+                <span class="text-indigo-400 text-sm font-extrabold uppercase tracking-wider">Démonstration</span>
+                <h2 class="font-display font-bold text-3xl sm:text-4xl">Simulez un bulletin de paie en temps réel</h2>
+                <p class="text-indigo-200 text-sm leading-relaxed">
+                    Testez la puissance et la réactivité de notre moteur de paie. Ajustez le salaire de base brut, ajoutez des heures sup ou des absences et visualisez instantanément le résultat.
+                </p>
+                <div class="flex flex-col gap-3.5 pt-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-6 h-6 rounded-full bg-indigo-500/30 flex items-center justify-center text-indigo-300">✓</div>
+                        <span class="text-slate-300 text-xs font-semibold">Taux de cotisations sociales mis à jour</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="w-6 h-6 rounded-full bg-indigo-500/30 flex items-center justify-center text-indigo-300">✓</div>
+                        <span class="text-slate-300 text-xs font-semibold">Calculatrice instantanée sans rechargement</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Interactive Widget -->
+            <div class="lg:col-span-7 bg-white/5 backdrop-blur-md rounded-3xl p-6 md:p-8 border border-white/10 shadow-2xl">
+                <div class="grid md:grid-cols-2 gap-6">
+                    <!-- Sliders / Inputs -->
+                    <div class="flex flex-col gap-5">
+                        <h3 class="font-display font-semibold text-lg border-b border-white/10 pb-2 text-indigo-300">Variables de calcul</h3>
+                        
+                        <!-- Salaire Brut -->
+                        <div>
+                            <div class="flex justify-between text-xs font-bold text-slate-300 mb-2">
+                                <span>SALAIRE BRUT DE BASE</span>
+                                <span class="text-white font-mono text-sm" x-text="salaireBrut + ' €'"></span>
+                            </div>
+                            <input type="range" min="1500" max="6000" step="50" x-model="salaireBrut" class="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-indigo-400">
+                        </div>
+
+                        <!-- Absences -->
+                        <div>
+                            <div class="flex justify-between text-xs font-bold text-slate-300 mb-2">
+                                <span>ABSENCES (HEURES)</span>
+                                <span class="text-white font-mono text-sm" x-text="absencesHeures + ' h'"></span>
+                            </div>
+                            <input type="range" min="0" max="35" step="1" x-model="absencesHeures" class="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-indigo-400">
+                        </div>
+
+                        <!-- Heures Sup -->
+                        <div>
+                            <div class="flex justify-between text-xs font-bold text-slate-300 mb-2">
+                                <span>HEURES SUPPLÉMENTAIRES (+25%)</span>
+                                <span class="text-white font-mono text-sm" x-text="heuresSup + ' h'"></span>
+                            </div>
+                            <input type="range" min="0" max="20" step="1" x-model="heuresSup" class="w-full h-1.5 bg-white/20 rounded-lg appearance-none cursor-pointer accent-indigo-400">
+                        </div>
+
+                        <!-- Prime -->
+                        <div>
+                            <label class="block text-xs font-bold text-slate-300 mb-2">PRIME EXCEPTIONNELLE (€)</label>
+                            <input type="number" x-model="prime" class="w-full px-4 py-2 rounded-xl bg-white/10 border border-white/20 text-white text-sm focus:outline-none focus:border-indigo-400 font-mono">
+                        </div>
+                    </div>
+
+                    <!-- Outputs / Bulletins -->
+                    <div class="bg-white rounded-2xl p-6 text-slate-900 flex flex-col gap-5 justify-between">
+                        <div class="flex flex-col gap-4">
+                            <span class="text-xs font-bold text-slate-400 block tracking-widest uppercase">Aperçu du bulletin</span>
+                            
+                            <div class="flex flex-col gap-2 pb-4 border-b border-slate-100">
+                                <span class="text-xs text-slate-500 font-medium">SALAIRE NET À PAYER (ESTIMÉ)</span>
+                                <span class="text-3xl font-extrabold text-indigo-600 font-display" x-text="netAPayer.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €'"></span>
+                            </div>
+
+                            <div class="flex flex-col gap-2 text-xs">
+                                <div class="flex justify-between py-1.5 border-b border-slate-50">
+                                    <span class="text-slate-500">Brut total recalculé</span>
+                                    <span class="font-bold font-mono text-slate-800" x-text="brutCalcule.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €'"></span>
+                                </div>
+                                <div class="flex justify-between py-1.5 border-b border-slate-50">
+                                    <span class="text-slate-500">Cotisations Salariales (22%)</span>
+                                    <span class="font-bold font-mono text-red-500" x-text="'-' + cotisationsSalariales.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €'"></span>
+                                </div>
+                                <div class="flex justify-between py-1.5 border-b border-slate-50">
+                                    <span class="text-slate-500">Cotisations Patronales (42%)</span>
+                                    <span class="font-bold font-mono text-purple-600" x-text="'+' + cotisationsPatronales.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €'"></span>
+                                </div>
+                                <div class="flex justify-between py-1.5">
+                                    <span class="text-slate-500">Net imposable</span>
+                                    <span class="font-bold font-mono text-slate-800" x-text="netImposable.toLocaleString('fr-FR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €'"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button @click="user ? document.getElementById('pricing').scrollIntoView() : openAuth('signup')" class="w-full text-center py-3 rounded-xl bg-indigo-600 text-white text-xs font-bold hover:bg-indigo-700 transition-colors shadow-lg shadow-indigo-100 uppercase tracking-wider cursor-pointer">
+                            Commencer maintenant
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials Section -->
+    <section class="max-w-7xl mx-auto px-6 py-20 md:py-28 flex flex-col gap-12 md:gap-16">
+        <div class="text-center flex flex-col gap-4 max-w-2xl mx-auto">
+            <span class="text-indigo-600 text-sm font-extrabold uppercase tracking-wider">Avis Clients</span>
+            <h2 class="font-display font-bold text-3xl sm:text-4xl text-slate-900">Adopté par les plus grands gestionnaires</h2>
+        </div>
+
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Testimonial 1 -->
+            <div class="p-8 rounded-3xl bg-white border border-slate-100 shadow-xl shadow-slate-100/30 flex flex-col gap-6 justify-between">
+                <p class="text-slate-600 text-sm italic leading-relaxed">
+                    "Grâce à payohada, j'ai réduit mon temps passé sur les bulletins de paie de moitié. Les calculs d'absences et les déclarations DSN mensuelles se font en quelques secondes."
+                </p>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-400 to-purple-400 flex items-center justify-center font-bold text-white">AM</div>
+                    <div>
+                        <h4 class="text-sm font-bold text-slate-800">Aurélie Morel</h4>
+                        <p class="text-xs text-slate-500">DRH chez ACME France</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Testimonial 2 -->
+            <div class="p-8 rounded-3xl bg-white border border-slate-100 shadow-xl shadow-slate-100/30 flex flex-col gap-6 justify-between">
+                <p class="text-slate-600 text-sm italic leading-relaxed">
+                    "L'authentification via Supabase simplifie grandement l'accès pour nos gestionnaires et la connexion à notre écosystème technique. Le service client est très réactif."
+                </p>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-teal-400 flex items-center justify-center font-bold text-white">LG</div>
+                    <div>
+                        <h4 class="text-sm font-bold text-slate-800">Laurent Giraud</h4>
+                        <p class="text-xs text-slate-500">CFO chez InnovaTech</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Testimonial 3 -->
+            <div class="p-8 rounded-3xl bg-white border border-slate-100 shadow-xl shadow-slate-100/30 flex flex-col gap-6 justify-between">
+                <p class="text-slate-600 text-sm italic leading-relaxed">
+                    "La prise en main est ultra intuitive. Pouvoir basculer d'un établissement à un autre en un clic est indispensable pour notre groupe multi-filiales."
+                </p>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-rose-400 flex items-center justify-center font-bold text-white">SB</div>
+                    <div>
+                        <h4 class="text-sm font-bold text-slate-800">Sylvie Bernard</h4>
+                        <p class="text-xs text-slate-500">Expert-comptable à Lyon</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="pricing" class="max-w-7xl mx-auto px-6 py-20 md:py-28 flex flex-col gap-12 md:gap-16">
+        <div class="text-center flex flex-col gap-4 max-w-2xl mx-auto">
+            <span class="text-indigo-600 text-sm font-extrabold uppercase tracking-wider">Tarifs</span>
+            <h2 class="font-display font-bold text-3xl sm:text-4xl text-slate-900">Un tarif simple et adapté à vos besoins</h2>
+            <p class="text-slate-600">
+                Aucun coût caché. Payez uniquement ce que vous utilisez avec une flexibilité totale.
+            </p>
+        </div>
+
+        <div class="grid md:grid-cols-3 gap-8 items-stretch max-w-5xl mx-auto w-full">
+            <!-- Plan 1 -->
+            <div class="p-8 rounded-3xl bg-white border border-slate-100 shadow-lg shadow-slate-100/40 flex flex-col justify-between gap-8">
+                <div class="flex flex-col gap-4">
+                    <h3 class="font-display font-bold text-xl text-slate-800">Solo</h3>
+                    <p class="text-slate-500 text-xs">Pour les micro-entreprises et auto-entrepreneurs</p>
+                    <div class="flex items-baseline gap-1 mt-4">
+                        <span class="text-4xl font-extrabold text-slate-900 font-display">9 €</span>
+                        <span class="text-slate-500 text-xs font-semibold">/ salarié / mois</span>
+                    </div>
+                    <ul class="flex flex-col gap-3.5 text-xs text-slate-600 pt-6 border-t border-slate-50">
+                        <li class="flex items-center gap-2">✓ Jusqu'à 5 salariés</li>
+                        <li class="flex items-center gap-2">✓ Bulletins de paie illimités</li>
+                        <li class="flex items-center gap-2">✓ Calcul des absences & HS</li>
+                        <li class="flex items-center gap-2">✓ Déclarations DSN</li>
+                    </ul>
+                </div>
+                <button @click="user ? alert('Vous êtes connecté. Le simulateur est accessible ci-dessus.') : openAuth('signup')" class="w-full text-center py-3 rounded-xl bg-slate-50 text-slate-700 text-xs font-semibold hover:bg-slate-100 cursor-pointer">Choisir ce forfait</button>
+            </div>
+
+            <!-- Plan 2 (Popular) -->
+            <div class="p-8 rounded-3xl bg-white border-2 border-indigo-600 shadow-xl shadow-indigo-100/40 flex flex-col justify-between gap-8 relative overflow-hidden transform scale-105">
+                <div class="absolute top-0 right-0 bg-indigo-600 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl uppercase tracking-wider">Populaire</div>
+                <div class="flex flex-col gap-4">
+                    <h3 class="font-display font-bold text-xl text-slate-800">Standard</h3>
+                    <p class="text-slate-500 text-xs">Pour les PME en pleine croissance</p>
+                    <div class="flex items-baseline gap-1 mt-4">
+                        <span class="text-4xl font-extrabold text-slate-900 font-display">6 €</span>
+                        <span class="text-slate-500 text-xs font-semibold">/ salarié / mois</span>
+                    </div>
+                    <ul class="flex flex-col gap-3.5 text-xs text-slate-600 pt-6 border-t border-slate-50">
+                        <li class="flex items-center gap-2">✓ Salariés illimités</li>
+                        <li class="flex items-center gap-2">✓ Bulletins de paie illimités</li>
+                        <li class="flex items-center gap-2">✓ Déclarations DSN & caisses</li>
+                        <li class="flex items-center gap-2">✓ Espace multi-établissement</li>
+                        <li class="flex items-center gap-2">✓ Support client prioritaire (24/7)</li>
+                    </ul>
+                </div>
+                <button @click="user ? alert('Vous êtes déjà membre de Payohada.') : openAuth('signup')" class="w-full text-center py-3 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 shadow-lg shadow-indigo-200 cursor-pointer">Démarrer l'essai gratuit</button>
+            </div>
+
+            <!-- Plan 3 -->
+            <div class="p-8 rounded-3xl bg-white border border-slate-100 shadow-lg shadow-slate-100/40 flex flex-col justify-between gap-8">
+                <div class="flex flex-col gap-4">
+                    <h3 class="font-display font-bold text-xl text-slate-800">Sur mesure</h3>
+                    <p class="text-slate-500 text-xs">Pour les grandes entreprises et comptables</p>
+                    <div class="flex items-baseline gap-1 mt-4">
+                        <span class="text-2xl font-extrabold text-slate-900 font-display">Sur devis</span>
+                    </div>
+                    <ul class="flex flex-col gap-3.5 text-xs text-slate-600 pt-6 border-t border-slate-50">
+                        <li class="flex items-center gap-2">✓ Volume de salariés important</li>
+                        <li class="flex items-center gap-2">✓ API d'intégration dédiée</li>
+                        <li class="flex items-center gap-2">✓ Account manager dédié</li>
+                        <li class="flex items-center gap-2">✓ Import de données historique</li>
+                        <li class="flex items-center gap-2">✓ Contrat SLA de disponibilité</li>
+                    </ul>
+                </div>
+                <a href="mailto:contact@payohada.com" class="w-full text-center py-3 rounded-xl bg-slate-50 text-slate-700 text-xs font-semibold hover:bg-slate-100">Contacter l'équipe</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="max-w-4xl mx-auto px-6 py-20 md:py-28 flex flex-col gap-12">
+        <div class="text-center flex flex-col gap-4">
+            <span class="text-indigo-600 text-sm font-extrabold uppercase tracking-wider">FAQ</span>
+            <h2 class="font-display font-bold text-3xl text-slate-900">Questions fréquentes</h2>
+        </div>
+
+        <div class="flex flex-col gap-4" x-data="{ activeAccordion: null }">
+            <!-- FAQ 1 -->
+            <div class="border border-slate-200/60 rounded-2xl bg-white overflow-hidden transition-all duration-300">
+                <button @click="activeAccordion = activeAccordion === 1 ? null : 1" class="w-full px-6 py-5 flex items-center justify-between text-left font-semibold text-slate-800 text-sm hover:bg-slate-50/50">
+                    <span>Comment payohada garantit la conformité de mes bulletins ?</span>
+                    <span class="text-indigo-500 font-bold" x-text="activeAccordion === 1 ? '−' : '+'"></span>
+                </button>
+                <div x-show="activeAccordion === 1" x-collapse class="px-6 pb-5 text-xs text-slate-500 leading-relaxed border-t border-slate-100 pt-4">
+                    Notre moteur de calcul de paie applique scrupuleusement les formules de calcul imposées par les règlementations françaises (URSSAF, Retraite Complémentaire, Pôle Emploi). De plus, les conventions collectives (CCN) sont régulièrement mises à jour.
+                </div>
+            </div>
+
+            <!-- FAQ 2 -->
+            <div class="border border-slate-200/60 rounded-2xl bg-white overflow-hidden transition-all duration-300">
+                <button @click="activeAccordion = activeAccordion === 2 ? null : 2" class="w-full px-6 py-5 flex items-center justify-between text-left font-semibold text-slate-800 text-sm hover:bg-slate-50/50">
+                    <span>Comment s'effectue l'authentification avec Supabase ?</span>
+                    <span class="text-indigo-500 font-bold" x-text="activeAccordion === 2 ? '−' : '+'"></span>
+                </button>
+                <div x-show="activeAccordion === 2" x-collapse class="px-6 pb-5 text-xs text-slate-500 leading-relaxed border-t border-slate-100 pt-4">
+                    L'authentification est totalement déléguée à Supabase Auth (gestion des comptes, mots de passe, réinitialisations et tokens JWT). Notre API backend sécurisée valide ces tokens à chaque appel pour garantir que les dossiers appartiennent bien au bon gestionnaire.
+                </div>
+            </div>
+
+            <!-- FAQ 3 -->
+            <div class="border border-slate-200/60 rounded-2xl bg-white overflow-hidden transition-all duration-300">
+                <button @click="activeAccordion = activeAccordion === 3 ? null : 3" class="w-full px-6 py-5 flex items-center justify-between text-left font-semibold text-slate-800 text-sm hover:bg-slate-50/50">
+                    <span>Puis-je importer mon historique de paie ?</span>
+                    <span class="text-indigo-500 font-bold" x-text="activeAccordion === 3 ? '−' : '+'"></span>
+                </button>
+                <div x-show="activeAccordion === 3" x-collapse class="px-6 pb-5 text-xs text-slate-500 leading-relaxed border-t border-slate-100 pt-4">
+                    Oui, payohada dispose d'une table dédiée aux variables de reprise de dossier, ce qui vous permet de renseigner les cumuls précédents de vos salariés en pleine année civile afin d'éviter tout décalage sur vos fiches de paie et votre DSN.
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-16 border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-12 gap-10">
+            <!-- Brand -->
+            <div class="md:col-span-4 flex flex-col gap-4">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0 1 15.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 0 1 3 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 0 0-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 0 1-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 0 0 3 15h-.75M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm3 0h.008v.008H18V10.5Zm-12 0h.008v.008H6V10.5Z" />
+                        </svg>
+                    </div>
+                    <span class="font-display font-bold text-xl text-white tracking-tight">payohada</span>
+                </div>
+                <p class="text-xs text-slate-500 leading-relaxed max-w-sm">
+                    L'automatisation complète de la paie pour les TPE & PME. Allégez votre charge mentale de gestion administrative de paie.
+                </p>
+            </div>
+
+            <!-- Links 1 -->
+            <div class="md:col-span-3 flex flex-col gap-4 text-xs">
+                <h4 class="font-bold text-white uppercase tracking-wider">Produit</h4>
+                <a href="#features" class="hover:text-white transition-colors">Fonctionnalités</a>
+                <a href="#calculator" class="hover:text-white transition-colors">Simulateur</a>
+                <a href="#pricing" class="hover:text-white transition-colors">Tarifs</a>
+            </div>
+
+            <!-- Links 2 -->
+            <div class="md:col-span-3 flex flex-col gap-4 text-xs">
+                <h4 class="font-bold text-white uppercase tracking-wider">Mentions légales</h4>
+                <a href="#" class="hover:text-white transition-colors">CGU / CGV</a>
+                <a href="#" class="hover:text-white transition-colors">Confidentialité</a>
+                <a href="#" class="hover:text-white transition-colors">Mentions légales</a>
+            </div>
+
+            <!-- Copyright -->
+            <div class="md:col-span-2 flex items-end justify-end text-xs text-slate-500">
+                <span>© 2026 payohada.</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Authentication Modal (Alpine controlled) -->
+    <div x-show="authModalOpen" x-transition.opacity class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div @click.away="authModalOpen = false" class="bg-white rounded-3xl shadow-2xl border border-slate-100 w-full max-w-md overflow-hidden" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="scale-95 translate-y-4" x-transition:enter-end="scale-100 translate-y-0">
+            <!-- Modal Header -->
+            <div class="flex border-b border-slate-100 relative">
+                <button @click="authTab = 'login'" class="flex-1 py-4 text-center text-sm font-bold transition-all cursor-pointer" :class="authTab === 'login' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-500 hover:bg-slate-50'">Connexion</button>
+                <button @click="authTab = 'signup'" class="flex-1 py-4 text-center text-sm font-bold transition-all cursor-pointer" :class="authTab === 'signup' ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-slate-500 hover:bg-slate-50'">Créer un compte</button>
+                <button @click="authModalOpen = false" class="absolute right-4 top-4 text-slate-400 hover:text-slate-600 cursor-pointer">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+
+            <!-- Modal Content / Form -->
+            <form @submit.prevent="handleAuth()" class="p-6 md:p-8 flex flex-col gap-5">
+                
+                <!-- Errors or success messaging -->
+                <div x-show="errorMessage" class="p-3.5 bg-red-50 border border-red-100 text-red-700 text-xs rounded-xl font-medium" x-text="errorMessage"></div>
+                <div x-show="successMessage" class="p-3.5 bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs rounded-xl font-medium" x-text="successMessage"></div>
+
+                <!-- Registration details -->
+                <div x-show="authTab === 'signup'" class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Prénom</label>
+                        <input type="text" x-model="prenom" :required="authTab === 'signup'" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Nom</label>
+                        <input type="text" x-model="nom" :required="authTab === 'signup'" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Adresse Email</label>
+                    <input type="email" x-model="email" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
+                </div>
+
+                <!-- Password -->
+                <div>
+                    <label class="block text-[11px] font-bold text-slate-500 mb-1 uppercase tracking-wider">Mot de passe</label>
+                    <input type="password" x-model="password" required class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100">
+                </div>
+
+                <!-- Action Button -->
+                <button type="submit" :disabled="loading" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold shadow-lg shadow-indigo-100 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60">
+                    <span x-show="loading" class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    <span x-text="authTab === 'login' ? 'Se connecter' : 'Créer mon compte'"></span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Auth logic integration with Supabase -->
+    <script>
+        function authApp() {
+            return {
+                user: null,
+                session: null,
+                mobileMenuOpen: false,
+                authModalOpen: false,
+                authTab: 'login',
+                email: '',
+                password: '',
+                nom: '',
+                prenom: '',
+                loading: false,
+                errorMessage: '',
+                successMessage: '',
+                backendUser: null,
+                backendSyncStatus: 'idle',
+                
+                async init() {
+                    // Initialisation du client Supabase
+                    this.supabase = window.supabase.createClient("{{SUPABASE_URL}}", "{{SUPABASE_ANON_KEY}}");
+                    
+                    // Vérification de la session active
+                    const { data: { session } } = await this.supabase.auth.getSession();
+                    this.setSession(session);
+                    
+                    // Écoute des changements d'authentification
+                    this.supabase.auth.onAuthStateChange((event, session) => {
+                        this.setSession(session);
+                        if (event === 'SIGNED_IN') {
+                            this.authModalOpen = false;
+                        }
+                    });
+                },
+                
+                setSession(session) {
+                    this.session = session;
+                    this.user = session ? session.user : null;
+                    if (session) {
+                        this.syncWithBackend();
+                    } else {
+                        this.backendUser = null;
+                        this.backendSyncStatus = 'idle';
+                    }
+                },
+                
+                async syncWithBackend() {
+                    if (!this.session) return;
+                    this.backendSyncStatus = 'loading';
+                    try {
+                        const response = await fetch('/auth/me', {
+                            headers: {
+                                'Authorization': 'Bearer ' + this.session.access_token
+                            }
+                        });
+                        if (response.ok) {
+                            this.backendUser = await response.json();
+                            this.backendSyncStatus = 'success';
+                        } else {
+                            this.backendSyncStatus = 'error';
+                        }
+                    } catch (err) {
+                        console.error("Erreur de synchronisation backend:", err);
+                        this.backendSyncStatus = 'error';
+                    }
+                },
+                
+                openAuth(tab) {
+                    this.authTab = tab;
+                    this.email = '';
+                    this.password = '';
+                    this.nom = '';
+                    this.prenom = '';
+                    this.errorMessage = '';
+                    this.successMessage = '';
+                    this.authModalOpen = true;
+                },
+                
+                async handleAuth() {
+                    this.loading = true;
+                    this.errorMessage = '';
+                    this.successMessage = '';
+                    
+                    try {
+                        if (this.authTab === 'login') {
+                            const { error } = await this.supabase.auth.signInWithPassword({
+                                email: this.email,
+                                password: this.password
+                            });
+                            if (error) throw error;
+                            this.successMessage = "Connexion réussie !";
+                        } else {
+                            const { data, error } = await this.supabase.auth.signUp({
+                                email: this.email,
+                                password: this.password,
+                                options: {
+                                    data: {
+                                        nom: this.nom,
+                                        prenom: this.prenom
+                                    }
+                                }
+                            });
+                            if (error) throw error;
+                            
+                            if (data?.user?.identities?.length === 0) {
+                                this.errorMessage = "Cet email est déjà enregistré.";
+                            } else {
+                                this.successMessage = "Inscription réussie ! Connectez-vous avec vos identifiants.";
+                                this.authTab = 'login';
+                            }
+                        }
+                    } catch (err) {
+                        this.errorMessage = err.message || "Une erreur est survenue lors de l'authentification.";
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+                
+                async signOut() {
+                    await this.supabase.auth.signOut();
+                    this.mobileMenuOpen = false;
+                }
+            };
+        }
+    </script>
+</body>
+</html>

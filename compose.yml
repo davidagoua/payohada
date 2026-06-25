@@ -1,0 +1,55 @@
+services:
+  redis:
+    image: redis/redis-stack:latest
+    container_name: payohada-redis
+    ports:
+      - "6379:6379"
+      - "8001:8001"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: payohada-backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+      - HOST=0.0.0.0
+      - PORT=8000
+    depends_on:
+      - redis
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: payohada-frontend
+    restart: unless-stopped
+    volumes:
+      - frontend_static:/var/www/html
+    depends_on:
+      - backend
+
+  nginx:
+    image: nginx:alpine
+    container_name: payohada-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - frontend_static:/usr/share/nginx/html:ro
+    depends_on:
+      - backend
+      - frontend
+
+volumes:
+  redis_data:
+  frontend_static:
