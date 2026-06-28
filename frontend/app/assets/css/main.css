@@ -15,4 +15,45 @@
   --color-green-800: #135e25;
   --color-green-900: #0d4019;
   --color-green-950: #08260f;
+
+  /* Force all border radius to be square (corporate style) */
+  --radius-none: 0px;
+  --radius-xs: 0px;
+  --radius-sm: 0px;
+  --radius-md: 0px;
+  --radius-lg: 0px;
+  --radius-xl: 0px;
+  --radius-2xl: 0px;
+  --radius-3xl: 0px;
+  --radius-4xl: 0px;
 }
+
+:root {
+  /* Set Nuxt UI components to have square corners */
+  --ui-radius: 0px !important;
+}
+
+/* Ensure all buttons, fields, select options, and modals are strictly square */
+input, select, textarea, button, [class*="rounded"] {
+  border-radius: 0px !important;
+}
+
+/* Corporate styling utilities */
+.shadow-flat {
+  box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 0.08);
+}
+
+.shadow-flat-hover {
+  transition: all 0.15s ease;
+}
+
+.shadow-flat-hover:hover {
+  box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 0.12);
+  transform: translate(-1px, -1px);
+}
+
+.shadow-flat-active:active {
+  box-shadow: 1px 1px 0px 0px rgba(0, 0, 0, 0.08);
+  transform: translate(1px, 1px);
+}
+

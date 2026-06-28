@@ -66,6 +66,8 @@ class PrimeBase(BaseModel):
     mois: int
     annee: str
     libelle: Optional[str] = None
+    base: Optional[float] = None
+    taux: Optional[float] = None
 
 
 class PrimeCreate(PrimeBase):

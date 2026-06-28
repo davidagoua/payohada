@@ -19,6 +19,107 @@ const bulkProcessing = ref(false)
 const bulkProgress = ref(0)
 const bulkTotal = ref(0)
 
+const selectedBulletins = ref([])
+
+const allBulletinsSelected = computed({
+  get: () => contracts.value.length > 0 && selectedBulletins.value.length === contracts.value.length,
+  set: (val) => {
+    if (val) {
+      selectedBulletins.value = contracts.value.map(c => c.id)
+    } else {
+      selectedBulletins.value = []
+    }
+  }
+})
+
+const handleCalculateSelected = async () => {
+  const pending = selectedBulletins.value.filter(cId => !bulletinsMap.value[cId])
+  if (pending.length === 0) {
+    toast.add({
+      title: 'Info',
+      description: 'Tous les bulletins de la sélection sont déjà générés.',
+      color: 'warning'
+    })
+    return
+  }
+
+  if (!confirm(`Générer les bulletins de paie pour les ${pending.length} salarié(s) sélectionnés en attente ?`)) return
+
+  bulkProcessing.value = true
+  bulkProgress.value = 0
+  bulkTotal.value = pending.length
+
+  let successCount = 0
+  for (let i = 0; i < pending.length; i++) {
+    const cId = pending[i]
+    try {
+      const payload = {
+        contrat_id: cId,
+        mois: Number(selectedMois.value),
+        annee: Number(selectedAnnee.value),
+        acompte: 0.0,
+        commentaire: "Calcul groupé de la sélection"
+      }
+      await post('/bulletins/calculer', payload)
+      successCount++
+    } catch (e) {
+      console.error(`Error calculating for contract ${cId}:`, e)
+    }
+    bulkProgress.value = i + 1
+  }
+
+  bulkProcessing.value = false
+  toast.add({
+    title: 'Génération terminée',
+    description: `${successCount} bulletin(s) de salaire calculé(s) avec succès.`,
+    color: 'success'
+  })
+  selectedBulletins.value = []
+  await fetchDossierData()
+}
+
+const handleValidateSelected = async () => {
+  const drafts = selectedBulletins.value
+    .map(cId => bulletinsMap.value[cId])
+    .filter(b => b && b.statut !== 'valide')
+
+  if (drafts.length === 0) {
+    toast.add({
+      title: 'Info',
+      description: 'Aucun bulletin en brouillon sélectionné à valider.',
+      color: 'warning'
+    })
+    return
+  }
+
+  if (!confirm(`Valider définitivement les ${drafts.length} bulletin(s) sélectionnés en brouillon ?`)) return
+
+  bulkProcessing.value = true
+  bulkProgress.value = 0
+  bulkTotal.value = drafts.length
+
+  let successCount = 0
+  for (let i = 0; i < drafts.length; i++) {
+    const b = drafts[i]
+    try {
+      await put(`/bulletins/${b.id}/valider`)
+      successCount++
+    } catch (e) {
+      console.error(`Error validating bulletin ${b.id}:`, e)
+    }
+    bulkProgress.value = i + 1
+  }
+
+  bulkProcessing.value = false
+  toast.add({
+    title: 'Validation terminée',
+    description: `${successCount} bulletin(s) validé(s) définitivement.`,
+    color: 'success'
+  })
+  selectedBulletins.value = []
+  await fetchDossierData()
+}
+
 const fetchDossierData = async () => {
   loading.value = true
   try {
@@ -256,6 +357,29 @@ onMounted(() => {
       </div>
     </div>
 
+    <!-- Bulk Actions Bar -->
+    <div v-if="selectedBulletins.length > 0" class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-3 text-xs transition-all">
+      <div class="font-bold text-slate-700">
+        {{ selectedBulletins.length }} bulletin(s) sélectionné(s)
+      </div>
+      <div class="flex flex-wrap gap-2 justify-end w-full sm:w-auto">
+        <button 
+          @click="handleCalculateSelected"
+          class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+        >
+          <UIcon name="i-lucide-calculator" class="w-3.5 h-3.5" />
+          Calculer la sélection
+        </button>
+        <button 
+          @click="handleValidateSelected"
+          class="px-3 py-1.5 bg-yellow-500 hover:bg-yellow-650 text-slate-900 font-semibold rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+        >
+          <UIcon name="i-lucide-check-circle-2" class="w-3.5 h-3.5" />
+          Valider la sélection
+        </button>
+      </div>
+    </div>
+
     <!-- Employees & Bulletins List Table -->
     <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
       <div v-if="loading" class="flex flex-col items-center justify-center py-20 space-y-4">
@@ -271,6 +395,9 @@ onMounted(() => {
         <table class="min-w-full divide-y divide-slate-200 text-sm">
           <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
             <tr>
+              <th scope="col" class="px-4 py-3 text-left w-10">
+                <input type="checkbox" v-model="allBulletinsSelected" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+              </th>
               <th scope="col" class="px-6 py-3 text-left">Employé</th>
               <th scope="col" class="px-6 py-3 text-left">N° Contrat / Poste</th>
               <th scope="col" class="px-6 py-3 text-left">Statut Bulletin</th>
@@ -281,6 +408,9 @@ onMounted(() => {
           </thead>
           <tbody class="divide-y divide-slate-150 bg-white">
             <tr v-for="c in contracts" :key="c.id" class="hover:bg-slate-50 transition-colors">
+              <td class="px-4 py-4" @click.stop>
+                <input type="checkbox" :value="c.id" v-model="selectedBulletins" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+              </td>
               
               <!-- Employee Column -->
               <td class="px-6 py-4">

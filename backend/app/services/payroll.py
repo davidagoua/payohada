@@ -78,7 +78,8 @@ def _calculate_gross_salary(
     contrat: Contrat,
     absences: list[Absence],
     heures_sup: list[HeureSupplementaire],
-    primes: list[Prime]
+    primes: list[Prime],
+    options: list[Option] = []
 ) -> tuple[list[LigneBulletinPaie], float]:
     """Calcule le salaire de base, le sursalaire, applique les absences, heures supps, primes et calcule le Salaire Brut."""
     unite = contrat.unite_temps or "Heures"
@@ -219,15 +220,33 @@ def _calculate_gross_salary(
     montant_primes = 0.0
     for prime in primes:
         montant_primes += prime.montant
+        has_base_rate = prime.base is not None and prime.taux is not None
         lignes_bulletin.append(
             LigneBulletinPaie(
                 bulletin_id=bulletin_id,
                 code=prime.code,
                 libelle=prime.libelle or f"Prime {prime.code}",
-                salaire_base=round(prime.montant, 2),
+                salaire_base=round(prime.base if has_base_rate else prime.montant, 2),
+                base_s=round(prime.base, 2) if has_base_rate else None,
+                taux_s=round(prime.taux, 4) if has_base_rate else None,
                 montant_pr=round(prime.montant, 2)
             )
         )
+
+    # 6. Options (gains et avantages en nature)
+    for opt in options:
+        is_gross_gain = opt.code.startswith("AVANTAGE_") or opt.code == "AUTRE_GAIN"
+        if is_gross_gain:
+            val = opt.valeur_numerique or 0.0
+            lignes_bulletin.append(
+                LigneBulletinPaie(
+                    bulletin_id=bulletin_id,
+                    code=opt.code,
+                    libelle=opt.libelle or f"Option {opt.code}",
+                    salaire_base=round(val, 2),
+                    montant_pr=round(val, 2)
+                )
+            )
 
     # To be extremely precise and match standard payroll, we sum all lines that make up the gross salary:
     salaire_brut = sum(line.montant_pr for line in lignes_bulletin)
@@ -496,13 +515,13 @@ def calculate_payslip(db: Session, contrat_id: int, mois: int, annee: int, acomp
     Si le bulletin existe déjà, il est recalculé et mis à jour.
     """
     # 1. Récupération des données d'entrée
-    contrat, etab, salarie, absences, heures_sup, primes, _options = _get_payroll_inputs(db, contrat_id, mois, annee)
+    contrat, etab, salarie, absences, heures_sup, primes, options = _get_payroll_inputs(db, contrat_id, mois, annee)
 
     # 2. Récupération ou création du bulletin de paie
     bulletin = _get_or_create_bulletin(db, contrat_id, contrat.dossier_id, mois, annee)
 
     # 3. Calcul des lignes de salaire brut
-    lignes_brut, salaire_brut = _calculate_gross_salary(bulletin.id, contrat, absences, heures_sup, primes)
+    lignes_brut, salaire_brut = _calculate_gross_salary(bulletin.id, contrat, absences, heures_sup, primes, options)
 
     # 4. Calcul des cotisations sociales et taxes
     lignes_cotisations, cot_salariales, cot_patronales = _calculate_cnps_cotisations(db, bulletin.id, etab, contrat, salarie, salaire_brut)
@@ -543,8 +562,55 @@ def calculate_payslip(db: Session, contrat_id: int, mois: int, annee: int, acomp
             )
         )
 
+    # Options affecting net
+    options_gains_net = 0.0
+    options_deductions_net = 0.0
+    for opt in options:
+        val = opt.valeur_numerique or 0.0
+        if opt.code.startswith("AVANTAGE_"):
+            # Deduct benefit in kind from net (it's non-cash, was added to gross for tax)
+            options_deductions_net += val
+            lignes_sup.append(
+                LigneBulletinPaie(
+                    bulletin_id=bulletin.id,
+                    code=f"RET_{opt.code}",
+                    libelle=f"Retenue {opt.libelle or opt.code}",
+                    montant_cs=round(val, 2)
+                )
+            )
+        elif opt.code == "FRAIS_PROFESSIONNELS":
+            # Non-taxable professional expense reimbursement (adds to net)
+            options_gains_net += val
+            lignes_sup.append(
+                LigneBulletinPaie(
+                    bulletin_id=bulletin.id,
+                    code=opt.code,
+                    libelle=opt.libelle or "Remboursement de frais",
+                    montant_pr=round(val, 2)
+                )
+            )
+        elif opt.code == "AUTRE_RETENUE":
+            # Direct deduction (decreases net)
+            options_deductions_net += val
+            lignes_sup.append(
+                LigneBulletinPaie(
+                    bulletin_id=bulletin.id,
+                    code=opt.code,
+                    libelle=opt.libelle or "Autre retenue",
+                    montant_cs=round(val, 2)
+                )
+            )
+
     # 6. Calcul des totaux nets et imposables
-    net_a_payer = salaire_brut - cot_salariales - acompte + transport_montant + telephone_montant
+    net_a_payer = (
+        salaire_brut
+        - cot_salariales
+        - acompte
+        + transport_montant
+        + telephone_montant
+        + options_gains_net
+        - options_deductions_net
+    )
     net_imposable = salaire_brut - (min(salaire_brut, 3375000) * 0.063) # basic net imposable (brut - retraite)
     
     # 7. Sauvegarde et persistance

@@ -7,6 +7,7 @@ definePageMeta({
 })
 
 // Input State
+const modeCalcul = ref('brut')
 const typeSalaire = ref('Mensuel')
 const salaireMensuel = ref(500000)
 const salaireHoraire = ref(3000)
@@ -19,6 +20,31 @@ const expatrie = ref(false)
 const indemniteTransport = ref(0)
 const dotationTelephonique = ref(0)
 const acompte = ref(0)
+
+// Grouped lines computed properties
+const grossLines = computed(() => {
+  if (!result.value || !result.value.lignes) return []
+  return result.value.lignes.filter(l => {
+    const c = l.code.toUpperCase()
+    return !['IBS', 'RICF', 'CNPS_RETRAITE', 'CMU_S', 'CN', 'TA', 'TFC', 'CNPS_PF', 'CNPS_AT', 'CNPS_MATERNITE', 'CMU_P', 'TRANSPORT', 'TELEPHONE', 'ACOMPTE'].includes(c)
+  })
+})
+
+const cotisationsLines = computed(() => {
+  if (!result.value || !result.value.lignes) return []
+  return result.value.lignes.filter(l => {
+    const c = l.code.toUpperCase()
+    return ['IBS', 'RICF', 'CNPS_RETRAITE', 'CMU_S', 'CN', 'TA', 'TFC', 'CNPS_PF', 'CNPS_AT', 'CNPS_MATERNITE', 'CMU_P'].includes(c)
+  })
+})
+
+const netLines = computed(() => {
+  if (!result.value || !result.value.lignes) return []
+  return result.value.lignes.filter(l => {
+    const c = l.code.toUpperCase()
+    return ['TRANSPORT', 'TELEPHONE', 'ACOMPTE'].includes(c)
+  })
+})
 
 // Lists of variables
 const absenceTypes = [
@@ -76,7 +102,7 @@ const removeHeureSup = (id) => {
 }
 
 const addPrime = () => {
-  primes.value.push({ id: Date.now(), code: 'ANCIENNETE', libelle: 'Prime d\'ancienneté', montant: 0 })
+  primes.value.push({ id: Date.now(), code: 'ANCIENNETE', libelle: 'Prime d\'ancienneté', montant: 0, mode: 'direct', base: 0, taux: 0 })
 }
 const removePrime = (id) => {
   primes.value = primes.value.filter(p => p.id !== id)
@@ -91,6 +117,7 @@ const handleSimulate = async () => {
       salaire_mensuel: typeSalaire.value === 'Mensuel' ? Number(salaireMensuel.value) : 0,
       salaire_horaire: typeSalaire.value === 'Horaire' ? Number(salaireHoraire.value) : 0,
       type_salaire: typeSalaire.value,
+      mode_calcul: modeCalcul.value,
       horaire_mensuel_standard: Number(horaireStandard.value),
       taux_at: Number(tauxAt.value),
       unite_temps: uniteTemps.value,
@@ -111,7 +138,9 @@ const handleSimulate = async () => {
       primes: primes.value.map(p => ({
         code: p.code || 'PRIME',
         libelle: p.libelle || 'Autre prime',
-        montant: Number(p.montant) || 0
+        montant: Number(p.montant) || 0,
+        base: p.mode === 'calcul' ? (Number(p.base) || null) : null,
+        taux: p.mode === 'calcul' ? (Number(p.taux) || null) : null
       }))
     }
 
@@ -145,9 +174,9 @@ onMounted(() => {
 <template>
   <div class="space-y-6">
     <!-- Header Object page -->
-    <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div class="bg-white border-2 border-slate-200 p-6 shadow-flat flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-t-4 border-t-green-600">
       <div class="flex items-center space-x-4">
-        <div class="w-12 h-12 bg-green-50 text-green-700 rounded-lg flex items-center justify-center font-bold text-xl border border-green-200">
+        <div class="w-12 h-12 bg-green-50 text-green-700 flex items-center justify-center font-bold text-xl border border-green-200">
           <UIcon name="i-lucide-calculator" class="w-6 h-6" />
         </div>
         <div>
@@ -159,11 +188,11 @@ onMounted(() => {
       <button 
         @click="handleSimulate"
         :disabled="loading"
-        class="w-full md:w-auto px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+        class="w-full md:w-auto px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold tracking-wider uppercase shadow-flat transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer shadow-flat-hover shadow-flat-active"
       >
         <UIcon v-if="loading" name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
         <UIcon v-else name="i-lucide-play" class="w-4 h-4" />
-        <span>Lancer le calcul</span>
+        <span>LANCER LE CALCUL</span>
       </button>
     </div>
 
@@ -174,32 +203,46 @@ onMounted(() => {
       <div class="lg:col-span-5 space-y-6">
         
         <!-- Base Salary Config -->
-        <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
+        <div class="bg-white border-2 border-slate-200 p-6 shadow-flat space-y-4 border-t-4 border-t-slate-500">
           <h2 class="text-sm font-bold text-slate-950 uppercase tracking-wider border-b border-slate-100 pb-2">Rémunération de base</h2>
           
           <div class="grid grid-cols-2 gap-4">
             <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Mode de calcul</label>
+              <select v-model="modeCalcul" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-none text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500">
+                <option value="brut">Salaire brut</option>
+                <option value="net">Salaire net</option>
+              </select>
+            </div>
+            
+            <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Base de calcul</label>
-              <select v-model="typeSalaire" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500">
+              <select v-model="typeSalaire" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-none text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500">
                 <option value="Mensuel">Salaire Mensuel</option>
                 <option value="Horaire">Taux Horaire</option>
               </select>
             </div>
-            
+          </div>
+
+          <div class="grid grid-cols-1 gap-4">
             <div v-if="typeSalaire === 'Mensuel'">
-              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Salaire Mensuel Brut</label>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                {{ modeCalcul === 'net' ? 'Salaire Mensuel Net (FCFA)' : 'Salaire Mensuel Brut (FCFA)' }}
+              </label>
               <input 
                 v-model="salaireMensuel" 
                 type="number" 
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" 
+                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-none text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" 
               />
             </div>
             <div v-else>
-              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Taux Horaire Brut</label>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                {{ modeCalcul === 'net' ? 'Taux Horaire Net (FCFA)' : 'Taux Horaire Brut (FCFA)' }}
+              </label>
               <input 
                 v-model="salaireHoraire" 
                 type="number" 
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" 
+                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-none text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" 
               />
             </div>
           </div>
@@ -211,7 +254,7 @@ onMounted(() => {
                 v-model="horaireStandard" 
                 type="number" 
                 step="0.01" 
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" 
+                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-none text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" 
               />
             </div>
             <div>
@@ -220,7 +263,7 @@ onMounted(() => {
                 v-model="tauxAt" 
                 type="number" 
                 step="0.1" 
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" 
+                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-none text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" 
               />
             </div>
           </div>
@@ -228,7 +271,7 @@ onMounted(() => {
           <div class="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Unité de Temps</label>
-              <select v-model="uniteTemps" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500">
+              <select v-model="uniteTemps" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-none text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500">
                 <option value="Heures">Heures</option>
                 <option value="Jours">Jours</option>
               </select>
@@ -238,7 +281,7 @@ onMounted(() => {
               <input 
                 v-model="sursalaire" 
                 type="number" 
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" 
+                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-none text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" 
               />
             </div>
           </div>
@@ -246,7 +289,7 @@ onMounted(() => {
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Régime Expatrié</label>
-              <select v-model="expatrie" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500">
+              <select v-model="expatrie" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-none text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500">
                 <option :value="false">Non (Local)</option>
                 <option :value="true">Oui (Expatrié)</option>
               </select>
@@ -256,7 +299,7 @@ onMounted(() => {
               <input 
                 v-model="acompte" 
                 type="number" 
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" 
+                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-none text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" 
               />
             </div>
           </div>
@@ -267,7 +310,7 @@ onMounted(() => {
               <input 
                 v-model="indemniteTransport" 
                 type="number" 
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" 
+                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-none text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" 
               />
             </div>
             <div>
@@ -275,14 +318,14 @@ onMounted(() => {
               <input 
                 v-model="dotationTelephonique" 
                 type="number" 
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" 
+                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-none text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" 
               />
             </div>
           </div>
         </div>
 
         <!-- Absences Config -->
-        <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
+        <div class="bg-white border-2 border-slate-200 p-6 shadow-flat space-y-4 border-t-4 border-t-slate-500">
           <div class="flex justify-between items-center border-b border-slate-100 pb-2">
             <h2 class="text-sm font-bold text-slate-950 uppercase tracking-wider">Absences à déduire</h2>
             <button 
@@ -297,28 +340,28 @@ onMounted(() => {
             Aucune absence renseignée. Le salarié a travaillé la totalité du mois.
           </div>
           <div v-else class="space-y-3">
-            <div v-for="(abs, index) in absences" :key="abs.id" class="flex gap-2 items-center bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <div v-for="(abs, index) in absences" :key="abs.id" class="flex gap-2 items-center bg-slate-50 p-3 rounded-none border border-slate-200">
               <div class="flex-grow grid grid-cols-3 gap-2">
                 <div>
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Motif</label>
-                  <select v-model="abs.code" class="block w-full px-2 py-1 border border-slate-300 rounded text-xs bg-white select focus:outline-none focus:ring-2 focus:ring-green-500">
+                  <select v-model="abs.code" class="block w-full px-2 py-1 border border-slate-300 rounded-none text-xs bg-white select focus:outline-none focus:ring-2 focus:ring-green-500">
                     <option v-for="type in absenceTypes" :key="type" :value="type">
-                      {{ type }}
+                       {{ type }}
                     </option>
                   </select>
                 </div>
                 <div>
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Nbr Heures</label>
-                  <input v-model="abs.nbr_heures" type="number" class="block w-full px-2 py-1 border border-slate-300 rounded text-xs font-mono" />
+                  <input v-model="abs.nbr_heures" type="number" class="block w-full px-2 py-1 border border-slate-300 rounded-none text-xs font-mono" />
                 </div>
                 <div>
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Nbr Jours</label>
-                  <input v-model="abs.nbr_jours" type="number" class="block w-full px-2 py-1 border border-slate-300 rounded text-xs font-mono" />
+                  <input v-model="abs.nbr_jours" type="number" class="block w-full px-2 py-1 border border-slate-300 rounded-none text-xs font-mono" />
                 </div>
               </div>
               <button 
                 @click="removeAbsence(abs.id)" 
-                class="mt-4 p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
+                class="mt-4 p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-none"
               >
                 <UIcon name="i-lucide-x" class="w-4 h-4" />
               </button>
@@ -327,7 +370,7 @@ onMounted(() => {
         </div>
 
         <!-- Overtime (Heures Sup) Config -->
-        <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
+        <div class="bg-white border-2 border-slate-200 p-6 shadow-flat space-y-4 border-t-4 border-t-slate-500">
           <div class="flex justify-between items-center border-b border-slate-100 pb-2">
             <h2 class="text-sm font-bold text-slate-950 uppercase tracking-wider">Heures Supplémentaires</h2>
             <button 
@@ -342,23 +385,23 @@ onMounted(() => {
             Aucune heure supplémentaire à majorer.
           </div>
           <div v-else class="space-y-3">
-            <div v-for="(hs, index) in heuresSup" :key="hs.id" class="flex gap-2 items-center bg-slate-50 p-3 rounded-lg border border-slate-200">
+            <div v-for="(hs, index) in heuresSup" :key="hs.id" class="flex gap-2 items-center bg-slate-50 p-3 rounded-none border border-slate-200">
               <div class="flex-grow grid grid-cols-2 gap-2">
                 <div>
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Type Majoré</label>
-                  <select v-model="hs.code" class="block w-full px-2 py-1 border border-slate-300 rounded text-xs bg-white">
+                  <select v-model="hs.code" class="block w-full px-2 py-1 border border-slate-300 rounded-none text-xs bg-white">
                     <option value="HS_25">HS Majorées à 25 %</option>
                     <option value="HS_50">HS Majorées à 50 %</option>
                   </select>
                 </div>
                 <div>
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Nombre d'heures</label>
-                  <input v-model="hs.nombre" type="number" class="block w-full px-2 py-1 border border-slate-300 rounded text-xs font-mono" />
+                  <input v-model="hs.nombre" type="number" class="block w-full px-2 py-1 border border-slate-300 rounded-none text-xs font-mono" />
                 </div>
               </div>
               <button 
                 @click="removeHeureSup(hs.id)" 
-                class="mt-4 p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
+                class="mt-4 p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-none"
               >
                 <UIcon name="i-lucide-x" class="w-4 h-4" />
               </button>
@@ -367,7 +410,7 @@ onMounted(() => {
         </div>
 
         <!-- Primes Config -->
-        <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
+        <div class="bg-white border-2 border-slate-200 p-6 shadow-flat space-y-4 border-t-4 border-t-slate-500">
           <div class="flex justify-between items-center border-b border-slate-100 pb-2">
             <h2 class="text-sm font-bold text-slate-950 uppercase tracking-wider">Primes & Indemnités</h2>
             <button 
@@ -382,24 +425,43 @@ onMounted(() => {
             Aucune prime ou indemnité ce mois-ci.
           </div>
           <div v-else class="space-y-3">
-            <div v-for="(p, index) in primes" :key="p.id" class="flex gap-2 items-center bg-slate-50 p-3 rounded-lg border border-slate-200">
-              <div class="flex-grow grid grid-cols-3 gap-2">
+            <div v-for="(p, index) in primes" :key="p.id" class="flex flex-col gap-2 bg-slate-50 p-3 rounded-none border border-slate-200 relative">
+              <div class="grid grid-cols-3 gap-2">
                 <div>
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Code</label>
-                  <input v-model="p.code" type="text" class="block w-full px-2 py-1 border border-slate-300 rounded text-xs font-mono" />
+                  <input v-model="p.code" type="text" class="block w-full px-2 py-1 border border-slate-300 rounded-none text-xs font-mono" />
                 </div>
                 <div>
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Libellé</label>
-                  <input v-model="p.libelle" type="text" class="block w-full px-2 py-1 border border-slate-300 rounded text-xs" />
+                  <input v-model="p.libelle" type="text" class="block w-full px-2 py-1 border border-slate-300 rounded-none text-xs" />
                 </div>
                 <div>
-                  <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Montant (FCFA)</label>
-                  <input v-model="p.montant" type="number" class="block w-full px-2 py-1 border border-slate-300 rounded text-xs font-mono" />
+                  <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Mode</label>
+                  <select v-model="p.mode" class="block w-full px-2 py-1 border border-slate-300 rounded-none text-xs bg-white">
+                    <option value="direct">Montant Direct</option>
+                    <option value="calcul">Base x Taux</option>
+                  </select>
                 </div>
               </div>
+              
+              <div class="grid grid-cols-3 gap-2 items-end">
+                <div v-if="p.mode === 'calcul'">
+                  <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Base (FCFA)</label>
+                  <input v-model="p.base" type="number" @input="p.montant = (Number(p.base) || 0) * ((Number(p.taux) || 0) / 100)" class="block w-full px-2 py-1 border border-slate-300 rounded-none text-xs font-mono bg-white" />
+                </div>
+                <div v-if="p.mode === 'calcul'">
+                  <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Taux (%)</label>
+                  <input v-model="p.taux" type="number" step="0.01" @input="p.montant = (Number(p.base) || 0) * ((Number(p.taux) || 0) / 100)" class="block w-full px-2 py-1 border border-slate-300 rounded-none text-xs font-mono bg-white" />
+                </div>
+                <div :class="p.mode === 'calcul' ? 'col-span-1' : 'col-span-3'">
+                  <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Montant (FCFA)</label>
+                  <input v-model="p.montant" type="number" :disabled="p.mode === 'calcul'" class="block w-full px-2 py-1 border border-slate-300 rounded-none text-xs font-mono bg-white disabled:bg-slate-100" />
+                </div>
+              </div>
+              
               <button 
                 @click="removePrime(p.id)" 
-                class="mt-4 p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
+                class="absolute top-2 right-2 p-1 text-red-500 hover:text-red-700 hover:bg-red-50"
               >
                 <UIcon name="i-lucide-x" class="w-4 h-4" />
               </button>
@@ -411,13 +473,12 @@ onMounted(() => {
 
       <!-- Right Column: Simulated Payslip Preview (7 cols) -->
       <div class="lg:col-span-7">
-        
-        <div v-if="loading" class="bg-white border border-slate-200 rounded-xl p-16 text-center space-y-4 shadow-sm flex flex-col items-center justify-center">
+        <div v-if="loading" class="bg-white border-2 border-slate-200 p-16 text-center space-y-4 shadow-flat flex flex-col items-center justify-center border-t-4 border-t-green-600">
           <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-green-600" />
           <span class="text-sm font-semibold text-slate-650">Calcul en cours et génération du bulletin...</span>
         </div>
 
-        <div v-else-if="result" class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden divide-y divide-slate-150">
+        <div v-else-if="result" class="bg-white border-2 border-slate-200 shadow-flat overflow-hidden divide-y divide-slate-150 border-t-4 border-t-green-600">
           
           <!-- Payslip Header -->
           <div class="p-6 bg-slate-50 flex justify-between items-start">
@@ -452,42 +513,131 @@ onMounted(() => {
           <!-- Payslip Lines Table -->
           <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-slate-200 text-xs">
-              <thead class="bg-slate-100 text-slate-600 font-bold text-[10px] uppercase tracking-wider">
+              <thead class="bg-slate-100 text-slate-650 font-bold uppercase tracking-wider text-[9px] border-b border-slate-200">
+                <!-- Group Headers -->
                 <tr>
-                  <th scope="col" class="px-4 py-2.5 text-left w-1/3">Rubrique / Libellé</th>
-                  <th scope="col" class="px-3 py-2.5 text-right">Base / Nombre</th>
-                  <th scope="col" class="px-3 py-2.5 text-right bg-slate-50/50">Part Salariale (%)</th>
-                  <th scope="col" class="px-3 py-2.5 text-right bg-slate-50/50">Montant Salarial</th>
-                  <th scope="col" class="px-3 py-2.5 text-right bg-slate-100/50">Part Patronale (%)</th>
-                  <th scope="col" class="px-3 py-2.5 text-right bg-slate-100/50">Montant Patronal</th>
-                  <th scope="col" class="px-4 py-2.5 text-right">Gains / Retenues</th>
+                  <th scope="col" rowspan="2" class="px-4 py-2.5 text-left w-1/4 border-r border-slate-200 align-middle">Rubrique / Libellé</th>
+                  <th scope="col" colspan="4" class="px-2 py-1 text-center bg-slate-50 border-r border-slate-200 border-b border-slate-200">Charges Employé</th>
+                  <th scope="col" colspan="3" class="px-2 py-1 text-center bg-slate-100 border-b border-slate-200">Charges Patronales</th>
+                </tr>
+                <!-- Sub Headers -->
+                <tr class="bg-slate-50/50">
+                  <th scope="col" class="px-2 py-1.5 text-right border-r border-slate-200">Base</th>
+                  <th scope="col" class="px-2 py-1.5 text-right border-r border-slate-200">Taux</th>
+                  <th scope="col" class="px-2 py-1.5 text-right border-r border-slate-200">A déduire</th>
+                  <th scope="col" class="px-2 py-1.5 text-right border-r border-slate-200">A payer</th>
+                  <th scope="col" class="px-2 py-1.5 text-right border-r border-slate-200">Base</th>
+                  <th scope="col" class="px-2 py-1.5 text-right border-r border-slate-200">Taux</th>
+                  <th scope="col" class="px-2 py-1.5 text-right">Montant</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-150 font-mono text-slate-700">
-                <tr v-for="line in result.lignes" :key="line.code" class="hover:bg-slate-50">
-                  <td class="px-4 py-2 text-left font-sans font-medium text-slate-900">{{ line.libelle }}</td>
-                  <td class="px-3 py-2 text-right text-slate-500">{{ line.base_s || line.base_p || '-' }}</td>
-                  
-                  <!-- Salariale -->
-                  <td class="px-3 py-2 text-right bg-slate-50/20 text-slate-400">
-                    {{ line.taux_s > 0 ? formatPercent(line.taux_s) : '-' }}
-                  </td>
-                  <td class="px-3 py-2 text-right bg-slate-50/20" :class="line.montant_cs > 0 ? 'text-slate-900 font-semibold' : 'text-slate-400'">
-                    {{ line.montant_cs > 0 ? formatXOF(line.montant_cs) : '-' }}
-                  </td>
-                  
-                  <!-- Patronale -->
-                  <td class="px-3 py-2 text-right bg-slate-100/10 text-slate-400">
-                    {{ line.taux_p > 0 ? formatPercent(line.taux_p) : '-' }}
-                  </td>
-                  <td class="px-3 py-2 text-right bg-slate-100/10" :class="line.montant_cp > 0 ? 'text-slate-900 font-semibold' : 'text-slate-400'">
-                    {{ line.montant_cp > 0 ? formatXOF(line.montant_cp) : '-' }}
-                  </td>
-
-                  <!-- Primes / Retenues / Gains Bruts -->
-                  <td class="px-4 py-2 text-right font-semibold text-slate-900" :class="{ 'text-red-600': line.montant_pr < 0 }">
+              <tbody class="divide-y divide-slate-150 font-mono text-slate-700 bg-white">
+                <!-- Group 1: Gross Salary Elements -->
+                <tr class="bg-slate-50/50 font-bold text-[10px] text-slate-650 uppercase tracking-wider no-print">
+                  <td colspan="8" class="px-4 py-1.5 text-left font-sans border-b border-slate-200">1. Éléments de Salaire Brut</td>
+                </tr>
+                <tr v-for="line in grossLines" :key="line.code" class="hover:bg-slate-50">
+                  <td class="px-4 py-2 text-left font-sans font-medium text-slate-900 border-r border-slate-100">{{ line.libelle }}</td>
+                  <!-- Emp Base -->
+                  <td class="px-2 py-2 text-right border-r border-slate-100 text-slate-500">{{ line.base_s || '-' }}</td>
+                  <!-- Emp Taux -->
+                  <td class="px-2 py-2 text-right border-r border-slate-100 text-slate-400">{{ line.taux_s > 0 ? formatPercent(line.taux_s) : '-' }}</td>
+                  <!-- Emp Deduct -->
+                  <td class="px-2 py-2 text-right border-r border-slate-100 text-slate-400">-</td>
+                  <!-- Emp Pay -->
+                  <td class="px-2 py-2 text-right border-r border-slate-100 font-semibold text-slate-900" :class="{ 'text-red-650': line.montant_pr < 0 }">
                     {{ line.montant_pr !== 0 ? formatXOF(line.montant_pr) : '-' }}
                   </td>
+                  <!-- Pat Base -->
+                  <td class="px-2 py-2 text-right border-r border-slate-100 text-slate-550">{{ line.base_p || '-' }}</td>
+                  <!-- Pat Taux -->
+                  <td class="px-2 py-2 text-right border-r border-slate-100 text-slate-400">{{ line.taux_p > 0 ? formatPercent(line.taux_p) : '-' }}</td>
+                  <!-- Pat Montant -->
+                  <td class="px-2 py-2 text-right" :class="line.montant_cp > 0 ? 'text-slate-900 font-semibold' : 'text-slate-400'">
+                    {{ line.montant_cp > 0 ? formatXOF(line.montant_cp) : '-' }}
+                  </td>
+                </tr>
+                <!-- Subtotal Gross -->
+                <tr class="bg-slate-100 font-extrabold border-t border-b border-slate-300">
+                  <td class="px-4 py-2 text-left font-sans text-slate-950 uppercase text-[10px] border-r border-slate-200">Total Salaire Brut</td>
+                  <td class="px-2 py-2 border-r border-slate-100"></td>
+                  <td class="px-2 py-2 border-r border-slate-100"></td>
+                  <td class="px-2 py-2 border-r border-slate-100"></td>
+                  <td class="px-2 py-2 text-right font-mono text-slate-950 border-r border-slate-200">{{ formatXOF(result.salaire_brut) }}</td>
+                  <td class="px-2 py-2 border-r border-slate-100"></td>
+                  <td class="px-2 py-2 border-r border-slate-100"></td>
+                  <td class="px-2 py-2 text-right text-slate-450">-</td>
+                </tr>
+
+                <!-- Group 2: Cotisations & Retenues -->
+                <tr class="bg-slate-50/50 font-bold text-[10px] text-slate-650 uppercase tracking-wider no-print">
+                  <td colspan="8" class="px-4 py-1.5 text-left font-sans border-b border-slate-200">2. Cotisations & Retenues Fiscales et Sociales</td>
+                </tr>
+                <tr v-for="line in cotisationsLines" :key="line.code" class="hover:bg-slate-50">
+                  <td class="px-4 py-2 text-left font-sans font-medium text-slate-900 border-r border-slate-100">{{ line.libelle }}</td>
+                  <!-- Emp Base -->
+                  <td class="px-2 py-2 text-right border-r border-slate-100 text-slate-500">{{ line.base_s || '-' }}</td>
+                  <!-- Emp Taux -->
+                  <td class="px-2 py-2 text-right border-r border-slate-100 text-slate-400">{{ line.taux_s > 0 ? formatPercent(line.taux_s) : '-' }}</td>
+                  <!-- Emp Deduct -->
+                  <td class="px-2 py-2 text-right border-r border-slate-100 font-semibold text-slate-900">{{ line.montant_cs > 0 ? formatXOF(line.montant_cs) : '-' }}</td>
+                  <!-- Emp Pay -->
+                  <td class="px-2 py-2 text-right border-r border-slate-100 text-slate-400">-</td>
+                  <!-- Pat Base -->
+                  <td class="px-2 py-2 text-right border-r border-slate-100 text-slate-500">{{ line.base_p || '-' }}</td>
+                  <!-- Pat Taux -->
+                  <td class="px-2 py-2 text-right border-r border-slate-100 text-slate-400">{{ line.taux_p > 0 ? formatPercent(line.taux_p) : '-' }}</td>
+                  <!-- Pat Montant -->
+                  <td class="px-2 py-2 text-right font-semibold text-slate-900">{{ line.montant_cp > 0 ? formatXOF(line.montant_cp) : '-' }}</td>
+                </tr>
+                <!-- Subtotal Cotisations -->
+                <tr class="bg-slate-100 font-extrabold border-t border-b border-slate-300">
+                  <td class="px-4 py-2 text-left font-sans text-slate-950 uppercase text-[10px] border-r border-slate-200">Total Cotisations & Retenues</td>
+                  <td class="px-2 py-2 border-r border-slate-100"></td>
+                  <td class="px-2 py-2 border-r border-slate-100"></td>
+                  <td class="px-2 py-2 text-right font-mono text-slate-950 border-r border-slate-200">{{ formatXOF(result.cotisations_salariales) }}</td>
+                  <td class="px-2 py-2 border-r border-slate-100 text-slate-450">-</td>
+                  <td class="px-2 py-2 border-r border-slate-100"></td>
+                  <td class="px-2 py-2 border-r border-slate-100"></td>
+                  <td class="px-2 py-2 text-right font-mono text-slate-950">{{ formatXOF(result.cotisations_patronales) }}</td>
+                </tr>
+
+                <!-- Group 3: Indemnités & Retenues diverses -->
+                <tr class="bg-slate-50/50 font-bold text-[10px] text-slate-650 uppercase tracking-wider no-print">
+                  <td colspan="8" class="px-4 py-1.5 text-left font-sans border-b border-slate-200">3. Indemnités & Retenues diverses</td>
+                </tr>
+                <tr v-for="line in netLines" :key="line.code" class="hover:bg-slate-50">
+                  <td class="px-4 py-2 text-left font-sans font-medium text-slate-900 border-r border-slate-100">{{ line.libelle }}</td>
+                  <!-- Emp Base -->
+                  <td class="px-2 py-2 text-right border-r border-slate-100 text-slate-500">{{ line.base_s || '-' }}</td>
+                  <!-- Emp Taux -->
+                  <td class="px-2 py-2 text-right border-r border-slate-100 text-slate-400">-</td>
+                  <!-- Emp Deduct -->
+                  <td class="px-2 py-2 text-right border-r border-slate-100 font-semibold text-slate-900" :class="{ 'text-red-650': line.montant_cs > 0 }">
+                    {{ line.montant_cs > 0 ? formatXOF(line.montant_cs) : '-' }}
+                  </td>
+                  <!-- Emp Pay -->
+                  <td class="px-2 py-2 text-right border-r border-slate-100 font-semibold text-slate-900" :class="{ 'text-red-650': line.montant_pr < 0 }">
+                    {{ line.montant_pr > 0 ? formatXOF(line.montant_pr) : '-' }}
+                  </td>
+                  <!-- Pat Base -->
+                  <td class="px-2 py-2 text-right border-r border-slate-100 text-slate-450">-</td>
+                  <!-- Pat Taux -->
+                  <td class="px-2 py-2 text-right border-r border-slate-100 text-slate-450">-</td>
+                  <!-- Pat Montant -->
+                  <td class="px-2 py-2 text-right text-slate-400">-</td>
+                </tr>
+
+                <!-- Net à Payer Highlight Row -->
+                <tr class="bg-green-600 font-extrabold text-white">
+                  <td class="px-4 py-3 text-left font-sans uppercase tracking-wider text-[11px] text-white border-r border-green-700">Net à payer</td>
+                  <td class="px-2 py-3 border-r border-green-500"></td>
+                  <td class="px-2 py-3 border-r border-green-500"></td>
+                  <td class="px-2 py-3 border-r border-green-500"></td>
+                  <td class="px-2 py-3 text-right font-mono text-white text-base border-r border-green-700">{{ formatXOF(result.net_a_payer) }}</td>
+                  <td class="px-2 py-3 border-r border-green-500"></td>
+                  <td class="px-2 py-3 border-r border-green-500"></td>
+                  <td class="px-2 py-3 text-right text-white font-mono">-</td>
                 </tr>
               </tbody>
             </table>
@@ -516,8 +666,8 @@ onMounted(() => {
               </div>
             </div>
 
-            <!-- Sleek highlight card for net pay -->
-            <div class="bg-green-600 rounded-xl p-4 text-white flex justify-between items-center shadow">
+            <!-- Corporate highlight block for net pay -->
+            <div class="bg-green-600 p-4 text-white flex justify-between items-center shadow-flat border border-green-700">
               <div class="space-y-0.5">
                 <p class="text-[10px] font-bold uppercase tracking-widest text-green-150">Net à Payer Fictif</p>
                 <p class="text-2xl font-extrabold tracking-tight font-mono">
@@ -572,8 +722,8 @@ onMounted(() => {
 
             <!-- Vacation Tracker -->
             <div class="pt-4 border-t border-slate-200 grid grid-cols-2 gap-4 text-[10px] text-slate-650">
-              <div class="bg-white border border-slate-200 rounded-lg p-3 space-y-1 shadow-sm">
-                <span class="block font-bold text-slate-900 uppercase tracking-wider">Congés Payés</span>
+              <div class="bg-white border border-slate-200 rounded-none p-3 space-y-1 shadow-sm">
+                <span class="block font-bold text-slate-950 uppercase tracking-wider">Congés Payés</span>
                 <div class="flex justify-between font-mono">
                   <span>Acquis :</span>
                   <span class="font-bold text-slate-900">2.50 jours / mois</span>
@@ -587,8 +737,8 @@ onMounted(() => {
                   <span class="font-bold text-green-700">2.50</span>
                 </div>
               </div>
-              <div class="bg-white border border-slate-200 rounded-lg p-3 space-y-1 shadow-sm">
-                <span class="block font-bold text-slate-900 uppercase tracking-wider">Logement & Congés</span>
+              <div class="bg-white border border-slate-200 rounded-none p-3 space-y-1 shadow-sm">
+                <span class="block font-bold text-slate-950 uppercase tracking-wider">Logement & Congés</span>
                 <div class="flex justify-between font-mono">
                   <span>Brut Congés :</span>
                   <span class="font-bold text-slate-900">{{ formatXOF(result.salaire_brut) }}</span>
@@ -604,7 +754,7 @@ onMounted(() => {
 
         </div>
 
-        <div v-else class="bg-white border border-slate-200 rounded-xl p-16 text-center text-slate-500 italic text-sm shadow-sm">
+        <div v-else class="bg-white border border-slate-200 rounded-none p-16 text-center text-slate-500 italic text-sm shadow-sm">
           Veuillez renseigner les paramètres à gauche puis cliquer sur "Lancer le calcul" pour générer la simulation du bulletin.
         </div>
 

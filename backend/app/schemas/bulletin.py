@@ -179,6 +179,8 @@ class SimulationPrimeInput(BaseModel):
     code: str
     libelle: Optional[str] = None
     montant: float
+    base: Optional[float] = None
+    taux: Optional[float] = None
 
 class SimulationInput(BaseModel):
     salaire_mensuel: Optional[float] = 0.0
@@ -195,6 +197,7 @@ class SimulationInput(BaseModel):
     absences: List[SimulationAbsenceInput] = []
     heures_sup: List[SimulationHeureSupInput] = []
     primes: List[SimulationPrimeInput] = []
+    mode_calcul: Optional[str] = "base"  # "base", "brut" ou "net"
 
 class LigneSimulationOut(BaseModel):
     code: str

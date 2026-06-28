@@ -24,6 +24,107 @@ const bulkProcessing = ref(false)
 const bulkProgress = ref(0)
 const bulkTotal = ref(0)
 
+const selectedBulletins = ref([])
+
+const allBulletinsSelected = computed({
+  get: () => contracts.value.length > 0 && selectedBulletins.value.length === contracts.value.length,
+  set: (val) => {
+    if (val) {
+      selectedBulletins.value = contracts.value.map(c => c.id)
+    } else {
+      selectedBulletins.value = []
+    }
+  }
+})
+
+const handleCalculateSelected = async () => {
+  const pending = selectedBulletins.value.filter(cId => !bulletinsMap.value[cId])
+  if (pending.length === 0) {
+    toast.add({
+      title: 'Info',
+      description: 'Tous les bulletins de la sélection sont déjà générés.',
+      color: 'warning'
+    })
+    return
+  }
+
+  if (!confirm(`Générer les bulletins de paie pour les ${pending.length} salarié(s) sélectionnés en attente ?`)) return
+
+  bulkProcessing.value = true
+  bulkProgress.value = 0
+  bulkTotal.value = pending.length
+
+  let successCount = 0
+  for (let i = 0; i < pending.length; i++) {
+    const cId = pending[i]
+    try {
+      const payload = {
+        contrat_id: cId,
+        mois: Number(selectedMois.value),
+        annee: Number(selectedAnnee.value),
+        acompte: 0.0,
+        commentaire: "Calcul groupé de la sélection"
+      }
+      await post('/bulletins/calculer', payload)
+      successCount++
+    } catch (e) {
+      console.error(`Error calculating for contract ${cId}:`, e)
+    }
+    bulkProgress.value = i + 1
+  }
+
+  bulkProcessing.value = false
+  toast.add({
+    title: 'Génération terminée',
+    description: `${successCount} bulletin(s) de salaire calculé(s) avec succès.`,
+    color: 'success'
+  })
+  selectedBulletins.value = []
+  await fetchDossierData()
+}
+
+const handleValidateSelected = async () => {
+  const drafts = selectedBulletins.value
+    .map(cId => bulletinsMap.value[cId])
+    .filter(b => b && b.statut !== 'valide')
+
+  if (drafts.length === 0) {
+    toast.add({
+      title: 'Info',
+      description: 'Aucun bulletin en brouillon sélectionné à valider.',
+      color: 'warning'
+    })
+    return
+  }
+
+  if (!confirm(`Valider définitivement les ${drafts.length} bulletin(s) sélectionnés en brouillon ?`)) return
+
+  bulkProcessing.value = true
+  bulkProgress.value = 0
+  bulkTotal.value = drafts.length
+
+  let successCount = 0
+  for (let i = 0; i < drafts.length; i++) {
+    const b = drafts[i]
+    try {
+      await put(`/bulletins/${b.id}/valider`)
+      successCount++
+    } catch (e) {
+      console.error(`Error validating bulletin ${b.id}:`, e)
+    }
+    bulkProgress.value = i + 1
+  }
+
+  bulkProcessing.value = false
+  toast.add({
+    title: 'Validation terminée',
+    description: `${successCount} bulletin(s) validé(s) définitivement.`,
+    color: 'success'
+  })
+  selectedBulletins.value = []
+  await fetchDossierData()
+}
+
 // Fetch all available dossiers
 const fetchDossiers = async () => {
   loadingDossiers.value = true
@@ -287,9 +388,9 @@ onMounted(async () => {
   <div class="space-y-6">
     
     <!-- Top Action / Title Header -->
-    <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div class="bg-white border-2 border-slate-200 p-6 shadow-flat flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-t-4 border-t-green-600">
       <div class="flex items-center space-x-4">
-        <div class="w-12 h-12 bg-green-50 text-green-700 rounded-lg flex items-center justify-center font-bold text-xl border border-green-200">
+        <div class="w-12 h-12 bg-green-50 text-green-700 flex items-center justify-center font-bold text-xl border border-green-200">
           <UIcon name="i-lucide-files" class="w-6 h-6" />
         </div>
         <div>
@@ -305,7 +406,7 @@ onMounted(async () => {
         <button 
           @click="handleValidateAll"
           :disabled="loadingData || bulkProcessing || stats.generatedCount === 0"
-          class="px-4 py-2 border border-slate-200 text-sm font-semibold rounded-lg hover:bg-slate-50 text-slate-700 transition-colors flex items-center gap-1.5 disabled:opacity-50"
+          class="px-4 py-2 border-2 border-slate-200 text-xs font-bold uppercase tracking-wider hover:bg-slate-50 text-slate-700 transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-flat-hover shadow-flat-active"
         >
           <UIcon name="i-lucide-check-circle-2" class="w-4 h-4 text-green-600" />
           Valider la période
@@ -313,7 +414,7 @@ onMounted(async () => {
         <button 
           @click="handleCalculateAll"
           :disabled="loadingData || bulkProcessing || stats.pendingCount === 0"
-          class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors flex items-center gap-1.5 disabled:opacity-50"
+          class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-bold uppercase tracking-wider shadow-flat transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-flat-hover shadow-flat-active"
         >
           <UIcon name="i-lucide-calculator" class="w-4 h-4" />
           Calculer les bulletins
@@ -322,7 +423,7 @@ onMounted(async () => {
     </div>
 
     <!-- Main Filter Bar -->
-    <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col md:flex-row items-center gap-4">
+    <div class="bg-white border-2 border-slate-200 p-4 shadow-flat flex flex-col md:flex-row items-center gap-4">
       <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
         <span class="text-xs font-bold uppercase tracking-wider text-slate-400 shrink-0">Entreprise :</span>
         <select 
@@ -393,7 +494,7 @@ onMounted(async () => {
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         
         <!-- Total Employees -->
-        <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-2">
+        <div class="bg-white border-2 border-slate-200 p-5 shadow-flat space-y-2 border-t-4 border-t-slate-500">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Effectif Actif</span>
             <div class="w-7 h-7 bg-slate-100 text-slate-600 rounded-lg flex items-center justify-center">
@@ -405,7 +506,7 @@ onMounted(async () => {
         </div>
 
         <!-- Generated Bulletins -->
-        <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-2">
+        <div class="bg-white border-2 border-slate-200 p-5 shadow-flat space-y-2 border-t-4 border-t-green-600">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Bulletins Calculés</span>
             <div class="w-7 h-7 bg-green-50 text-green-700 rounded-lg flex items-center justify-center">
@@ -425,7 +526,7 @@ onMounted(async () => {
         </div>
 
         <!-- Masse Salariale Brut -->
-        <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-2">
+        <div class="bg-white border-2 border-slate-200 p-5 shadow-flat space-y-2 border-t-4 border-t-blue-500">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Masse Brut</span>
             <div class="w-7 h-7 bg-blue-50 text-blue-700 rounded-lg flex items-center justify-center">
@@ -437,7 +538,7 @@ onMounted(async () => {
         </div>
 
         <!-- Masse Salariale Net -->
-        <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-sm space-y-2">
+        <div class="bg-white border-2 border-slate-200 p-5 shadow-flat space-y-2 border-t-4 border-t-emerald-600">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Masse Nette (Net à Payer)</span>
             <div class="w-7 h-7 bg-emerald-50 text-emerald-700 rounded-lg flex items-center justify-center">
@@ -449,8 +550,31 @@ onMounted(async () => {
         </div>
       </div>
 
+      <!-- Bulk Actions Bar -->
+      <div v-if="selectedBulletins.length > 0" class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row justify-between items-center gap-3 text-xs transition-all mb-4">
+        <div class="font-bold text-slate-700">
+          {{ selectedBulletins.length }} bulletin(s) sélectionné(s)
+        </div>
+        <div class="flex flex-wrap gap-2 justify-end w-full sm:w-auto">
+          <button 
+            @click="handleCalculateSelected"
+            class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+          >
+            <UIcon name="i-lucide-calculator" class="w-3.5 h-3.5" />
+            Calculer la sélection
+          </button>
+          <button 
+            @click="handleValidateSelected"
+            class="px-3 py-1.5 bg-yellow-500 hover:bg-yellow-650 text-slate-900 font-semibold rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+          >
+            <UIcon name="i-lucide-check-circle-2" class="w-3.5 h-3.5" />
+            Valider la sélection
+          </button>
+        </div>
+      </div>
+
       <!-- Employees & Bulletins List Table Card -->
-      <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+      <div class="bg-white border-2 border-slate-200 shadow-flat overflow-hidden border-t-4 border-t-slate-500">
         <div v-if="loadingData" class="flex flex-col items-center justify-center py-20 space-y-4">
           <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-green-600" />
           <span class="text-sm text-slate-500 font-medium">Chargement des fiches de paye...</span>
@@ -476,6 +600,9 @@ onMounted(async () => {
           <table class="min-w-full divide-y divide-slate-200 text-sm">
             <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
               <tr>
+                <th scope="col" class="px-4 py-3 text-left w-10">
+                  <input type="checkbox" v-model="allBulletinsSelected" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+                </th>
                 <th scope="col" class="px-6 py-3 text-left">Employé</th>
                 <th scope="col" class="px-6 py-3 text-left">Poste / Contrat</th>
                 <th scope="col" class="px-6 py-3 text-left">Établissement</th>
@@ -487,6 +614,9 @@ onMounted(async () => {
             </thead>
             <tbody class="divide-y divide-slate-150 bg-white">
               <tr v-for="c in contracts" :key="c.id" class="hover:bg-slate-50/50 transition-colors">
+                <td class="px-4 py-4" @click.stop>
+                  <input type="checkbox" :value="c.id" v-model="selectedBulletins" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+                </td>
                 
                 <!-- Employee Column -->
                 <td class="px-6 py-4">
@@ -566,7 +696,7 @@ onMounted(async () => {
                       <!-- View Link -->
                       <NuxtLink 
                         :to="`/dossiers/${selectedDossierId}/etablissements/${c.etablissement_id}/salaries/${c.salarie_id}/contrats/${c.id}/bulletins/${bulletinsMap[c.id].id}`"
-                        class="px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1"
+                        class="px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-none text-xs font-bold transition-colors flex items-center gap-1 uppercase tracking-wider"
                       >
                         <UIcon name="i-lucide-eye" class="w-3.5 h-3.5" />
                         Voir
@@ -576,30 +706,32 @@ onMounted(async () => {
                       <button 
                         v-if="bulletinsMap[c.id].statut !== 'valide'"
                         @click="handleCalculateSingle(c.id)"
-                        class="p-1.5 border border-slate-200 hover:bg-slate-50 text-slate-500 hover:text-green-600 rounded-lg transition-colors"
+                        class="px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-750 transition-colors rounded-none text-xs font-bold flex items-center gap-1 uppercase tracking-wider cursor-pointer"
                         title="Recalculer le bulletin"
                       >
-                        <UIcon name="i-lucide-refresh-cw" class="w-3.5 h-3.5" />
+                        <UIcon name="i-lucide-refresh-cw" class="w-3.5 h-3.5 text-green-600" />
+                        Recalculer
                       </button>
 
                       <!-- Validate (if draft) -->
                       <button 
                         v-if="bulletinsMap[c.id].statut !== 'valide'"
                         @click="handleValidateSingle(bulletinsMap[c.id].id)"
-                        class="p-1.5 border border-yellow-250 bg-yellow-50 hover:bg-yellow-100 text-yellow-700 rounded-lg transition-colors"
+                        class="px-2.5 py-1.5 border border-yellow-250 bg-yellow-50 hover:bg-yellow-100 text-yellow-750 transition-colors rounded-none text-xs font-bold flex items-center gap-1 uppercase tracking-wider cursor-pointer"
                         title="Valider définitivement"
                       >
-                        <UIcon name="i-lucide-check-circle" class="w-3.5 h-3.5" />
+                        <UIcon name="i-lucide-check-circle" class="w-3.5 h-3.5 text-yellow-600" />
+                        Valider
                       </button>
 
                       <!-- Delete (if draft) -->
                       <button 
                         v-if="bulletinsMap[c.id].statut !== 'valide'"
                         @click="handleDeleteSingle(bulletinsMap[c.id].id)"
-                        class="p-1.5 border border-red-200 bg-red-50 hover:bg-red-100 text-red-650 rounded-lg transition-colors"
+                        class="px-2.5 py-1.5 border border-red-200 bg-red-50 hover:bg-red-100 text-red-650 transition-colors rounded-none cursor-pointer flex items-center justify-center"
                         title="Supprimer"
                       >
-                        <UIcon name="i-lucide-trash-2" class="w-3.5 h-3.5" />
+                        <UIcon name="i-lucide-trash-2" class="w-4 h-4" />
                       </button>
 
                     </template>
@@ -608,7 +740,7 @@ onMounted(async () => {
                     <button 
                       v-else
                       @click="handleCalculateSingle(c.id)"
-                      class="px-2.5 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-semibold transition-colors flex items-center gap-1 shadow-sm"
+                      class="px-2.5 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-none text-xs font-bold transition-colors flex items-center gap-1 shadow-flat uppercase tracking-wider cursor-pointer"
                     >
                       <UIcon name="i-lucide-calculator" class="w-3.5 h-3.5" />
                       Calculer

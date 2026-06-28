@@ -507,6 +507,8 @@ class Prime(TimestampMixin, Base):
     mois = Column(Integer)
     annee = Column(String(4))
     libelle = Column(String(200))
+    base = Column(Float, nullable=True)
+    taux = Column(Float, nullable=True)
 
     contrat = relationship("Contrat", back_populates="primes")
 

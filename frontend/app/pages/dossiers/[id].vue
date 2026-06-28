@@ -7,8 +7,49 @@ const toast = useToast()
 const dossierId = route.params.id
 const dossier = ref(null)
 const etablissements = ref([])
+const selectedEtabs = ref([])
 const loading = ref(true)
-const activeTab = ref('infos')
+const activeTab = ref('etabs')
+
+const allEtabsSelected = computed({
+  get: () => etablissements.value.length > 0 && selectedEtabs.value.length === etablissements.value.length,
+  set: (val) => {
+    if (val) {
+      selectedEtabs.value = etablissements.value.map(e => e.id)
+    } else {
+      selectedEtabs.value = []
+    }
+  }
+})
+
+const handleBulkDeleteEtabs = async () => {
+  if (selectedEtabs.value.length === 0) return
+  if (!confirm(`Voulez-vous vraiment supprimer les ${selectedEtabs.value.length} établissements sélectionnés ainsi que toutes leurs données associées ?`)) return
+  
+  loading.value = true
+  try {
+    let successCount = 0
+    for (const etabId of selectedEtabs.value) {
+      try {
+        await apiDelete(`/etablissements/${etabId}`)
+        successCount++
+      } catch (e) {
+        console.error(`Erreur de suppression de l'établissement ${etabId}:`, e)
+      }
+    }
+    toast.add({
+      title: 'Suppression terminée',
+      description: `${successCount} établissement(s) supprimé(s) avec succès.`,
+      color: 'success'
+    })
+    selectedEtabs.value = []
+    await fetchDossierDetails()
+  } catch (e) {
+    console.error(e)
+  } finally {
+    loading.value = false
+  }
+}
 
 // Global State for breadcrumbs
 const currentDossier = useState('current-dossier')
@@ -162,50 +203,19 @@ onMounted(() => {
   </div>
 
   <div v-else-if="dossier" class="space-y-6">
-    <!-- Header Object page -->
-    <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-      <div class="flex items-center space-x-4">
-        <div class="w-12 h-12 bg-green-150 rounded-lg text-green-700 flex items-center justify-center font-bold text-xl">
-          {{ dossier.code }}
-        </div>
-        <div>
-          <h1 class="text-2xl font-bold text-slate-900 leading-tight">{{ dossier.nom_dossier }}</h1>
-          <p class="text-xs text-slate-500 font-mono mt-1">SIRET Principal : {{ dossier.siret || 'Non configuré' }}</p>
-        </div>
-      </div>
-      
-      <div class="flex space-x-3">
-        <button 
-          @click="handleDeleteDossier"
-          class="px-4 py-2 border border-red-200 text-sm font-semibold rounded-lg hover:bg-red-50 text-red-600 transition-colors flex items-center gap-1.5"
-        >
-          <UIcon name="i-lucide-trash-2" class="w-4 h-4" />
-          Supprimer le Dossier
-        </button>
-      </div>
-    </div>
 
+    
     <!-- SAP Fiori Style Horizontal Tabs -->
-    <div class="border-b border-slate-200">
+    <div class="border-b-2 border-slate-200">
       <nav class="flex space-x-8" aria-label="Tabs">
-        <button 
-          @click="activeTab = 'infos'"
-          :class="[
-            activeTab === 'infos' 
-              ? 'border-green-600 text-green-700 font-bold' 
-              : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300',
-            'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-all'
-          ]"
-        >
-          Informations Générales
-        </button>
+        
         <button 
           @click="activeTab = 'etabs'"
           :class="[
             activeTab === 'etabs' 
-              ? 'border-green-600 text-green-700 font-bold' 
-              : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300',
-            'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-all'
+              ? 'border-green-600 text-green-700 font-bold bg-green-50/20' 
+              : 'border-transparent text-slate-500 hover:text-slate-750 hover:bg-slate-50',
+            'whitespace-nowrap py-4 px-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all'
           ]"
         >
           Établissements ({{ etablissements.length }})
@@ -214,18 +224,30 @@ onMounted(() => {
           @click="activeTab = 'net'"
           :class="[
             activeTab === 'net' 
-              ? 'border-green-600 text-green-700 font-bold' 
-              : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300',
-            'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-all'
+              ? 'border-green-600 text-green-700 font-bold bg-green-50/20' 
+              : 'border-transparent text-slate-500 hover:text-slate-750 hover:bg-slate-50',
+            'whitespace-nowrap py-4 px-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all'
           ]"
         >
           NetEntreprise (DSN)
         </button>
+        <button 
+          @click="activeTab = 'infos'"
+          :class="[
+            activeTab === 'infos' 
+              ? 'border-green-600 text-green-700 font-bold bg-green-50/20' 
+              : 'border-transparent text-slate-500 hover:text-slate-750 hover:bg-slate-50',
+            'whitespace-nowrap py-4 px-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all'
+          ]"
+        >
+          Informations Générales
+        </button>
+
       </nav>
     </div>
 
     <!-- Tab 1: Informations -->
-    <div v-show="activeTab === 'infos'" class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+    <div v-show="activeTab === 'infos'" class="bg-white border-2 border-slate-200 p-6 shadow-flat border-t-4 border-t-slate-500">
       <form @submit.prevent="handleUpdateDossier" class="space-y-6">
         <h3 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">Modifier le profil de l'entreprise</h3>
         
@@ -297,7 +319,7 @@ onMounted(() => {
 
     <!-- Tab 2: Établissements -->
     <div v-show="activeTab === 'etabs'" class="space-y-6">
-      <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+      <div class="bg-white border-2 border-slate-200 p-6 shadow-flat border-t-4 border-t-slate-500">
         <div class="flex justify-between items-center border-b border-slate-100 pb-4 mb-4">
           <div>
             <h3 class="text-lg font-bold text-slate-900">Établissements Rattachés</h3>
@@ -305,11 +327,27 @@ onMounted(() => {
           </div>
           <button 
             @click="router.push(`/dossiers/${dossierId}/etablissements/new`)"
-            class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg text-xs transition-colors flex items-center gap-1.5 shadow-sm"
+            class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-flat cursor-pointer"
           >
             <UIcon name="i-lucide-plus" class="w-3.5 h-3.5" />
             Créer un établissement
           </button>
+        </div>
+
+        <!-- Bulk Actions Bar -->
+        <div v-if="selectedEtabs.length > 0" class="bg-slate-100 border border-slate-350 p-3 mb-4 flex items-center justify-between text-xs transition-all animate-fade-in">
+          <div class="font-bold text-slate-700">
+            {{ selectedEtabs.length }} établissement(s) sélectionné(s)
+          </div>
+          <div class="flex items-center space-x-2">
+            <button 
+              @click="handleBulkDeleteEtabs"
+              class="p-1.5 bg-red-650 hover:bg-red-755 text-white transition-colors shadow-flat cursor-pointer flex items-center justify-center"
+              title="Supprimer la sélection"
+            >
+              <UIcon name="i-lucide-trash-2" class="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         <!-- Table list or Empty state -->
@@ -320,6 +358,9 @@ onMounted(() => {
           <table class="min-w-full divide-y divide-slate-200 text-sm">
             <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
               <tr>
+                <th scope="col" class="px-4 py-3 text-left w-10">
+                  <input type="checkbox" v-model="allEtabsSelected" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+                </th>
                 <th scope="col" class="px-6 py-3 text-left">Code</th>
                 <th scope="col" class="px-6 py-3 text-left">Raison Sociale</th>
                 <th scope="col" class="px-6 py-3 text-left">Matricule CNPS</th>
@@ -334,6 +375,9 @@ onMounted(() => {
                 @click="router.push(`/dossiers/${dossierId}/etablissements/${etab.id}`)"
                 class="hover:bg-slate-50 cursor-pointer group"
               >
+                <td class="px-4 py-4" @click.stop>
+                  <input type="checkbox" :value="etab.id" v-model="selectedEtabs" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+                </td>
                 <td class="px-6 py-4 font-mono font-semibold text-slate-900">{{ etab.code }}</td>
                 <td class="px-6 py-4 font-medium text-slate-700 group-hover:text-green-700 transition-colors">{{ etab.raison_sociale }}</td>
                 <td class="px-6 py-4 font-mono text-slate-500">{{ etab.cnps_matricule || '-' }}</td>
@@ -352,7 +396,7 @@ onMounted(() => {
     </div>
 
     <!-- Tab 3: NetEntreprise -->
-    <div v-show="activeTab === 'net'" class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+    <div v-show="activeTab === 'net'" class="bg-white border-2 border-slate-200 p-6 shadow-flat border-t-4 border-t-slate-500">
       <form @submit.prevent="handleSaveNetEntreprise" class="space-y-6">
         <div>
           <h3 class="text-lg font-bold text-slate-900">Configuration NetEntreprise</h3>
