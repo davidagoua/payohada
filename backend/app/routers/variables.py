@@ -175,3 +175,72 @@ def create_reprise(
     db.commit()
     db.refresh(reprise)
     return reprise
+
+
+# ─────────────────────────────────────────
+#  SUPPRESSION DES VARIABLES
+# ─────────────────────────────────────────
+
+@router.delete("/absences/{absence_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_absence(
+    absence_id: int,
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user)
+):
+    """Supprime une absence."""
+    absence = db.query(Absence).filter(Absence.id == absence_id).first()
+    if not absence:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Absence introuvable.")
+    check_contrat_ownership(absence.contrat_id, current_user.id, db)
+    db.delete(absence)
+    db.commit()
+    return None
+
+
+@router.delete("/heures-supplementaires/{hs_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_heure_supplementaire(
+    hs_id: int,
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user)
+):
+    """Supprime des heures supplémentaires."""
+    hs = db.query(HeureSupplementaire).filter(HeureSupplementaire.id == hs_id).first()
+    if not hs:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Heure supplémentaire introuvable.")
+    check_contrat_ownership(hs.contrat_id, current_user.id, db)
+    db.delete(hs)
+    db.commit()
+    return None
+
+
+@router.delete("/primes/{prime_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_prime(
+    prime_id: int,
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user)
+):
+    """Supprime une prime."""
+    prime = db.query(Prime).filter(Prime.id == prime_id).first()
+    if not prime:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Prime introuvable.")
+    check_contrat_ownership(prime.contrat_id, current_user.id, db)
+    db.delete(prime)
+    db.commit()
+    return None
+
+
+@router.delete("/options/{option_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_option(
+    option_id: int,
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user)
+):
+    """Supprime une option du bulletin."""
+    option = db.query(Option).filter(Option.id == option_id).first()
+    if not option:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Option introuvable.")
+    check_contrat_ownership(option.contrat_id, current_user.id, db)
+    db.delete(option)
+    db.commit()
+    return None
+
