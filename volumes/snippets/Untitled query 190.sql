@@ -1,0 +1,1 @@
+select * from plan_paie;
