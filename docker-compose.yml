@@ -22,15 +22,15 @@ services:
     networks:
       - payohada-test
 
-#  frontend:
-#    build:
-#      context: ./frontend
-#      dockerfile: Dockerfile
-#    container_name: payohada-frontend
-#    restart: unless-stopped
-#    env_file:
-#      - ./frontend/.env 
-#      - .env
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: payohada-frontend
+    restart: unless-stopped
+    env_file:
+      - ./frontend/.env 
+      - .env
     
   caddy:
     image: caddy 
