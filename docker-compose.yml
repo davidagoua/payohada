@@ -30,8 +30,8 @@ services:
     
   caddy:
     image: caddy 
-    ports:
-      - 8000:80
+    epose:
+      - 80
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - ./frontend/dist:/srv
