@@ -12,9 +12,10 @@ services:
       - ./backend/.env
       - .env
     environment:
-      - REDIS_URL=redis://redis:6379/0
-      - HOST=0.0.0.0
-      - PORT=8000
+      - DATABASE_URL=${DATABASE_URL}
+      - SUPABASE_URL=${SUPABASE_URL}  
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
     profiles:
       - production
 
