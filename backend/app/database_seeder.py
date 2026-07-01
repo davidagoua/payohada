@@ -2,6 +2,7 @@ from sqlalchemy.orm import Session
 from app.models.models import Constante, PlanPaie
 
 def seed_database(db: Session):
+    return False
     # Seed constantes
     constantes_data = [
         {"code": "SMIG", "description": "Salaire Minimum Interprofessionnel Garanti", "montant": 75000.0, "unite": "FCFA", "pays": "CI"},
