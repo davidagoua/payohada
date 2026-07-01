@@ -18,15 +18,15 @@ services:
     profiles:
       - production
 
-  frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
-    container_name: payohada-frontend
-    restart: unless-stopped
-    env_file:
-      - ./frontend/.env 
-      - .env
+#  frontend:
+#    build:
+#      context: ./frontend
+#      dockerfile: Dockerfile
+#    container_name: payohada-frontend
+#    restart: unless-stopped
+#    env_file:
+#      - ./frontend/.env 
+#      - .env
     
   caddy:
     image: caddy 
@@ -35,6 +35,11 @@ services:
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - ./frontend/dist:/srv
+    develop:
+      watch:
+        - action: sync+restart 
+          path: ./frontend/dist 
+          target: /srv
     profiles:
       - production
 
