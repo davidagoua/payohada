@@ -19,6 +19,8 @@ services:
       - SUPABASE_URL=${SUPABASE_URL}  
       - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
       - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
+    networks:
+      - payohada-test
 
 #  frontend:
 #    build:
@@ -48,4 +50,6 @@ services:
         - action: sync+restart 
           path: ./frontend/dist 
           target: /srv
+    networks:
+      - payohada-test
 
