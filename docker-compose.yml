@@ -30,7 +30,7 @@ services:
     
   caddy:
     image: caddy 
-    epose:
+    expose:
       - 80
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
