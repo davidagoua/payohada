@@ -53,3 +53,7 @@ services:
     networks:
       - payohada-test
 
+networks:
+  payohada-test:
+    external: true
+
