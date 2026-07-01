@@ -6,6 +6,12 @@ services:
       dockerfile: Dockerfile
     container_name: payohada-backend
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f","http://localhost:8000"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
     expose:
       - "8000"
     environment:
@@ -28,6 +34,12 @@ services:
     image: caddy 
     expose:
       - 80
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
       - ./frontend/dist:/srv
