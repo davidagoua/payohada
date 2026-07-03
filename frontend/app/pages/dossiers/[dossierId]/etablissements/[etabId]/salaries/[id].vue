@@ -32,7 +32,7 @@ const salAdresse = ref('')
 const salAdresse2 = ref('')
 const salCodePostal = ref('')
 const salVille = ref('')
-const salPays = ref('France')
+const salPays = ref('Côte d\'Ivoire')
 const salEmail = ref('')
 const salPhone = ref('')
 const salIban = ref('')
@@ -75,7 +75,7 @@ const fetchSalarieDetails = async () => {
     salAdresse2.value = data.adresse2 || ''
     salCodePostal.value = data.code_postal || ''
     salVille.value = data.ville || ''
-    salPays.value = data.pays || 'France'
+    salPays.value = data.pays || "Côte d'Ivoire"
     salEmail.value = data.email || ''
     salPhone.value = data.telephone || ''
     salIban.value = data.iban || ''
@@ -121,7 +121,7 @@ const handleUpdateSalarie = async () => {
       adresse2: salAdresse2.value || null,
       code_postal: salCodePostal.value || null,
       ville: salVille.value || null,
-      pays: salPays.value || 'France',
+      pays: salPays.value || "Côte d'Ivoire",
       email: salEmail.value || null,
       telephone: salPhone.value || null,
       iban: salIban.value || null,
@@ -266,7 +266,7 @@ onMounted(() => {
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Nationalité</label>
-              <input v-model="salNationalite" type="text" placeholder="Ex: Française" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <input v-model="salNationalite" type="text" placeholder="Ex: Ivoirienne" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Régime Expatrié</label>
@@ -284,15 +284,12 @@ onMounted(() => {
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Lieu de Naissance</label>
-              <input v-model="salLieuNaissance" type="text" placeholder="Ex: Lyon" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <input v-model="salLieuNaissance" type="text" placeholder="Ex: Abidjan" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
-            <div>
-              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Département Naissance</label>
-              <input v-model="salDeptNaissance" type="text" placeholder="Ex: 69" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono" />
-            </div>
+          
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Pays Naissance</label>
-              <input v-model="salPaysNaissance" type="text" placeholder="Ex: France" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <input v-model="salPaysNaissance" type="text" placeholder="Ex: Côte d'Ivoire" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
           </div>
         </div>

@@ -1,5 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  ssr: false,
   nitro: {
     preset: "bun",
   },
@@ -16,6 +17,7 @@ export default defineNuxtConfig({
       contentSecurityPolicy: {
         'connect-src': [
           "'self'",
+          "https://api.iconify.design",
           process.env.NUXT_PUBLIC_SUPABASE_URL || 'http://supabase.payohada.cloud',
           (process.env.NUXT_PUBLIC_SUPABASE_URL || 'http://supabase.payohada.cloud').replace(/^http/, 'ws'),
           process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8000',
