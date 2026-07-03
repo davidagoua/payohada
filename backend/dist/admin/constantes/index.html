@@ -1,0 +1,97 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="base-uri 'none'; font-src 'self' https: data:; form-action 'self'; img-src 'self' data:; object-src 'none'; script-src-attr 'none'; style-src 'self' https: 'unsafe-inline'; script-src 'self' https: 'unsafe-inline' 'strict-dynamic' 'sha256-7QIjPOpXT97VD5NmIGqI7WTiAFunWN1i1ifDHVp5i+g=' 'sha256-jcm4fM4mDchU4ysZr19rxJMgbtzdsZjATHD8TYVVg+Q=' 'sha256-y1jzJqDyHTCxzg7k6o/C6jqxp997cTDpHqTc74KJxnQ=' 'sha384-mGBVRZbrKkRIgyFCgKLDlESu2D6fCv9u+HqpbVvqOuyxIarDjMwrXs2QgeKa/8/S' 'sha384-UMCC8R6bMaYaBhCV0eB4hyfT5iouMFNDRXRQGaj5eiexauKEtcc5bskdOPcB9c0q' 'sha384-4L7sSJlanQopqX0A+NILuTVsEghYV7hQJzvuO1WhiPYspv/3mmFSCnZx6gmbfrBW' 'sha384-Foqbxe2dTrDu87tuqAMkv6y0QYhldtuth+z3UWFZNWHyWJWxV3VBhvI2it6qPkur' 'sha384-iKWHBanMcrW+Bc+ZCg5mmdDluMcHVsjemwmKQD30L7SpE915UD0FhUReSSFgjL+H'; connect-src 'self' https://supabasekong-lfu5nypdvapdazdlqj55ne64.payohada.cloud wss://supabasekong-lfu5nypdvapdazdlqj55ne64.payohada.cloud https://test.payohada.cloud/api http://localhost:8000;"><meta name="viewport" content="width=device-width, initial-scale=1"><title>payohada — Logiciel de Paie SAP-Style</title><style id="nuxt-ui-colors">@layer theme {
+  :root, :host {
+  --ui-color-primary-50: var(--color-green-50, oklch(98.2% 0.018 155.826));
+  --ui-color-primary-100: var(--color-green-100, oklch(96.2% 0.044 156.743));
+  --ui-color-primary-200: var(--color-green-200, oklch(92.5% 0.084 155.995));
+  --ui-color-primary-300: var(--color-green-300, oklch(87.1% 0.15 154.449));
+  --ui-color-primary-400: var(--color-green-400, oklch(79.2% 0.209 151.711));
+  --ui-color-primary-500: var(--color-green-500, oklch(72.3% 0.219 149.579));
+  --ui-color-primary-600: var(--color-green-600, oklch(62.7% 0.194 149.214));
+  --ui-color-primary-700: var(--color-green-700, oklch(52.7% 0.154 150.069));
+  --ui-color-primary-800: var(--color-green-800, oklch(44.8% 0.119 151.328));
+  --ui-color-primary-900: var(--color-green-900, oklch(39.3% 0.095 152.535));
+  --ui-color-primary-950: var(--color-green-950, oklch(26.6% 0.065 152.934));
+  --ui-color-secondary-50: var(--color-green-50, oklch(98.2% 0.018 155.826));
+  --ui-color-secondary-100: var(--color-green-100, oklch(96.2% 0.044 156.743));
+  --ui-color-secondary-200: var(--color-green-200, oklch(92.5% 0.084 155.995));
+  --ui-color-secondary-300: var(--color-green-300, oklch(87.1% 0.15 154.449));
+  --ui-color-secondary-400: var(--color-green-400, oklch(79.2% 0.209 151.711));
+  --ui-color-secondary-500: var(--color-green-500, oklch(72.3% 0.219 149.579));
+  --ui-color-secondary-600: var(--color-green-600, oklch(62.7% 0.194 149.214));
+  --ui-color-secondary-700: var(--color-green-700, oklch(52.7% 0.154 150.069));
+  --ui-color-secondary-800: var(--color-green-800, oklch(44.8% 0.119 151.328));
+  --ui-color-secondary-900: var(--color-green-900, oklch(39.3% 0.095 152.535));
+  --ui-color-secondary-950: var(--color-green-950, oklch(26.6% 0.065 152.934));
+  --ui-color-success-50: var(--color-green-50, oklch(98.2% 0.018 155.826));
+  --ui-color-success-100: var(--color-green-100, oklch(96.2% 0.044 156.743));
+  --ui-color-success-200: var(--color-green-200, oklch(92.5% 0.084 155.995));
+  --ui-color-success-300: var(--color-green-300, oklch(87.1% 0.15 154.449));
+  --ui-color-success-400: var(--color-green-400, oklch(79.2% 0.209 151.711));
+  --ui-color-success-500: var(--color-green-500, oklch(72.3% 0.219 149.579));
+  --ui-color-success-600: var(--color-green-600, oklch(62.7% 0.194 149.214));
+  --ui-color-success-700: var(--color-green-700, oklch(52.7% 0.154 150.069));
+  --ui-color-success-800: var(--color-green-800, oklch(44.8% 0.119 151.328));
+  --ui-color-success-900: var(--color-green-900, oklch(39.3% 0.095 152.535));
+  --ui-color-success-950: var(--color-green-950, oklch(26.6% 0.065 152.934));
+  --ui-color-info-50: var(--color-blue-50, oklch(97% 0.014 254.604));
+  --ui-color-info-100: var(--color-blue-100, oklch(93.2% 0.032 255.585));
+  --ui-color-info-200: var(--color-blue-200, oklch(88.2% 0.059 254.128));
+  --ui-color-info-300: var(--color-blue-300, oklch(80.9% 0.105 251.813));
+  --ui-color-info-400: var(--color-blue-400, oklch(70.7% 0.165 254.624));
+  --ui-color-info-500: var(--color-blue-500, oklch(62.3% 0.214 259.815));
+  --ui-color-info-600: var(--color-blue-600, oklch(54.6% 0.245 262.881));
+  --ui-color-info-700: var(--color-blue-700, oklch(48.8% 0.243 264.376));
+  --ui-color-info-800: var(--color-blue-800, oklch(42.4% 0.199 265.638));
+  --ui-color-info-900: var(--color-blue-900, oklch(37.9% 0.146 265.522));
+  --ui-color-info-950: var(--color-blue-950, oklch(28.2% 0.091 267.935));
+  --ui-color-warning-50: var(--color-yellow-50, oklch(98.7% 0.026 102.212));
+  --ui-color-warning-100: var(--color-yellow-100, oklch(97.3% 0.071 103.193));
+  --ui-color-warning-200: var(--color-yellow-200, oklch(94.5% 0.129 101.54));
+  --ui-color-warning-300: var(--color-yellow-300, oklch(90.5% 0.182 98.111));
+  --ui-color-warning-400: var(--color-yellow-400, oklch(85.2% 0.199 91.936));
+  --ui-color-warning-500: var(--color-yellow-500, oklch(79.5% 0.184 86.047));
+  --ui-color-warning-600: var(--color-yellow-600, oklch(68.1% 0.162 75.834));
+  --ui-color-warning-700: var(--color-yellow-700, oklch(55.4% 0.135 66.442));
+  --ui-color-warning-800: var(--color-yellow-800, oklch(47.6% 0.114 61.907));
+  --ui-color-warning-900: var(--color-yellow-900, oklch(42.1% 0.095 57.708));
+  --ui-color-warning-950: var(--color-yellow-950, oklch(28.6% 0.066 53.813));
+  --ui-color-error-50: var(--color-red-50, oklch(97.1% 0.013 17.38));
+  --ui-color-error-100: var(--color-red-100, oklch(93.6% 0.032 17.717));
+  --ui-color-error-200: var(--color-red-200, oklch(88.5% 0.062 18.334));
+  --ui-color-error-300: var(--color-red-300, oklch(80.8% 0.114 19.571));
+  --ui-color-error-400: var(--color-red-400, oklch(70.4% 0.191 22.216));
+  --ui-color-error-500: var(--color-red-500, oklch(63.7% 0.237 25.331));
+  --ui-color-error-600: var(--color-red-600, oklch(57.7% 0.245 27.325));
+  --ui-color-error-700: var(--color-red-700, oklch(50.5% 0.213 27.518));
+  --ui-color-error-800: var(--color-red-800, oklch(44.4% 0.177 26.899));
+  --ui-color-error-900: var(--color-red-900, oklch(39.6% 0.141 25.723));
+  --ui-color-error-950: var(--color-red-950, oklch(25.8% 0.092 26.042));
+  --ui-color-neutral-50: var(--color-slate-50, oklch(98.4% 0.003 247.858));
+  --ui-color-neutral-100: var(--color-slate-100, oklch(96.8% 0.007 247.896));
+  --ui-color-neutral-200: var(--color-slate-200, oklch(92.9% 0.013 255.508));
+  --ui-color-neutral-300: var(--color-slate-300, oklch(86.9% 0.022 252.894));
+  --ui-color-neutral-400: var(--color-slate-400, oklch(70.4% 0.04 256.788));
+  --ui-color-neutral-500: var(--color-slate-500, oklch(55.4% 0.046 257.417));
+  --ui-color-neutral-600: var(--color-slate-600, oklch(44.6% 0.043 257.281));
+  --ui-color-neutral-700: var(--color-slate-700, oklch(37.2% 0.044 257.287));
+  --ui-color-neutral-800: var(--color-slate-800, oklch(27.9% 0.041 260.031));
+  --ui-color-neutral-900: var(--color-slate-900, oklch(20.8% 0.042 265.755));
+  --ui-color-neutral-950: var(--color-slate-950, oklch(12.9% 0.042 264.695));
+  }
+  :root, :host, .light {
+  --ui-primary: var(--ui-color-primary-500);
+  --ui-secondary: var(--ui-color-secondary-500);
+  --ui-success: var(--ui-color-success-500);
+  --ui-info: var(--ui-color-info-500);
+  --ui-warning: var(--ui-color-warning-500);
+  --ui-error: var(--ui-color-error-500);
+  }
+  .dark {
+  --ui-primary: var(--ui-color-primary-400);
+  --ui-secondary: var(--ui-color-secondary-400);
+  --ui-success: var(--ui-color-success-400);
+  --ui-info: var(--ui-color-info-400);
+  --ui-warning: var(--ui-color-warning-400);
+  --ui-error: var(--ui-color-error-400);
+  }
+}</style><link integrity="sha384-xIGemLOnBWtmlhmvMgZH9rOAs46se8r0ilUJsTiJcXN7p6Dp/aEPyoZ/tNeRdwaM" rel="stylesheet" href="/_nuxt/entry.rmcxJu2_.css" crossorigin><style>@layer base {:where(.i-lucide\:home){display:inline-block;width:1em;height:1em;background-color:currentColor;-webkit-mask-image:var(--svg);mask-image:var(--svg);-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-size:100% 100%;mask-size:100% 100%;--svg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'%3E%3Cg fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'%3E%3Cpath d='M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8'/%3E%3Cpath d='M3 10a2 2 0 0 1 .709-1.528l7-6a2 2 0 0 1 2.582 0l7 6A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z'/%3E%3C/g%3E%3C/svg%3E")}:where(.i-lucide\:plus){display:inline-block;width:1em;height:1em;background-color:currentColor;-webkit-mask-image:var(--svg);mask-image:var(--svg);-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-size:100% 100%;mask-size:100% 100%;--svg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'%3E%3Cpath fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 12h14m-7-7v14'/%3E%3C/svg%3E")}:where(.i-lucide\:sliders){display:inline-block;width:1em;height:1em;background-color:currentColor;-webkit-mask-image:var(--svg);mask-image:var(--svg);-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-size:100% 100%;mask-size:100% 100%;--svg:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24' height='24'%3E%3Cpath fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M10 8h4m-2 13v-9m0-4V3m5 13h4m-2-4V3m0 18v-5M3 14h4m-2-4V3m0 18v-7'/%3E%3C/svg%3E")}}</style><link rel="preload" as="fetch" crossorigin="anonymous" href="/admin/constantes/_payload.json?71762f83-ff47-4ef9-b3aa-c115547d46be"><link integrity="sha384-mGBVRZbrKkRIgyFCgKLDlESu2D6fCv9u+HqpbVvqOuyxIarDjMwrXs2QgeKa/8/S" rel="modulepreload" as="script" crossorigin href="/_nuxt/B4hBDRi9.js"><link integrity="sha384-UMCC8R6bMaYaBhCV0eB4hyfT5iouMFNDRXRQGaj5eiexauKEtcc5bskdOPcB9c0q" rel="modulepreload" as="script" crossorigin href="/_nuxt/Bz0pG3xS.js"><link integrity="sha384-4L7sSJlanQopqX0A+NILuTVsEghYV7hQJzvuO1WhiPYspv/3mmFSCnZx6gmbfrBW" rel="modulepreload" as="script" crossorigin href="/_nuxt/X3_Olo6L.js"><link integrity="sha384-Foqbxe2dTrDu87tuqAMkv6y0QYhldtuth+z3UWFZNWHyWJWxV3VBhvI2it6qPkur" rel="modulepreload" as="script" crossorigin href="/_nuxt/Cgf4353S.js"><link integrity="sha384-iKWHBanMcrW+Bc+ZCg5mmdDluMcHVsjemwmKQD30L7SpE915UD0FhUReSSFgjL+H" rel="modulepreload" as="script" crossorigin href="/_nuxt/DutqTh1s.js"><script integrity="sha384-mGBVRZbrKkRIgyFCgKLDlESu2D6fCv9u+HqpbVvqOuyxIarDjMwrXs2QgeKa/8/S" type="module" src="/_nuxt/B4hBDRi9.js" crossorigin></script><meta name="description" content="Logiciel moderne de gestion de paie, dossiers entreprises, salariés et contrats. Inspiré du style SAP Fiori."><meta property="og:title" content="payohada — Logiciel de Paie SAP-Style"><meta property="og:description" content="Logiciel moderne de gestion de paie, dossiers entreprises, salariés et contrats. Inspiré du style SAP Fiori."><meta property="og:image" content="/logo.png"><script>"use strict";(()=>{const t=window,e=document.documentElement,c=["dark","light"],n=getStorageValue("localStorage","nuxt-color-mode")||"system";let i=n==="system"?u():n;const r=e.getAttribute("data-color-mode-forced");r&&(i=r),l(i),t["__NUXT_COLOR_MODE__"]={preference:n,value:i,getColorScheme:u,addColorScheme:l,removeColorScheme:d};function l(o){const s=""+o+"",a="";e.classList?e.classList.add(s):e.className+=" "+s,a&&e.setAttribute("data-"+a,o)}function d(o){const s=""+o+"",a="";e.classList?e.classList.remove(s):e.className=e.className.replace(new RegExp(s,"g"),""),a&&e.removeAttribute("data-"+a)}function f(o){return t.matchMedia("(prefers-color-scheme"+o+")")}function u(){if(t.matchMedia&&f("").media!=="not all"){for(const o of c)if(f(":"+o).matches)return o}return"light"}})();function getStorageValue(t,e){switch(t){case"localStorage":return window.localStorage.getItem(e);case"sessionStorage":return window.sessionStorage.getItem(e);case"cookie":return getCookie(e);default:return null}}function getCookie(t){const c=("; "+window.document.cookie).split("; "+t+"=");if(c.length===2)return c.pop()?.split(";").shift()}</script></head><body><div id="__nuxt" class="isolate"><!--[--><!--[--><!--[--><!--[--><!--[--><div class="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-800"><div class="h-1 bg-green-600 w-full"></div><header class="bg-white border-b-2 border-slate-200 shadow-flat sticky top-0 z-50"><div class="border-b border-slate-150"><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between"><div class="flex items-center space-x-6"><a href="/dossiers" class="flex items-center space-x-2 shrink-0"><div class="w-8 h-8 bg-green-600 flex items-center justify-center text-white font-black text-lg border border-green-700 shadow-flat"> P </div><span class="text-xl font-bold tracking-tight text-slate-900 uppercase"> payohada </span><!----></a><div class="hidden md:flex items-center space-x-2 text-sm text-slate-500"><span class="text-slate-300">|</span><div class="flex items-center space-x-2"><!--[--><!--[--><!----><a href="/dossiers" class="hover:text-green-600 font-medium transition-colors duration-150 flex items-center"><span class="iconify i-lucide:home w-4 h-4 mr-1 text-slate-400" aria-hidden="true" style=""></span> Accueil</a><!--]--><!--]--></div></div></div><div class="flex items-center space-x-4"><!----><!----></div></div></div><div class="bg-slate-50/40"><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-start"><nav class="flex items-center space-x-1 h-12"><!--[--><a href="/dossiers" class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"> Entreprises </a><a href="/simulation" class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"> Simulateur de Paie </a><!----><!--]--></nav></div></div></header><main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8"><!--[--><div class="space-y-6"><div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4"><div class="flex items-center space-x-4"><div class="w-12 h-12 bg-green-50 text-green-700 rounded-lg flex items-center justify-center font-bold text-xl border border-green-200"><span class="iconify i-lucide:sliders w-6 h-6" aria-hidden="true" style=""></span></div><div><h1 class="text-2xl font-bold text-slate-900 leading-tight">Constantes de Paie</h1><p class="text-xs text-slate-500 mt-1">Configurez les taux et les plafonds de paie utilisés dans les calculs de cotisations.</p></div></div><button class="w-full md:w-auto px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2"><span class="iconify i-lucide:plus w-4 h-4" aria-hidden="true" style=""></span><span>Nouvelle Constante</span></button></div><div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"><div class="flex items-center space-x-2"><label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Filtrer par Pays :</label><select class="block w-40 px-3 py-1.5 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"><option value="CI" selected>Côte d&#39;Ivoire (CI)</option><option value="SN">Sénégal (SN)</option><option value="BF">Burkina Faso (BF)</option><option value="ML">Mali (ML)</option></select></div><div class="text-xs text-slate-450 italic"> Toutes les constantes listées ci-dessous s&#39;appliquent aux cotisations et calculs associés. </div></div><div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden"><div class="p-16 text-center text-slate-500 italic text-sm"> Aucune constante configurée pour ce pays. Cliquez sur &quot;Nouvelle Constante&quot; pour commencer. </div></div><!----></div><!--]--></main><footer class="bg-white border-t border-slate-200 py-4 mt-auto"><div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center text-xs text-slate-500"><p>payohada • © 2026 — ERP Paie Solution</p></div></footer></div><!--]--><!--]--><!--[--><!--]--><!--v-if--><!--]--><!--[--><!--]--><!--]--><!--]--></div><div id="teleports"></div><script>window.__NUXT__={};window.__NUXT__.config={public:{supabaseUrl:"https://supabasekong-lfu5nypdvapdazdlqj55ne64.payohada.cloud",supabaseAnonKey:"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJzdXBhYmFzZSIsImlhdCI6MTc4MjI2NTQ0MCwiZXhwIjo0OTM3OTM5MDQwLCJyb2xlIjoiYW5vbiJ9.TlAEYmyM0HFO_dKVWK5NrHPu_RpyioJw9qOapm6aKQg",apiBase:"https://test.payohada.cloud/api",nuxtEmailRenderer:{devtools:true,emailsDir:"/Users/macbookpro/devspace/logiciel_paie/frontend/emails"}},app:{baseURL:"/",buildId:"71762f83-ff47-4ef9-b3aa-c115547d46be",buildAssetsDir:"/_nuxt/",cdnURL:""}}</script><script type="application/json" data-nuxt-data="nuxt-app" data-ssr="true" id="__NUXT_DATA__" data-src="/admin/constantes/_payload.json?71762f83-ff47-4ef9-b3aa-c115547d46be">[{"state":1,"once":9,"_errors":10,"serverRendered":5,"path":12,"prerenderedAt":13},["Reactive",2],{"$scolor-mode":3,"$ssb-user":7,"$ssb-token":7,"$ssb-loading":6,"$ssb-mock":6,"$stoasts":8,"$scurrent-dossier":7,"$scurrent-etablissement":7},{"preference":4,"value":4,"unknown":5,"forced":6},"system",true,false,null,[],["Set"],["ShallowReactive",11],{},"\u002Fadmin\u002Fconstantes",1782913372980]</script></body></html>

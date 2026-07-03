@@ -7,6 +7,8 @@ from app.models.models import (
     Absence, HeureSupplementaire, Prime, Option, CaisseCotisation, Etablissement, Constante, Salarie
 )
 
+from typing import Optional
+
 logger = logging.getLogger(__name__)
 
 
@@ -32,15 +34,35 @@ def _get_payroll_inputs(db: Session, contrat_id: int, mois: int, annee: int):
     ).all()
 
     primes = db.query(Prime).filter(
-        Prime.contrat_id == contrat_id,
-        Prime.annee == str(annee),
-        Prime.mois == mois
+        Prime.contrat_id == contrat_id
+    ).filter(
+        (
+            (Prime.est_persistant == False) & 
+            (Prime.annee == str(annee)) & 
+            (Prime.mois == mois)
+        ) | (
+            (Prime.est_persistant == True) & 
+            (
+                (Prime.annee < str(annee)) |
+                ((Prime.annee == str(annee)) & (Prime.mois <= mois))
+            )
+        )
     ).all()
 
     options = db.query(Option).filter(
-        Option.contrat_id == contrat_id,
-        Option.annee == str(annee),
-        Option.mois == mois
+        Option.contrat_id == contrat_id
+    ).filter(
+        (
+            (Option.est_persistant == False) & 
+            (Option.annee == str(annee)) & 
+            (Option.mois == mois)
+        ) | (
+            (Option.est_persistant == True) & 
+            (
+                (Option.annee < str(annee)) |
+                ((Option.annee == str(annee)) & (Option.mois <= mois))
+            )
+        )
     ).all()
 
     return contrat, etab, salarie, absences, heures_sup, primes, options
@@ -79,7 +101,8 @@ def _calculate_gross_salary(
     absences: list[Absence],
     heures_sup: list[HeureSupplementaire],
     primes: list[Prime],
-    options: list[Option] = []
+    options: list[Option] = [],
+    override_salary_value: Optional[float] = None
 ) -> tuple[list[LigneBulletinPaie], float]:
     """Calcule le salaire de base, le sursalaire, applique les absences, heures supps, primes et calcule le Salaire Brut."""
     unite = contrat.unite_temps or "Heures"
@@ -87,15 +110,15 @@ def _calculate_gross_salary(
     # 1. Base Salary
     if unite == "Jours":
         base_standard = 30.0
-        salaire_base_brut = contrat.salaire_mensuel or 0.0
+        salaire_base_brut = override_salary_value if override_salary_value is not None else (contrat.salaire_mensuel or 0.0)
         taux_base = (salaire_base_brut / 30.0) if salaire_base_brut > 0 else 0.0
     else:
         base_standard = contrat.horaires.horaire_travail if (contrat.horaires and contrat.horaires.horaire_travail) else 173.33
         if contrat.type_salaire == "Mensuel":
-            salaire_base_brut = contrat.salaire_mensuel or 0.0
+            salaire_base_brut = override_salary_value if override_salary_value is not None else (contrat.salaire_mensuel or 0.0)
             taux_base = (salaire_base_brut / base_standard) if base_standard > 0 else 0.0
         else:
-            taux_base = contrat.salaire_horaire or 0.0
+            taux_base = override_salary_value if override_salary_value is not None else (contrat.salaire_horaire or 0.0)
             salaire_base_brut = taux_base * base_standard
 
     lignes_bulletin = []
@@ -509,6 +532,56 @@ def _save_bulletin(
     db.refresh(bulletin)
 
 
+def _calculate_payslip_raw(
+    db: Session,
+    bulletin_id: int,
+    contrat: Contrat,
+    etab: Etablissement,
+    salarie: Salarie,
+    absences: list[Absence],
+    heures_sup: list[HeureSupplementaire],
+    primes: list[Prime],
+    options: list[Option],
+    acompte: float,
+    temp_salaire_value: float
+) -> float:
+    """Calcul du salaire net pour une valeur brute temporaire, sans affecter le model."""
+    # Calcul temporaire des lignes de salaire brut
+    _, salaire_brut = _calculate_gross_salary(
+        bulletin_id, contrat, absences, heures_sup, primes, options,
+        override_salary_value=temp_salaire_value
+    )
+
+    # Calcul temporaire des cotisations sociales et taxes
+    _, cot_salariales, _ = _calculate_cnps_cotisations(db, bulletin_id, etab, contrat, salarie, salaire_brut)
+
+    # Calcul temporaire des lignes complémentaires
+    transport_montant = contrat.indemnite_transport or 0.0
+    telephone_montant = contrat.dotation_telephonique or 0.0
+
+    options_gains_net = 0.0
+    options_deductions_net = 0.0
+    for opt in options:
+        val = opt.valeur_numerique or 0.0
+        if opt.code.startswith("AVANTAGE_"):
+            options_deductions_net += val
+        elif opt.code == "FRAIS_PROFESSIONNELS":
+            options_gains_net += val
+        elif opt.code == "AUTRE_RETENUE":
+            options_deductions_net += val
+
+    net_a_payer = (
+        salaire_brut
+        - cot_salariales
+        - acompte
+        + transport_montant
+        + telephone_montant
+        + options_gains_net
+        - options_deductions_net
+    )
+    return net_a_payer
+
+
 def calculate_payslip(db: Session, contrat_id: int, mois: int, annee: int, acompte: float = 0.0) -> BulletinPaie:
     """
     Calcule le bulletin de paie pour un contrat donné, un mois et une année.
@@ -520,8 +593,36 @@ def calculate_payslip(db: Session, contrat_id: int, mois: int, annee: int, acomp
     # 2. Récupération ou création du bulletin de paie
     bulletin = _get_or_create_bulletin(db, contrat_id, contrat.dossier_id, mois, annee)
 
+    # Résolution net -> brut si mode_calcul == "net"
+    override_val = None
+    target_net = contrat.salaire_mensuel if contrat.type_salaire == "Mensuel" else contrat.salaire_horaire
+    if target_net > 0 and getattr(contrat, "mode_calcul", "brut") == "net":
+        low = 0.0
+        high = target_net * 5.0
+        if high < 1000000.0:
+            high = 5000000.0
+
+        for _ in range(50):
+            mid = (low + high) / 2.0
+            net = _calculate_payslip_raw(
+                db, bulletin.id, contrat, etab, salarie,
+                absences, heures_sup, primes, options, acompte, mid
+            )
+            if abs(net - target_net) < 0.1:
+                override_val = mid
+                break
+            if net < target_net:
+                low = mid
+            else:
+                high = mid
+        else:
+            override_val = (low + high) / 2.0
+
     # 3. Calcul des lignes de salaire brut
-    lignes_brut, salaire_brut = _calculate_gross_salary(bulletin.id, contrat, absences, heures_sup, primes, options)
+    lignes_brut, salaire_brut = _calculate_gross_salary(
+        bulletin.id, contrat, absences, heures_sup, primes, options,
+        override_salary_value=override_val
+    )
 
     # 4. Calcul des cotisations sociales et taxes
     lignes_cotisations, cot_salariales, cot_patronales = _calculate_cnps_cotisations(db, bulletin.id, etab, contrat, salarie, salaire_brut)

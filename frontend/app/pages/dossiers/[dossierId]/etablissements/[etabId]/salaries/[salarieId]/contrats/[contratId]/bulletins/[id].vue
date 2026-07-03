@@ -39,6 +39,7 @@ const primeMontant = ref(0)
 const primeMode = ref('direct')
 const primeBase = ref(0)
 const primeTaux = ref(0)
+const primeEstPersistant = ref(false)
 
 // Acompte state
 const acompteModalOpen = ref(false)
@@ -46,9 +47,69 @@ const acompteMontant = ref(0)
 
 // Add Option state
 const optionModalOpen = ref(false)
-const optionCode = ref('AVANTAGE_LOGEMENT')
+const optionCode = ref('')
 const optionLibelle = ref('')
 const optionMontant = ref(0)
+const optionEstPersistant = ref(false)
+
+// Plan de paie items & dynamic lists
+const planPaieItems = ref([])
+
+const primesDisponibles = computed(() => {
+  const excludedCodes = ['BASE', 'SURSALAIRE', 'ABS', '1001', '1051', '1101', '1111', '1121', '1131', '1141', '1151', '1161', '1181']
+  return planPaieItems.value.filter(item => {
+    return item.type === 'B' && 
+           !excludedCodes.includes(item.code) && 
+           !item.code.startsWith('HS_') && 
+           !item.code.startsWith('ABS_') && 
+           item.est_actif
+  })
+})
+
+const optionsDisponibles = computed(() => {
+  const excludedCodes = ['TRANSPORT', 'TELEPHONE']
+  return planPaieItems.value.filter(item => {
+    return item.type === 'A' && !excludedCodes.includes(item.code) && item.est_actif
+  })
+})
+
+watch(primeCode, (newCode) => {
+  const match = primesDisponibles.value.find(p => p.code === newCode)
+  if (match) {
+    primeLibelle.value = match.libelle
+  }
+})
+
+watch(optionCode, (newCode) => {
+  const match = optionsDisponibles.value.find(o => o.code === newCode)
+  if (match) {
+    optionLibelle.value = match.libelle
+  }
+})
+
+watch(primeModalOpen, (isOpen) => {
+  if (isOpen && primesDisponibles.value.length > 0) {
+    if (!primesDisponibles.value.some(p => p.code === primeCode.value)) {
+      primeCode.value = primesDisponibles.value[0].code
+    }
+    const match = primesDisponibles.value.find(p => p.code === primeCode.value)
+    if (match) {
+      primeLibelle.value = match.libelle
+    }
+  }
+})
+
+watch(optionModalOpen, (isOpen) => {
+  if (isOpen && optionsDisponibles.value.length > 0) {
+    if (!optionsDisponibles.value.some(o => o.code === optionCode.value)) {
+      optionCode.value = optionsDisponibles.value[0].code
+    }
+    const match = optionsDisponibles.value.find(o => o.code === optionCode.value)
+    if (match) {
+      optionLibelle.value = match.libelle
+    }
+  }
+})
 
 // Period variables list
 const activeAbsences = ref([])
@@ -66,10 +127,24 @@ const fetchVariables = async () => {
     activeHs.value = (hsList || []).filter(h => h.mois === Number(bulletin.value.mois) && String(h.annee) === String(bulletin.value.annee))
     
     const primesList = await get(`/contrats/${contratId}/primes`)
-    activePrimes.value = (primesList || []).filter(p => p.mois === Number(bulletin.value.mois) && String(p.annee) === String(bulletin.value.annee))
+    activePrimes.value = (primesList || []).filter(p => {
+      const isCurrentPeriod = p.mois === Number(bulletin.value.mois) && String(p.annee) === String(bulletin.value.annee)
+      const isPersistentBefore = p.est_persistant && (
+        Number(p.annee) < Number(bulletin.value.annee) ||
+        (Number(p.annee) === Number(bulletin.value.annee) && p.mois <= Number(bulletin.value.mois))
+      )
+      return isCurrentPeriod || isPersistentBefore
+    })
 
     const optionsList = await get(`/contrats/${contratId}/options`)
-    activeOptions.value = (optionsList || []).filter(o => o.mois === Number(bulletin.value.mois) && String(o.annee) === String(bulletin.value.annee))
+    activeOptions.value = (optionsList || []).filter(o => {
+      const isCurrentPeriod = o.mois === Number(bulletin.value.mois) && String(o.annee) === String(bulletin.value.annee)
+      const isPersistentBefore = o.est_persistant && (
+        Number(o.annee) < Number(bulletin.value.annee) ||
+        (Number(o.annee) === Number(bulletin.value.annee) && o.mois <= Number(bulletin.value.mois))
+      )
+      return isCurrentPeriod || isPersistentBefore
+    })
   } catch (e) {
     console.error("Error fetching variables:", e)
   }
@@ -93,7 +168,7 @@ const fetchDetails = async () => {
     contrat.value = await get(`/contrats/${contratId}`)
     
     // 5. Fetch Bulletin details (includes lines and cumuls)
-    bulletin.value = await get(`/bulletins/${bulletinId}`)
+    bulletin.value = await get(`/bulletins/${route.params.id}`)
 
     // Find Acompte from lines
     const acompteLine = (bulletin.value.lignes || []).find(l => l.code === 'ACOMPTE')
@@ -103,7 +178,13 @@ const fetchDetails = async () => {
       acompteMontant.value = 0
     }
 
-    // 6. Fetch period variables
+    // 6. Fetch plan de paie items
+    planPaieItems.value = await get('/plan-paie') || []
+
+    // 7. Fetch all contract bulletins (for switcher)
+    await fetchAllBulletins()
+
+    // 8. Fetch period variables
     await fetchVariables()
   } catch (e) {
     console.error("Error loading payslip details:", e)
@@ -197,7 +278,8 @@ const handleAddPrime = async () => {
       base: primeMode.value === 'calcul' ? (Number(primeBase.value) || null) : null,
       taux: primeMode.value === 'calcul' ? (Number(primeTaux.value) || null) : null,
       mois: Number(bulletin.value.mois),
-      annee: String(bulletin.value.annee)
+      annee: String(bulletin.value.annee),
+      est_persistant: primeEstPersistant.value
     }
     await post(`/contrats/${contratId}/primes`, payload)
     primeModalOpen.value = false
@@ -205,6 +287,7 @@ const handleAddPrime = async () => {
     primeMontant.value = 0
     primeBase.value = 0
     primeTaux.value = 0
+    primeEstPersistant.value = false
     await handleRecalculate()
   } catch (e) {
     console.error(e)
@@ -227,12 +310,14 @@ const handleAddOption = async () => {
       libelle: optionLibelle.value || optionCode.value.replace(/_/g, ' '),
       valeur_numerique: Number(optionMontant.value),
       mois: Number(bulletin.value.mois),
-      annee: String(bulletin.value.annee)
+      annee: String(bulletin.value.annee),
+      est_persistant: optionEstPersistant.value
     }
     await post(`/contrats/${contratId}/options`, payload)
     optionModalOpen.value = false
     optionLibelle.value = ''
     optionMontant.value = 0
+    optionEstPersistant.value = false
     await handleRecalculate()
   } catch (e) {
     console.error(e)
@@ -279,10 +364,49 @@ const handleDeleteOption = async (optionId) => {
   }
 }
 
+const handleTogglePrimePersistant = async (prime) => {
+  try {
+    const payload = {
+      code: prime.code,
+      libelle: prime.libelle,
+      montant: Number(prime.montant),
+      base: prime.base,
+      taux: prime.taux,
+      mois: Number(prime.mois),
+      annee: String(prime.annee),
+      est_persistant: !prime.est_persistant
+    }
+    await put(`/contrats/primes/${prime.id}`, payload)
+    await fetchVariables()
+    await handleRecalculate()
+  } catch (e) {
+    console.error("Error toggling prime persistence:", e)
+  }
+}
+
+const handleToggleOptionPersistant = async (option) => {
+  try {
+    const payload = {
+      code: option.code,
+      libelle: option.libelle,
+      valeur_numerique: Number(option.valeur_numerique),
+      valeur: option.valeur,
+      mois: Number(option.mois),
+      annee: String(option.annee),
+      est_persistant: !option.est_persistant
+    }
+    await put(`/contrats/options/${option.id}`, payload)
+    await fetchVariables()
+    await handleRecalculate()
+  } catch (e) {
+    console.error("Error toggling option persistence:", e)
+  }
+}
+
 const handleValidate = async () => {
   if (!confirm('Êtes-vous sûr de vouloir valider définitivement ce bulletin ? Il ne pourra plus être modifié ni supprimé.')) return
   try {
-    const res = await put(`/bulletins/${bulletinId}/valider`)
+    const res = await put(`/bulletins/${route.params.id}/valider`)
     if (res) {
       toast.add({
         title: 'Bulletin Validé',
@@ -299,13 +423,46 @@ const handleValidate = async () => {
 const handleDelete = async () => {
   if (!confirm('Supprimer définitivement ce bulletin ?')) return
   try {
-    await apiDelete(`/bulletins/${bulletinId}`)
+    await apiDelete(`/bulletins/${route.params.id}`)
     toast.add({
       title: 'Bulletin Supprimé',
       description: 'Le bulletin de salaire a été supprimé.',
       color: 'success'
     })
     router.push(`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}/contrats/${contratId}`)
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+const canInvalidate = computed(() => {
+  if (!bulletin.value || bulletin.value.statut !== 'valide') return false
+  
+  const currentYear = Number(bulletin.value.annee)
+  const currentMonth = Number(bulletin.value.mois)
+  
+  const hasLater = (allBulletins.value || []).some(b => {
+    if (b.id === bulletin.value.id || b.statut !== 'valide') return false
+    const y = Number(b.annee)
+    const m = Number(b.mois)
+    return y > currentYear || (y === currentYear && m > currentMonth)
+  })
+  
+  return !hasLater
+})
+
+const handleInvalidate = async () => {
+  if (!confirm('Dé-valider ce bulletin de paie ? Il repassera à l\'état brouillon et pourra à nouveau être modifié.')) return
+  try {
+    const res = await put(`/bulletins/${route.params.id}/invalider`)
+    if (res) {
+      toast.add({
+        title: 'Bulletin Dé-validé',
+        description: 'Le bulletin est repassé à l\'état brouillon.',
+        color: 'success'
+      })
+      await fetchDetails()
+    }
   } catch (e) {
     console.error(e)
   }
@@ -362,6 +519,56 @@ const netLines = computed(() => {
   })
 })
 
+const allBulletins = ref([])
+const selectedYear = ref(null)
+
+const fetchAllBulletins = async () => {
+  try {
+    const data = await get(`/dossiers/${dossierId}/bulletins?contrat_id=${contratId}`)
+    allBulletins.value = data || []
+    if (bulletin.value) {
+      selectedYear.value = Number(bulletin.value.annee)
+    }
+  } catch (e) {
+    console.error("Error loading all bulletins:", e)
+  }
+}
+
+const years = computed(() => {
+  const yList = (allBulletins.value || []).map(b => Number(b.annee))
+  if (bulletin.value && !yList.includes(Number(bulletin.value.annee))) {
+    yList.push(Number(bulletin.value.annee))
+  }
+  return [...new Set(yList)].sort((a, b) => b - a)
+})
+
+const getShortMonthLabel = (m) => {
+  const months = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Jun', 'Jui', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc']
+  return months[m - 1]
+}
+
+const hasBulletin = (year, month) => {
+  return (allBulletins.value || []).some(b => Number(b.annee) === Number(year) && Number(b.mois) === Number(month))
+}
+
+const isCurrentBulletin = (year, month) => {
+  if (!bulletin.value) return false
+  return Number(bulletin.value.annee) === Number(year) && Number(bulletin.value.mois) === Number(month)
+}
+
+const goToBulletin = (year, month) => {
+  const match = (allBulletins.value || []).find(b => Number(b.annee) === Number(year) && Number(b.mois) === Number(month))
+  if (match) {
+    router.push(`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}/contrats/${contratId}/bulletins/${match.id}`)
+  }
+}
+
+watch(() => route.params.id, (newId) => {
+  if (newId) {
+    fetchDetails()
+  }
+})
+
 onMounted(() => {
   fetchDetails()
 })
@@ -375,11 +582,40 @@ onMounted(() => {
 
   <div v-else-if="bulletin" class="space-y-6">
     
+    <!-- Switcher / Navigation de période (Caché à l'impression) -->
+    <div class="bg-white border-2 border-slate-200 p-4 shadow-flat flex flex-col sm:flex-row justify-between items-center gap-4 no-print border-t-4 border-t-slate-500 rounded-none">
+      <div class="flex items-center space-x-3 w-full sm:w-auto">
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-500 min-w-max">Année :</span>
+        <select v-model="selectedYear" class="px-3 py-1.5 border-2 border-slate-200 text-sm font-mono bg-white focus:ring-green-500 focus:border-green-500 select">
+          <option v-for="y in years" :key="y" :value="y">{{ y }}</option>
+        </select>
+      </div>
+      
+      <div class="flex flex-wrap gap-1.5 w-full sm:w-auto justify-start sm:justify-end">
+        <button 
+          v-for="m in 12" 
+          :key="m"
+          @click="goToBulletin(selectedYear, m)"
+          :disabled="!hasBulletin(selectedYear, m)"
+          class="px-2.5 py-1.5 text-xs font-bold uppercase tracking-wider border transition-all rounded-none cursor-pointer"
+          :class="[
+            isCurrentBulletin(selectedYear, m)
+              ? 'bg-green-600 border-green-600 text-white shadow-flat'
+              : hasBulletin(selectedYear, m)
+                ? 'bg-white border-slate-200 hover:bg-slate-50 text-slate-800 hover:border-slate-350 shadow-sm'
+                : 'bg-gray-700 border-slate-100 text-slate-300 cursor-not-allowed opacity-50'
+          ]"
+        >
+          {{ getShortMonthLabel(m) }}
+        </button>
+      </div>
+    </div>
+
     <!-- Action Bar (Hidden on Print) -->
     <div class="bg-white border-2 border-slate-200 rounded-none p-4 shadow-flat flex flex-col sm:flex-row justify-between items-center gap-4 no-print border-t-4 border-t-green-600">
       <div class="flex items-center space-x-3">
         <NuxtLink 
-          :to="`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}/contrats/${contratId}`"
+          :to="`/dossiers/${dossierId}/etablissements/${etabId}?tab=bulletins`"
           class="p-2 border-2 border-slate-200 rounded-none hover:bg-slate-50 text-slate-700 transition-colors"
         >
           <UIcon name="i-lucide-arrow-left" class="w-4 h-4" />
@@ -413,6 +649,14 @@ onMounted(() => {
         >
           <UIcon name="i-lucide-check-circle" class="w-4 h-4" />
           Valider
+        </button>
+        <button 
+          v-if="canInvalidate"
+          @click="handleInvalidate"
+          class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-none shadow-flat transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer shadow-flat-hover shadow-flat-active"
+        >
+          <UIcon name="i-lucide-x-circle" class="w-4 h-4" />
+          Dé-valider
         </button>
         <button 
           @click="triggerPrint"
@@ -862,11 +1106,20 @@ onMounted(() => {
           <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100 pb-1">Primes</h4>
           <div class="space-y-1.5">
             <div v-for="p in activePrimes" :key="p.id" class="p-2 border border-slate-200 flex justify-between items-center text-xs bg-slate-50/50">
-              <div>
-                <span class="font-bold text-slate-800 uppercase">{{ p.libelle }}</span>
-                <span class="block text-[10px] text-slate-500 font-mono">
-                  {{ formatXOF(p.montant) }}
-                </span>
+              <div class="flex items-center space-x-2">
+                <input 
+                  type="checkbox" 
+                  :checked="p.est_persistant" 
+                  @change="handleTogglePrimePersistant(p)"
+                  class="w-3.5 h-3.5 text-green-600 focus:ring-green-500 border-slate-300 rounded cursor-pointer"
+                  title="Répéter sur les mois suivants"
+                />
+                <div>
+                  <span class="font-bold text-slate-800 uppercase">{{ p.libelle }}</span>
+                  <span class="block text-[10px] text-slate-500 font-mono">
+                    {{ formatXOF(p.montant) }}
+                  </span>
+                </div>
               </div>
               <button @click="handleDeletePrime(p.id)" class="text-red-650 hover:text-red-750 p-1 cursor-pointer">
                 <UIcon name="i-lucide-trash-2" class="w-4 h-4" />
@@ -880,11 +1133,20 @@ onMounted(() => {
           <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-slate-100 pb-1">Options & Avantages</h4>
           <div class="space-y-1.5">
             <div v-for="o in activeOptions" :key="o.id" class="p-2 border border-slate-200 flex justify-between items-center text-xs bg-slate-50/50">
-              <div>
-                <span class="font-bold text-slate-800 uppercase">{{ o.libelle }}</span>
-                <span class="block text-[10px] text-slate-500 font-mono">
-                  {{ formatXOF(o.valeur_numerique) }}
-                </span>
+              <div class="flex items-center space-x-2">
+                <input 
+                  type="checkbox" 
+                  :checked="o.est_persistant" 
+                  @change="handleToggleOptionPersistant(o)"
+                  class="w-3.5 h-3.5 text-purple-600 focus:ring-purple-500 border-slate-300 rounded cursor-pointer"
+                  title="Répéter sur les mois suivants"
+                />
+                <div>
+                  <span class="font-bold text-slate-800 uppercase">{{ o.libelle }}</span>
+                  <span class="block text-[10px] text-slate-500 font-mono">
+                    {{ formatXOF(o.valeur_numerique) }}
+                  </span>
+                </div>
               </div>
               <button @click="handleDeleteOption(o.id)" class="text-red-650 hover:text-red-750 p-1 cursor-pointer">
                 <UIcon name="i-lucide-trash-2" class="w-4 h-4" />
@@ -993,10 +1255,9 @@ onMounted(() => {
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Code Identifiant</label>
                 <select v-model="primeCode" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-none text-sm bg-white select">
-                  <option value="PRIME_RENDEMENT">PRIME_RENDEMENT</option>
-                  <option value="PRIME_ASSIDUITE">PRIME_ASSIDUITE</option>
-                  <option value="PRIME_EXCEP">PRIME_EXCEP</option>
-                  <option value="PRIME_ANCIENNETE">PRIME_ANCIENNETE</option>
+                  <option v-for="p in primesDisponibles" :key="p.code" :value="p.code">
+                    {{ p.libelle }} ({{ p.code }})
+                  </option>
                 </select>
               </div>
               <div>
@@ -1028,8 +1289,14 @@ onMounted(() => {
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Libellé (Affiché sur le bulletin)</label>
                 <input v-model="primeLibelle" type="text" placeholder="Ex: Prime de rendement" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
               </div>
+            <div class="flex items-center space-x-2 pt-2">
+              <input v-model="primeEstPersistant" type="checkbox" id="prime_est_persistant" class="w-4 h-4 text-green-600 focus:ring-green-500 border-slate-300 rounded" />
+              <label for="prime_est_persistant" class="text-xs font-semibold uppercase tracking-wider text-slate-500 cursor-pointer">
+                Répéter les mois suivants (Persistant)
+              </label>
             </div>
           </div>
+        </div>
 
           <div class="flex justify-end space-x-3 pt-4 border-t border-slate-200">
             <button type="button" @click="primeModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-none hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
@@ -1080,13 +1347,9 @@ onMounted(() => {
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Type d'option</label>
                 <select v-model="optionCode" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-none text-sm bg-white select">
-                  <option value="AVANTAGE_LOGEMENT">Avantage Logement</option>
-                  <option value="AVANTAGE_VEHICULE">Avantage Véhicule</option>
-                  <option value="AVANTAGE_NOURRITURE">Avantage Nourriture</option>
-                  <option value="AVANTAGE_AUTRE">Autre avantage en nature</option>
-                  <option value="FRAIS_PROFESSIONNELS">Frais professionnels</option>
-                  <option value="AUTRE_GAIN">Autre gain libre</option>
-                  <option value="AUTRE_RETENUE">Autre retenue libre</option>
+                  <option v-for="o in optionsDisponibles" :key="o.code" :value="o.code">
+                    {{ o.libelle }} ({{ o.code }})
+                  </option>
                 </select>
               </div>
               <div>
@@ -1097,6 +1360,12 @@ onMounted(() => {
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Libellé (Affiché sur le bulletin)</label>
               <input v-model="optionLibelle" type="text" placeholder="Ex: Logement de fonction" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
+            </div>
+            <div class="flex items-center space-x-2 pt-2">
+              <input v-model="optionEstPersistant" type="checkbox" id="option_est_persistant" class="w-4 h-4 text-green-600 focus:ring-green-500 border-slate-300 rounded" />
+              <label for="option_est_persistant" class="text-xs font-semibold uppercase tracking-wider text-slate-500 cursor-pointer">
+                Répéter les mois suivants (Persistant)
+              </label>
             </div>
           </div>
 

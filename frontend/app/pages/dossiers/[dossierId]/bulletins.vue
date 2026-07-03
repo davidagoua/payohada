@@ -78,6 +78,44 @@ const handleCalculateSelected = async () => {
   await fetchDossierData()
 }
 
+const handleEmailedSelected = async () => {
+  
+
+  if (!confirm(`Envoier par mail les bulletins de paie pour les ${selectedBulletins.value.length} salarié(s) sélectionnés ?`)) return
+
+  bulkProcessing.value = true
+  bulkProgress.value = 0
+  bulkTotal.value = selectedBulletins.value.length
+
+  let successCount = 0
+  for (let i = 0; i < selectedBulletins.value.length; i++) {
+    const cId = selectedBulletins.value[i]
+    try {
+      const payload = {
+        contrat_id: cId,
+        mois: Number(selectedMois.value),
+        annee: Number(selectedAnnee.value),
+        acompte: 0.0,
+        commentaire: "Envoi mail de la sélection"
+      }
+      await post('/bulletins/envoie-email', payload)
+      successCount++
+    } catch (e) {
+      console.error(`Error sending email for contract ${cId}:`, e)
+    }
+    bulkProgress.value = i + 1
+  }
+
+  bulkProcessing.value = false
+  toast.add({
+    title: 'Envoi mail terminé',
+    description: `${successCount} bulletin(s) de salaire envoyé(s) par mail avec succès.`,
+    color: 'success'
+  })
+  selectedBulletins.value = []
+  await fetchDossierData()
+}
+
 const handleValidateSelected = async () => {
   const drafts = selectedBulletins.value
     .map(cId => bulletinsMap.value[cId])

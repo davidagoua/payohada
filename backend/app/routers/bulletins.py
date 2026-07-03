@@ -12,6 +12,7 @@ from app.schemas.bulletin import (
 from app.services.security import get_current_user
 from app.routers.contrats import check_contrat_ownership
 from app.services.payroll import calculate_payslip
+from app.services.email import send_email
 
 router = APIRouter(tags=["Bulletins de Paie"])
 
@@ -197,6 +198,45 @@ def validate_bulletin(
     db.commit()
     db.refresh(bulletin)
     
+    bout = BulletinPaieOut.model_validate(bulletin)
+    bout.cumuls = compute_bulletin_cumuls(db, bulletin)
+    return bout
+
+
+@router.put("/bulletins/{bulletin_id}/invalider", response_model=BulletinPaieOut)
+def invalidate_bulletin(
+    bulletin_id: int,
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user)
+):
+    """Invalide (dé-valide) un bulletin de paie s'il s'agit du plus récent validé."""
+    bulletin = check_bulletin_ownership(bulletin_id, current_user.id, db)
+    if bulletin.statut != "valide":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Le bulletin n'est pas validé."
+        )
+
+    # Vérifier s'il y a un bulletin validé plus récent pour le même contrat
+    later_validated = db.query(BulletinPaie).filter(
+        BulletinPaie.contrat_id == bulletin.contrat_id,
+        BulletinPaie.statut == "valide",
+        (
+            (BulletinPaie.annee > bulletin.annee) |
+            ((BulletinPaie.annee == bulletin.annee) & (BulletinPaie.mois > bulletin.mois))
+        )
+    ).first()
+
+    if later_validated:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Impossible d'invalider ce bulletin : un bulletin plus récent a déjà été validé pour ce salarié."
+        )
+
+    bulletin.statut = "brouillon"
+    db.commit()
+    db.refresh(bulletin)
+
     bout = BulletinPaieOut.model_validate(bulletin)
     bout.cumuls = compute_bulletin_cumuls(db, bulletin)
     return bout
@@ -721,3 +761,162 @@ def simulate_bulletin_paie(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Erreur de simulation de paie: {str(e)}"
         )
+
+
+@router.post("/bulletins/{bulletin_id}/envoyer-employe")
+def send_bulletin_to_employee(
+    bulletin_id: int,
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user)
+):
+    """Envoie le bulletin de paie par email à l'employé."""
+    bulletin = check_bulletin_ownership(bulletin_id, current_user.id, db)
+    contrat = bulletin.contrat
+    if not contrat:
+        raise HTTPException(status_code=404, detail="Contrat associé introuvable.")
+    salarie = contrat.salarie
+    if not salarie:
+        raise HTTPException(status_code=404, detail="Salarié associé introuvable.")
+    
+    email_dest = salarie.email
+    if not email_dest:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Le salarié {salarie.prenom} {salarie.nom} n'a pas d'adresse email configurée dans sa fiche."
+        )
+    
+    months = [
+        'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+        'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+    ]
+    periode_lbl = f"{months[bulletin.mois - 1]} {bulletin.annee}"
+    
+    subject = f"Votre bulletin de paie de {periode_lbl}"
+    
+    html_content = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333333;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0;">
+            <div style="background-color: #16a34a; padding: 15px; text-align: center; color: white;">
+                <h1 style="margin: 0; font-size: 20px; text-transform: uppercase;">payohada paie</h1>
+            </div>
+            <div style="padding: 20px;">
+                <p>Bonjour <strong>{salarie.civilite} {salarie.prenom} {salarie.nom.upper()}</strong>,</p>
+                <p>Votre bulletin de paie pour la période de <strong>{periode_lbl}</strong> a été généré et est disponible.</p>
+                
+                <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                    <tr style="background-color: #f8fafc;">
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold;">Salaire Brut</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-family: monospace; text-align: right;">{int(bulletin.salaire_brut):,} FCFA</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold;">Cotisations Salariales</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-family: monospace; text-align: right;">{int(bulletin.cotisations_salariales):,} FCFA</td>
+                    </tr>
+                    <tr style="background-color: #f0fdf4; font-weight: bold; font-size: 1.1em; color: #166534;">
+                        <td style="padding: 12px; border: 1px solid #cbd5e1;">Net à Payer</td>
+                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-family: monospace; text-align: right;">{int(bulletin.net_a_payer):,} FCFA</td>
+                    </tr>
+                </table>
+                
+                <p>Le règlement sera effectué par <strong>virement bancaire</strong>.</p>
+                <p>Vous pouvez consulter le détail de votre bulletin de paie depuis votre espace de gestion.</p>
+                <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+                <p style="font-size: 11px; color: #64748b; font-style: italic; text-align: center;">
+                    Ce message a été généré automatiquement par payohada. Conservez vos bulletins sans limite de durée.
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    success = send_email(email_dest, subject, html_content)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Une erreur est survenue lors de l'envoi de l'e-mail."
+        )
+        
+    return {"status": "success", "message": f"Bulletin envoyé à l'employé {salarie.prenom} {salarie.nom} ({email_dest})"}
+
+
+@router.post("/bulletins/{bulletin_id}/envoyer-gestionnaire")
+def send_bulletin_to_manager(
+    bulletin_id: int,
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user)
+):
+    """Envoie le bulletin de paie par email au gestionnaire / administrateur du dossier."""
+    bulletin = check_bulletin_ownership(bulletin_id, current_user.id, db)
+    dossier = bulletin.dossier
+    if not dossier:
+        raise HTTPException(status_code=404, detail="Dossier associé introuvable.")
+    contrat = bulletin.contrat
+    if not contrat:
+        raise HTTPException(status_code=404, detail="Contrat associé introuvable.")
+    salarie = contrat.salarie
+    if not salarie:
+        raise HTTPException(status_code=404, detail="Salarié associé introuvable.")
+        
+    email_dest = dossier.adresse_email or current_user.email
+    if not email_dest:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Aucune adresse e-mail n'est configurée pour le dossier ou l'utilisateur connecté."
+        )
+        
+    months = [
+        'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+        'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
+    ]
+    periode_lbl = f"{months[bulletin.mois - 1]} {bulletin.annee}"
+    salarie_name = f"{salarie.prenom} {salarie.nom.upper()}"
+    subject = f"Bulletin de paie {periode_lbl} - {salarie_name}"
+    
+    html_content = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333333;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0;">
+            <div style="background-color: #475569; padding: 15px; text-align: center; color: white;">
+                <h1 style="margin: 0; font-size: 20px; text-transform: uppercase;">payohada gestion</h1>
+            </div>
+            <div style="padding: 20px;">
+                <p>Bonjour,</p>
+                <p>Le bulletin de paie de <strong>{salarie_name}</strong> pour la période de <strong>{periode_lbl}</strong> a été calculé et validé.</p>
+                
+                <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                    <tr style="background-color: #f8fafc;">
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold;">Salarié</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1;">{salarie_name}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold;">Salaire Brut</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-family: monospace; text-align: right;">{int(bulletin.salaire_brut):,} FCFA</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold;">Net à Payer</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-family: monospace; text-align: right;">{int(bulletin.net_a_payer):,} FCFA</td>
+                    </tr>
+                </table>
+                
+                <p>Ce bulletin est disponible dans l'onglet Bulletins de l'établissement du dossier <strong>{dossier.nom_dossier}</strong>.</p>
+                <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+                <p style="font-size: 11px; color: #64748b; font-style: italic; text-align: center;">
+                    Ce message a été généré automatiquement par payohada.
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    success = send_email(email_dest, subject, html_content)
+    if not success:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Une erreur est survenue lors de l'envoi de l'e-mail."
+        )
+        
+    return {"status": "success", "message": f"Bulletin envoyé au gestionnaire du dossier {dossier.nom_dossier} ({email_dest})"}
+

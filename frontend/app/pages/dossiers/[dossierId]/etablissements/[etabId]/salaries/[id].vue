@@ -417,6 +417,12 @@ onMounted(() => {
                 </td>
                 <td class="px-6 py-4 font-mono text-slate-600">
                   {{ c.salaire_mensuel }} FCFA / {{ c.type_salaire }}
+                  <span
+                    :class="[
+                      c.mode_calcul === 'net' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-amber-50 text-amber-700 border-amber-200',
+                      'ml-1 px-1.5 py-0.5 rounded text-[9px] uppercase font-bold border'
+                    ]"
+                  >{{ c.mode_calcul === 'net' ? 'Net' : 'Brut' }}</span>
                 </td>
                 <td class="px-6 py-4 font-mono text-slate-500">{{ c.date_debut_contrat || '-' }}</td>
                 <td class="px-6 py-4">

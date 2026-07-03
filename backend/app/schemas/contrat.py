@@ -156,6 +156,7 @@ class ContratBase(BaseModel):
     sursalaire: Optional[float] = 0.0
     indemnite_transport: Optional[float] = 0.0
     dotation_telephonique: Optional[float] = 0.0
+    mode_calcul: Optional[str] = "brut"
 
 
 class ContratCreate(ContratBase):
@@ -178,6 +179,7 @@ class ContratUpdate(BaseModel):
     sursalaire: Optional[float] = None
     indemnite_transport: Optional[float] = None
     dotation_telephonique: Optional[float] = None
+    mode_calcul: Optional[str] = None
 
 
 class ContratOut(ContratBase):

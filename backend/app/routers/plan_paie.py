@@ -12,14 +12,17 @@ router = APIRouter(prefix="/plan-paie", tags=["Plan Comptable de Paie"])
 @router.get("", response_model=List[PlanPaieOut])
 def get_plans_paie(
     pays: Optional[str] = None,
+    type: Optional[str] = None,
     est_actif: Optional[bool] = None,
     db: Session = Depends(get_db),
     current_user: Utilisateur = Depends(get_current_user)
 ):
-    """Liste les postes du plan de paie. Filtrable par pays et statut actif."""
+    """Liste les postes du plan de paie. Filtrable par pays, type et statut actif."""
     query = db.query(PlanPaie)
     if pays:
         query = query.filter(PlanPaie.pays == pays)
+    if type:
+        query = query.filter(PlanPaie.type == type)
     if est_actif is not None:
         query = query.filter(PlanPaie.est_actif == est_actif)
     return query.all()

@@ -68,6 +68,7 @@ class PrimeBase(BaseModel):
     libelle: Optional[str] = None
     base: Optional[float] = None
     taux: Optional[float] = None
+    est_persistant: Optional[bool] = False
 
 
 class PrimeCreate(PrimeBase):
@@ -95,6 +96,7 @@ class OptionBase(BaseModel):
     mois: int
     annee: str
     libelle: Optional[str] = None
+    est_persistant: Optional[bool] = False
 
 
 class OptionCreate(OptionBase):

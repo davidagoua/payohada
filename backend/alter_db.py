@@ -31,6 +31,15 @@ if db_url and db_url.startswith("postgresql"):
         cur.execute("ALTER TABLE contrats ADD COLUMN IF NOT EXISTS sursalaire DOUBLE PRECISION DEFAULT 0.0;")
         cur.execute("ALTER TABLE contrats ADD COLUMN IF NOT EXISTS indemnite_transport DOUBLE PRECISION DEFAULT 0.0;")
         cur.execute("ALTER TABLE contrats ADD COLUMN IF NOT EXISTS dotation_telephonique DOUBLE PRECISION DEFAULT 0.0;")
+        cur.execute("ALTER TABLE contrats ADD COLUMN IF NOT EXISTS mode_calcul VARCHAR(10) DEFAULT 'brut';")
+        
+        # Add base and taux columns to primes
+        cur.execute("ALTER TABLE primes ADD COLUMN IF NOT EXISTS base DOUBLE PRECISION DEFAULT NULL;")
+        cur.execute("ALTER TABLE primes ADD COLUMN IF NOT EXISTS taux DOUBLE PRECISION DEFAULT NULL;")
+        
+        # Add est_persistant column to primes and options
+        cur.execute("ALTER TABLE primes ADD COLUMN IF NOT EXISTS est_persistant BOOLEAN DEFAULT FALSE;")
+        cur.execute("ALTER TABLE options ADD COLUMN IF NOT EXISTS est_persistant BOOLEAN DEFAULT FALSE;")
         
         # Widen code column in plan_paie to prevent StringDataRightTruncation
         cur.execute("ALTER TABLE plan_paie ALTER COLUMN code TYPE VARCHAR(20);")
@@ -81,6 +90,21 @@ if sqlite_path.exists():
             cur.execute("ALTER TABLE contrats ADD COLUMN dotation_telephonique DOUBLE PRECISION DEFAULT 0.0;")
         except sqlite3.OperationalError:
             print("dotation_telephonique column already exists or error in contrats")
+
+        try:
+            cur.execute("ALTER TABLE contrats ADD COLUMN mode_calcul VARCHAR(10) DEFAULT 'brut';")
+        except sqlite3.OperationalError:
+            print("mode_calcul column already exists or error in contrats")
+
+        try:
+            cur.execute("ALTER TABLE primes ADD COLUMN base DOUBLE PRECISION DEFAULT NULL;")
+        except sqlite3.OperationalError:
+            print("base column already exists or error in primes")
+
+        try:
+            cur.execute("ALTER TABLE primes ADD COLUMN taux DOUBLE PRECISION DEFAULT NULL;")
+        except sqlite3.OperationalError:
+            print("taux column already exists or error in primes")
             
         conn.commit()
         conn.close()
