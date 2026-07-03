@@ -41,12 +41,11 @@ definePageMeta({
           </div>
 
           <h1 class="text-4xl sm:text-5xl font-extrabold text-slate-900 leading-tight">
-            Gérez vos salariés et vos paies avec la rigueur de
-            <span class="text-transparent bg-clip-text bg-gradient-to-r from-green-600 to-emerald-700">SAP</span>
+            Gérez vos salariés et vos paies avec la rigueur 
           </h1>
 
           <p class="text-lg text-slate-600 leading-relaxed max-w-lg">
-            Payohada offre une structure robuste inspirée des standards d'entreprise SAP, adaptée pour gérer vos dossiers clients, vos établissements administratifs, vos salariés et leurs contrats de travail en toute simplicité.
+            Payohada offre une structure robuste inspirée des standards d'entreprise , adaptée pour gérer vos dossiers clients, vos établissements administratifs, vos salariés et leurs contrats de travail en toute simplicité.
           </p>
 
           <div class="flex flex-col sm:flex-row gap-4">
@@ -62,11 +61,11 @@ definePageMeta({
           <div class="flex items-center space-x-6 text-slate-500 text-sm">
             <div class="flex items-center space-x-2">
               <UIcon name="i-lucide-check-circle" class="w-5 h-5 text-green-600" />
-              <span>Supabase Auth</span>
+              <span>Optimiser pour la securité</span>
             </div>
             <div class="flex items-center space-x-2">
               <UIcon name="i-lucide-check-circle" class="w-5 h-5 text-green-600" />
-              <span>Structure SAP Fiori</span>
+              <span>Standart du marcher</span>
             </div>
           </div>
         </div>
@@ -129,7 +128,7 @@ definePageMeta({
         
         <div class="text-center max-w-2xl mx-auto mb-16">
           <h2 class="text-3xl font-bold text-slate-900 sm:text-4xl">
-            L'excellence opérationnelle de SAP, simplifiée
+            L'excellence opérationnelle, simplifiée
           </h2>
           <p class="mt-4 text-slate-600">
             Payohada structure les données administratives clés de votre entreprise selon des normes standardisées et transparentes.
@@ -190,7 +189,7 @@ definePageMeta({
       <div class="max-w-4xl mx-auto px-4 text-center space-y-6">
         <h2 class="text-3xl font-extrabold">Prêt à simplifier vos processus RH ?</h2>
         <p class="text-green-100 max-w-xl mx-auto">
-          Inscrivez-vous dès maintenant et découvrez la rigueur et la clarté du style SAP pour le pilotage de votre paie.
+          Inscrivez-vous dès maintenant et découvrez la rigueur et la clarté pour le pilotage de votre paie.
         </p>
         <div class="flex justify-center space-x-4 pt-2">
           <NuxtLink to="/login?register=true" class="px-6 py-3 bg-white text-green-700 font-bold rounded-lg hover:bg-slate-100 transition-colors">

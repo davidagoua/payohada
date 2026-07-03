@@ -20,6 +20,15 @@ class Settings(BaseSettings):
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = True
 
+    # SMTP Configuration
+    SMTP_HOST: str = "localhost"
+    SMTP_PORT: int = 1025
+    SMTP_USER: Optional[str] = None
+    SMTP_PASSWORD: Optional[str] = None
+    SMTP_SECURE: bool = False
+    EMAIL_FROM: str = "noreply@payohada.com"
+    EMAIL_FROM_NAME: str = "payohada Paie"
+
     class Config:
         env_file = ".env"
 

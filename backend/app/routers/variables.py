@@ -244,3 +244,45 @@ def delete_option(
     db.commit()
     return None
 
+
+@router.put("/primes/{prime_id}", response_model=PrimeOut)
+def update_prime(
+    prime_id: int,
+    prime_in: PrimeCreate,
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user)
+):
+    """Met à jour une prime."""
+    prime = db.query(Prime).filter(Prime.id == prime_id).first()
+    if not prime:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Prime introuvable.")
+    check_contrat_ownership(prime.contrat_id, current_user.id, db)
+
+    for field, value in prime_in.model_dump().items():
+        setattr(prime, field, value)
+
+    db.commit()
+    db.refresh(prime)
+    return prime
+
+
+@router.put("/options/{option_id}", response_model=OptionOut)
+def update_option(
+    option_id: int,
+    option_in: OptionCreate,
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user)
+):
+    """Met à jour une option du bulletin."""
+    option = db.query(Option).filter(Option.id == option_id).first()
+    if not option:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Option introuvable.")
+    check_contrat_ownership(option.contrat_id, current_user.id, db)
+
+    for field, value in option_in.model_dump().items():
+        setattr(option, field, value)
+
+    db.commit()
+    db.refresh(option)
+    return option
+

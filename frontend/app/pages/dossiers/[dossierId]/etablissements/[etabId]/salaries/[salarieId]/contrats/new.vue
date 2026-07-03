@@ -17,9 +17,10 @@ const currentSalarie = ref(null)
 const cNumero = ref('')
 const cTypeContrat = ref(10) // CDI by default
 const cStatutPro = ref(2)    // Non-cadre by default
-const cSalaireMensuel = ref(1800.0)
+const cSalaireMensuel = ref(250000)
 const cSalaireHoraire = ref(11.85)
 const cTypeSalaire = ref('Mensuel')
+const cModeCalcul = ref('brut')
 const cDateDebut = ref(new Date().toISOString().substring(0, 10))
 const cDateFin = ref('')
 const cEmploi = ref('')
@@ -67,6 +68,7 @@ const handleCreateContract = async () => {
       salaire_mensuel: Number(cSalaireMensuel.value) || 0.0,
       salaire_horaire: Number(cSalaireHoraire.value) || 0.0,
       type_salaire: cTypeSalaire.value,
+      mode_calcul: cModeCalcul.value,
       date_debut_contrat: cDateDebut.value || null,
       date_fin_previsionnelle_contrat: cDateFin.value || null,
       emploi: cEmploi.value || null,
@@ -188,22 +190,26 @@ onMounted(() => {
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 border-t border-slate-100 pt-4">
-          <div class="md:col-span-2">
-            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Salaire de Base</label>
-            <div class="grid grid-cols-2 gap-2 mt-1">
-              <input 
-                v-model="cSalaireMensuel" 
-                type="number" 
-                step="0.01" 
-                placeholder="Mensuel" 
-                class="block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+          <div class="md:col-span-1">
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">
+              Salaire {{ cModeCalcul === 'net' ? 'Net' : 'Brut' }} (FCFA)
+            </label>
+            <div class="mt-1">
+              <input
+                v-if="cTypeSalaire === 'Mensuel'"
+                v-model="cSalaireMensuel"
+                type="number"
+                step="0.01"
+                placeholder="Mensuel"
+                class="block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
               />
-              <input 
-                v-model="cSalaireHoraire" 
-                type="number" 
-                step="0.01" 
-                placeholder="Horaire" 
-                class="block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+              <input
+                v-if="cTypeSalaire === 'Horaire'"
+                v-model="cSalaireHoraire"
+                type="number"
+                step="0.01"
+                placeholder="Horaire"
+                class="block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
               />
             </div>
           </div>
@@ -212,6 +218,13 @@ onMounted(() => {
             <select v-model="cTypeSalaire" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
               <option value="Mensuel">Mensuel</option>
               <option value="Horaire">Horaire</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Nature du salaire</label>
+            <select v-model="cModeCalcul" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
+              <option value="brut">Brut</option>
+              <option value="net">Net</option>
             </select>
           </div>
         </div>

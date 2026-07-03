@@ -21,6 +21,7 @@ const editTypeContrat = ref(10)
 const editSalaireMensuel = ref(0.0)
 const editSalaireHoraire = ref(0.0)
 const editTypeSalaire = ref('Mensuel')
+const editModeCalcul = ref('brut')
 const editStatut = ref('actif')
 const editUniteTemps = ref('Heures')
 const editSursalaire = ref(0.0)
@@ -54,6 +55,7 @@ const fetchContratDetails = async () => {
     editSalaireMensuel.value = data.salaire_mensuel || 0.0
     editSalaireHoraire.value = data.salaire_horaire || 0.0
     editTypeSalaire.value = data.type_salaire || 'Mensuel'
+    editModeCalcul.value = data.mode_calcul || 'brut'
     editStatut.value = data.statut || 'actif'
     editUniteTemps.value = data.unite_temps || 'Heures'
     editSursalaire.value = data.sursalaire || 0.0
@@ -80,6 +82,7 @@ const handleUpdateContrat = async () => {
       salaire_mensuel: Number(editSalaireMensuel.value) || 0.0,
       salaire_horaire: Number(editSalaireHoraire.value) || 0.0,
       type_salaire: editTypeSalaire.value,
+      mode_calcul: editModeCalcul.value,
       statut: editStatut.value,
       unite_temps: editUniteTemps.value,
       sursalaire: Number(editSursalaire.value) || 0.0,
@@ -224,14 +227,25 @@ onMounted(() => {
               </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-slate-100 pt-4">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 border-t border-slate-100 pt-4">
               <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Salaire Mensuel Brut (FCFA)</label>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Salaire Mensuel {{ editModeCalcul === 'net' ? 'Net' : 'Brut' }} (FCFA)
+                </label>
                 <input v-model="editSalaireMensuel" type="number" step="0.01" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono" />
               </div>
               <div>
-                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Taux Horaire Brut (FCFA)</label>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">
+                  Taux Horaire {{ editModeCalcul === 'net' ? 'Net' : 'Brut' }} (FCFA)
+                </label>
                 <input v-model="editSalaireHoraire" type="number" step="0.01" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Nature du salaire</label>
+                <select v-model="editModeCalcul" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select">
+                  <option value="brut">Brut</option>
+                  <option value="net">Net</option>
+                </select>
               </div>
             </div>
 

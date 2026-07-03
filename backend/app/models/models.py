@@ -435,6 +435,7 @@ class Contrat(TimestampMixin, Base):
     sursalaire = Column(Float, default=0.0)
     indemnite_transport = Column(Float, default=0.0)
     dotation_telephonique = Column(Float, default=0.0)
+    mode_calcul = Column(String(10), default="brut")
 
     # Relations
     dossier = relationship("Dossier")
@@ -509,6 +510,7 @@ class Prime(TimestampMixin, Base):
     libelle = Column(String(200))
     base = Column(Float, nullable=True)
     taux = Column(Float, nullable=True)
+    est_persistant = Column(Boolean, default=False)
 
     contrat = relationship("Contrat", back_populates="primes")
 
@@ -525,6 +527,7 @@ class Option(TimestampMixin, Base):
     mois = Column(Integer)
     annee = Column(String(4))
     libelle = Column(String(200))
+    est_persistant = Column(Boolean, default=False)
 
     contrat = relationship("Contrat", back_populates="options")
 

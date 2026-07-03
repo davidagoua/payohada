@@ -1,0 +1,1 @@
+@keyframes fadeInUp-f2611f31{0%{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}@keyframes fadeIn-f2611f31{0%{opacity:0}to{opacity:1}}.animate-fade-in-up[data-v-f2611f31]{animation:fadeInUp-f2611f31 .8s cubic-bezier(.16,1,.3,1) forwards}.animate-fade-in[data-v-f2611f31]{animation:fadeIn-f2611f31 1.2s cubic-bezier(.16,1,.3,1) forwards}

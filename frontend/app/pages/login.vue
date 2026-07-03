@@ -162,7 +162,7 @@ onMounted(() => {
               class="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-semibold text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors disabled:opacity-50"
             >
               <UIcon v-if="loading" name="i-lucide-loader-2" class="w-5 h-5 animate-spin mr-2" />
-              {{ isRegister ? "Créer mon compte Supabase" : "Connexion avec Supabase" }}
+              {{ isRegister ? "Créer mon compte " : "Connexion" }}
             </button>
           </div>
         </form>
@@ -185,11 +185,8 @@ onMounted(() => {
               class="w-full flex items-center justify-center px-4 py-2.5 border border-dashed border-amber-300 rounded-lg text-sm font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 focus:outline-none transition-colors"
             >
               <UIcon name="i-lucide-shield-alert" class="w-5 h-5 mr-2 text-amber-500" />
-              Accéder en Mode Démo (Sans Supabase)
+              Accéder en Mode Démo
             </button>
-            <p class="mt-2 text-[11px] text-slate-400 text-center">
-              Utilise des données locales fictives et génère un jeton accepté par le serveur backend FastAPI en mode débug.
-            </p>
           </div>
         </div>
 

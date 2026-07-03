@@ -277,6 +277,102 @@ const handleDeleteSelectedBulletins = async () => {
   await fetchBulletins()
 }
 
+const handlePrintSelected = () => {
+  const ids = selectedBulletins.value.map(cId => bulletinsMap.value[cId]?.id).filter(Boolean)
+  if (ids.length === 0) {
+    toast.add({ title: 'Info', description: 'Aucun bulletin généré dans la sélection.', color: 'warning' })
+    return
+  }
+  window.open(`/dossiers/${dossierId}/etablissements/${etabId}/print-bulletins?ids=${ids.join(',')}`, '_blank')
+}
+
+const handleSendEmployeeEmailsSelected = async () => {
+  const generated = selectedBulletins.value
+    .map(cId => bulletinsMap.value[cId])
+    .filter(b => b && b.id)
+
+  if (generated.length === 0) {
+    toast.add({ title: 'Info', description: 'Aucun bulletin généré dans la sélection.', color: 'warning' })
+    return
+  }
+
+  if (!confirm(`Envoyer par email les ${generated.length} bulletin(s) sélectionnés aux employés ?`)) return
+
+  bulkProcessing.value = true
+  bulkProgress.value = 0
+  bulkTotal.value = generated.length
+
+  let successCount = 0
+  let errorMessages = []
+
+  for (let i = 0; i < generated.length; i++) {
+    const b = generated[i]
+    try {
+      await post(`/bulletins/${b.id}/envoyer-employe`)
+      successCount++
+    } catch (e) {
+      console.error(`Error sending email to employee for bulletin ${b.id}:`, e)
+      const errorMsg = e.response?._data?.detail || e.message || String(e)
+      errorMessages.push(`${getSalarieName(b.contrat_id)}: ${errorMsg}`)
+    }
+    bulkProgress.value = i + 1
+  }
+
+  bulkProcessing.value = false
+  toast.add({
+    title: 'Envoi d\'emails aux employés terminé',
+    description: `${successCount} email(s) envoyé(s) avec succès.`,
+    color: successCount === generated.length ? 'success' : 'warning'
+  })
+
+  if (errorMessages.length > 0) {
+    toast.add({
+      title: 'Certains emails n\'ont pas pu être envoyés',
+      description: errorMessages.slice(0, 3).join('\n'),
+      color: 'danger'
+    })
+  }
+
+  selectedBulletins.value = []
+}
+
+const handleSendManagerEmailsSelected = async () => {
+  const generated = selectedBulletins.value
+    .map(cId => bulletinsMap.value[cId])
+    .filter(b => b && b.id)
+
+  if (generated.length === 0) {
+    toast.add({ title: 'Info', description: 'Aucun bulletin généré dans la sélection.', color: 'warning' })
+    return
+  }
+
+  if (!confirm(`Envoyer par email les ${generated.length} bulletin(s) sélectionnés au gestionnaire de l'entreprise ?`)) return
+
+  bulkProcessing.value = true
+  bulkProgress.value = 0
+  bulkTotal.value = generated.length
+
+  let successCount = 0
+  for (let i = 0; i < generated.length; i++) {
+    const b = generated[i]
+    try {
+      await post(`/bulletins/${b.id}/envoyer-gestionnaire`)
+      successCount++
+    } catch (e) {
+      console.error(`Error sending email to manager for bulletin ${b.id}:`, e)
+    }
+    bulkProgress.value = i + 1
+  }
+
+  bulkProcessing.value = false
+  toast.add({
+    title: 'Envoi d\'emails au gestionnaire terminé',
+    description: `${successCount} email(s) envoyé(s) au gestionnaire avec succès.`,
+    color: 'success'
+  })
+  selectedBulletins.value = []
+}
+
 // Global State for breadcrumbs
 const currentDossier = useState('current-dossier')
 const currentEtablissement = useState('current-etablissement')
@@ -1319,6 +1415,27 @@ onMounted(() => {
           >
             <UIcon name="i-lucide-check-circle" class="w-3.5 h-3.5 inline mr-1" />
             Valider
+          </button>
+          <button 
+            @click="handlePrintSelected"
+            class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold uppercase tracking-wider transition-colors shadow-flat cursor-pointer"
+          >
+            <UIcon name="i-lucide-printer" class="w-3.5 h-3.5 inline mr-1" />
+            Imprimer
+          </button>
+          <button 
+            @click="handleSendEmployeeEmailsSelected"
+            class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold uppercase tracking-wider transition-colors shadow-flat cursor-pointer"
+          >
+            <UIcon name="i-lucide-mail" class="w-3.5 h-3.5 inline mr-1" />
+            Mail Employé
+          </button>
+          <button 
+            @click="handleSendManagerEmailsSelected"
+            class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold uppercase tracking-wider transition-colors shadow-flat cursor-pointer"
+          >
+            <UIcon name="i-lucide-mail" class="w-3.5 h-3.5 inline mr-1" />
+            Mail Gestionnaire
           </button>
           <button 
             @click="handleDeleteSelectedBulletins"
