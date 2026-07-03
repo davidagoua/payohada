@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
+import uuid
 
 from app.database import get_db
 from app.models.models import Dossier, Etablissement, AdresseEtablissement, BanqueEtablissement, GestionCongesPayes, CaisseCotisation, Utilisateur
@@ -51,6 +52,21 @@ def get_etablissements(
     return db.query(Etablissement).filter(Etablissement.dossier_id == dossier_id).all()
 
 
+@router.get("/dossiers/{dossier_id}/etablissements/next-code")
+def get_next_etablissement_code(
+    dossier_id: int,
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user)
+):
+    """Calcule le prochain code d'établissement disponible."""
+    check_dossier_ownership(dossier_id, current_user.id, db)
+    from sqlalchemy import func
+    max_id = db.query(func.max(Etablissement.id)).scalar()
+    next_id = (max_id or 0) + 1
+    next_code = f"ETAB{next_id:08d}"
+    return {"code": next_code}
+
+
 @router.post("/dossiers/{dossier_id}/etablissements", response_model=EtablissementOut)
 def create_etablissement(
     dossier_id: int,
@@ -61,23 +77,17 @@ def create_etablissement(
     """Crée un établissement pour un dossier."""
     check_dossier_ownership(dossier_id, current_user.id, db)
 
-    # Vérification unicité code établissement pour le dossier
-    existing = db.query(Etablissement).filter(
-        Etablissement.dossier_id == dossier_id,
-        Etablissement.code == etab_in.code
-    ).first()
-    if existing:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Un établissement avec ce code existe déjà dans ce dossier."
-        )
+    # Création établissement avec code temporaire unique (max 15 caractères)
+    temp_code = f"T_{uuid.uuid4().hex[:8]}"
 
-    # Création établissement
     etab_dict = etab_in.model_dump(exclude={"adresse", "banque", "gestion_conges"})
+    etab_dict["code"] = temp_code
     etab = Etablissement(**etab_dict, dossier_id=dossier_id)
     db.add(etab)
-    db.commit()
-    db.refresh(etab)
+    db.flush()
+
+    # Génération du code final : ETAB + ID sur 8 chiffres (total 12 caractères)
+    etab.code = f"ETAB{etab.id:08d}"
 
     # Création adresse
     if etab_in.adresse:

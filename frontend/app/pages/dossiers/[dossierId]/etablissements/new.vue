@@ -8,7 +8,17 @@ const dossierId = route.params.dossierId
 
 // Form fields
 const etabNom = ref('')
-const etabCode = ref('')
+const etabCode = ref('Génération en cours...')
+
+const fetchNextCode = async () => {
+  try {
+    const res = await get(`/dossiers/${dossierId}/etablissements/next-code`)
+    etabCode.value = res.code
+  } catch (e) {
+    console.error(e)
+    etabCode.value = 'ETAB00000000'
+  }
+}
 
 // CNPS fields
 const cnpsMatricule = ref('')
@@ -87,8 +97,9 @@ const handleCreateEtablissement = async () => {
   }
 }
 
-onMounted(() => {
-  fetchDossierContext()
+onMounted(async () => {
+  await fetchDossierContext()
+  await fetchNextCode()
 })
 </script>
 
@@ -127,8 +138,9 @@ onMounted(() => {
                 v-model="etabCode" 
                 type="text" 
                 required
-                placeholder="Ex: ETAB01" 
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm font-mono"
+                disabled
+                placeholder="Génération en cours..." 
+                class="mt-1 block w-full px-3 py-2 border border-slate-200 bg-slate-50 text-slate-450 rounded-lg focus:outline-none text-sm font-mono cursor-not-allowed"
               />
             </div>
             <div>

@@ -866,7 +866,7 @@ onMounted(() => {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Code Établissement</label>
-              <input v-model="etabCode" type="text" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <input v-model="etabCode" type="text" disabled class="mt-1 block w-full px-3 py-2 border border-slate-200 rounded-none text-sm font-mono bg-slate-50 text-slate-450 cursor-not-allowed focus:outline-none" />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Raison Sociale</label>
