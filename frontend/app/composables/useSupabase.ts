@@ -9,6 +9,7 @@ export const useSupabase = () => {
   const token = useState<string | null>('sb-token', () => null)
   const loading = useState<boolean>('sb-loading', () => false)
   const isMock = useState<boolean>('sb-mock', () => false)
+  const initialized = useState<boolean>('sb-initialized', () => false)
 
   let client: any = null
   if (url && key && typeof window !== 'undefined') {
@@ -25,6 +26,7 @@ export const useSupabase = () => {
         user.value = JSON.parse(storedUser)
         token.value = storedToken
       }
+      initialized.value = true
       return
     }
 
@@ -67,6 +69,7 @@ export const useSupabase = () => {
       }
     } finally {
       loading.value = false
+      initialized.value = true
     }
   }
 
@@ -168,6 +171,7 @@ export const useSupabase = () => {
     token,
     loading,
     isMock,
+    initialized,
     init,
     login,
     signup,
