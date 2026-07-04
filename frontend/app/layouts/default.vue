@@ -231,8 +231,19 @@ const handleLogout = async () => {
       <div class="bg-slate-50/40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-start">
           <nav class="flex items-center space-x-1 h-12">
+            <!-- If salarié -->
+            <template v-if="user?.salarie_id">
+              <NuxtLink 
+                to="/salaries/bulletins" 
+                class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
+                active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
+              >
+                Mes Bulletins
+              </NuxtLink>
+            </template>
+
             <!-- If no establishment selected -->
-            <template v-if="!routeInfo.isEtabSelected">
+            <template v-else-if="!routeInfo.isEtabSelected">
               <NuxtLink 
                 to="/dossiers" 
                 class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
@@ -246,6 +257,13 @@ const handleLogout = async () => {
                 active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
               >
                 Simulateur de Paie
+              </NuxtLink>
+              <NuxtLink 
+                to="/admin/reclamations" 
+                class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
+                active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
+              >
+                Réclamations
               </NuxtLink>
               <NuxtLink 
                 v-if="isAdmin"

@@ -17,6 +17,18 @@ class UtilisateurOut(UtilisateurBase):
     supabase_uid: str
     is_active: bool
     is_admin: bool
+    salarie_id: Optional[int] = None
 
     class Config:
         from_attributes = True
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class ChangePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str
+

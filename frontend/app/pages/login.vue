@@ -44,32 +44,46 @@ const handleSubmit = async () => {
     if (error) {
       errorMsg.value = error
     } else {
-      router.push('/dossiers')
+      if (user.value?.salarie_id) {
+        router.push('/salaries/bulletins')
+      } else {
+        router.push('/dossiers')
+      }
     }
   } else {
     const { error } = await login(email.value, password.value)
     if (error) {
       errorMsg.value = error
     } else {
-      router.push('/dossiers')
+      if (user.value?.salarie_id) {
+        router.push('/salaries/bulletins')
+      } else {
+        router.push('/dossiers')
+      }
     }
   }
 }
 
 const handleMockLogin = async () => {
   errorMsg.value = ''
-  // Use a default mock email or whatever the user entered
   const mockEmail = email.value || 'demo@payohada.cloud'
-  const { error } = await login(mockEmail) // Without password = mock login
+  const { error } = await login(mockEmail)
   if (!error) {
-    router.push('/dossiers')
+    if (user.value?.salarie_id) {
+      router.push('/salaries/bulletins')
+    } else {
+      router.push('/dossiers')
+    }
   }
 }
 
-// If already logged in, redirect to dossiers
 onMounted(() => {
   if (user.value) {
-    router.push('/dossiers')
+    if (user.value.salarie_id) {
+      router.push('/salaries/bulletins')
+    } else {
+      router.push('/dossiers')
+    }
   }
 })
 </script>

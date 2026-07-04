@@ -12,6 +12,7 @@ CREATE TABLE utilisateurs (
     supabase_uid VARCHAR(255) NOT NULL UNIQUE,
     is_active BOOLEAN DEFAULT TRUE,
     is_admin BOOLEAN DEFAULT FALSE,
+    salarie_id INTEGER DEFAULT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -527,3 +528,22 @@ COMMENT ON COLUMN plan_paie.pays IS 'Pays de référence (ex: CI pour Côte d''I
 COMMENT ON COLUMN plan_paie.est_actif IS 'Indique si le poste est actif ou non';
 COMMENT ON COLUMN plan_paie.date_creation IS 'Date de création de l''enregistrement';
 COMMENT ON COLUMN plan_paie.date_modification IS 'Date de dernière modification';
+
+-- Foreign key for utilisateurs to salaries (added at end because salaries is created later)
+ALTER TABLE utilisateurs ADD CONSTRAINT fk_utilisateurs_salarie FOREIGN KEY (salarie_id) REFERENCES salaries(id) ON DELETE CASCADE;
+
+-- 28. Table : reclamations
+CREATE TABLE reclamations (
+    id SERIAL PRIMARY KEY,
+    bulletin_id INTEGER NOT NULL REFERENCES bulletins_paies(id) ON DELETE CASCADE,
+    salarie_id INTEGER NOT NULL REFERENCES salaries(id) ON DELETE CASCADE,
+    sujet VARCHAR(200) NOT NULL,
+    description TEXT NOT NULL,
+    statut VARCHAR(50) DEFAULT 'en_attente',
+    commentaire_gestionnaire TEXT DEFAULT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_reclamations_salarie ON reclamations (salarie_id);
+CREATE INDEX idx_reclamations_bulletin ON reclamations (bulletin_id);
+

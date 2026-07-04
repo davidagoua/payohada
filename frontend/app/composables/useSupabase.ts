@@ -76,8 +76,43 @@ export const useSupabase = () => {
   const login = async (email: string, password?: string) => {
     loading.value = true
     try {
+      // 1. Essayer de se connecter via notre backend local s'il y a un mot de passe
+      if (password) {
+        try {
+          const apiBase = config.public.apiBase || 'http://localhost:8000'
+          const response = await $fetch<any>(`${apiBase}/api/v1/auth/login`, {
+            method: 'POST',
+            body: { email, password }
+          })
+          
+          if (response && response.access_token) {
+            token.value = response.access_token
+            user.value = {
+              id: response.user.id,
+              email: response.user.email,
+              user_metadata: {
+                first_name: response.user.prenom,
+                last_name: response.user.nom
+              },
+              salarie_id: response.user.salarie_id
+            }
+            isMock.value = response.access_token.startsWith("mock-")
+            localStorage.setItem('mock-user', JSON.stringify(user.value))
+            localStorage.setItem('mock-token', token.value)
+            return { error: null }
+          }
+        } catch (e: any) {
+          console.warn("Backend local login failed:", e)
+          if (e.status === 401) {
+            return { error: "Adresse email ou mot de passe incorrect." }
+          }
+          // Si 404 (non trouvé), on laisse passer aux fallbacks Supabase / Mock
+        }
+      }
+
+      // 2. Fallbacks
       if (!client || isMock.value || !password) {
-        // Mock Login
+        // Mock Login (sans mot de passe ou en mode pure mock)
         const mockUid = 'mock-uid-' + Math.random().toString(36).substring(2, 11)
         const mockUser = {
           id: mockUid,
@@ -93,6 +128,7 @@ export const useSupabase = () => {
         return { error: null }
       }
 
+      // Supabase production
       const { data, error } = await client.auth.signInWithPassword({ email, password })
       if (error) throw error
       if (data?.session) {

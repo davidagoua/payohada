@@ -18,10 +18,24 @@ router = APIRouter(tags=["Bulletins de Paie"])
 
 
 def check_bulletin_ownership(bulletin_id: int, user_id: int, db: Session) -> BulletinPaie:
-    bulletin = db.query(BulletinPaie).join(Dossier).filter(
-        BulletinPaie.id == bulletin_id,
-        Dossier.utilisateur_id == user_id
-    ).first()
+    user = db.query(Utilisateur).filter(Utilisateur.id == user_id).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Utilisateur introuvable."
+        )
+
+    if user.salarie_id:
+        bulletin = db.query(BulletinPaie).join(Contrat).filter(
+            BulletinPaie.id == bulletin_id,
+            Contrat.salarie_id == user.salarie_id
+        ).first()
+    else:
+        bulletin = db.query(BulletinPaie).join(Dossier).filter(
+            BulletinPaie.id == bulletin_id,
+            Dossier.utilisateur_id == user_id
+        ).first()
+
     if not bulletin:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -114,24 +128,59 @@ def get_dossier_bulletins(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """Liste les bulletins de paie d'un dossier avec filtre de période ou de contrat."""
-    dossier = db.query(Dossier).filter(Dossier.id == dossier_id, Dossier.utilisateur_id == current_user.id).first()
-    if not dossier:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Dossier introuvable ou accès refusé."
+    if current_user.salarie_id:
+        query = db.query(BulletinPaie).join(Contrat).filter(
+            BulletinPaie.dossier_id == dossier_id,
+            Contrat.salarie_id == current_user.salarie_id
         )
-
-    query = db.query(BulletinPaie).filter(BulletinPaie.dossier_id == dossier_id)
+    else:
+        dossier = db.query(Dossier).filter(Dossier.id == dossier_id, Dossier.utilisateur_id == current_user.id).first()
+        if not dossier:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Dossier introuvable ou accès refusé."
+            )
+        query = db.query(BulletinPaie).filter(BulletinPaie.dossier_id == dossier_id)
+        
     if mois:
         query = query.filter(BulletinPaie.mois == mois)
     if annee:
         query = query.filter(BulletinPaie.annee == annee)
     if contrat_id:
+        if current_user.salarie_id:
+            contract = db.query(Contrat).filter(Contrat.id == contrat_id, Contrat.salarie_id == current_user.salarie_id).first()
+            if not contract:
+                raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Accès refusé.")
         query = query.filter(BulletinPaie.contrat_id == contrat_id)
         
     bulletins = query.all()
     
     # Injecter les cumuls dynamiquement pour chaque bulletin
+    result = []
+    for b in bulletins:
+        bout = BulletinPaieOut.model_validate(b)
+        bout.cumuls = compute_bulletin_cumuls(db, b)
+        result.append(bout)
+        
+    return result
+
+
+@router.get("/salaries/me/bulletins", response_model=List[BulletinPaieOut])
+def get_my_bulletins(
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user)
+):
+    """Liste les bulletins de paie du salarié actuellement connecté."""
+    if not current_user.salarie_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="L'utilisateur connecté n'est pas un salarié."
+        )
+        
+    bulletins = db.query(BulletinPaie).join(Contrat).filter(
+        Contrat.salarie_id == current_user.salarie_id
+    ).all()
+    
     result = []
     for b in bulletins:
         bout = BulletinPaieOut.model_validate(b)
