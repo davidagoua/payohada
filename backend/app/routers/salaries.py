@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
+import httpx
 
+from app.config import settings
 from app.database import get_db
 from app.models.models import Salarie, Etablissement, Dossier, Utilisateur
 from app.schemas.salarie import SalarieCreate, SalarieUpdate, SalarieOut
@@ -35,6 +37,37 @@ def get_salaries(
     return db.query(Salarie).filter(Salarie.etablissement_id == etablissement_id).all()
 
 
+def register_user_in_supabase(email: str, password: str) -> Optional[str]:
+    url = settings.SUPABASE_URL
+    key = settings.SUPABASE_ANON_KEY
+    if not url or not key or "changez-ceci" in key:
+        return None
+    try:
+        response = httpx.post(
+            f"{url}/auth/v1/signup",
+            headers={
+                "apikey": key,
+                "Content-Type": "application/json"
+            },
+            json={
+                "email": email,
+                "password": password
+            },
+            timeout=5.0
+        )
+        if response.status_code in [200, 201]:
+            data = response.json()
+            if "id" in data:
+                return data["id"]
+            elif "user" in data and isinstance(data["user"], dict) and "id" in data["user"]:
+                return data["user"]["id"]
+        else:
+            print(f"Supabase Auth registration returned status {response.status_code}: {response.text}")
+    except Exception as e:
+        print("Error registering user in Supabase:", e)
+    return None
+
+
 def sync_salarie_user(salarie: Salarie, db: Session):
     if not salarie.email:
         return
@@ -51,8 +84,12 @@ def sync_salarie_user(salarie: Salarie, db: Session):
             db.commit()
             return
             
-        import uuid
-        supabase_uid = f"local-salarie-{uuid.uuid4()}"
+        # Tentative d'enregistrement dans Supabase Auth
+        supabase_uid = register_user_in_supabase(salarie.email, "Payohada@123")
+        if not supabase_uid:
+            import uuid
+            supabase_uid = f"local-salarie-{uuid.uuid4()}"
+            
         user = Utilisateur(
             email=salarie.email,
             nom=salarie.nom,
