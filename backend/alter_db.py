@@ -44,6 +44,26 @@ if db_url and db_url.startswith("postgresql"):
         # Widen code column in plan_paie to prevent StringDataRightTruncation
         cur.execute("ALTER TABLE plan_paie ALTER COLUMN code TYPE VARCHAR(20);")
         
+        # Add salarie_id to utilisateurs
+        cur.execute("ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS salarie_id INTEGER REFERENCES salaries(id) ON DELETE CASCADE;")
+        
+        # Create reclamations table
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS reclamations (
+            id SERIAL PRIMARY KEY,
+            bulletin_id INTEGER NOT NULL REFERENCES bulletins_paies(id) ON DELETE CASCADE,
+            salarie_id INTEGER NOT NULL REFERENCES salaries(id) ON DELETE CASCADE,
+            sujet VARCHAR(200) NOT NULL,
+            description TEXT NOT NULL,
+            statut VARCHAR(50) DEFAULT 'en_attente',
+            commentaire_gestionnaire TEXT DEFAULT NULL,
+            created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
+        """)
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_reclamations_salarie ON reclamations (salarie_id);")
+        cur.execute("CREATE INDEX IF NOT EXISTS idx_reclamations_bulletin ON reclamations (bulletin_id);")
+        
         conn.commit()
         cur.close()
         conn.close()
@@ -105,6 +125,30 @@ if sqlite_path.exists():
             cur.execute("ALTER TABLE primes ADD COLUMN taux DOUBLE PRECISION DEFAULT NULL;")
         except sqlite3.OperationalError:
             print("taux column already exists or error in primes")
+            
+        try:
+            cur.execute("ALTER TABLE utilisateurs ADD COLUMN salarie_id INTEGER REFERENCES salaries(id) ON DELETE CASCADE;")
+        except sqlite3.OperationalError:
+            print("salarie_id column already exists or error in utilisateurs")
+
+        try:
+            cur.execute("""
+            CREATE TABLE IF NOT EXISTS reclamations (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                bulletin_id INTEGER NOT NULL REFERENCES bulletins_paies(id) ON DELETE CASCADE,
+                salarie_id INTEGER NOT NULL REFERENCES salaries(id) ON DELETE CASCADE,
+                sujet VARCHAR(200) NOT NULL,
+                description TEXT NOT NULL,
+                statut VARCHAR(50) DEFAULT 'en_attente',
+                commentaire_gestionnaire TEXT DEFAULT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            );
+            """)
+            cur.execute("CREATE INDEX IF NOT EXISTS idx_reclamations_salarie ON reclamations (salarie_id);")
+            cur.execute("CREATE INDEX IF NOT EXISTS idx_reclamations_bulletin ON reclamations (bulletin_id);")
+        except Exception as e:
+            print("Error creating reclamations in SQLite:", e)
             
         conn.commit()
         conn.close()

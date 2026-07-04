@@ -61,9 +61,11 @@ class Utilisateur(TimestampMixin, Base):
     supabase_uid = Column(String(255), unique=True, nullable=False, index=True)
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
+    salarie_id = Column(Integer, ForeignKey("salaries.id", ondelete="CASCADE"), nullable=True)
 
     # Relations
     dossiers = relationship("Dossier", back_populates="proprietaire")
+    salarie = relationship("Salarie", back_populates="utilisateur", uselist=False)
 
 
 # ─────────────────────────────────────────
@@ -287,6 +289,8 @@ class Salarie(TimestampMixin, Base):
     # Relations
     etablissement = relationship("Etablissement", back_populates="salaries")
     contrats = relationship("Contrat", back_populates="salarie", cascade="all, delete-orphan")
+    utilisateur = relationship("Utilisateur", back_populates="salarie", uselist=False, cascade="all, delete-orphan")
+    reclamations = relationship("Reclamation", back_populates="salarie", cascade="all, delete-orphan")
 
     __table_args__ = (
         UniqueConstraint("etablissement_id", "matricule", name="uq_salarie_etablissement_matricule"),
@@ -577,6 +581,7 @@ class BulletinPaie(TimestampMixin, Base):
     dossier = relationship("Dossier")
     lignes = relationship("LigneBulletinPaie", back_populates="bulletin", cascade="all, delete-orphan")
     variables_bulletin = relationship("VariableBulletin", back_populates="bulletin", cascade="all, delete-orphan")
+    reclamations = relationship("Reclamation", back_populates="bulletin", cascade="all, delete-orphan")
 
     __table_args__ = (
         UniqueConstraint("contrat_id", "mois", "annee", name="uq_bulletin_contrat_periode"),
@@ -730,3 +735,19 @@ class PlanPaie(Base):
     __table_args__ = (
         UniqueConstraint("code", "pays", name="uk_plan_paie_code_pays"),
     )
+
+
+class Reclamation(TimestampMixin, Base):
+    __tablename__ = "reclamations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    bulletin_id = Column(Integer, ForeignKey("bulletins_paies.id", ondelete="CASCADE"), nullable=False)
+    salarie_id = Column(Integer, ForeignKey("salaries.id", ondelete="CASCADE"), nullable=False)
+    sujet = Column(String(200), nullable=False)
+    description = Column(Text, nullable=False)
+    statut = Column(String(50), default="en_attente") # "en_attente", "traite", "rejete"
+    commentaire_gestionnaire = Column(Text, nullable=True)
+
+    # Relations
+    bulletin = relationship("BulletinPaie", back_populates="reclamations")
+    salarie = relationship("Salarie", back_populates="reclamations")

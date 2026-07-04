@@ -1,7 +1,7 @@
 from fastapi import FastAPI, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.routers import auth, dossiers, etablissements, salaries, contrats, variables, bulletins, constantes, plan_paie
+from app.routers import auth, dossiers, etablissements, salaries, contrats, variables, bulletins, constantes, plan_paie, reclamations
 from app.database import Base, engine, SessionLocal
 from app.database_seeder import seed_database
 
@@ -42,6 +42,7 @@ api_router.include_router(variables.router)
 api_router.include_router(bulletins.router)
 api_router.include_router(constantes.router)
 api_router.include_router(plan_paie.router)
+api_router.include_router(reclamations.router)
 
 app.include_router(api_router)
 

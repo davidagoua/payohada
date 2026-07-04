@@ -57,3 +57,17 @@ input, select, textarea, button, [class*="rounded"] {
   transform: translate(1px, 1px);
 }
 
+/* Force dark text for all form fields (inputs, selects, textareas) to prevent invisible text on light backgrounds in dark mode */
+input:not([type="checkbox"]):not([type="radio"]),
+select,
+textarea {
+  color: #0f172a !important;
+}
+
+/* Fix dropdown options in select elements in dark mode */
+select option {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+

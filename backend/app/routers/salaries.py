@@ -35,6 +35,41 @@ def get_salaries(
     return db.query(Salarie).filter(Salarie.etablissement_id == etablissement_id).all()
 
 
+def sync_salarie_user(salarie: Salarie, db: Session):
+    if not salarie.email:
+        return
+    
+    # Check if a user already exists for this salarie
+    user = db.query(Utilisateur).filter(Utilisateur.salarie_id == salarie.id).first()
+    if not user:
+        # Check if email is already taken by another user
+        existing_user = db.query(Utilisateur).filter(Utilisateur.email == salarie.email).first()
+        if existing_user:
+            existing_user.salarie_id = salarie.id
+            existing_user.nom = salarie.nom
+            existing_user.prenom = salarie.prenom
+            db.commit()
+            return
+            
+        import uuid
+        supabase_uid = f"local-salarie-{uuid.uuid4()}"
+        user = Utilisateur(
+            email=salarie.email,
+            nom=salarie.nom,
+            prenom=salarie.prenom,
+            supabase_uid=supabase_uid,
+            salarie_id=salarie.id,
+            is_active=True,
+            is_admin=False
+        )
+        db.add(user)
+    else:
+        user.email = salarie.email
+        user.nom = salarie.nom
+        user.prenom = salarie.prenom
+    db.commit()
+
+
 @router.post("/etablissements/{etablissement_id}/salaries", response_model=SalarieOut)
 def create_salarie(
     etablissement_id: int,
@@ -63,6 +98,10 @@ def create_salarie(
     db.add(salarie)
     db.commit()
     db.refresh(salarie)
+    
+    # Synchroniser l'utilisateur local
+    sync_salarie_user(salarie, db)
+    
     return salarie
 
 
@@ -91,6 +130,10 @@ def update_salarie(
 
     db.commit()
     db.refresh(salarie)
+    
+    # Synchroniser l'utilisateur local
+    sync_salarie_user(salarie, db)
+    
     return salarie
 
 
@@ -105,3 +148,4 @@ def delete_salarie(
     db.delete(salarie)
     db.commit()
     return None
+
