@@ -2,20 +2,8 @@
 const { user, logout, isMock } = useSupabase()
 const { get } = useApi()
 const route = useRoute()
-const isAdmin = ref(false)
+const isAdmin = computed(() => !!user.value?.is_admin)
 
-watch(user, async (newUser) => {
-  if (newUser) {
-    try {
-      const profile = await get('/auth/me')
-      isAdmin.value = !!profile?.is_admin
-    } catch (e) {
-      isAdmin.value = false
-    }
-  } else {
-    isAdmin.value = false
-  }
-}, { immediate: true })
 
 // State for active company/dossier context
 const currentDossier = useState('current-dossier', () => null)

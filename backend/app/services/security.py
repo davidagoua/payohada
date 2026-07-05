@@ -28,17 +28,25 @@ def get_current_user(
         # Récupération ou création de l'utilisateur de test local
         user = db.query(Utilisateur).filter(Utilisateur.supabase_uid == supabase_uid).first()
         if not user:
-            user = Utilisateur(
-                email=email,
-                nom="Mock",
-                prenom="User",
-                supabase_uid=supabase_uid,
-                is_active=True,
-                is_admin=True
-            )
-            db.add(user)
-            db.commit()
-            db.refresh(user)
+            # Essayer d'abord de trouver par email pour le mode démo / mock
+            user = db.query(Utilisateur).filter(Utilisateur.email == email).first()
+            if user:
+                # Associer le supabase_uid du mock au user existant pour permettre la connexion mock
+                user.supabase_uid = supabase_uid
+                db.commit()
+                db.refresh(user)
+            else:
+                user = Utilisateur(
+                    email=email,
+                    nom="Mock",
+                    prenom="User",
+                    supabase_uid=supabase_uid,
+                    is_active=True,
+                    is_admin=True
+                )
+                db.add(user)
+                db.commit()
+                db.refresh(user)
         return user
 
     try:
