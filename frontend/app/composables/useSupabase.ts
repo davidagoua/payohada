@@ -16,6 +16,35 @@ export const useSupabase = () => {
     client = createClient(url, key)
   }
 
+  const fetchAndEnrichProfile = async (accessToken: string | null | undefined) => {
+    if (!accessToken) return
+    try {
+      const apiBase = config.public.apiBase || 'http://localhost:8000'
+      const profile = await $fetch<any>(`${apiBase}/api/v1/auth/me`, {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`
+        }
+      })
+      if (profile && user.value) {
+        user.value = {
+          ...user.value,
+          id: profile.id,
+          salarie_id: profile.salarie_id,
+          is_admin: profile.is_admin,
+          is_active: profile.is_active,
+          user_metadata: {
+            ...user.value.user_metadata,
+            first_name: profile.prenom,
+            last_name: profile.nom
+          }
+        }
+        localStorage.setItem('mock-user', JSON.stringify(user.value))
+      }
+    } catch (e) {
+      console.error('Error enriching profile:', e)
+    }
+  }
+
   const init = async () => {
     if (typeof window === 'undefined') return
     if (!client) {
@@ -37,6 +66,7 @@ export const useSupabase = () => {
         user.value = session.user
         token.value = session.access_token
         isMock.value = false
+        await fetchAndEnrichProfile(session.access_token)
       } else {
         // Fallback to mock session if stored
         const storedUser = localStorage.getItem('mock-user')
@@ -44,15 +74,19 @@ export const useSupabase = () => {
         if (storedUser && storedToken) {
           user.value = JSON.parse(storedUser)
           token.value = storedToken
-          isMock.value = true
+          isMock.value = token.value?.startsWith("mock-") ?? true
+          if (token.value) {
+            await fetchAndEnrichProfile(token.value)
+          }
         }
       }
 
-      client.auth.onAuthStateChange((event: string, session: any) => {
+      client.auth.onAuthStateChange(async (event: string, session: any) => {
         if (session) {
           user.value = session.user
           token.value = session.access_token
           isMock.value = false
+          await fetchAndEnrichProfile(session.access_token)
         } else if (!isMock.value) {
           user.value = null
           token.value = null
@@ -98,7 +132,7 @@ export const useSupabase = () => {
             }
             isMock.value = response.access_token.startsWith("mock-")
             localStorage.setItem('mock-user', JSON.stringify(user.value))
-            localStorage.setItem('mock-token', token.value)
+            localStorage.setItem('mock-token', token.value || '')
             return { error: null }
           }
         } catch (e: any) {
@@ -125,6 +159,7 @@ export const useSupabase = () => {
         isMock.value = true
         localStorage.setItem('mock-user', JSON.stringify(mockUser))
         localStorage.setItem('mock-token', mockToken)
+        await fetchAndEnrichProfile(mockToken)
         return { error: null }
       }
 
@@ -135,6 +170,7 @@ export const useSupabase = () => {
         user.value = data.session.user
         token.value = data.session.access_token
         isMock.value = false
+        await fetchAndEnrichProfile(data.session.access_token)
       }
       return { error: null }
     } catch (e: any) {
@@ -161,6 +197,7 @@ export const useSupabase = () => {
         isMock.value = true
         localStorage.setItem('mock-user', JSON.stringify(mockUser))
         localStorage.setItem('mock-token', mockToken)
+        await fetchAndEnrichProfile(mockToken)
         return { error: null }
       }
 
@@ -174,6 +211,7 @@ export const useSupabase = () => {
         user.value = data.session.user
         token.value = data.session.access_token
         isMock.value = false
+        await fetchAndEnrichProfile(data.session.access_token)
       }
       return { error: null }
     } catch (e: any) {
