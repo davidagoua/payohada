@@ -1,8 +1,9 @@
 <script setup>
 const route = useRoute()
 const router = useRouter()
-const { get, put, post, delete: apiDelete } = useApi()
+const { get, put, post, delete: apiDelete, extractFieldErrors } = useApi()
 const toast = useToast()
+const fieldErrors = ref({})
 
 const dossierId = route.params.id
 const dossier = ref(null)
@@ -113,6 +114,7 @@ const fetchDossierDetails = async () => {
 }
 
 const handleUpdateDossier = async () => {
+  fieldErrors.value = {}
   try {
     const payload = {
       nom_dossier: editNom.value,
@@ -135,10 +137,14 @@ const handleUpdateDossier = async () => {
     }
   } catch (e) {
     console.error(e)
+    if (e.status === 422) {
+      fieldErrors.value = extractFieldErrors(e)
+    }
   }
 }
 
 const handleSaveNetEntreprise = async () => {
+  fieldErrors.value = {}
   if (!neSiret.value || !neNom.value || !nePrenom.value || !neEmail.value) {
     toast.add({
       title: 'Validation',
@@ -168,6 +174,9 @@ const handleSaveNetEntreprise = async () => {
     }
   } catch (e) {
     console.error(e)
+    if (e.status === 422) {
+      fieldErrors.value = extractFieldErrors(e)
+    }
   }
 }
 
@@ -258,24 +267,36 @@ onMounted(() => {
               v-model="editNom" 
               type="text" 
               required
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+              :class="[
+                'mt-1 block w-full px-3 py-2 border rounded-lg text-sm transition-colors',
+                fieldErrors.nom_dossier ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+              ]"
             />
+            <p v-if="fieldErrors.nom_dossier" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.nom_dossier }}</p>
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">SIRET Principal</label>
             <input 
               v-model="editSiret" 
               type="text" 
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm font-mono"
+              :class="[
+                'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono transition-colors',
+                fieldErrors.siret ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+              ]"
             />
+            <p v-if="fieldErrors.siret" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.siret }}</p>
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Pays de Référence</label>
             <input 
               v-model="editPays" 
               type="text" 
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+              :class="[
+                'mt-1 block w-full px-3 py-2 border rounded-lg text-sm transition-colors',
+                fieldErrors.pays ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+              ]"
             />
+            <p v-if="fieldErrors.pays" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.pays }}</p>
           </div>
         </div>
 
@@ -285,31 +306,43 @@ onMounted(() => {
             <input 
               v-model="editContact" 
               type="text" 
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+              :class="[
+                'mt-1 block w-full px-3 py-2 border rounded-lg text-sm transition-colors',
+                fieldErrors.nom_contact ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+              ]"
             />
+            <p v-if="fieldErrors.nom_contact" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.nom_contact }}</p>
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Adresse Email</label>
             <input 
               v-model="editEmail" 
               type="email" 
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+              :class="[
+                'mt-1 block w-full px-3 py-2 border rounded-lg text-sm transition-colors',
+                fieldErrors.adresse_email ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+              ]"
             />
+            <p v-if="fieldErrors.adresse_email" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.adresse_email }}</p>
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Téléphone</label>
             <input 
               v-model="editPhone" 
               type="text" 
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+              :class="[
+                'mt-1 block w-full px-3 py-2 border rounded-lg text-sm transition-colors',
+                fieldErrors.telephone ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+              ]"
             />
+            <p v-if="fieldErrors.telephone" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.telephone }}</p>
           </div>
         </div>
 
         <div class="flex justify-end pt-4 border-t border-slate-100">
           <button 
             type="submit" 
-            class="px-4 py-2 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white rounded-lg shadow transition-colors"
+            class="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-sm transition-colors text-sm"
           >
             Enregistrer les modifications
           </button>
@@ -410,8 +443,12 @@ onMounted(() => {
               v-model="neSiret" 
               type="text" 
               required
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm font-mono"
+              :class="[
+                'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none transition-colors',
+                fieldErrors.siret ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+              ]"
             />
+            <p v-if="fieldErrors.siret" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.siret }}</p>
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Nom du déclarant <span class="text-red-500">*</span></label>
@@ -419,8 +456,12 @@ onMounted(() => {
               v-model="neNom" 
               type="text" 
               required
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+              :class="[
+                'mt-1 block w-full px-3 py-2 border rounded-lg text-sm focus:outline-none transition-colors',
+                fieldErrors.nom ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+              ]"
             />
+            <p v-if="fieldErrors.nom" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.nom }}</p>
           </div>
         </div>
 
@@ -431,8 +472,12 @@ onMounted(() => {
               v-model="nePrenom" 
               type="text" 
               required
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+              :class="[
+                'mt-1 block w-full px-3 py-2 border rounded-lg text-sm focus:outline-none transition-colors',
+                fieldErrors.prenom ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+              ]"
             />
+            <p v-if="fieldErrors.prenom" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.prenom }}</p>
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Adresse Email <span class="text-red-500">*</span></label>
@@ -440,16 +485,24 @@ onMounted(() => {
               v-model="neEmail" 
               type="email" 
               required
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+              :class="[
+                'mt-1 block w-full px-3 py-2 border rounded-lg text-sm focus:outline-none transition-colors',
+                fieldErrors.email ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+              ]"
             />
+            <p v-if="fieldErrors.email" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.email }}</p>
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Téléphone</label>
             <input 
               v-model="nePhone" 
               type="text" 
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+              :class="[
+                'mt-1 block w-full px-3 py-2 border rounded-lg text-sm focus:outline-none transition-colors',
+                fieldErrors.telephone ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+              ]"
             />
+            <p v-if="fieldErrors.telephone" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.telephone }}</p>
           </div>
         </div>
 

@@ -1,8 +1,9 @@
 <script setup>
 const route = useRoute()
 const router = useRouter()
-const { get, put, post, delete: apiDelete } = useApi()
+const { get, put, post, delete: apiDelete, extractFieldErrors } = useApi()
 const toast = useToast()
+const fieldErrors = ref({})
 
 const dossierId = route.params.dossierId
 const etabId = route.params.etabId
@@ -96,6 +97,7 @@ const fetchSalarieDetails = async () => {
 }
 
 const handleUpdateSalarie = async () => {
+  fieldErrors.value = {}
   if (!salNom.value || !salPrenom.value) {
     toast.add({
       title: 'Validation',
@@ -141,6 +143,9 @@ const handleUpdateSalarie = async () => {
     }
   } catch (e) {
     console.error(e)
+    if (e.status === 422) {
+      fieldErrors.value = extractFieldErrors(e)
+    }
   }
 }
 
@@ -247,11 +252,29 @@ onMounted(() => {
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Prénom</label>
-              <input v-model="salPrenom" type="text" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <input 
+                v-model="salPrenom" 
+                type="text" 
+                required 
+                :class="[
+                  'mt-1 block w-full px-3 py-2 border rounded-lg text-sm transition-colors',
+                  fieldErrors.prenom ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                ]"
+              />
+              <p v-if="fieldErrors.prenom" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.prenom }}</p>
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Nom de famille</label>
-              <input v-model="salNom" type="text" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <input 
+                v-model="salNom" 
+                type="text" 
+                required 
+                :class="[
+                  'mt-1 block w-full px-3 py-2 border rounded-lg text-sm transition-colors',
+                  fieldErrors.nom ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                ]"
+              />
+              <p v-if="fieldErrors.nom" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.nom }}</p>
             </div>
           </div>
 
@@ -262,7 +285,16 @@ onMounted(() => {
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">N° Sécurité Sociale (NIR)</label>
-              <input v-model="salNir" type="text" placeholder="15 chiffres" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono" />
+              <input 
+                v-model="salNir" 
+                type="text" 
+                placeholder="15 chiffres" 
+                :class="[
+                  'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono transition-colors',
+                  fieldErrors.numero_securite_sociale ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                ]"
+              />
+              <p v-if="fieldErrors.numero_securite_sociale" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.numero_securite_sociale }}</p>
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Nationalité</label>
@@ -301,11 +333,27 @@ onMounted(() => {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Email Personnel</label>
-              <input v-model="salEmail" type="email" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <input 
+                v-model="salEmail" 
+                type="email" 
+                :class="[
+                  'mt-1 block w-full px-3 py-2 border rounded-lg text-sm transition-colors',
+                  fieldErrors.email ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                ]"
+              />
+              <p v-if="fieldErrors.email" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.email }}</p>
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Téléphone</label>
-              <input v-model="salPhone" type="text" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <input 
+                v-model="salPhone" 
+                type="text" 
+                :class="[
+                  'mt-1 block w-full px-3 py-2 border rounded-lg text-sm transition-colors',
+                  fieldErrors.telephone ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                ]"
+              />
+              <p v-if="fieldErrors.telephone" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.telephone }}</p>
             </div>
           </div>
 
@@ -342,11 +390,29 @@ onMounted(() => {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">IBAN du salarié</label>
-              <input v-model="salIban" type="text" placeholder="FR76..." class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono" />
+              <input 
+                v-model="salIban" 
+                type="text" 
+                placeholder="FR76..." 
+                :class="[
+                  'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono transition-colors',
+                  fieldErrors.iban ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                ]"
+              />
+              <p v-if="fieldErrors.iban" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.iban }}</p>
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">BIC du salarié</label>
-              <input v-model="salBic" type="text" placeholder="Ex: CEIDFRPP..." class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono" />
+              <input 
+                v-model="salBic" 
+                type="text" 
+                placeholder="Ex: CEIDFRPP..." 
+                :class="[
+                  'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono transition-colors',
+                  fieldErrors.bic ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                ]"
+              />
+              <p v-if="fieldErrors.bic" class="mt-1 text-xs text-red-655 font-medium">{{ fieldErrors.bic }}</p>
             </div>
           </div>
         </div>

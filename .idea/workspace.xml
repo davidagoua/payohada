@@ -4,7 +4,24 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fb8e9003-8131-4cb6-8b99-22a619d0dbad" name="Changes" comment="" />
+    <list default="true" id="fb8e9003-8131-4cb6-8b99-22a619d0dbad" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/main.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/backend/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/composables/useApi.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/composables/useApi.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/[etabId]/salaries/[id].vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/[etabId]/salaries/[id].vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/[etabId]/salaries/[salarieId]/contrats/[id].vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/[etabId]/salaries/[salarieId]/contrats/[id].vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/[etabId]/salaries/[salarieId]/contrats/new.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/[etabId]/salaries/[salarieId]/contrats/new.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/[etabId]/salaries/new.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/[etabId]/salaries/new.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/[id].vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/[id].vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/new.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/new.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/pages/dossiers/[id].vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/pages/dossiers/[id].vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/pages/login.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/pages/login.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/bun.lock" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/bun.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/nuxt.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/nuxt.config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package.json" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -28,61 +45,61 @@
 }</component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.1538930516681145" />
-      <entry key="MS500" value="1.6877709090698718" />
-      <entry key="S2" value="1.9106698335919787" />
-      <entry key="S5" value="1.9632634189537472" />
-      <entry key="S10" value="1.9846699796260192" />
-      <entry key="S30" value="3.2476267661965266" />
-      <entry key="S60" value="9.661581666258494" />
-      <entry key="M2" value="24.51607559883946" />
-      <entry key="M5" value="60.77076311728414" />
-      <entry key="M10" value="98.93801221603749" />
-      <entry key="M15" value="120.5527116758672" />
-      <entry key="M30" value="150.59552715065763" />
-      <entry key="H1" value="173.65637667616514" />
-      <entry key="H2" value="192.61868099169794" />
-      <entry key="H4" value="206.62201490348008" />
-      <entry key="D1" value="222.2828442696756" />
-      <entry key="W1" value="225.4551759852964" />
+      <entry key="MS100" value="1.0339124535887927" />
+      <entry key="MS500" value="2.484931947833312" />
+      <entry key="S2" value="4.640550267021706" />
+      <entry key="S5" value="5.399218090957005" />
+      <entry key="S10" value="5.689152952503398" />
+      <entry key="S30" value="5.893964127741909" />
+      <entry key="S60" value="5.946673287062038" />
+      <entry key="M2" value="5.973259016146721" />
+      <entry key="M5" value="6.009632158712275" />
+      <entry key="M10" value="7.931820118293434" />
+      <entry key="M15" value="15.231530801833088" />
+      <entry key="M30" value="51.354484439911154" />
+      <entry key="H1" value="109.54111773988858" />
+      <entry key="H2" value="166.96182793335976" />
+      <entry key="H4" value="209.9658601524739" />
+      <entry key="D1" value="257.7162026942889" />
+      <entry key="W1" value="267.3470198291625" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
       <entry key="MS500" value="0.0" />
       <entry key="S2" value="0.0" />
       <entry key="S5" value="0.0" />
-      <entry key="S10" value="8.32295485381091E-297" />
-      <entry key="S30" value="2.350331142321925E-99" />
-      <entry key="S60" value="6.3058044848338585E-50" />
-      <entry key="M2" value="3.4653153813365034E-25" />
-      <entry key="M5" value="2.4765219427155143E-10" />
-      <entry key="M10" value="2.223236578826627E-5" />
-      <entry key="M15" value="9.95940800665315E-4" />
-      <entry key="M30" value="0.04462534706446616" />
-      <entry key="H1" value="0.29873992000033706" />
-      <entry key="H2" value="0.7729626207625598" />
-      <entry key="H4" value="1.24335017637425" />
-      <entry key="D1" value="1.847667405635231" />
-      <entry key="W1" value="1.9774923944040468" />
+      <entry key="S10" value="0.0" />
+      <entry key="S30" value="1.6065177035383494E-136" />
+      <entry key="S60" value="1.6486130428242279E-68" />
+      <entry key="M2" value="1.7718701076158794E-34" />
+      <entry key="M5" value="4.7568321416977756E-14" />
+      <entry key="M10" value="3.0812256340755675E-7" />
+      <entry key="M15" value="5.746349981196037E-5" />
+      <entry key="M30" value="0.010719163150090296" />
+      <entry key="H1" value="0.14641409840902347" />
+      <entry key="H2" value="0.5411321176238632" />
+      <entry key="H4" value="1.0403174171964433" />
+      <entry key="D1" value="1.7935735846920782" />
+      <entry key="W1" value="1.9691160305350086" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="1.1058684879792493" />
-      <entry key="MS500" value="1.6728457480585375" />
-      <entry key="S2" value="1.906385931524829" />
-      <entry key="S5" value="1.9614976846598366" />
-      <entry key="S10" value="1.9837759293725887" />
-      <entry key="S30" value="3.246563897936364" />
-      <entry key="S60" value="9.6584006426005" />
-      <entry key="M2" value="24.511390554886503" />
-      <entry key="M5" value="60.765790382010515" />
-      <entry key="M10" value="98.93356474596635" />
-      <entry key="M15" value="120.54989952835794" />
-      <entry key="M30" value="150.63754422469356" />
-      <entry key="H1" value="173.95327985553305" />
-      <entry key="H2" value="193.39035405302278" />
-      <entry key="H4" value="207.86454927165377" />
-      <entry key="D1" value="224.1303401808813" />
-      <entry key="W1" value="227.43264280341475" />
+      <entry key="MS100" value="0.1650284225163728" />
+      <entry key="MS500" value="2.124781409811312" />
+      <entry key="S2" value="4.526844514960086" />
+      <entry key="S5" value="5.351047458440699" />
+      <entry key="S10" value="5.664576406781355" />
+      <entry key="S30" value="5.885658345593856" />
+      <entry key="S60" value="5.942505906721342" />
+      <entry key="M2" value="5.971171681499315" />
+      <entry key="M5" value="6.008794867907061" />
+      <entry key="M10" value="7.931322389398514" />
+      <entry key="M15" value="15.231040498002145" />
+      <entry key="M30" value="51.364336549204275" />
+      <entry key="H1" value="109.68645949177672" />
+      <entry key="H2" value="167.50194950101167" />
+      <entry key="H4" value="211.00543406054786" />
+      <entry key="D1" value="259.50959850363057" />
+      <entry key="W1" value="269.31610874658026" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -94,27 +111,27 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "/Users/macbookpro/devspace/logiciel_paie",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "pnpm",
-    "remoteSync.welcome.shown.1.1.8": "true",
-    "ts.external.directory.path": "/Users/macbookpro/devspace/logiciel_paie/frontend/node_modules/typescript/lib"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/macbookpro/devspace/logiciel_paie&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;pnpm&quot;,
+    &quot;remoteSync.welcome.shown.1.1.8&quot;: &quot;true&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;/Users/macbookpro/devspace/logiciel_paie/frontend/node_modules/typescript/lib&quot;
   }
-}]]></component>
+}</component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>

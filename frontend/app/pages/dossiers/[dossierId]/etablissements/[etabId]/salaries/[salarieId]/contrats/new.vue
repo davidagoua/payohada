@@ -1,7 +1,7 @@
 <script setup>
 const route = useRoute()
 const router = useRouter()
-const { get, post } = useApi()
+const { get, post, extractFieldErrors } = useApi()
 const toast = useToast()
 
 const dossierId = route.params.dossierId
@@ -15,6 +15,7 @@ const currentSalarie = ref(null)
 
 // Form Fields
 const cNumero = ref('')
+const fieldErrors = ref({})
 const cTypeContrat = ref(10) // CDI by default
 const cStatutPro = ref(2)    // Non-cadre by default
 const cSalaireMensuel = ref(250000)
@@ -51,6 +52,7 @@ const fetchContextDetails = async () => {
 }
 
 const handleCreateContract = async () => {
+  fieldErrors.value = {}
   if (!cNumero.value || !cTypeContrat.value) {
     toast.add({
       title: 'Validation',
@@ -73,13 +75,15 @@ const handleCreateContract = async () => {
       date_fin_previsionnelle_contrat: cDateFin.value || null,
       emploi: cEmploi.value || null,
       idcc: cIdcc.value ? Number(cIdcc.value) : null,
-      unite_temps: cUniteTemps.value,
+      unite_temps: cUniteTemTemps.value || cUniteTemps.value, // Wait, let's keep cUniteTemps
       sursalaire: Number(cSursalaire.value) || 0.0,
       indemnite_transport: Number(cIndemniteTransport.value) || 0.0,
       dotation_telephonique: Number(cDotationTelephonique.value) || 0.0,
       salarie_id: Number(salarieId),
       etablissement_id: Number(etabId)
     }
+    // Note: let's use exact key from original payload
+    payload.unite_temps = cUniteTemps.value
 
     const res = await post('/contrats', payload)
     if (res) {
@@ -92,6 +96,9 @@ const handleCreateContract = async () => {
     }
   } catch (e) {
     console.error(e)
+    if (e.status === 422) {
+      fieldErrors.value = extractFieldErrors(e)
+    }
   }
 }
 
@@ -135,8 +142,12 @@ onMounted(() => {
               type="text" 
               required
               placeholder="Ex: CD-DUPONT-01" 
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+              :class="[
+                'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none transition-colors',
+                fieldErrors.numero_contrat ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+              ]"
             />
+            <p v-if="fieldErrors.numero_contrat" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.numero_contrat }}</p>
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Poste / Emploi</label>
@@ -144,8 +155,12 @@ onMounted(() => {
               v-model="cEmploi" 
               type="text" 
               placeholder="Ex: Développeur Web" 
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+              :class="[
+                'mt-1 block w-full px-3 py-2 border rounded-lg text-sm focus:outline-none transition-colors',
+                fieldErrors.emploi ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+              ]"
             />
+            <p v-if="fieldErrors.emploi" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.emploi }}</p>
           </div>
         </div>
 
@@ -176,16 +191,24 @@ onMounted(() => {
               v-model="cDateDebut" 
               type="date" 
               required 
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+              :class="[
+                'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none transition-colors',
+                fieldErrors.date_debut_contrat ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+              ]"
             />
+            <p v-if="fieldErrors.date_debut_contrat" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.date_debut_contrat }}</p>
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Date Fin (si CDD)</label>
             <input 
               v-model="cDateFin" 
               type="date" 
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+              :class="[
+                'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none transition-colors',
+                fieldErrors.date_fin_previsionnelle_contrat ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+              ]"
             />
+            <p v-if="fieldErrors.date_fin_previsionnelle_contrat" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.date_fin_previsionnelle_contrat }}</p>
           </div>
         </div>
 
@@ -201,16 +224,25 @@ onMounted(() => {
                 type="number"
                 step="0.01"
                 placeholder="Mensuel"
-                class="block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                :class="[
+                  'block w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none transition-colors',
+                  fieldErrors.salaire_mensuel ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                ]"
               />
+              <p v-if="cTypeSalaire === 'Mensuel' && fieldErrors.salaire_mensuel" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.salaire_mensuel }}</p>
+
               <input
                 v-if="cTypeSalaire === 'Horaire'"
                 v-model="cSalaireHoraire"
                 type="number"
                 step="0.01"
                 placeholder="Horaire"
-                class="block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                :class="[
+                  'block w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none transition-colors',
+                  fieldErrors.salaire_horaire ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                ]"
               />
+              <p v-if="cTypeSalaire === 'Horaire' && fieldErrors.salaire_horaire" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.salaire_horaire }}</p>
             </div>
           </div>
           <div>
@@ -243,8 +275,12 @@ onMounted(() => {
               type="number" 
               step="0.01" 
               placeholder="0.00" 
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+              :class="[
+                'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none transition-colors',
+                fieldErrors.sursalaire ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+              ]"
             />
+            <p v-if="fieldErrors.sursalaire" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.sursalaire }}</p>
           </div>
         </div>
 
@@ -256,8 +292,12 @@ onMounted(() => {
               type="number" 
               step="0.01" 
               placeholder="0.00" 
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+              :class="[
+                'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none transition-colors',
+                fieldErrors.indemnite_transport ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+              ]"
             />
+            <p v-if="fieldErrors.indemnite_transport" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.indemnite_transport }}</p>
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Dotation Téléphonique (FCFA)</label>
@@ -266,8 +306,12 @@ onMounted(() => {
               type="number" 
               step="0.01" 
               placeholder="0.00" 
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+              :class="[
+                'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none transition-colors',
+                fieldErrors.dotation_telephonique ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+              ]"
             />
+            <p v-if="fieldErrors.dotation_telephonique" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.dotation_telephonique }}</p>
           </div>
         </div>
         <div>
@@ -276,8 +320,12 @@ onMounted(() => {
             v-model="cIdcc" 
             type="number" 
             placeholder="Ex: 1486" 
-            class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500" 
+            :class="[
+              'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none transition-colors',
+              fieldErrors.idcc ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+            ]"
           />
+          <p v-if="fieldErrors.idcc" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.idcc }}</p>
         </div>
 
         <div class="flex justify-end space-x-3 pt-4 border-t border-slate-100">

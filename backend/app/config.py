@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     APP_NAME: str = "Logiciel de Paie"
     APP_VERSION: str = "1.0.0"
     DEBUG: bool = True
+    BUGSINK_DSN: Optional[str] = "https://0d8e0afc57dc4284ba102e9071a2df74@bugsink-wotq24lgae4gr7gwz7ueyrni.songon.shop/1"
 
     # SMTP Configuration
     SMTP_HOST: str = "localhost"

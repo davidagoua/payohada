@@ -13,28 +13,39 @@ const password = ref('')
 const firstName = ref('')
 const lastName = ref('')
 const errorMsg = ref('')
+const fieldErrors = ref({})
 
 // Watch query params to toggle mode
 watch(() => route.query.register, (val) => {
   isRegister.value = val === 'true'
+  fieldErrors.value = {}
+  errorMsg.value = ''
 })
 
 const handleSubmit = async () => {
   errorMsg.value = ''
+  fieldErrors.value = {}
+  
+  let hasError = false
   if (!email.value) {
-    errorMsg.value = 'Veuillez saisir votre adresse email.'
-    return
+    fieldErrors.value.email = 'Veuillez saisir votre adresse email.'
+    hasError = true
   }
   
   if (isRegister.value) {
     if (!password.value || password.value.length < 6) {
-      errorMsg.value = 'Le mot de passe doit contenir au moins 6 caractères.'
-      return
+      fieldErrors.value.password = 'Le mot de passe doit contenir au moins 6 caractères.'
+      hasError = true
     }
-    if (!firstName.value || !lastName.value) {
-      errorMsg.value = 'Veuillez remplir votre nom et prénom.'
-      return
+    if (!firstName.value) {
+      fieldErrors.value.firstName = 'Veuillez remplir votre prénom.'
+      hasError = true
     }
+    if (!lastName.value) {
+      fieldErrors.value.lastName = 'Veuillez remplir votre nom.'
+      hasError = true
+    }
+    if (hasError) return
 
     const { error } = await signup(email.value, password.value, {
       first_name: firstName.value,
@@ -51,6 +62,12 @@ const handleSubmit = async () => {
       }
     }
   } else {
+    if (!password.value) {
+      fieldErrors.value.password = 'Veuillez saisir votre mot de passe.'
+      hasError = true
+    }
+    if (hasError) return
+
     const { error } = await login(email.value, password.value)
     if (error) {
       errorMsg.value = error
@@ -66,6 +83,7 @@ const handleSubmit = async () => {
 
 const handleMockLogin = async () => {
   errorMsg.value = ''
+  fieldErrors.value = {}
   const mockEmail = email.value || 'demo@payohada.cloud'
   const { error } = await login(mockEmail)
   if (!error) {
@@ -103,7 +121,7 @@ onMounted(() => {
       <p class="mt-2 text-sm text-slate-600">
         {{ isRegister ? "Ou" : "Ou" }}
         <button 
-          @click="isRegister = !isRegister; errorMsg = ''" 
+          @click="isRegister = !isRegister; errorMsg = ''; fieldErrors = {}" 
           class="font-medium text-green-600 hover:text-green-500 underline"
         >
           {{ isRegister ? "se connecter à un compte existant" : "créer un nouveau compte" }}
@@ -130,8 +148,12 @@ onMounted(() => {
                 v-model="firstName" 
                 type="text" 
                 required
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                :class="[
+                  'mt-1 block w-full px-3 py-2 border rounded-lg focus:outline-none text-sm transition-colors',
+                  fieldErrors.firstName ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                ]"
               />
+              <p v-if="fieldErrors.firstName" class="mt-1 text-xs text-red-600 font-medium">{{ fieldErrors.firstName }}</p>
             </div>
             <div>
               <label for="last_name" class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Nom</label>
@@ -140,8 +162,12 @@ onMounted(() => {
                 v-model="lastName" 
                 type="text" 
                 required
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+                :class="[
+                  'mt-1 block w-full px-3 py-2 border rounded-lg focus:outline-none text-sm transition-colors',
+                  fieldErrors.lastName ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                ]"
               />
+              <p v-if="fieldErrors.lastName" class="mt-1 text-xs text-red-600 font-medium">{{ fieldErrors.lastName }}</p>
             </div>
           </div>
 
@@ -153,8 +179,12 @@ onMounted(() => {
               type="email" 
               required
               placeholder="votre@email.com"
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+              :class="[
+                'mt-1 block w-full px-3 py-2 border rounded-lg focus:outline-none text-sm transition-colors',
+                fieldErrors.email ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+              ]"
             />
+            <p v-if="fieldErrors.email" class="mt-1 text-xs text-red-600 font-medium">{{ fieldErrors.email }}</p>
           </div>
 
           <div v-if="!isRegister || password || true">
@@ -165,8 +195,12 @@ onMounted(() => {
               type="password" 
               :required="!isRegister"
               placeholder="••••••••"
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
+              :class="[
+                'mt-1 block w-full px-3 py-2 border rounded-lg focus:outline-none text-sm transition-colors',
+                fieldErrors.password ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+              ]"
             />
+            <p v-if="fieldErrors.password" class="mt-1 text-xs text-red-600 font-medium">{{ fieldErrors.password }}</p>
           </div>
 
           <div>
