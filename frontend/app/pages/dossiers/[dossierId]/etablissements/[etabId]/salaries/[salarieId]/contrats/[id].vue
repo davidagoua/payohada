@@ -1,8 +1,9 @@
 <script setup>
 const route = useRoute()
 const router = useRouter()
-const { get, put, delete: apiDelete } = useApi()
+const { get, put, delete: apiDelete, extractFieldErrors } = useApi()
 const toast = useToast()
+const fieldErrors = ref({})
 
 const dossierId = route.params.dossierId
 const etabId = route.params.etabId
@@ -75,6 +76,7 @@ const fetchContratDetails = async () => {
 }
 
 const handleUpdateContrat = async () => {
+  fieldErrors.value = {}
   try {
     const payload = {
       emploi: editEmploi.value || null,
@@ -101,6 +103,9 @@ const handleUpdateContrat = async () => {
     }
   } catch (e) {
     console.error(e)
+    if (e.status === 422) {
+      fieldErrors.value = extractFieldErrors(e)
+    }
   }
 }
 
@@ -196,7 +201,16 @@ onMounted(() => {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Intitulé de l'emploi (Poste)</label>
-                <input v-model="editEmploi" type="text" placeholder="Ex: Développeur Senior" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+                <input 
+                  v-model="editEmploi" 
+                  type="text" 
+                  placeholder="Ex: Développeur Senior" 
+                  :class="[
+                    'mt-1 block w-full px-3 py-2 border rounded-lg text-sm transition-colors',
+                    fieldErrors.emploi ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                  ]"
+                />
+                <p v-if="fieldErrors.emploi" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.emploi }}</p>
               </div>
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Statut du contrat</label>
@@ -232,13 +246,31 @@ onMounted(() => {
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Salaire Mensuel {{ editModeCalcul === 'net' ? 'Net' : 'Brut' }} (FCFA)
                 </label>
-                <input v-model="editSalaireMensuel" type="number" step="0.01" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono" />
+                <input 
+                  v-model="editSalaireMensuel" 
+                  type="number" 
+                  step="0.01" 
+                  :class="[
+                    'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono transition-colors',
+                    fieldErrors.salaire_mensuel ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300'
+                  ]"
+                />
+                <p v-if="fieldErrors.salaire_mensuel" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.salaire_mensuel }}</p>
               </div>
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Taux Horaire {{ editModeCalcul === 'net' ? 'Net' : 'Brut' }} (FCFA)
                 </label>
-                <input v-model="editSalaireHoraire" type="number" step="0.01" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono" />
+                <input 
+                  v-model="editSalaireHoraire" 
+                  type="number" 
+                  step="0.01" 
+                  :class="[
+                    'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono transition-colors',
+                    fieldErrors.salaire_horaire ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300'
+                  ]"
+                />
+                <p v-if="fieldErrors.salaire_horaire" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.salaire_horaire }}</p>
               </div>
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Nature du salaire</label>
@@ -259,18 +291,45 @@ onMounted(() => {
               </div>
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Sursalaire (FCFA)</label>
-                <input v-model="editSursalaire" type="number" step="0.01" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono" />
+                <input 
+                  v-model="editSursalaire" 
+                  type="number" 
+                  step="0.01" 
+                  :class="[
+                    'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono transition-colors',
+                    fieldErrors.sursalaire ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300'
+                  ]"
+                />
+                <p v-if="fieldErrors.sursalaire" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.sursalaire }}</p>
               </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Indemnité de Transport (FCFA)</label>
-                <input v-model="editIndemniteTransport" type="number" step="0.01" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono" />
+                <input 
+                  v-model="editIndemniteTransport" 
+                  type="number" 
+                  step="0.01" 
+                  :class="[
+                    'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono transition-colors',
+                    fieldErrors.indemnite_transport ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300'
+                  ]"
+                />
+                <p v-if="fieldErrors.indemnite_transport" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.indemnite_transport }}</p>
               </div>
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Dotation Téléphonique (FCFA)</label>
-                <input v-model="editDotationTelephonique" type="number" step="0.01" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono" />
+                <input 
+                  v-model="editDotationTelephonique" 
+                  type="number" 
+                  step="0.01" 
+                  :class="[
+                    'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono transition-colors',
+                    fieldErrors.dotation_telephonique ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300'
+                  ]"
+                />
+                <p v-if="fieldErrors.dotation_telephonique" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.dotation_telephonique }}</p>
               </div>
             </div>
 

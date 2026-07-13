@@ -1,8 +1,9 @@
 <script setup>
 const route = useRoute()
 const router = useRouter()
-const { get, put, post, delete: apiDelete } = useApi()
+const { get, put, post, delete: apiDelete, extractFieldErrors } = useApi()
 const toast = useToast()
+const fieldErrors = ref({})
 
 const dossierId = route.params.dossierId
 const etabId = route.params.id
@@ -526,6 +527,7 @@ const fetchEtabDetails = async () => {
 }
 
 const handleUpdateEtab = async () => {
+  fieldErrors.value = {}
   try {
     const payload = {
       raison_sociale: etabNom.value,
@@ -571,6 +573,9 @@ const handleUpdateEtab = async () => {
     }
   } catch (e) {
     console.error(e)
+    if (e.status === 422) {
+      fieldErrors.value = extractFieldErrors(e)
+    }
   }
 }
 
@@ -851,7 +856,6 @@ onMounted(() => {
     <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-green-600" />
     <span class="text-sm text-slate-500 font-medium">Chargement de l'établissement...</span>
   </div>
-
   <div v-else-if="etab" class="space-y-6">
 
 
@@ -870,7 +874,15 @@ onMounted(() => {
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Raison Sociale</label>
-              <input v-model="etabNom" type="text" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
+              <input 
+                v-model="etabNom" 
+                type="text" 
+                :class="[
+                  'mt-1 block w-full px-3 py-2 border rounded-none text-sm transition-colors focus:ring-green-500 focus:border-green-500 bg-white',
+                  fieldErrors.raison_sociale ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
+                ]"
+              />
+              <p v-if="fieldErrors.raison_sociale" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.raison_sociale }}</p>
             </div>
           </div>
 
@@ -939,25 +951,65 @@ onMounted(() => {
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Matricule employeur</label>
-              <input v-model="cnpsMatricule" type="text" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <input 
+                v-model="cnpsMatricule" 
+                type="text" 
+                :class="[
+                  'mt-1 block w-full px-3 py-2 border rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
+                  fieldErrors.cnps_matricule ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
+                ]"
+              />
+              <p v-if="fieldErrors.cnps_matricule" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.cnps_matricule }}</p>
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Code activité</label>
-              <input v-model="cnpsCodeActivite" type="text" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <input 
+                v-model="cnpsCodeActivite" 
+                type="text" 
+                :class="[
+                  'mt-1 block w-full px-3 py-2 border rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
+                  fieldErrors.cnps_code_activite ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
+                ]"
+              />
+              <p v-if="fieldErrors.cnps_code_activite" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.cnps_code_activite }}</p>
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Code agence</label>
-              <input v-model="cnpsCodeAgence" type="text" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <input 
+                v-model="cnpsCodeAgence" 
+                type="text" 
+                :class="[
+                  'mt-1 block w-full px-3 py-2 border rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
+                  fieldErrors.cnps_code_agence ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
+                ]"
+              />
+              <p v-if="fieldErrors.cnps_code_agence" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.cnps_code_agence }}</p>
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Code établissement</label>
-              <input v-model="cnpsCodeEtablissement" type="text" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <input 
+                v-model="cnpsCodeEtablissement" 
+                type="text" 
+                :class="[
+                  'mt-1 block w-full px-3 py-2 border rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
+                  fieldErrors.cnps_code_etablissement ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
+                ]"
+              />
+              <p v-if="fieldErrors.cnps_code_etablissement" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.cnps_code_etablissement }}</p>
             </div>
           </div>
 
           <div>
             <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Agence de rattachement</label>
-            <input v-model="cnpsAgenceRattachement" type="text" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
+            <input 
+              v-model="cnpsAgenceRattachement" 
+              type="text" 
+              :class="[
+                'mt-1 block w-full px-3 py-2 border rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
+                fieldErrors.cnps_agence_rattachement ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
+              ]"
+            />
+            <p v-if="fieldErrors.cnps_agence_rattachement" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.cnps_agence_rattachement }}</p>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -987,11 +1039,27 @@ onMounted(() => {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">N° de Compte contribuable</label>
-              <input v-model="dgiCompteContribuable" type="text" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <input 
+                v-model="dgiCompteContribuable" 
+                type="text" 
+                :class="[
+                  'mt-1 block w-full px-3 py-2 border rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
+                  fieldErrors.dgi_compte_contribuable ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
+                ]"
+              />
+              <p v-if="fieldErrors.dgi_compte_contribuable" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.dgi_compte_contribuable }}</p>
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Centre des impôts</label>
-              <input v-model="dgiCentreImpots" type="text" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
+              <input 
+                v-model="dgiCentreImpots" 
+                type="text" 
+                :class="[
+                  'mt-1 block w-full px-3 py-2 border rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
+                  fieldErrors.dgi_centre_impots ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
+                ]"
+              />
+              <p v-if="fieldErrors.dgi_centre_impots" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.dgi_centre_impots }}</p>
             </div>
           </div>
 

@@ -21,7 +21,8 @@ export default defineNuxtConfig({
           process.env.NUXT_PUBLIC_SUPABASE_URL || 'http://supabase.payohada.cloud',
           (process.env.NUXT_PUBLIC_SUPABASE_URL || 'http://supabase.payohada.cloud').replace(/^http/, 'ws'),
           process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8000',
-          'http://localhost:8000'
+          'http://localhost:8000',
+          'https://bugsink-wotq24lgae4gr7gwz7ueyrni.songon.shop'
         ],
         'upgrade-insecure-requests': false
       },
@@ -39,7 +40,8 @@ export default defineNuxtConfig({
     public: {
       supabaseUrl: process.env.NUXT_PUBLIC_SUPABASE_URL || '',
       supabaseAnonKey: process.env.NUXT_PUBLIC_SUPABASE_ANON_KEY || '',
-      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8000'
+      apiBase: process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8000',
+      bugsinkDsn: process.env.NUXT_PUBLIC_BUGSINK_DSN || 'https://0d8e0afc57dc4284ba102e9071a2df74@bugsink-wotq24lgae4gr7gwz7ueyrni.songon.shop/1'
     }
   },
 
