@@ -20,6 +20,14 @@ const currentDossier = useState('current-dossier')
 const editEmploi = ref('')
 const editTypeContrat = ref(10)
 const editSalaireMensuel = ref(0.0)
+const editSalaireHoraire = ref(0.0)
+const editTypeSalaire = ref('Mensuel')
+const editModeCalcul = ref('brut')
+const editStatut = ref('actif')
+const editUniteTemps = ref('Heures')
+const editSursalaire = ref(0.0)
+const editIndemniteTransport = ref(0.0)
+const editDotationTelephonique = ref(0.0)
 
 const currentEtab = ref(null)
 const postes = ref([])
@@ -30,10 +38,14 @@ const fetchPostes = async () => {
     const etabData = await get(`/etablissements/${etabId}`)
     currentEtab.value = etabData
     if (etabData.secteur_id) {
-      postes.value = await get(`/secteurs/${etabData.secteur_id}/postes`) || []
-    } else {
-      postes.value = await get('/postes-salaires') || []
+      const sectorPostes = await get(`/secteurs/${etabData.secteur_id}/postes`)
+      if (sectorPostes && sectorPostes.length > 0) {
+        postes.value = sectorPostes
+        return
+      }
     }
+    // Fallback if no sector or sector has no predefined postes in grid
+    postes.value = await get('/postes-salaires') || []
   } catch (e) {
     console.error("Error loading postes:", e)
   }
@@ -44,16 +56,6 @@ watch(editPosteSalaireId, (newId) => {
   const match = postes.value.find(p => p.id === Number(newId))
   if (match) {
     editEmploi.value = `${match.categorie_professionnelle} - ${match.echelon_categorie}`
-    if (match.salaire_mensuel_fcfa) {
-      editSalaireMensuel.value = match.salaire_mensuel_fcfa
-      editTypeSalaire.value = 'Mensuel'
-    }
-    if (match.taux_horaire_fcfa) {
-      editSalaireHoraire.value = Number(match.taux_horaire_fcfa)
-      if (!match.salaire_mensuel_fcfa) {
-        editTypeSalaire.value = 'Horaire'
-      }
-    }
     updateSursalaire()
   }
 })
@@ -75,14 +77,6 @@ const updateSursalaire = () => {
 watch([editSalaireMensuel, editSalaireHoraire, editTypeSalaire], () => {
   updateSursalaire()
 })
-const editSalaireHoraire = ref(0.0)
-const editTypeSalaire = ref('Mensuel')
-const editModeCalcul = ref('brut')
-const editStatut = ref('actif')
-const editUniteTemps = ref('Heures')
-const editSursalaire = ref(0.0)
-const editIndemniteTransport = ref(0.0)
-const editDotationTelephonique = ref(0.0)
 
 // Bulletins list & modal
 const bulletins = ref([])
@@ -105,6 +99,9 @@ const fetchContratDetails = async () => {
     const data = await get(`/contrats/${contratId}`)
     contrat.value = data
 
+    // Fetch postes first so that they are available when editPosteSalaireId is populated
+    await fetchPostes()
+
     // Populate Editable Fields
     editEmploi.value = data.emploi || ''
     editTypeContrat.value = data.type_contrat_travail || 10
@@ -113,7 +110,6 @@ const fetchContratDetails = async () => {
     editTypeSalaire.value = data.type_salaire || 'Mensuel'
     editModeCalcul.value = data.mode_calcul || 'brut'
     editPosteSalaireId.value = data.poste_salaire_id || null
-    await fetchPostes()
     editStatut.value = data.statut || 'actif'
     editUniteTemps.value = data.unite_temps || 'Heures'
     editSursalaire.value = data.sursalaire || 0.0

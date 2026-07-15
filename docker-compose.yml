@@ -43,13 +43,6 @@ services:
     networks:
       - payohada-test
 
-  redis:
-    expose:
-      - 6379
-    image: redis
-    networks:
-      - payohada-test
-
 networks:
   payohada-test:
     external: true
