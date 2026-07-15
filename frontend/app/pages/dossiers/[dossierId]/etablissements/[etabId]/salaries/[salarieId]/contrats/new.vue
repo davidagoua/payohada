@@ -37,10 +37,14 @@ const cPosteSalaireId = ref(null)
 const fetchPostes = async () => {
   try {
     if (currentEtab.value && currentEtab.value.secteur_id) {
-      postes.value = await get(`/secteurs/${currentEtab.value.secteur_id}/postes`) || []
-    } else {
-      postes.value = await get('/postes-salaires') || []
+      const sectorPostes = await get(`/secteurs/${currentEtab.value.secteur_id}/postes`)
+      if (sectorPostes && sectorPostes.length > 0) {
+        postes.value = sectorPostes
+        return
+      }
     }
+    // Fallback if no sector or sector has no predefined postes in grid
+    postes.value = await get('/postes-salaires') || []
   } catch (e) {
     console.error("Error loading postes:", e)
   }
@@ -51,16 +55,6 @@ watch(cPosteSalaireId, (newId) => {
   const match = postes.value.find(p => p.id === Number(newId))
   if (match) {
     cEmploi.value = `${match.categorie_professionnelle} - ${match.echelon_categorie}`
-    if (match.salaire_mensuel_fcfa) {
-      cSalaireMensuel.value = match.salaire_mensuel_fcfa
-      cTypeSalaire.value = 'Mensuel'
-    }
-    if (match.taux_horaire_fcfa) {
-      cSalaireHoraire.value = Number(match.taux_horaire_fcfa)
-      if (!match.salaire_mensuel_fcfa) {
-        cTypeSalaire.value = 'Horaire'
-      }
-    }
     updateSursalaire()
   }
 })
