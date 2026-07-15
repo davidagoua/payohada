@@ -123,15 +123,13 @@ const handleCreateContract = async () => {
       date_fin_previsionnelle_contrat: cDateFin.value || null,
       emploi: cEmploi.value || null,
       idcc: cIdcc.value ? Number(cIdcc.value) : null,
-      unite_temps: cUniteTemTemps.value || cUniteTemps.value, // Wait, let's keep cUniteTemps
+      unite_temps: cUniteTemps.value,
       sursalaire: Number(cSursalaire.value) || 0.0,
       indemnite_transport: Number(cIndemniteTransport.value) || 0.0,
       dotation_telephonique: Number(cDotationTelephonique.value) || 0.0,
       salarie_id: Number(salarieId),
       etablissement_id: Number(etabId)
     }
-    // Note: let's use exact key from original payload
-    payload.unite_temps = cUniteTemps.value
 
     const res = await post('/contrats', payload)
     if (res) {
