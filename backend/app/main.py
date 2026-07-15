@@ -9,7 +9,7 @@ import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sqlalchemy.exc import IntegrityError
 import logging
-from redis_fastapi import FastAPIRedis
+
 
 logger = logging.getLogger("app")
 
@@ -40,8 +40,6 @@ app = FastAPI(
     redoc_url="/api/v1/redoc" if settings.DEBUG else None,
 )
 
-
-FastAPIRedis(app).lifespan()
 
 
 @app.exception_handler(IntegrityError)
