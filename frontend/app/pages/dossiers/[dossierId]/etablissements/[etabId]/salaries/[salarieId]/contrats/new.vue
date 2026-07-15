@@ -31,6 +31,58 @@ const cSursalaire = ref(0.0)
 const cIndemniteTransport = ref(0.0)
 const cDotationTelephonique = ref(0.0)
 
+const postes = ref([])
+const cPosteSalaireId = ref(null)
+
+const fetchPostes = async () => {
+  try {
+    if (currentEtab.value && currentEtab.value.secteur_id) {
+      postes.value = await get(`/secteurs/${currentEtab.value.secteur_id}/postes`) || []
+    } else {
+      postes.value = await get('/postes-salaires') || []
+    }
+  } catch (e) {
+    console.error("Error loading postes:", e)
+  }
+}
+
+watch(cPosteSalaireId, (newId) => {
+  if (!newId) return
+  const match = postes.value.find(p => p.id === Number(newId))
+  if (match) {
+    cEmploi.value = `${match.categorie_professionnelle} - ${match.echelon_categorie}`
+    if (match.salaire_mensuel_fcfa) {
+      cSalaireMensuel.value = match.salaire_mensuel_fcfa
+      cTypeSalaire.value = 'Mensuel'
+    }
+    if (match.taux_horaire_fcfa) {
+      cSalaireHoraire.value = Number(match.taux_horaire_fcfa)
+      if (!match.salaire_mensuel_fcfa) {
+        cTypeSalaire.value = 'Horaire'
+      }
+    }
+    updateSursalaire()
+  }
+})
+
+const updateSursalaire = () => {
+  if (!cPosteSalaireId.value) return
+  const match = postes.value.find(p => p.id === Number(cPosteSalaireId.value))
+  if (match) {
+    if (cTypeSalaire.value === 'Mensuel') {
+      const baseSalary = match.salaire_mensuel_fcfa || 0
+      cSursalaire.value = Math.max(0, Number(cSalaireMensuel.value || 0) - baseSalary)
+    } else {
+      const baseSalary = Number(match.taux_horaire_fcfa || 0)
+      cSursalaire.value = Math.max(0, Number(cSalaireHoraire.value || 0) - baseSalary)
+    }
+  }
+}
+
+watch([cSalaireMensuel, cSalaireHoraire, cTypeSalaire], () => {
+  updateSursalaire()
+})
+
 const fetchContextDetails = async () => {
   loadingContext.value = true
   try {
@@ -43,6 +95,7 @@ const fetchContextDetails = async () => {
 
     const salData = await get(`/salaries/${salarieId}`)
     currentSalarie.value = salData
+    await fetchPostes()
   } catch (e) {
     console.error(e)
     router.push(`/dossiers/${dossierId}/etablissements/${etabId}`)
@@ -65,6 +118,7 @@ const handleCreateContract = async () => {
   try {
     const payload = {
       numero_contrat: cNumero.value,
+      poste_salaire_id: cPosteSalaireId.value ? Number(cPosteSalaireId.value) : null,
       type_contrat_travail: Number(cTypeContrat.value),
       statut_professionnel: Number(cStatutPro.value),
       salaire_mensuel: Number(cSalaireMensuel.value) || 0.0,
@@ -148,6 +202,19 @@ onMounted(() => {
               ]"
             />
             <p v-if="fieldErrors.numero_contrat" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.numero_contrat }}</p>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Poste (Grille Salariale)</label>
+            <select 
+              v-model="cPosteSalaireId"
+              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 w-full"
+            >
+              <option :value="null">-- Aucun poste (saisie libre) --</option>
+              <option v-for="p in postes" :key="p.id" :value="p.id">
+                {{ p.categorie_professionnelle }} - {{ p.echelon_categorie }} 
+                {{ p.salaire_mensuel_fcfa ? `(${p.salaire_mensuel_fcfa} FCFA)` : `(${p.taux_horaire_fcfa} FCFA/h)` }}
+              </option>
+            </select>
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Poste / Emploi</label>

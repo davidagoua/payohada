@@ -11,6 +11,17 @@ const etabNom = ref('')
 const etabCode = ref('Génération en cours...')
 const fieldErrors = ref({})
 
+const secteurs = ref([])
+const etabSecteurId = ref(null)
+
+const fetchSecteurs = async () => {
+  try {
+    secteurs.value = await get('/secteurs') || []
+  } catch (e) {
+    console.error("Error fetching secteurs:", e)
+  }
+}
+
 const fetchNextCode = async () => {
   try {
     const res = await get(`/dossiers/${dossierId}/etablissements/next-code`)
@@ -69,6 +80,7 @@ const handleCreateEtablissement = async () => {
     const payload = {
       code: etabCode.value,
       raison_sociale: etabNom.value,
+      secteur_id: etabSecteurId.value ? Number(etabSecteurId.value) : null,
       siret: null,
       ape: null,
       ccn: null,
@@ -105,6 +117,7 @@ const handleCreateEtablissement = async () => {
 onMounted(async () => {
   await fetchDossierContext()
   await fetchNextCode()
+  await fetchSecteurs()
 })
 </script>
 
@@ -165,6 +178,19 @@ onMounted(async () => {
           </div>
 
 
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Secteur d'activité</label>
+            <select 
+              v-model="etabSecteurId" 
+              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 w-full"
+            >
+              <option :value="null">-- Aucun secteur sélectionné --</option>
+              <option v-for="s in secteurs" :key="s.id" :value="s.id">{{ s.nom }}</option>
+            </select>
+          </div>
         </div>
 
         <!-- CNPS Section -->

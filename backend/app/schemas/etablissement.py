@@ -85,6 +85,7 @@ class BanqueEtablissementOut(BanqueEtablissementBase):
 class EtablissementBase(BaseModel):
     code: str
     raison_sociale: str
+    secteur_id: Optional[int] = None
     etablissement_principal: Optional[bool] = False
     siret: Optional[str] = None
     forme_juridique: Optional[int] = None
@@ -125,6 +126,7 @@ class EtablissementCreate(EtablissementBase):
 
 class EtablissementUpdate(BaseModel):
     raison_sociale: Optional[str] = None
+    secteur_id: Optional[int] = None
     etablissement_principal: Optional[bool] = None
     siret: Optional[str] = None
     forme_juridique: Optional[int] = None

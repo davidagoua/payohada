@@ -333,6 +333,38 @@ def _calculate_cnps_cotisations(
 
     lignes_cotisations = []
 
+    # Calcul dynamique de l'ITS (IBS et RICF)
+    celibat = (salarie.situation_matrimoniale != "Marié") if salarie else True
+    nb_enfants = (salarie.enfants_charge or 0) if salarie else 0
+
+    tranches = [
+        (0, 75000, 0.0),  
+        (75000, 240000, 0.16),
+        (240000, 800000, 0.21),
+        (800000, 2400000, 0.24),
+        (2400000, 8000000, 0.28),
+        (8000000, float('inf'), 0.32)
+    ]
+    its_brut = 0.0
+
+    for min_val, max_val, taux in tranches:
+        if salaire_brut > min_val:
+            portion = min(salaire_brut, max_val) - min_val
+            if portion > 0:
+                its_brut += portion * taux
+
+    if celibat and nb_enfants == 0:
+        parts = 0.0
+    else:
+        parts = 0.0
+        if not celibat:  
+            parts += 1.0  
+        parts += nb_enfants * 0.5
+        parts = min(parts, 5.0)
+
+    ricf = parts * 11000
+    ricf_applicable = min(ricf, its_brut)
+
     # 1. IBS
     lignes_cotisations.append(
         LigneBulletinPaie(
@@ -341,10 +373,10 @@ def _calculate_cnps_cotisations(
             libelle="Impôt brut sur salaire",
             base_s=round(salaire_brut, 2),
             taux_s=0.0,
-            montant_cs=round(ibs_montant, 2)
+            montant_cs=round(its_brut, 2)
         )
     )
-    cotisations_salariales_totales += ibs_montant
+    cotisations_salariales_totales += its_brut
 
     # 2. RICF
     lignes_cotisations.append(
@@ -354,10 +386,10 @@ def _calculate_cnps_cotisations(
             libelle="Réduction d'impôt pour charge familiale",
             base_s=round(salaire_brut, 2),
             taux_s=0.0,
-            montant_cs=round(ricf_montant, 2) # stored as negative in deductions
+            montant_cs=round(-ricf_applicable, 2) # stored as negative in deductions
         )
     )
-    cotisations_salariales_totales += ricf_montant
+    cotisations_salariales_totales += -ricf_applicable
 
     # 3. CNPS Retraite Salariale & Patronale
     base_retraite = min(salaire_brut, cnps_retraite_plafond) if salaire_brut > 0 else 0.0

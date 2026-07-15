@@ -129,6 +129,7 @@ class MoisAExclureOut(MoisAExclureBase):
 
 class ContratBase(BaseModel):
     numero_contrat: str
+    poste_salaire_id: Optional[int] = None
     ancien_numero_contrat_dsn: Optional[str] = None
     emploi_conventionnel: Optional[int] = None
     ccn: Optional[int] = None
@@ -170,6 +171,7 @@ class ContratCreate(ContratBase):
 
 class ContratUpdate(BaseModel):
     emploi: Optional[str] = None
+    poste_salaire_id: Optional[int] = None
     type_contrat_travail: Optional[int] = None
     salaire_mensuel: Optional[float] = None
     salaire_horaire: Optional[float] = None

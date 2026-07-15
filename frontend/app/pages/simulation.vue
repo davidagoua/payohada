@@ -24,9 +24,12 @@ const acompte = ref(0)
 // Grouped lines computed properties
 const grossLines = computed(() => {
   if (!result.value || !result.value.lignes) return []
+  const cotisCodes = ['IBS', 'RICF', 'CNPS_RETRAITE', 'CMU_S', 'CN', 'TA', 'TFC', 'CNPS_PF', 'CNPS_AT', 'CNPS_MATERNITE', 'CMU_P']
   return result.value.lignes.filter(l => {
     const c = l.code.toUpperCase()
-    return !['IBS', 'RICF', 'CNPS_RETRAITE', 'CMU_S', 'CN', 'TA', 'TFC', 'CNPS_PF', 'CNPS_AT', 'CNPS_MATERNITE', 'CMU_P', 'TRANSPORT', 'TELEPHONE', 'ACOMPTE'].includes(c)
+    const isCotis = cotisCodes.includes(c)
+    const isNet = ['TRANSPORT', 'TELEPHONE', 'ACOMPTE', 'FRAIS_PROFESSIONNELS', 'AUTRE_RETENUE'].includes(c) || c.startsWith('RET_')
+    return !isCotis && !isNet
   })
 })
 
@@ -42,7 +45,7 @@ const netLines = computed(() => {
   if (!result.value || !result.value.lignes) return []
   return result.value.lignes.filter(l => {
     const c = l.code.toUpperCase()
-    return ['TRANSPORT', 'TELEPHONE', 'ACOMPTE'].includes(c)
+    return ['TRANSPORT', 'TELEPHONE', 'ACOMPTE', 'FRAIS_PROFESSIONNELS', 'AUTRE_RETENUE'].includes(c) || c.startsWith('RET_')
   })
 })
 

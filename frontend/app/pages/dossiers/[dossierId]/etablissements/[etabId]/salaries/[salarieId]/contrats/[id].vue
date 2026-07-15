@@ -20,6 +20,61 @@ const currentDossier = useState('current-dossier')
 const editEmploi = ref('')
 const editTypeContrat = ref(10)
 const editSalaireMensuel = ref(0.0)
+
+const currentEtab = ref(null)
+const postes = ref([])
+const editPosteSalaireId = ref(null)
+
+const fetchPostes = async () => {
+  try {
+    const etabData = await get(`/etablissements/${etabId}`)
+    currentEtab.value = etabData
+    if (etabData.secteur_id) {
+      postes.value = await get(`/secteurs/${etabData.secteur_id}/postes`) || []
+    } else {
+      postes.value = await get('/postes-salaires') || []
+    }
+  } catch (e) {
+    console.error("Error loading postes:", e)
+  }
+}
+
+watch(editPosteSalaireId, (newId) => {
+  if (!newId) return
+  const match = postes.value.find(p => p.id === Number(newId))
+  if (match) {
+    editEmploi.value = `${match.categorie_professionnelle} - ${match.echelon_categorie}`
+    if (match.salaire_mensuel_fcfa) {
+      editSalaireMensuel.value = match.salaire_mensuel_fcfa
+      editTypeSalaire.value = 'Mensuel'
+    }
+    if (match.taux_horaire_fcfa) {
+      editSalaireHoraire.value = Number(match.taux_horaire_fcfa)
+      if (!match.salaire_mensuel_fcfa) {
+        editTypeSalaire.value = 'Horaire'
+      }
+    }
+    updateSursalaire()
+  }
+})
+
+const updateSursalaire = () => {
+  if (!editPosteSalaireId.value) return
+  const match = postes.value.find(p => p.id === Number(editPosteSalaireId.value))
+  if (match) {
+    if (editTypeSalaire.value === 'Mensuel') {
+      const baseSalary = match.salaire_mensuel_fcfa || 0
+      editSursalaire.value = Math.max(0, Number(editSalaireMensuel.value || 0) - baseSalary)
+    } else {
+      const baseSalary = Number(match.taux_horaire_fcfa || 0)
+      editSursalaire.value = Math.max(0, Number(editSalaireHoraire.value || 0) - baseSalary)
+    }
+  }
+}
+
+watch([editSalaireMensuel, editSalaireHoraire, editTypeSalaire], () => {
+  updateSursalaire()
+})
 const editSalaireHoraire = ref(0.0)
 const editTypeSalaire = ref('Mensuel')
 const editModeCalcul = ref('brut')
@@ -57,6 +112,8 @@ const fetchContratDetails = async () => {
     editSalaireHoraire.value = data.salaire_horaire || 0.0
     editTypeSalaire.value = data.type_salaire || 'Mensuel'
     editModeCalcul.value = data.mode_calcul || 'brut'
+    editPosteSalaireId.value = data.poste_salaire_id || null
+    await fetchPostes()
     editStatut.value = data.statut || 'actif'
     editUniteTemps.value = data.unite_temps || 'Heures'
     editSursalaire.value = data.sursalaire || 0.0
@@ -80,6 +137,7 @@ const handleUpdateContrat = async () => {
   try {
     const payload = {
       emploi: editEmploi.value || null,
+      poste_salaire_id: editPosteSalaireId.value ? Number(editPosteSalaireId.value) : null,
       type_contrat_travail: Number(editTypeContrat.value),
       salaire_mensuel: Number(editSalaireMensuel.value) || 0.0,
       salaire_horaire: Number(editSalaireHoraire.value) || 0.0,
@@ -199,6 +257,19 @@ onMounted(() => {
             <h3 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">Paramètres du Contrat</h3>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Poste (Grille Salariale)</label>
+                <select 
+                  v-model="editPosteSalaireId"
+                  class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 w-full"
+                >
+                  <option :value="null">-- Aucun poste (saisie libre) --</option>
+                  <option v-for="p in postes" :key="p.id" :value="p.id">
+                    {{ p.categorie_professionnelle }} - {{ p.echelon_categorie }} 
+                    {{ p.salaire_mensuel_fcfa ? `(${p.salaire_mensuel_fcfa} FCFA)` : `(${p.taux_horaire_fcfa} FCFA/h)` }}
+                  </option>
+                </select>
+              </div>
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Intitulé de l'emploi (Poste)</label>
                 <input 
