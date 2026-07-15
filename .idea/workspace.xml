@@ -5,27 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="fb8e9003-8131-4cb6-8b99-22a619d0dbad" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/logiciel_paie.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/logiciel_paie.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/alter_db.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/alter_db.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/models/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/models/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/routers/bulletins.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/routers/bulletins.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/schemas/salarie.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/schemas/salarie.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/app/services/payroll.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/services/payroll.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/backend/requirements.txt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend/schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/backend/schema.sql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/app/pages/bulletins.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/pages/bulletins.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/[etabId]/print-bulletins.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/[etabId]/print-bulletins.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/[etabId]/salaries/[id].vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/[etabId]/salaries/[id].vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/[etabId]/salaries/[salarieId]/contrats/[contratId]/bulletins/[id].vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/[etabId]/salaries/[salarieId]/contrats/[contratId]/bulletins/[id].vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/[etabId]/salaries/new.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/[etabId]/salaries/new.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/[id].vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/[id].vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/app/pages/simulation.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/pages/simulation.vue" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/pnpm-lock.yaml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/pnpm-workspace.yaml" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
