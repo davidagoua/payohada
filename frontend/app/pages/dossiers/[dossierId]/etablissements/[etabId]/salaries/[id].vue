@@ -40,6 +40,8 @@ const salIban = ref('')
 const salBic = ref('')
 const salIsActive = ref(true)
 const salExpatrie = ref(false)
+const salSituationMatrimoniale = ref('Célibataire')
+const salEnfantsCharge = ref(0)
 
 
 const fetchSalarieDetails = async () => {
@@ -83,6 +85,8 @@ const fetchSalarieDetails = async () => {
     salBic.value = data.bic || ''
     salIsActive.value = data.is_active ?? true
     salExpatrie.value = data.expatrie ?? false
+    salSituationMatrimoniale.value = data.situation_matrimoniale || 'Célibataire'
+    salEnfantsCharge.value = data.enfants_charge ?? 0
 
     // Fetch Contracts
     const cts = await get(`/salaries/${salarieId}/contrats`)
@@ -129,7 +133,9 @@ const handleUpdateSalarie = async () => {
       iban: salIban.value || null,
       bic: salBic.value || null,
       is_active: salIsActive.value,
-      expatrie: salExpatrie.value
+      expatrie: salExpatrie.value,
+      situation_matrimoniale: salSituationMatrimoniale.value,
+      enfants_charge: salEnfantsCharge.value
     }
 
     const res = await put(`/salaries/${salarieId}`, payload)
@@ -322,6 +328,28 @@ onMounted(() => {
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Pays Naissance</label>
               <input v-model="salPaysNaissance" type="text" placeholder="Ex: Côte d'Ivoire" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Situation Matrimoniale</label>
+              <select v-model="salSituationMatrimoniale" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select">
+                <option value="Célibataire">Célibataire</option>
+                <option value="Marié">Marié(e)</option>
+                <option value="Divorcé">Divorcé(e)</option>
+                <option value="Veuf">Veuf(ve)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Enfants à charge</label>
+              <input 
+                v-model.number="salEnfantsCharge" 
+                type="number" 
+                min="0"
+                max="20"
+                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
+              />
             </div>
           </div>
         </div>

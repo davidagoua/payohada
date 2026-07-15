@@ -26,6 +26,8 @@ class SalarieBase(BaseModel):
     bic: Optional[str] = None
     is_active: Optional[bool] = True
     expatrie: Optional[bool] = False
+    situation_matrimoniale: Optional[str] = None
+    enfants_charge: Optional[int] = 0
 
 
 class SalarieCreate(SalarieBase):
@@ -54,6 +56,8 @@ class SalarieUpdate(BaseModel):
     bic: Optional[str] = None
     is_active: Optional[bool] = None
     expatrie: Optional[bool] = None
+    situation_matrimoniale: Optional[str] = None
+    enfants_charge: Optional[int] = None
 
 
 class SalarieOut(SalarieBase):

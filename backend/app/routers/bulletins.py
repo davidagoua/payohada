@@ -816,7 +816,7 @@ def simulate_bulletin_paie(
 def send_bulletin_to_employee(
     bulletin_id: int,
     db: Session = Depends(get_db),
-    current_user: Utilisateur = Depends(get_current_user)
+    current_user: Utilisateur = Depends(get_current_user),
 ):
     """Envoie le bulletin de paie par email à l'employé."""
     bulletin = check_bulletin_ownership(bulletin_id, current_user.id, db)

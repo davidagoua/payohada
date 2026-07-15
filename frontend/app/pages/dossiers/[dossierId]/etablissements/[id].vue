@@ -382,6 +382,16 @@ const currentEtablissement = useState('current-etablissement')
 const etabCode = ref('')
 const etabNom = ref('')
 const etabPrincipal = ref(false)
+const etabSecteurId = ref(null)
+const secteurs = ref([])
+
+const fetchSecteurs = async () => {
+  try {
+    secteurs.value = await get('/secteurs') || []
+  } catch (e) {
+    console.error("Error loading secteurs:", e)
+  }
+}
 
 // CNPS Fields
 const cnpsMatricule = ref('')
@@ -435,11 +445,11 @@ const bulkTotal = ref(0)
 
 const fetchBulletins = async () => {
   try {
-    const bList = await get(`/dossiers/${dossierId}/bulletins`, { 
-      query: { 
-        mois: selectedMois.value, 
-        annee: selectedAnnee.value 
-      } 
+    const bList = await get(`/dossiers/${dossierId}/bulletins`, {
+      query: {
+        mois: selectedMois.value,
+        annee: selectedAnnee.value
+      }
     })
     const map = {}
     if (bList) {
@@ -470,6 +480,7 @@ const fetchEtabDetails = async () => {
     etabCode.value = data.code || ''
     etabNom.value = data.raison_sociale || ''
     etabPrincipal.value = data.etablissement_principal || false
+    etabSecteurId.value = data.secteur_id || null
 
     // Populate CNPS
     cnpsMatricule.value = data.cnps_matricule || ''
@@ -532,6 +543,7 @@ const handleUpdateEtab = async () => {
     const payload = {
       raison_sociale: etabNom.value,
       code: etabCode.value,
+      secteur_id: etabSecteurId.value ? Number(etabSecteurId.value) : null,
       siret: null,
       ape: null,
       ccn: null,
@@ -614,7 +626,7 @@ const handleCreateCaisse = async () => {
       caisseAffiliation.value = ''
       caisseIban.value = ''
       caisseBic.value = ''
-      
+
       await fetchEtabDetails()
     }
   } catch (e) {
@@ -681,6 +693,7 @@ const handleCalculateSingle = async (contratId) => {
 }
 
 const handleValidateSingle = async (bulletinId) => {
+  if (!confirm('Êtes-vous sûr de vouloir valider définitivement ce bulletin ? Il ne pourra plus être modifié ni supprimé.')) return
   try {
     const res = await put(`/bulletins/${bulletinId}/valider`)
     if (res) {
@@ -802,7 +815,7 @@ const stats = computed(() => {
   })
   let masseBrut = 0
   let masseNet = 0
-  
+
   generatedBulletins.forEach(b => {
     masseBrut += b.salaire_brut || 0
     masseNet += b.net_a_payer || 0
@@ -846,8 +859,258 @@ watch([selectedMois, selectedAnnee], async () => {
   await fetchBulletins()
 })
 
-onMounted(() => {
+// Active context for modal actions
+const activeContrat = ref(null)
+const activeBulletin = ref(null)
+
+// Add Heure Supp state
+const hsModalOpen = ref(false)
+const hsCode = ref('HS_15')
+const hsNombre = ref(0)
+
+// Add Absence state
+const absModalOpen = ref(false)
+const absCode = ref('CONGES')
+const absDateDebut = ref('')
+const absDateFin = ref('')
+const absNbrHeure = ref(0)
+const absNbrJour = ref(0)
+
+// Add Prime state
+const primeModalOpen = ref(false)
+const primeCode = ref('PRIME_RENDEMENT')
+const primeLibelle = ref('')
+const primeMontant = ref(0)
+const primeMode = ref('direct')
+const primeBase = ref(0)
+const primeTaux = ref(0)
+const primeEstPersistant = ref(false)
+
+// Acompte state
+const acompteModalOpen = ref(false)
+const acompteMontant = ref(0)
+
+// Plan de paie items & dynamic lists
+const planPaieItems = ref([])
+
+const primesDisponibles = computed(() => {
+  const excludedCodes = ['BASE', 'SURSALAIRE', 'ABS', '1001', '1051', '1101', '1111', '1121', '1131', '1141', '1151', '1161', '1181']
+  return planPaieItems.value.filter(item => {
+    return item.type === 'B' && 
+           !excludedCodes.includes(item.code) && 
+           !item.code.startsWith('HS_') && 
+           !item.code.startsWith('ABS_') && 
+           item.est_actif
+  })
+})
+
+const fetchPlanPaie = async () => {
+  try {
+    planPaieItems.value = await get('/plan-paie') || []
+  } catch (e) {
+    console.error("Error loading plan de paie:", e)
+  }
+}
+
+watch(primeCode, (newCode) => {
+  const match = primesDisponibles.value.find(p => p.code === newCode)
+  if (match) {
+    primeLibelle.value = match.libelle
+  }
+})
+
+watch(primeModalOpen, (isOpen) => {
+  if (isOpen && primesDisponibles.value.length > 0) {
+    if (!primesDisponibles.value.some(p => p.code === primeCode.value)) {
+      primeCode.value = primesDisponibles.value[0].code
+    }
+    const match = primesDisponibles.value.find(p => p.code === primeCode.value)
+    if (match) {
+      primeLibelle.value = match.libelle
+    }
+  }
+})
+
+// Modal quick open handlers
+const openPrimeModal = (contratId) => {
+  activeContrat.value = contracts.value.find(c => c.id === contratId)
+  activeBulletin.value = bulletinsMap.value[contratId]
+  if (primesDisponibles.value.length > 0) {
+    primeCode.value = primesDisponibles.value[0].code
+    primeLibelle.value = primesDisponibles.value[0].libelle
+  } else {
+    primeCode.value = 'PRIME_RENDEMENT'
+    primeLibelle.value = 'Prime de rendement'
+  }
+  primeMontant.value = 0
+  primeMode.value = 'direct'
+  primeBase.value = 0
+  primeTaux.value = 0
+  primeEstPersistant.value = false
+  primeModalOpen.value = true
+}
+
+const openAbsModal = (contratId) => {
+  activeContrat.value = contracts.value.find(c => c.id === contratId)
+  activeBulletin.value = bulletinsMap.value[contratId]
+  absCode.value = 'CONGES'
+  absDateDebut.value = ''
+  absDateFin.value = ''
+  absNbrHeure.value = 0
+  absNbrJour.value = 0
+  absModalOpen.value = true
+}
+
+const openHsModal = (contratId) => {
+  activeContrat.value = contracts.value.find(c => c.id === contratId)
+  activeBulletin.value = bulletinsMap.value[contratId]
+  hsCode.value = 'HS_15'
+  hsNombre.value = 0
+  hsModalOpen.value = true
+}
+
+const openAcompteModal = (contratId) => {
+  const b = bulletinsMap.value[contratId]
+  activeContrat.value = contracts.value.find(c => c.id === contratId)
+  activeBulletin.value = b
+  if (b) {
+    const acompteLine = (b.lignes || []).find(l => l.code === 'ACOMPTE')
+    acompteMontant.value = acompteLine ? acompteLine.montant_cs : 0
+  } else {
+    acompteMontant.value = 0
+  }
+  acompteModalOpen.value = true
+}
+
+// Recalculate helper
+const handleRecalculateForContrat = async (contratId, acompteVal = 0) => {
+  try {
+    const payload = {
+      contrat_id: contratId,
+      mois: Number(selectedMois.value),
+      annee: Number(selectedAnnee.value),
+      acompte: Number(acompteVal),
+      commentaire: "Recalculé suite à modification des variables"
+    }
+    const res = await post('/bulletins/calculer', payload)
+    if (res) {
+      toast.add({
+        title: 'Bulletin Recalculé',
+        description: 'Les modifications ont été prises en compte.',
+        color: 'success'
+      })
+      await fetchBulletins()
+    }
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+// Modal submits
+const handleAddHeureSupp = async () => {
+  if (hsNombre.value <= 0) {
+    toast.add({ title: 'Validation', description: 'Le nombre d\'heures doit être supérieur à 0.', color: 'warning' })
+    return
+  }
+  try {
+    const payload = {
+      code: hsCode.value,
+      nombre: Number(hsNombre.value),
+      mois: Number(selectedMois.value),
+      annee: String(selectedAnnee.value)
+    }
+    await post(`/contrats/${activeContrat.value.id}/heures-supplementaires`, payload)
+    hsModalOpen.value = false
+    hsNombre.value = 0
+    
+    let currentAcompte = 0
+    if (activeBulletin.value) {
+      const acompteLine = (activeBulletin.value.lignes || []).find(l => l.code === 'ACOMPTE')
+      if (acompteLine) currentAcompte = acompteLine.montant_cs || 0
+    }
+    await handleRecalculateForContrat(activeContrat.value.id, currentAcompte)
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+const handleAddAbsence = async () => {
+  if (!absDateDebut.value || !absDateFin.value) {
+    toast.add({ title: 'Validation', description: 'Les dates de début et de fin sont obligatoires.', color: 'warning' })
+    return
+  }
+  try {
+    const payload = {
+      code: absCode.value,
+      date_debut: new Date(absDateDebut.value).toISOString(),
+      date_fin: new Date(absDateFin.value).toISOString(),
+      nbr_heure_by_user: Number(absNbrHeure.value),
+      nbr_jour_by_user: Number(absNbrJour.value),
+      mois: Number(selectedMois.value),
+      annee: String(selectedAnnee.value)
+    }
+    await post(`/contrats/${activeContrat.value.id}/absences`, payload)
+    absModalOpen.value = false
+    absDateDebut.value = ''
+    absDateFin.value = ''
+    absNbrHeure.value = 0
+    absNbrJour.value = 0
+    
+    let currentAcompte = 0
+    if (activeBulletin.value) {
+      const acompteLine = (activeBulletin.value.lignes || []).find(l => l.code === 'ACOMPTE')
+      if (acompteLine) currentAcompte = acompteLine.montant_cs || 0
+    }
+    await handleRecalculateForContrat(activeContrat.value.id, currentAcompte)
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+const handleAddPrime = async () => {
+  if (primeMontant.value <= 0) {
+    toast.add({ title: 'Validation', description: 'Le montant de la prime doit être supérieur à 0.', color: 'warning' })
+    return
+  }
+  try {
+    const payload = {
+      code: primeCode.value,
+      libelle: primeLibelle.value || primeCode.value,
+      montant: Number(primeMontant.value),
+      base: primeMode.value === 'calcul' ? (Number(primeBase.value) || null) : null,
+      taux: primeMode.value === 'calcul' ? (Number(primeTaux.value) || null) : null,
+      mois: Number(selectedMois.value),
+      annee: String(selectedAnnee.value),
+      est_persistant: primeEstPersistant.value
+    }
+    await post(`/contrats/${activeContrat.value.id}/primes`, payload)
+    primeModalOpen.value = false
+    primeLibelle.value = ''
+    primeMontant.value = 0
+    primeBase.value = 0
+    primeTaux.value = 0
+    primeEstPersistant.value = false
+    
+    let currentAcompte = 0
+    if (activeBulletin.value) {
+      const acompteLine = (activeBulletin.value.lignes || []).find(l => l.code === 'ACOMPTE')
+      if (acompteLine) currentAcompte = acompteLine.montant_cs || 0
+    }
+    await handleRecalculateForContrat(activeContrat.value.id, currentAcompte)
+  } catch (e) {
+    console.error(e)
+  }
+}
+
+const handleSaveAcompte = async () => {
+  acompteModalOpen.value = false
+  await handleRecalculateForContrat(activeContrat.value.id, acompteMontant.value)
+}
+
+onMounted(async () => {
   fetchEtabDetails()
+  await fetchPlanPaie()
+  await fetchSecteurs()
 })
 </script>
 
@@ -862,11 +1125,11 @@ onMounted(() => {
     <!-- Tab 1: Info, Address & Bank + Caisses de cotisation -->
     <div v-show="activeTab === 'infos'" class="space-y-6">
       <form @submit.prevent="handleUpdateEtab" class="space-y-6">
-        
+
         <!-- Main Form -->
         <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-slate-500">
           <h3 class="text-sm font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Profil Établissement</h3>
-          
+
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Code Établissement</label>
@@ -874,15 +1137,28 @@ onMounted(() => {
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Raison Sociale</label>
-              <input 
-                v-model="etabNom" 
-                type="text" 
+              <input
+                v-model="etabNom"
+                type="text"
                 :class="[
                   'mt-1 block w-full px-3 py-2 border rounded-none text-sm transition-colors focus:ring-green-500 focus:border-green-500 bg-white',
                   fieldErrors.raison_sociale ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
                 ]"
               />
               <p v-if="fieldErrors.raison_sociale" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.raison_sociale }}</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Secteur d'activité</label>
+              <select 
+                v-model="etabSecteurId" 
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 w-full"
+              >
+                <option :value="null">-- Aucun secteur sélectionné --</option>
+                <option v-for="s in secteurs" :key="s.id" :value="s.id">{{ s.nom }}</option>
+              </select>
             </div>
           </div>
 
@@ -895,7 +1171,7 @@ onMounted(() => {
         <!-- Address Sub-form -->
         <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-slate-500">
           <h3 class="text-sm font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Adresse de l'Établissement</h3>
-          
+
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="md:col-span-2">
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Voie / Rue</label>
@@ -926,7 +1202,7 @@ onMounted(() => {
         <!-- Bank Sub-form -->
         <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-slate-500">
           <h3 class="text-sm font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Informations Bancaires de l'Établissement</h3>
-          
+
           <div class="flex items-center space-x-2 pb-2">
             <input id="bank-virement" v-model="bankVirement" type="checkbox" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
             <label for="bank-virement" class="text-sm font-bold text-slate-700 uppercase tracking-wider">Autoriser le virement SEPA</label>
@@ -947,13 +1223,13 @@ onMounted(() => {
         <!-- CNPS Sub-form -->
         <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-slate-500">
           <h3 class="text-sm font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Caisse Nationale de prévoyance sociale - CNPS</h3>
-          
+
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Matricule employeur</label>
-              <input 
-                v-model="cnpsMatricule" 
-                type="text" 
+              <input
+                v-model="cnpsMatricule"
+                type="text"
                 :class="[
                   'mt-1 block w-full px-3 py-2 border rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
                   fieldErrors.cnps_matricule ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
@@ -963,9 +1239,9 @@ onMounted(() => {
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Code activité</label>
-              <input 
-                v-model="cnpsCodeActivite" 
-                type="text" 
+              <input
+                v-model="cnpsCodeActivite"
+                type="text"
                 :class="[
                   'mt-1 block w-full px-3 py-2 border rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
                   fieldErrors.cnps_code_activite ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
@@ -975,9 +1251,9 @@ onMounted(() => {
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Code agence</label>
-              <input 
-                v-model="cnpsCodeAgence" 
-                type="text" 
+              <input
+                v-model="cnpsCodeAgence"
+                type="text"
                 :class="[
                   'mt-1 block w-full px-3 py-2 border rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
                   fieldErrors.cnps_code_agence ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
@@ -987,9 +1263,9 @@ onMounted(() => {
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Code établissement</label>
-              <input 
-                v-model="cnpsCodeEtablissement" 
-                type="text" 
+              <input
+                v-model="cnpsCodeEtablissement"
+                type="text"
                 :class="[
                   'mt-1 block w-full px-3 py-2 border rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
                   fieldErrors.cnps_code_etablissement ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
@@ -1001,9 +1277,9 @@ onMounted(() => {
 
           <div>
             <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Agence de rattachement</label>
-            <input 
-              v-model="cnpsAgenceRattachement" 
-              type="text" 
+            <input
+              v-model="cnpsAgenceRattachement"
+              type="text"
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
                 fieldErrors.cnps_agence_rattachement ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
@@ -1035,13 +1311,13 @@ onMounted(() => {
         <!-- DGI Sub-form -->
         <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-slate-500">
           <h3 class="text-sm font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Direction générale des impôts - DGI</h3>
-          
+
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">N° de Compte contribuable</label>
-              <input 
-                v-model="dgiCompteContribuable" 
-                type="text" 
+              <input
+                v-model="dgiCompteContribuable"
+                type="text"
                 :class="[
                   'mt-1 block w-full px-3 py-2 border rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
                   fieldErrors.dgi_compte_contribuable ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
@@ -1051,9 +1327,9 @@ onMounted(() => {
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Centre des impôts</label>
-              <input 
-                v-model="dgiCentreImpots" 
-                type="text" 
+              <input
+                v-model="dgiCentreImpots"
+                type="text"
                 :class="[
                   'mt-1 block w-full px-3 py-2 border rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
                   fieldErrors.dgi_centre_impots ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
@@ -1097,7 +1373,7 @@ onMounted(() => {
             <h3 class="text-lg font-bold text-slate-900 uppercase tracking-wider">Caisses de Cotisation</h3>
             <p class="text-xs text-slate-500">Caisses de cotisations sociales rattachées à cet établissement (CNPS, Retraite...).</p>
           </div>
-          <button 
+          <button
             @click="caisseModalOpen = true"
             class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-none text-xs transition-colors flex items-center gap-1.5 shadow-flat uppercase tracking-wider cursor-pointer"
           >
@@ -1111,7 +1387,7 @@ onMounted(() => {
           <div class="font-bold text-slate-700">
             {{ selectedCaisses.length }} caisse(s) sélectionnée(s)
           </div>
-          <button 
+          <button
             @click="handleBulkDeleteCaisses"
             class="p-1.5 bg-red-650 hover:bg-red-755 text-white transition-colors shadow-flat cursor-pointer flex items-center justify-center"
             title="Détacher la sélection"
@@ -1158,7 +1434,7 @@ onMounted(() => {
                   <span v-if="!c.iban && !c.bic">-</span>
                 </td>
                 <td class="px-6 py-4 text-right">
-                  <button 
+                  <button
                     @click="handleDeleteCaisse(c.id)"
                     class="text-red-650 hover:text-red-750 cursor-pointer flex items-center justify-end w-full"
                     title="Détacher la caisse"
@@ -1176,13 +1452,13 @@ onMounted(() => {
     <!-- Tab 2: Salariés -->
     <div v-show="activeTab === 'sals'" class="space-y-6">
       <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat border-t-4 border-t-slate-500">
-        
+
         <div class="flex justify-between items-center border-b border-slate-200 pb-4 mb-4">
           <div>
             <h3 class="text-lg font-bold text-slate-900 uppercase tracking-wider">Salariés de l'Établissement</h3>
             <p class="text-xs text-slate-500">Liste des fiches civiles des salariés déclarés dans cet établissement.</p>
           </div>
-          <button 
+          <button
             @click="router.push(`/dossiers/${dossierId}/etablissements/${etabId}/salaries/new`)"
             class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-none text-xs transition-colors flex items-center gap-1.5 shadow-flat uppercase tracking-wider cursor-pointer"
           >
@@ -1196,7 +1472,7 @@ onMounted(() => {
           <div class="font-bold text-slate-700">
             {{ selectedSalaries.length }} salarié(s) sélectionné(s)
           </div>
-          <button 
+          <button
             @click="handleBulkDeleteSalaries"
             class="p-1.5 bg-red-650 hover:bg-red-755 text-white transition-colors shadow-flat cursor-pointer flex items-center justify-center"
             title="Supprimer la sélection"
@@ -1226,9 +1502,9 @@ onMounted(() => {
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-150 bg-white">
-              <tr 
-                v-for="sal in salaries" 
-                :key="sal.id" 
+              <tr
+                v-for="sal in salaries"
+                :key="sal.id"
                 @click="router.push(`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${sal.id}`)"
                 class="hover:bg-slate-50/55 cursor-pointer group"
               >
@@ -1243,7 +1519,7 @@ onMounted(() => {
                 <td class="px-6 py-4 text-slate-500">{{ sal.email || '-' }}</td>
                 <td class="px-6 py-4 text-slate-500 font-mono">{{ sal.telephone || '-' }}</td>
                 <td class="px-6 py-4">
-                  <span 
+                  <span
                     :class="[
                       sal.is_active ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-100 text-slate-500 border-slate-200',
                       'px-2 py-0.5 rounded-none text-xs font-semibold border'
@@ -1269,7 +1545,7 @@ onMounted(() => {
     <!-- Tab 3: Contrats -->
     <div v-show="activeTab === 'contrats'" class="space-y-6">
       <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat border-t-4 border-t-slate-500">
-        
+
         <div class="flex justify-between items-center border-b border-slate-200 pb-4 mb-4">
           <div>
             <h3 class="text-lg font-bold text-slate-900 uppercase tracking-wider">Contrats de l'Établissement</h3>
@@ -1282,7 +1558,7 @@ onMounted(() => {
           <div class="font-bold text-slate-700">
             {{ selectedContracts.length }} contrat(s) sélectionné(s)
           </div>
-          <button 
+          <button
             @click="handleBulkDeleteContracts"
             class="p-1.5 bg-red-650 hover:bg-red-755 text-white transition-colors shadow-flat cursor-pointer flex items-center justify-center"
             title="Supprimer la sélection"
@@ -1312,9 +1588,9 @@ onMounted(() => {
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-150 bg-white">
-              <tr 
-                v-for="c in contracts" 
-                :key="c.id" 
+              <tr
+                v-for="c in contracts"
+                :key="c.id"
                 @click="router.push(`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${c.salarie_id}/contrats/${c.id}`)"
                 class="hover:bg-slate-50 cursor-pointer group"
               >
@@ -1331,10 +1607,10 @@ onMounted(() => {
                 <td class="px-6 py-4 text-slate-650 font-semibold">
                   {{ c.type_contrat_travail === 10 ? 'CDI' : c.type_contrat_travail === 29 ? 'CDD' : 'Autre (code ' + c.type_contrat_travail + ')' }}
                 </td>
-              
+
                 <td class="px-6 py-4 font-mono text-slate-500">{{ c.date_debut_contrat || '-' }}</td>
                 <td class="px-6 py-4">
-                  <span 
+                  <span
                     :class="[
                       c.statut === 'actif' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-150 text-slate-500 border-slate-200',
                       'px-2 py-0.5 rounded-none text-[10px] uppercase font-bold border'
@@ -1360,7 +1636,7 @@ onMounted(() => {
     <!-- Tab 4: Bulletins de Salaire -->
     <div v-show="activeTab === 'bulletins'" class="space-y-6">
       <!-- Title & Mass Actions Header -->
-     
+
 
       <!-- Period Filter Bar -->
       <div class="bg-white border-2 border-slate-200 p-4 shadow-flat flex flex-col md:flex-row justify-between items-center gap-4">
@@ -1370,16 +1646,16 @@ onMounted(() => {
             <select v-model="selectedMois" class="block w-full sm:w-40 px-3 py-2 border border-slate-350 rounded-none text-sm bg-white select">
               <option v-for="m in 12" :key="m" :value="m">{{ getPeriodLabel(m, 2026).split(' ')[0] }}</option>
             </select>
-            <input 
-              v-model="selectedAnnee" 
-              type="number" 
-              placeholder="Année" 
-              class="block w-full sm:w-28 px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" 
+            <input
+              v-model="selectedAnnee"
+              type="number"
+              placeholder="Année"
+              class="block w-full sm:w-28 px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white"
             />
           </div>
         </div>
         <div v-if="contracts.length > 0" class="flex flex-wrap gap-3 w-full md:w-auto justify-end">
-          <button 
+          <button
             @click="handleValidateAll"
             :disabled="bulkProcessing || stats.generatedCount === 0"
             class="px-4 py-2 border-2 border-slate-200 text-xs font-bold uppercase tracking-wider hover:bg-slate-50 text-slate-700 transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-flat-hover shadow-flat-active"
@@ -1387,7 +1663,7 @@ onMounted(() => {
             <UIcon name="i-lucide-check-circle-2" class="w-4 h-4 text-green-600" />
             Valider la période
           </button>
-          <button 
+          <button
             @click="handleCalculateAll"
             :disabled="bulkProcessing || stats.pendingCount === 0"
             class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-bold uppercase tracking-wider shadow-flat transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-flat-hover shadow-flat-active"
@@ -1470,42 +1746,42 @@ onMounted(() => {
           {{ selectedBulletins.length }} bulletin(s) sélectionné(s)
         </div>
         <div class="flex flex-wrap gap-2 justify-end w-full sm:w-auto">
-          <button 
+          <button
             @click="handleCalculateSelected"
             class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-bold uppercase tracking-wider transition-colors shadow-flat cursor-pointer"
           >
             <UIcon name="i-lucide-calculator" class="w-3.5 h-3.5 inline mr-1" />
             Calculer
           </button>
-          <button 
+          <button
             @click="handleValidateSelected"
             class="px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-slate-900 font-bold uppercase tracking-wider transition-colors shadow-flat cursor-pointer"
           >
             <UIcon name="i-lucide-check-circle" class="w-3.5 h-3.5 inline mr-1" />
             Valider
           </button>
-          <button 
+          <button
             @click="handlePrintSelected"
             class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold uppercase tracking-wider transition-colors shadow-flat cursor-pointer"
           >
             <UIcon name="i-lucide-printer" class="w-3.5 h-3.5 inline mr-1" />
             Imprimer
           </button>
-          <button 
+          <button
             @click="handleSendEmployeeEmailsSelected"
             class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold uppercase tracking-wider transition-colors shadow-flat cursor-pointer"
           >
             <UIcon name="i-lucide-mail" class="w-3.5 h-3.5 inline mr-1" />
             Mail Employé
           </button>
-          <button 
+          <button
             @click="handleSendManagerEmailsSelected"
             class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold uppercase tracking-wider transition-colors shadow-flat cursor-pointer"
           >
             <UIcon name="i-lucide-mail" class="w-3.5 h-3.5 inline mr-1" />
             Mail Gestionnaire
           </button>
-          <button 
+          <button
             @click="handleDeleteSelectedBulletins"
             class="p-1.5 bg-red-650 hover:bg-red-755 text-white transition-colors shadow-flat cursor-pointer flex items-center justify-center"
             title="Supprimer"
@@ -1535,7 +1811,7 @@ onMounted(() => {
                   <input type="checkbox" v-model="allBulletinsSelected" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
                 </th>
                 <th scope="col" class="px-6 py-3 text-left">Employé</th>
-                <th scope="col" class="px-6 py-3 text-left">Poste / Contrat</th>
+                <th scope="col" class="px-6 py-3 text-left">Poste </th>
                 <th scope="col" class="px-6 py-3 text-left">Statut Bulletin</th>
                 <th scope="col" class="px-6 py-3 text-right">Salaire Brut</th>
                 <th scope="col" class="px-6 py-3 text-right">Net à Payer</th>
@@ -1569,31 +1845,30 @@ onMounted(() => {
                   <span class="block font-medium text-slate-800 leading-tight">
                     {{ c.emploi || 'Poste non renseigné' }}
                   </span>
-                  <span class="text-[10px] font-mono text-slate-450">
-                    Contrat N° {{ c.numero_contrat }}
-                  </span>
                 </td>
 
                 <!-- Status -->
                 <td class="px-6 py-4">
-                  <span 
+                  <span
                     v-if="bulletinsMap[c.id]"
                     :class="[
-                      bulletinsMap[c.id].statut === 'valide' 
-                        ? 'bg-green-50 text-green-700 border-green-200' 
+                      bulletinsMap[c.id].statut === 'valide'
+                        ? 'bg-green-50 text-green-700 border-green-200'
                         : 'bg-yellow-50 text-yellow-700 border-yellow-200',
                       'px-2.5 py-0.5 rounded-none text-[10px] uppercase font-bold border inline-block tracking-wider'
                     ]"
                   >
                     {{ bulletinsMap[c.id].statut }}
                   </span>
-                  <span 
-                    v-else 
+                  <span
+                    v-else
                     class="bg-slate-100 text-slate-400 border-slate-200 px-2.5 py-0.5 rounded-none text-[10px] uppercase font-bold border inline-block tracking-wider"
                   >
                     Non calculé
                   </span>
                 </td>
+
+
 
                 <!-- Salaire Brut -->
                 <td class="px-6 py-4 text-right font-mono text-slate-650 font-medium">
@@ -1610,7 +1885,7 @@ onMounted(() => {
                   <div class="flex justify-end items-center space-x-2">
                     <template v-if="bulletinsMap[c.id]">
                       <!-- View Link -->
-                      <NuxtLink 
+                      <NuxtLink
                         :to="`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${c.salarie_id}/contrats/${c.id}/bulletins/${bulletinsMap[c.id].id}`"
                         class="px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-none text-xs font-bold transition-colors flex items-center gap-1 uppercase tracking-wider"
                       >
@@ -1619,7 +1894,7 @@ onMounted(() => {
                       </NuxtLink>
 
                       <!-- Recalculate -->
-                      <button 
+                      <button
                         v-if="bulletinsMap[c.id].statut !== 'valide'"
                         @click="handleCalculateSingle(c.id)"
                         class="px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 transition-colors rounded-none text-xs font-bold flex items-center gap-1 uppercase tracking-wider cursor-pointer"
@@ -1630,7 +1905,7 @@ onMounted(() => {
                       </button>
 
                       <!-- Validate -->
-                      <button 
+                      <button
                         v-if="bulletinsMap[c.id].statut !== 'valide'"
                         @click="handleValidateSingle(bulletinsMap[c.id].id)"
                         class="px-2.5 py-1.5 border border-yellow-250 bg-yellow-50 hover:bg-yellow-100 text-yellow-750 transition-colors rounded-none text-xs font-bold flex items-center gap-1 uppercase tracking-wider cursor-pointer"
@@ -1640,8 +1915,42 @@ onMounted(() => {
                         Valider
                       </button>
 
+                      <!-- Dropdown quick entries -->
+                      <UDropdownMenu
+                        v-if="bulletinsMap[c.id].statut !== 'valide'"
+                        :items="[[
+                          {
+                            label: 'Ajouter une prime',
+                            icon: 'i-lucide-gift',
+                            onSelect: () => openPrimeModal(c.id)
+                          },
+                          {
+                            label: 'Déclarer une absence',
+                            icon: 'i-lucide-calendar-x',
+                            onSelect: () => openAbsModal(c.id)
+                          },
+                          {
+                            label: 'Ajouter des heures sup',
+                            icon: 'i-lucide-clock',
+                            onSelect: () => openHsModal(c.id)
+                          },
+                          {
+                            label: 'Saisir un acompte',
+                            icon: 'i-lucide-banknote',
+                            onSelect: () => openAcompteModal(c.id)
+                          }
+                        ]]"
+                      >
+                        <button 
+                          class="px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-none text-xs font-bold transition-colors flex items-center gap-1 uppercase tracking-wider cursor-pointer"
+                        >
+                          Saisies
+                          <UIcon name="i-lucide-chevron-down" class="w-3.5 h-3.5" />
+                        </button>
+                      </UDropdownMenu>
+
                       <!-- Delete -->
-                      <button 
+                      <button
                         v-if="bulletinsMap[c.id].statut !== 'valide'"
                         @click="handleDeleteSingle(bulletinsMap[c.id].id)"
                         class="px-2.5 py-1.5 border border-red-200 bg-red-50 hover:bg-red-100 text-red-650 transition-colors rounded-none cursor-pointer flex items-center justify-center"
@@ -1651,7 +1960,7 @@ onMounted(() => {
                       </button>
                     </template>
 
-                    <button 
+                    <button
                       v-else
                       @click="handleCalculateSingle(c.id)"
                       class="px-2.5 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-none text-xs font-bold transition-colors flex items-center gap-1 shadow-flat uppercase tracking-wider cursor-pointer"
@@ -1673,7 +1982,7 @@ onMounted(() => {
       <template #content>
         <div class="p-6 space-y-4 bg-white border border-slate-200">
           <h2 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Caisse</h2>
-          
+
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Type de cotisation</label>
@@ -1718,6 +2027,185 @@ onMounted(() => {
             </button>
             <button type="button" @click="handleCreateCaisse" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-none shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
               Rattacher la caisse
+            </button>
+          </div>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Modals for adding variables -->
+    
+    <!-- Modal: Overtime -->
+    <UModal v-model:open="hsModalOpen" title="Saisir des Heures Supplémentaires">
+      <template #content>
+        <div class="p-6 space-y-4 bg-white border border-slate-200">
+          <h2 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Heure Supp.</h2>
+          
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Taux de majoration</label>
+              <select v-model="hsCode" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white select">
+                <option value="HS_15">Majoration à 15%</option>
+                <option value="HS_25">Majoration à 25%</option>
+                <option value="HS_50">Majoration à 50%</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Nombre d'heures</label>
+              <input v-model="hsNombre" type="number" step="0.5" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+            </div>
+          </div>
+
+          <div class="flex justify-end space-x-3 pt-4 border-t border-slate-200">
+            <button type="button" @click="hsModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-none hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
+              Annuler
+            </button>
+            <button type="button" @click="handleAddHeureSupp" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-none shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
+              Enregistrer et Recalculer
+            </button>
+          </div>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Modal: Absence -->
+    <UModal v-model:open="absModalOpen" title="Saisir une Absence / Congé">
+      <template #content>
+        <div class="p-6 space-y-4 bg-white border border-slate-200">
+          <h2 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Saisir Absence</h2>
+          
+          <div class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Motif de l'absence</label>
+                <select v-model="absCode" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-none text-sm bg-white select">
+                  <option value="CONGES">Congés payés</option>
+                  <option value="MALADIE">Maladie</option>
+                  <option value="AT">Accident du travail</option>
+                  <option value="SANS_SOLDE">Absence non autorisée (Sans solde)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Nbr jours d'absence</label>
+                <input v-model="absNbrJour" type="number" step="0.5" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Date début</label>
+                <input v-model="absDateDebut" type="date" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Date fin</label>
+                <input v-model="absDateFin" type="date" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
+              </div>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Nombre d'heures correspondantes (Si contrat horaire)</label>
+              <input v-model="absNbrHeure" type="number" step="1" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+            </div>
+          </div>
+
+          <div class="flex justify-end space-x-3 pt-4 border-t border-slate-200">
+            <button type="button" @click="absModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-none hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
+              Annuler
+            </button>
+            <button type="button" @click="handleAddAbsence" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-none shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
+              Enregistrer et Recalculer
+            </button>
+          </div>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Modal: Prime -->
+    <UModal v-model:open="primeModalOpen" title="Saisir une Prime">
+      <template #content>
+        <div class="p-6 space-y-4 bg-white border border-slate-200">
+          <h2 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Prime</h2>
+          
+          <div class="space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Code Identifiant</label>
+                <select v-model="primeCode" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-none text-sm bg-white select">
+                  <option v-for="p in primesDisponibles" :key="p.code" :value="p.code">
+                    {{ p.libelle }} ({{ p.code }})
+                  </option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Mode de saisie</label>
+                <select v-model="primeMode" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-none text-sm bg-white select">
+                  <option value="direct">Montant Direct</option>
+                  <option value="calcul">Calcul par Base et Taux</option>
+                </select>
+              </div>
+            </div>
+
+            <div v-if="primeMode === 'calcul'" class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Base (FCFA)</label>
+                <input v-model="primeBase" type="number" @input="primeMontant = (Number(primeBase) || 0) * ((Number(primeTaux) || 0) / 100)" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Taux (%)</label>
+                <input v-model="primeTaux" type="number" step="0.01" @input="primeMontant = (Number(primeBase) || 0) * ((Number(primeTaux) || 0) / 100)" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Montant de la prime (FCFA)</label>
+                <input v-model="primeMontant" type="number" :disabled="primeMode === 'calcul'" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white disabled:bg-slate-100" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Libellé (Affiché sur le bulletin)</label>
+                <input v-model="primeLibelle" type="text" placeholder="Ex: Prime de rendement" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
+              </div>
+            </div>
+            <div class="flex items-center space-x-2 pt-2">
+              <input v-model="primeEstPersistant" type="checkbox" id="prime_est_persistant" class="w-4 h-4 text-green-600 focus:ring-green-500 border-slate-300 rounded" />
+              <label for="prime_est_persistant" class="text-xs font-semibold uppercase tracking-wider text-slate-500 cursor-pointer">
+                Répéter les mois suivants (Persistant)
+              </label>
+            </div>
+          </div>
+
+          <div class="flex justify-end space-x-3 pt-4 border-t border-slate-200">
+            <button type="button" @click="primeModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-none hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
+              Annuler
+            </button>
+            <button type="button" @click="handleAddPrime" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-none shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
+              Enregistrer et Recalculer
+            </button>
+          </div>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Modal: Acompte -->
+    <UModal v-model:open="acompteModalOpen" title="Définir un Acompte">
+      <template #content>
+        <div class="p-6 space-y-4 bg-white border border-slate-200">
+          <h2 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Acompte sur salaire</h2>
+          
+          <div class="space-y-4">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Montant de l'acompte (FCFA)</label>
+              <input v-model="acompteMontant" type="number" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <p class="text-[10px] text-slate-500 mt-1">Sera déduit directement du salaire net à payer.</p>
+            </div>
+          </div>
+
+          <div class="flex justify-end space-x-3 pt-4 border-t border-slate-200">
+            <button type="button" @click="acompteModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-none hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
+              Annuler
+            </button>
+            <button type="button" @click="handleSaveAcompte" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-none shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
+              Enregistrer et Recalculer
             </button>
           </div>
         </div>

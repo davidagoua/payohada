@@ -64,9 +64,12 @@ const getPeriodLabel = (mois, annee) => {
 
 const getGrossLines = (bulletin) => {
   if (!bulletin || !bulletin.lignes) return []
+  const cotisCodes = ['IBS', 'RICF', 'CNPS_RETRAITE', 'CMU_S', 'CN', 'TA', 'TFC', 'CNPS_PF', 'CNPS_AT', 'CNPS_MATERNITE', 'CMU_P']
   return bulletin.lignes.filter(l => {
     const c = l.code.toUpperCase()
-    return !['IBS', 'RICF', 'CNPS_RETRAITE', 'CMU_S', 'CN', 'TA', 'TFC', 'CNPS_PF', 'CNPS_AT', 'CNPS_MATERNITE', 'CMU_P', 'TRANSPORT', 'TELEPHONE', 'ACOMPTE'].includes(c)
+    const isCotis = cotisCodes.includes(c)
+    const isNet = ['TRANSPORT', 'TELEPHONE', 'ACOMPTE', 'FRAIS_PROFESSIONNELS', 'AUTRE_RETENUE'].includes(c) || c.startsWith('RET_')
+    return !isCotis && !isNet
   })
 }
 
@@ -82,7 +85,7 @@ const getNetLines = (bulletin) => {
   if (!bulletin || !bulletin.lignes) return []
   return bulletin.lignes.filter(l => {
     const c = l.code.toUpperCase()
-    return ['TRANSPORT', 'TELEPHONE', 'ACOMPTE'].includes(c)
+    return ['TRANSPORT', 'TELEPHONE', 'ACOMPTE', 'FRAIS_PROFESSIONNELS', 'AUTRE_RETENUE'].includes(c) || c.startsWith('RET_')
   })
 }
 

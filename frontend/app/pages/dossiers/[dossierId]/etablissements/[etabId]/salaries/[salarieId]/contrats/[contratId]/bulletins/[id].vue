@@ -497,9 +497,12 @@ const getPeriodLabel = (mois, annee) => {
 
 const grossLines = computed(() => {
   if (!bulletin.value || !bulletin.value.lignes) return []
+  const cotisCodes = ['IBS', 'RICF', 'CNPS_RETRAITE', 'CMU_S', 'CN', 'TA', 'TFC', 'CNPS_PF', 'CNPS_AT', 'CNPS_MATERNITE', 'CMU_P']
   return bulletin.value.lignes.filter(l => {
     const c = l.code.toUpperCase()
-    return !['IBS', 'RICF', 'CNPS_RETRAITE', 'CMU_S', 'CN', 'TA', 'TFC', 'CNPS_PF', 'CNPS_AT', 'CNPS_MATERNITE', 'CMU_P', 'TRANSPORT', 'TELEPHONE', 'ACOMPTE'].includes(c)
+    const isCotis = cotisCodes.includes(c)
+    const isNet = ['TRANSPORT', 'TELEPHONE', 'ACOMPTE', 'FRAIS_PROFESSIONNELS', 'AUTRE_RETENUE'].includes(c) || c.startsWith('RET_')
+    return !isCotis && !isNet
   })
 })
 
@@ -515,7 +518,7 @@ const netLines = computed(() => {
   if (!bulletin.value || !bulletin.value.lignes) return []
   return bulletin.value.lignes.filter(l => {
     const c = l.code.toUpperCase()
-    return ['TRANSPORT', 'TELEPHONE', 'ACOMPTE'].includes(c)
+    return ['TRANSPORT', 'TELEPHONE', 'ACOMPTE', 'FRAIS_PROFESSIONNELS', 'AUTRE_RETENUE'].includes(c) || c.startsWith('RET_')
   })
 })
 
@@ -634,6 +637,14 @@ onMounted(() => {
       </div>
 
       <div class="flex space-x-3 w-full sm:w-auto justify-end">
+        <button 
+          v-if="bulletin.statut !== 'valide'"
+          @click="handleRecalculate"
+          class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-none hover:bg-slate-50 text-slate-700 transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer shadow-flat-hover shadow-flat-active"
+        >
+          <UIcon name="i-lucide-refresh-cw" class="w-4 h-4 text-green-600" />
+          Recalculer
+        </button>
         <button 
           v-if="bulletin.statut !== 'valide'"
           @click="handleDelete"
@@ -1154,6 +1165,30 @@ onMounted(() => {
             </div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Raccourcis fiche salarié & contrat (Caché à l'impression) -->
+    <div class="bg-white border-2 border-slate-200 p-4 shadow-flat flex flex-col sm:flex-row justify-between items-center gap-4 no-print border-t-4 border-t-slate-500 rounded-none">
+      <div class="flex items-center space-x-2">
+        <UIcon name="i-lucide-link" class="w-4 h-4 text-slate-500" />
+        <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Raccourcis :</span>
+      </div>
+      <div class="flex flex-wrap gap-3 w-full sm:w-auto justify-start sm:justify-end">
+        <NuxtLink 
+          :to="`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}`"
+          class="px-4 py-2 border-2 border-slate-200 text-xs font-bold uppercase tracking-wider rounded-none hover:bg-slate-50 text-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer shadow-flat-hover shadow-flat-active"
+        >
+          <UIcon name="i-lucide-user" class="w-4 h-4 text-green-600" />
+          Fiche Salarié
+        </NuxtLink>
+        <NuxtLink 
+          :to="`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}/contrats/${contratId}`"
+          class="px-4 py-2 border-2 border-slate-200 text-xs font-bold uppercase tracking-wider rounded-none hover:bg-slate-50 text-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer shadow-flat-hover shadow-flat-active"
+        >
+          <UIcon name="i-lucide-file-text" class="w-4 h-4 text-blue-600" />
+          Fiche Contrat
+        </NuxtLink>
       </div>
     </div>
 

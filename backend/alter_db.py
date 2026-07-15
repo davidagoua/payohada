@@ -22,6 +22,8 @@ if db_url and db_url.startswith("postgresql"):
         
         # Add expatrie to salaries
         cur.execute("ALTER TABLE salaries ADD COLUMN IF NOT EXISTS expatrie BOOLEAN DEFAULT FALSE;")
+        cur.execute("ALTER TABLE salaries ADD COLUMN IF NOT EXISTS situation_matrimoniale VARCHAR(50) DEFAULT NULL;")
+        cur.execute("ALTER TABLE salaries ADD COLUMN IF NOT EXISTS enfants_charge INTEGER DEFAULT 0;")
         
         # Add pays to dossiers
         cur.execute("ALTER TABLE dossiers ADD COLUMN IF NOT EXISTS pays VARCHAR(100) DEFAULT 'Côte d''Ivoire';")
@@ -85,6 +87,16 @@ if sqlite_path.exists():
             cur.execute("ALTER TABLE salaries ADD COLUMN expatrie BOOLEAN DEFAULT 0;")
         except sqlite3.OperationalError:
             print("expatrie column already exists or error in salaries")
+
+        try:
+            cur.execute("ALTER TABLE salaries ADD COLUMN situation_matrimoniale VARCHAR(50) DEFAULT NULL;")
+        except sqlite3.OperationalError:
+            print("situation_matrimoniale column already exists or error in salaries")
+
+        try:
+            cur.execute("ALTER TABLE salaries ADD COLUMN enfants_charge INTEGER DEFAULT 0;")
+        except sqlite3.OperationalError:
+            print("enfants_charge column already exists or error in salaries")
 
         try:
             cur.execute("ALTER TABLE dossiers ADD COLUMN pays VARCHAR(100) DEFAULT 'Côte d''Ivoire';")

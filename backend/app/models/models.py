@@ -5,7 +5,7 @@ Architecture : Dossier > Etablissement > Salarié > Contrat > (Bulletins, Absenc
 
 from sqlalchemy import (
     Column, Integer, String, Boolean, Float, DateTime,
-    ForeignKey, Text, Enum, UniqueConstraint, Index
+    ForeignKey, Text, Enum, UniqueConstraint, Index, Numeric
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -66,6 +66,32 @@ class Utilisateur(TimestampMixin, Base):
     # Relations
     dossiers = relationship("Dossier", back_populates="proprietaire")
     salarie = relationship("Salarie", back_populates="utilisateur", uselist=False)
+
+
+
+# ─────────────────────────────────────────
+#  SECTEURS & GRILLES DE POSTES
+# ─────────────────────────────────────────
+
+class Secteur(Base):
+    __tablename__ = "secteurs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    nom = Column(String(255), nullable=False, unique=True)
+
+
+class PosteSalaire(Base):
+    __tablename__ = "postes_salaires"
+
+    id = Column(Integer, primary_key=True, index=True)
+    secteur_id = Column(Integer, ForeignKey("secteurs.id", ondelete="CASCADE"), nullable=False)
+    categorie_professionnelle = Column(String(100), nullable=False)
+    echelon_categorie = Column(String(100), nullable=False)
+    salaire_mensuel_fcfa = Column(Integer, nullable=True)
+    taux_horaire_fcfa = Column(Numeric(6, 2), nullable=True)
+    details_poste = Column(Text, nullable=True)
+
+    secteur = relationship("Secteur")
 
 
 # ─────────────────────────────────────────
@@ -215,9 +241,11 @@ class Etablissement(TimestampMixin, Base):
     dgi_centre_impots = Column(String(150))
     dgi_periodicite_declaration = Column(String(50))
     dgi_regime_fiscal = Column(String(150))
+    secteur_id = Column(Integer, ForeignKey("secteurs.id", ondelete="SET NULL"), nullable=True)
 
     # Relations
     dossier = relationship("Dossier", back_populates="etablissements")
+    secteur = relationship("Secteur")
     adresse = relationship("AdresseEtablissement", back_populates="etablissement", uselist=False, cascade="all, delete-orphan")
     banque = relationship("BanqueEtablissement", back_populates="etablissement", uselist=False, cascade="all, delete-orphan")
     gestion_conges = relationship("GestionCongesPayes", back_populates="etablissement", uselist=False, cascade="all, delete-orphan")
@@ -285,6 +313,8 @@ class Salarie(TimestampMixin, Base):
     bic = Column(String(11))
     is_active = Column(Boolean, default=True)
     expatrie = Column(Boolean, default=False)
+    situation_matrimoniale = Column(String(50), nullable=True)
+    enfants_charge = Column(Integer, default=0, nullable=True)
 
     # Relations
     etablissement = relationship("Etablissement", back_populates="salaries")
@@ -440,9 +470,11 @@ class Contrat(TimestampMixin, Base):
     indemnite_transport = Column(Float, default=0.0)
     dotation_telephonique = Column(Float, default=0.0)
     mode_calcul = Column(String(10), default="brut")
+    poste_salaire_id = Column(Integer, ForeignKey("postes_salaires.id", ondelete="SET NULL"), nullable=True)
 
     # Relations
     dossier = relationship("Dossier")
+    poste_salaire = relationship("PosteSalaire")
     salarie = relationship("Salarie", back_populates="contrats")
     etablissement = relationship("Etablissement")
     jours_hebdomadaires = relationship("JoursHebdomadaires", back_populates="contrat", uselist=False, cascade="all, delete-orphan")

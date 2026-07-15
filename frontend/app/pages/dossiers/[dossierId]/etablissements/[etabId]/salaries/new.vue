@@ -23,6 +23,8 @@ const salPhone = ref('')
 const salIban = ref('')
 const salBic = ref('')
 const salExpatrie = ref(false)
+const salSituationMatrimoniale = ref('Célibataire')
+const salEnfantsCharge = ref(0)
 
 const fetchContextDetails = async () => {
   loadingContext.value = true
@@ -62,7 +64,9 @@ const handleCreateSalarie = async () => {
       telephone: salPhone.value || null,
       iban: salIban.value || null,
       bic: salBic.value || null,
-      expatrie: salExpatrie.value
+      expatrie: salExpatrie.value,
+      situation_matrimoniale: salSituationMatrimoniale.value,
+      enfants_charge: salEnfantsCharge.value
     }
 
     const res = await post(`/etablissements/${etabId}/salaries`, payload)
@@ -182,6 +186,28 @@ onMounted(() => {
               <option :value="false">Non (Local)</option>
               <option :value="true">Oui (Expatrié)</option>
             </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Situation Matrimoniale</label>
+            <select v-model="salSituationMatrimoniale" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select">
+              <option value="Célibataire">Célibataire</option>
+              <option value="Marié">Marié(e)</option>
+              <option value="Divorcé">Divorcé(e)</option>
+              <option value="Veuf">Veuf(ve)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Enfants à charge</label>
+            <input 
+              v-model.number="salEnfantsCharge" 
+              type="number" 
+              min="0"
+              max="20"
+              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            />
           </div>
         </div>
 

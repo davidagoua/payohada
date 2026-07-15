@@ -2,13 +2,14 @@ from fastapi import FastAPI, APIRouter, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.routers import auth, dossiers, etablissements, salaries, contrats, variables, bulletins, constantes, plan_paie, reclamations
+from app.routers import auth, dossiers, etablissements, salaries, contrats, variables, bulletins, constantes, plan_paie, reclamations, secteurs
 from app.database import Base, engine, SessionLocal
 from app.database_seeder import seed_database
 import sentry_sdk
 from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sqlalchemy.exc import IntegrityError
 import logging
+from redis_fastapi import FastAPIRedis
 
 logger = logging.getLogger("app")
 
@@ -39,6 +40,10 @@ app = FastAPI(
     redoc_url="/api/v1/redoc" if settings.DEBUG else None,
 )
 
+
+FastAPIRedis(app).lifespan()
+
+
 @app.exception_handler(IntegrityError)
 async def integrity_exception_handler(request: Request, exc: IntegrityError):
     logger.error(f"Database IntegrityError: {str(exc)}")
@@ -59,6 +64,8 @@ async def integrity_exception_handler(request: Request, exc: IntegrityError):
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.exception("Global unhandled exception:")
+    if settings.BUGSINK_DSN:
+        sentry_sdk.capture_exception(exc)
     # Le message du backend ne doit pas aller textuellement au frontend pour les erreurs serveur inattendues
     return JSONResponse(
         status_code=500,
@@ -71,7 +78,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 api_router = APIRouter(
     prefix="/api/v1",
-    tags=["v1"]
+
 )
 
 api_router.include_router(auth.router)
@@ -84,6 +91,7 @@ api_router.include_router(bulletins.router)
 api_router.include_router(constantes.router)
 api_router.include_router(plan_paie.router)
 api_router.include_router(reclamations.router)
+api_router.include_router(secteurs.router)
 
 app.include_router(api_router)
 

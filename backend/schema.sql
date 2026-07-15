@@ -34,7 +34,7 @@ CREATE INDEX idx_variables_code ON variables (code);
 CREATE TABLE dossiers (
     id SERIAL PRIMARY KEY,
     code VARCHAR(10) NOT NULL UNIQUE,
-    siret VARCHAR(14) DEFAULT NULL,
+    siret VARCHAR(255) DEFAULT NULL,
     nom_dossier VARCHAR(50) NOT NULL,
     adresse_email VARCHAR(150) DEFAULT NULL,
     telephone VARCHAR(15) DEFAULT NULL,
@@ -546,4 +546,328 @@ CREATE TABLE reclamations (
 );
 CREATE INDEX idx_reclamations_salarie ON reclamations (salarie_id);
 CREATE INDEX idx_reclamations_bulletin ON reclamations (bulletin_id);
+
+
+-- Table 1 : Les secteurs d'activité
+CREATE TABLE secteurs (
+    id SERIAL PRIMARY KEY,
+    nom VARCHAR(255) NOT NULL UNIQUE
+);
+
+-- Table 2 : Les postes, catégories et grilles salariales associées
+CREATE TABLE postes_salaires (
+    id SERIAL PRIMARY KEY,
+    secteur_id INT NOT NULL REFERENCES secteurs(id) ON DELETE CASCADE,
+    categorie_professionnelle VARCHAR(100) NOT NULL, -- ex: 'EMPLOYES', 'OUVRIERS', 'CADRES', 'CHAUFFEURS', etc.
+    echelon_categorie VARCHAR(100) NOT NULL,        -- ex: '1 (SMIG)', 'M1', '2A', '1re classe'
+    salaire_mensuel_fcfa INT,                       -- Salaire mensuel (peut être NULL pour certains ouvriers payés uniquement à l'heure)
+    taux_horaire_fcfa NUMERIC(6, 2),                -- Taux horaire (facultatif, ex: 346.00)
+    details_poste TEXT                              -- Pour préciser les spécificités (ex: "Véhicules Poids lourds de 3 à 5 T")
+);
+
+-- Index pour accélérer les recherches par secteur et par catégorie
+CREATE INDEX idx_postes_secteur ON postes_salaires(secteur_id);
+CREATE INDEX idx_postes_categorie ON postes_salaires(categorie_professionnelle);
+
+
+-- On s'assure d'abord que la table des secteurs est propre et alimentée
+INSERT INTO secteurs (nom) VALUES
+('SECTEUR INDUSTRIEL'),
+('INDUSTRIE DU BOIS'),
+('INDUSTRIE TEXTILE'),
+('INDUSTRIE DE TRANSFORMATION DE THON'),
+('INDUSTRIE POLYGRAPHIQUE'),
+('INDUSTRIE POLYGRAPHIQUE - IMPRIMERIE'),
+('INDUSTRIE POLYGRAPHIQUE - BROCHURE - DORURE - RELIURE'),
+('INDUSTRIE POLYGRAPHIQUE - PHOTOGRAVURE'),
+('INDUSTRIE HOTELIERE'),
+('INDUSTRIE TOURISTIQUE'),
+('PRODUCTION AGRICOLE'),
+('INDUSTRIE DU SUCRE'),
+('AUXILIAIRES DU TRANSPORT'),
+('ENTREPRISE DE BATIMENT, DES TRAVAUX PUBLICS ET ACTIVITES CONNEXES'),
+('COMMERCE - DISTRIBUTION - NEGOCE ET PROFESSIONS LIBERALES'),
+('SECTEUR MARITIME - NAVIGATION COTIERE'),
+('SECTEUR MARITIME - ARMEMENT AU LONG COURS'),
+('SECTEUR MARITIME - ARMEMENT AU CABOTAGE NATIONAL'),
+('SECTEUR MARITIME - ARMEMENT AU CABOTAGE INTERNATIONAL'),
+('SECTEUR MARITIME - KROOMEN'),
+('SECTEUR MARITIME - MARINS PECHEURS'),
+('BANQUES'),
+('ASSURANCES'),
+('ENTREPRISES PETROLIERES'),
+('SECURITE PRIVEE'),
+('NETTOYAGE - INSALUBRITE'),
+('GENS DE MAISON')
+ON CONFLICT (nom) DO NOTHING;
+
+-- ============================================================================
+-- SEEDING DES POSTES ET SALAIRES
+-- ============================================================================
+
+DO $$
+DECLARE
+    sec_id INT;
+BEGIN
+
+    -- ---------------------------------------------------------
+    -[span_0](start_span)- 1. SECTEUR INDUSTRIEL[span_0](end_span)
+    -- ---------------------------------------------------------
+    SELECT id INTO sec_id FROM secteurs WHERE nom = 'SECTEUR INDUSTRIEL';
+
+    -[span_1](start_span)- Employés[span_1](end_span)
+    INSERT INTO postes_salaires (secteur_id, categorie_professionnelle, echelon_categorie, salaire_mensuel_fcfa, taux_horaire_fcfa) VALUES
+    (sec_id, 'EMPLOYES', '1 (SMIG)', 75000, 346),
+    (sec_id, 'EMPLOYES', '2', 76728, 410),
+    (sec_id, 'EMPLOYES', '3', 77266, 446),
+    (sec_id, 'EMPLOYES', '4', 82104, 474),
+    (sec_id, 'EMPLOYES', '5', 97942, 565),
+    (sec_id, 'EMPLOYES', '6', 111003, 640),
+    (sec_id, 'EMPLOYES', '7 A', 112166, 647),
+    (sec_id, 'EMPLOYES', '7 B', 120472, 695);
+
+    -[span_2](start_span)- Chauffeurs[span_2](end_span)
+    INSERT INTO postes_salaires (secteur_id, categorie_professionnelle, echelon_categorie, salaire_mensuel_fcfa, details_poste) VALUES
+    (sec_id, 'CHAUFFEURS', 'Tourisme', 79889, 'Voitures de Tourisme'),
+    (sec_id, 'CHAUFFEURS', 'PL 3-5 T', 73480, 'Véhicules Poids lourds de 3 à 5 T'),
+    (sec_id, 'CHAUFFEURS', 'PL > 5 T', 83203, 'Véhicules Poids lourds de plus de 5 T'),
+    (sec_id, 'CHAUFFEURS', 'Transport en commun', 76710, 'Véhicule de transport en commun');
+
+    -[span_3](start_span)- Ouvriers[span_3](end_span)
+    INSERT INTO postes_salaires (secteur_id, categorie_professionnelle, echelon_categorie, taux_horaire_fcfa) VALUES
+    (sec_id, 'OUVRIERS', '1 (SMIG)', 346),
+    (sec_id, 'OUVRIERS', '2', 399),
+    (sec_id, 'OUVRIERS', '3 A', 401),
+    (sec_id, 'OUVRIERS', '3 B', 413),
+    (sec_id, 'OUVRIERS', '4 A', 414),
+    (sec_id, 'OUVRIERS', '4 B', 429),
+    (sec_id, 'OUVRIERS', '5 A', 436),
+    (sec_id, 'OUVRIERS', '5 B', 447),
+    (sec_id, 'OUVRIERS', '6 A', 456),
+    (sec_id, 'OUVRIERS', '6 B', 509);
+
+    -[span_4](start_span)- Ingénieurs - Cadres assimilés[span_4](end_span)
+    INSERT INTO postes_salaires (secteur_id, categorie_professionnelle, echelon_categorie, salaire_mensuel_fcfa) VALUES
+    (sec_id, 'INGENIEURS - CADRES ASSIMILES', '1A', 153699),
+    (sec_id, 'INGENIEURS - CADRES ASSIMILES', '1B', 176935),
+    (sec_id, 'INGENIEURS - CADRES ASSIMILES', '2A', 185838),
+    (sec_id, 'INGENIEURS - CADRES ASSIMILES', '2B', 210906),
+    (sec_id, 'INGENIEURS - CADRES ASSIMILES', '3A', 219239),
+    (sec_id, 'INGENIEURS - CADRES ASSIMILES', '3B', 328791);
+
+    -[span_5](start_span)- Agents de maîtrise[span_5](end_span)
+    INSERT INTO postes_salaires (secteur_id, categorie_professionnelle, echelon_categorie, salaire_mensuel_fcfa, taux_horaire_fcfa) VALUES
+    (sec_id, 'AGENTS DE MAITRISE', 'MNP', 105213, 607),
+    (sec_id, 'AGENTS DE MAITRISE', 'M1', 119345, 689),
+    (sec_id, 'AGENTS DE MAITRISE', 'M2', 127712, 737),
+    (sec_id, 'AGENTS DE MAITRISE', 'M3', 152531, 880),
+    (sec_id, 'AGENTS DE MAITRISE', 'M4', 165946, 957),
+    (sec_id, 'AGENTS DE MAITRISE', 'M5', 179778, 1037);
+
+
+    -- ---------------------------------------------------------
+    -[span_6](start_span)- 2. INDUSTRIE DU BOIS[span_6](end_span)
+    -- ---------------------------------------------------------
+    SELECT id INTO sec_id FROM secteurs WHERE nom = 'INDUSTRIE DU BOIS';
+
+    INSERT INTO postes_salaires (secteur_id, categorie_professionnelle, echelon_categorie, salaire_mensuel_fcfa) VALUES
+    -[span_7](start_span)- Cadres[span_7](end_span)
+    (sec_id, 'INGENIEURS - CADRES ASSIMILES', '1 A', 152984),
+    (sec_id, 'INGENIEURS - CADRES ASSIMILES', '1 B', 176112),
+    (sec_id, 'INGENIEURS - CADRES ASSIMILES', '2 A', 184974),
+    (sec_id, 'INGENIEURS - CADRES ASSIMILES', '2 B', 209925),
+    (sec_id, 'INGENIEURS - CADRES ASSIMILES', '3 A', 218219),
+    (sec_id, 'INGENIEURS - CADRES ASSIMILES', '3 B', 327262),
+    -[span_8](start_span)- Maîtrise[span_8](end_span)
+    (sec_id, 'AGENTS DE MAITRISE', 'MNP', 104723),
+    (sec_id, 'AGENTS DE MAITRISE', 'M1', 118790),
+    (sec_id, 'AGENTS DE MAITRISE', 'M2', 127118),
+    (sec_id, 'AGENTS DE MAITRISE', 'M3', 151822),
+    (sec_id, 'AGENTS DE MAITRISE', 'M4', 165174),
+    (sec_id, 'AGENTS DE MAITRISE', 'M5', 178941),
+    -[span_9](start_span)- Employés[span_9](end_span)
+    (sec_id, 'EMPLOYES', '1 (SMIG)', 75000),
+    (sec_id, 'EMPLOYES', '2', 74981),
+    (sec_id, 'EMPLOYES', '3', 76196),
+    (sec_id, 'EMPLOYES', '4', 81721),
+    (sec_id, 'EMPLOYES', '5', 97486),
+    (sec_id, 'EMPLOYES', '6', 110487),
+    (sec_id, 'EMPLOYES', '7 A', 111644),
+    (sec_id, 'EMPLOYES', '7 B', 119912);
+
+    -[span_10](start_span)- Chauffeurs[span_10](end_span)
+    INSERT INTO postes_salaires (secteur_id, categorie_professionnelle, echelon_categorie, salaire_mensuel_fcfa, taux_horaire_fcfa, details_poste) VALUES
+    (sec_id, 'CHAUFFEURS', 'Tourisme', 69564, 401, 'Voitures de Tourisme'),
+    (sec_id, 'CHAUFFEURS', 'PL 3-5 T', 73138, 422, 'Véhicules Poids lourds de 3 à 5 T'),
+    (sec_id, 'CHAUFFEURS', 'PL > 5 T', 75798, 437, 'Véhicules Poids lourds de plus de 5 T'),
+    (sec_id, 'CHAUFFEURS', 'Transport en commun', 76354, 441, 'Véhicule de transport en commun');
+
+    -[span_11](start_span)- Ouvriers[span_11](end_span)
+    INSERT INTO postes_salaires (secteur_id, categorie_professionnelle, echelon_categorie, taux_horaire_fcfa) VALUES
+    (sec_id, 'OUVRIERS', '1 (SMIG)', 346),
+    (sec_id, 'OUVRIERS', '2', 390),
+    (sec_id, 'OUVRIERS', '3 A', 391),
+    (sec_id, 'OUVRIERS', '3 B', 400),
+    (sec_id, 'OUVRIERS', '4 A', 401),
+    (sec_id, 'OUVRIERS', '4 B', 422),
+    (sec_id, 'OUVRIERS', '5 A', 432),
+    (sec_id, 'OUVRIERS', '5 B', 447),
+    (sec_id, 'OUVRIERS', '6 A', 459),
+    (sec_id, 'OUVRIERS', '6 B', 511);
+
+
+    -- ---------------------------------------------------------
+    -[span_12](start_span)- 3. INDUSTRIE TEXTILE[span_12](end_span)
+    -- ---------------------------------------------------------
+    SELECT id INTO sec_id FROM secteurs WHERE nom = 'INDUSTRIE TEXTILE';
+
+    INSERT INTO postes_salaires (secteur_id, categorie_professionnelle, echelon_categorie, salaire_mensuel_fcfa) VALUES
+    -[span_13](start_span)- Cadres[span_13](end_span)
+    (sec_id, 'INGENIEURS - CADRES ASSIMILES', '1 A', 147266),
+    (sec_id, 'INGENIEURS - CADRES ASSIMILES', '1 B', 169529),
+    (sec_id, 'INGENIEURS - CADRES ASSIMILES', '2 A', 178059),
+    (sec_id, 'INGENIEURS - CADRES ASSIMILES', '2 B', 202078),
+    (sec_id, 'INGENIEURS - CADRES ASSIMILES', '3 A', 210061),
+    (sec_id, 'INGENIEURS - CADRES ASSIMILES', '3 B', 315027),
+    -[span_14](start_span)- Maîtrise[span_14](end_span)
+    (sec_id, 'AGENTS DE MAITRISE', 'MNP', 101787),
+    (sec_id, 'AGENTS DE MAITRISE', 'M1', 115460),
+    (sec_id, 'AGENTS DE MAITRISE', 'M2', 123554),
+    (sec_id, 'AGENTS DE MAITRISE', 'M3', 147565),
+    (sec_id, 'AGENTS DE MAITRISE', 'M4', 160543),
+    (sec_id, 'AGENTS DE MAITRISE', 'M5', 173924),
+    -[span_15](start_span)- Employés[span_15](end_span)
+    (sec_id, 'EMPLOYES', '1 (SMIG)', 75000),
+    (sec_id, 'EMPLOYES', '2', 74280),
+    (sec_id, 'EMPLOYES', '3', 75483),
+    (sec_id, 'EMPLOYES', '4', 80958),
+    (sec_id, 'EMPLOYES', '5', 96576),
+    (sec_id, 'EMPLOYES', '6', 109455),
+    (sec_id, 'EMPLOYES', '7 A', 110601),
+    (sec_id, 'EMPLOYES', '7 B', 118791),
+    -[span_16](start_span)- Chauffeurs[span_16](end_span)
+    (sec_id, 'CHAUFFEURS', 'Tourisme', 68914),
+    (sec_id, 'CHAUFFEURS', 'PL 3-5 T', 72454),
+    (sec_id, 'CHAUFFEURS', 'PL > 5 T', 75090),
+    (sec_id, 'CHAUFFEURS', 'Transport en commun', 75640);
+
+    -[span_17](start_span)- Ouvriers[span_17](end_span)
+    INSERT INTO postes_salaires (secteur_id, categorie_professionnelle, echelon_categorie, taux_horaire_fcfa) VALUES
+    (sec_id, 'OUVRIERS', '1 (SMIG)', 346),
+    (sec_id, 'OUVRIERS', '2', 386),
+    (sec_id, 'OUVRIERS', '3 A', 387),
+    (sec_id, 'OUVRIERS', '3 B', 396),
+    (sec_id, 'OUVRIERS', '4 A', 397),
+    (sec_id, 'OUVRIERS', '4 B', 418),
+    (sec_id, 'OUVRIERS', '5 A', 428),
+    (sec_id, 'OUVRIERS', '5 B', 443),
+    (sec_id, 'OUVRIERS', '6 A', 455),
+    (sec_id, 'OUVRIERS', '6 B', 507);
+
+
+    -- ---------------------------------------------------------
+    -[span_18](start_span)- 4. INDUSTRIE DE TRANSFORMATION DE THON[span_18](end_span)
+    -- ---------------------------------------------------------
+    SELECT id INTO sec_id FROM secteurs WHERE nom = 'INDUSTRIE DE TRANSFORMATION DE THON';
+
+    INSERT INTO postes_salaires (secteur_id, categorie_professionnelle, echelon_categorie, salaire_mensuel_fcfa) VALUES
+    -[span_19](start_span)- Cadres[span_19](end_span)
+    (sec_id, 'INGENIEURS - CADRES ASSIMILES', '1 A', 150124),
+    (sec_id, 'INGENIEURS - CADRES ASSIMILES', '1 B', 172821),
+    (sec_id, 'INGENIEURS - CADRES ASSIMILES', '2 A', 181516),
+    (sec_id, 'INGENIEURS - CADRES ASSIMILES', '2 B', 206001),
+    (sec_id, 'INGENIEURS - CADRES ASSIMILES', '3 A', 201140),
+    (sec_id, 'INGENIEURS - CADRES ASSIMILES', '3 B', 321144);
+
+    -[span_20](start_span)- Maîtrise[span_20](end_span)
+    INSERT INTO postes_salaires (secteur_id, categorie_professionnelle, echelon_categorie, salaire_mensuel_fcfa, taux_horaire_fcfa) VALUES
+    (sec_id, 'AGENTS DE MAITRISE', 'MNP', 102765, 593),
+    (sec_id, 'AGENTS DE MAITRISE', 'M1', 116570, 673),
+    (sec_id, 'AGENTS DE MAITRISE', 'M2', 124742, 720),
+    (sec_id, 'AGENTS DE MAITRISE', 'M3', 148984, 860),
+    (sec_id, 'AGENTS DE MAITRISE', 'M4', 162087, 935),
+    (sec_id, 'AGENTS DE MAITRISE', 'M5', 175596, 1013);
+
+    -[span_21](start_span)- Employés[span_21](end_span)
+    INSERT INTO postes_salaires (secteur_id, categorie_professionnelle, echelon_categorie, salaire_mensuel_fcfa) VALUES
+    (sec_id, 'EMPLOYES', '1 (SMIG)', 75000),
+    (sec_id, 'EMPLOYES', '2', 73579),
+    (sec_id, 'EMPLOYES', '3', 74772),
+    (sec_id, 'EMPLOYES', '4', 80194),
+    (sec_id, 'EMPLOYES', '5', 95664),
+    (sec_id, 'EMPLOYES', '6', 108422),
+    (sec_id, 'EMPLOYES', '7 A', 109557),
+    (sec_id, 'EMPLOYES', '7 B', 117670);
+
+    -[span_22](start_span)- Chauffeurs[span_22](end_span)
+    INSERT INTO postes_salaires (secteur_id, categorie_professionnelle, echelon_categorie, salaire_mensuel_fcfa, taux_horaire_fcfa, details_poste) VALUES
+    (sec_id, 'CHAUFFEURS', 'Tourisme', 68264, 365, 'Voitures de Tourisme'),
+    (sec_id, 'CHAUFFEURS', 'PL 3-5 T', 71771, 383, 'Véhicules Poids lourds de 3 à 5 T'),
+    (sec_id, 'CHAUFFEURS', 'PL > 5 T', 74382, 397, 'Véhicules Poids lourds de plus de 5 T'),
+    (sec_id, 'CHAUFFEURS', 'Transport en commun', 74927, 400, 'Véhicule de transport en commun');
+
+    -[span_23](start_span)- Ouvriers[span_23](end_span)
+    INSERT INTO postes_salaires (secteur_id, categorie_professionnelle, echelon_categorie, taux_horaire_fcfa) VALUES
+    (sec_id, 'OUVRIERS', '1 (SMIG)', 346),
+    (sec_id, 'OUVRIERS', '2', 382),
+    (sec_id, 'OUVRIERS', '3 A', 383),
+    (sec_id, 'OUVRIERS', '3 B', 392),
+    (sec_id, 'OUVRIERS', '4 A', 393),
+    (sec_id, 'OUVRIERS', '4 B', 414),
+    (sec_id, 'OUVRIERS', '5 A', 424),
+    (sec_id, 'OUVRIERS', '5 B', 438),
+    (sec_id, 'OUVRIERS', '6 A', 450),
+    (sec_id, 'OUVRIERS', '6 B', 501);
+
+
+    -- ---------------------------------------------------------
+    -[span_24](start_span)- 5. BANQUES[span_24](end_span)
+    -- ---------------------------------------------------------
+    SELECT id INTO sec_id FROM secteurs WHERE nom = 'BANQUES';
+
+    -[span_25](start_span)- Employés[span_25](end_span)
+    INSERT INTO postes_salaires (secteur_id, categorie_professionnelle, echelon_categorie, salaire_mensuel_fcfa) VALUES
+    (sec_id, 'EMPLOYES', '1re classe', 46364),
+    (sec_id, 'EMPLOYES', '2me classe', 61745),
+    (sec_id, 'EMPLOYES', '3me classe', 67250),
+    (sec_id, 'EMPLOYES', '4me classe', 76662),
+    (sec_id, 'EMPLOYES', '5me classe', 95493),
+    (sec_id, 'EMPLOYES', '6me classe', 106019),
+    (sec_id, 'EMPLOYES', '7me classe', 113146);
+
+    -[span_26](start_span)- Agents de maîtrise[span_26](end_span)
+    INSERT INTO postes_salaires (secteur_id, categorie_professionnelle, echelon_categorie, salaire_mensuel_fcfa) VALUES
+    (sec_id, 'AGENTS DE MAITRISE - CADRES ASSIMILES', '1re classe', 113220),
+    (sec_id, 'AGENTS DE MAITRISE - CADRES ASSIMILES', '2me classe', 113547),
+    (sec_id, 'AGENTS DE MAITRISE - CADRES ASSIMILES', '3me classe', 121172),
+    (sec_id, 'AGENTS DE MAITRISE - CADRES ASSIMILES', '4me classe', 123948),
+    (sec_id, 'AGENTS DE MAITRISE - CADRES ASSIMILES', '5me classe 1', 1249872), -- Noté "1 249872 F" dans le doc
+    (sec_id, 'AGENTS DE MAITRISE - CADRES ASSIMILES', '5me classe 2', 359872),
+    (sec_id, 'AGENTS DE MAITRISE - CADRES ASSIMILES', '6me classe', 154898),
+    (sec_id, 'AGENTS DE MAITRISE - CADRES ASSIMILES', '7me classe', 176227),
+    (sec_id, 'AGENTS DE MAITRISE - CADRES ASSIMILES', '8me classe', 199410);
+
+
+    -- ---------------------------------------------------------
+    -[span_27](start_span)- 6. GENS DE MAISON[span_27](end_span)
+    -- ---------------------------------------------------------
+    SELECT id INTO sec_id FROM secteurs WHERE nom = 'GENS DE MAISON';
+
+    INSERT INTO postes_salaires (secteur_id, categorie_professionnelle, echelon_categorie, salaire_mensuel_fcfa, details_poste) VALUES
+    [span_28](start_span)(sec_id, 'GENS DE MAISON', '1re Catégorie', 75000, 'Employé de maison sans spécialité, petit boy, petite bonne, aide-cuisinier[span_28](end_span)'),
+    [span_29](start_span)(sec_id, 'GENS DE MAISON', '2me Catégorie', 73600, 'Boy ou Bonne n''assurant qu''une partie des travaux de la maison sans lavage de linge[span_29](end_span)'),
+    (sec_id, 'GENS DE MAISON', '3me Catégorie', 73322, 'Boy ou Bonne chargé(e) [span_30](start_span)d''exécuter l''ensemble des travaux courants et justifiant de plus de 2 ans de pratique[span_30](end_span)'),
+    [span_31](start_span)(sec_id, 'GENS DE MAISON', '4me Catégorie', 75004, 'Boy cuisinier ou bonne cuisinière assurant l''ensemble des travaux d''intérieur y compris la cuisine[span_31](end_span)'),
+    (sec_id, 'GENS DE MAISON', '5me Catégorie', 76965, 'Cuisinier ou Cuisinière qualifié(e) [span_32](start_span)sachant faire la pâtisserie[span_32](end_span)'),
+    (sec_id, 'GENS DE MAISON', '6me Catégorie', 79931, 'Cuisinier ou Cuisinière qualifié(e) [span_33](start_span)sachant faire la pâtisserie ou la charcuterie[span_33](end_span)'),
+    [span_34](start_span)(sec_id, 'GENS DE MAISON', '7me Catégorie', 83250, 'Maître d''hôtel[span_34](end_span)');
+
+END $$;
+
+-- 8. Alter tables for Secteur and Poste relationships
+ALTER TABLE etablissements ADD COLUMN IF NOT EXISTS secteur_id INTEGER REFERENCES secteurs(id) ON DELETE SET NULL;
+ALTER TABLE contrats ADD COLUMN IF NOT EXISTS poste_salaire_id INTEGER REFERENCES postes_salaires(id) ON DELETE SET NULL;
+
+
+
 
