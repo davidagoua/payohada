@@ -5,7 +5,8 @@ Architecture : Dossier > Etablissement > Salarié > Contrat > (Bulletins, Absenc
 
 from sqlalchemy import (
     Column, Integer, String, Boolean, Float, DateTime,
-    ForeignKey, Text, Enum, UniqueConstraint, Index, Numeric
+    ForeignKey, Text, Enum, UniqueConstraint, Index, Numeric,
+    Date
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -242,6 +243,36 @@ class Etablissement(TimestampMixin, Base):
     dgi_periodicite_declaration = Column(String(50))
     dgi_regime_fiscal = Column(String(150))
     secteur_id = Column(Integer, ForeignKey("secteurs.id", ondelete="SET NULL"), nullable=True)
+
+    # Nouveaux champs d'identification et d'adresse
+    sigle = Column(String(50))
+    numero_rccm = Column(String(100))
+    date_creation = Column(Date)
+    
+    adresse_pays = Column(String(100), default="COTE D'IVOIRE")
+    adresse_commune = Column(String(100))
+    adresse_quartier = Column(String(100))
+    adresse_rue = Column(String(150))
+    adresse_ilot = Column(String(50))
+    adresse_lot = Column(String(50))
+    adresse_localisation = Column(Text)
+    
+    adresse_postale = Column(String(255))
+    telephone = Column(String(100))
+    fax = Column(String(50))
+    email = Column(String(150))
+    site_web = Column(String(255))
+    
+    adresse_bulletin_paie = Column(Text)
+    
+    mode_decompte_anciennete = Column(String(100), default="Date anniversaire de la date d'entrée")
+    conges_periode_reference_mois = Column(Integer, default=12)
+    conges_mode_gestion_solde = Column(String(50), default="Jours calendaires")
+    
+    matricule_generation_auto = Column(Boolean, default=True)
+    matricule_prefixe = Column(String(20))
+    matricule_suffixe = Column(String(20))
+    matricule_numero_sequentiel = Column(String(20), default="001")
 
     # Relations
     dossier = relationship("Dossier", back_populates="etablissements")

@@ -792,6 +792,16 @@ onMounted(() => {
                   {{ salarie?.expatrie ? 'EXPATRIÉ (8.0% CN)' : 'LOCAL (1.5% CN)' }}
                 </span>
               </div>
+              <div class="border-t border-slate-200 pt-1">
+                <span class="text-slate-450 block uppercase text-[8px] tracking-wide font-bold">Base Temps de Travail</span>
+                <span class="font-bold text-slate-800">
+                  {{ contrat?.unite_temps === 'Jours' ? '30.00 jours / mois' : `${contrat?.horaires?.horaire_travail || '173.33'} heures / mois` }}
+                </span>
+              </div>
+              <div class="border-t border-slate-200 pt-1">
+                <span class="text-slate-450 block uppercase text-[8px] tracking-wide font-bold">Unité de temps</span>
+                <span class="font-bold text-slate-800 uppercase">{{ contrat?.unite_temps || 'Heures' }}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -843,7 +853,9 @@ onMounted(() => {
             <tr v-for="line in grossLines" :key="line.code" class="hover:bg-slate-50/50 transition-colors">
               <td class="px-4 py-2 text-left font-sans font-medium text-slate-900 border-r border-slate-100">{{ line.libelle }}</td>
               <!-- Emp Base -->
-              <td class="px-2 py-2 text-right border-r border-slate-100 text-slate-500">{{ line.base_s || '-' }}</td>
+              <td class="px-2 py-2 text-right border-r border-slate-100 text-slate-500">
+                {{ line.base_s ? `${line.base_s} ${line.code.startsWith('HS_') ? 'h' : (contrat?.unite_temps === 'Jours' ? 'j' : 'h')}` : '-' }}
+              </td>
               <!-- Emp Taux -->
               <td class="px-2 py-2 text-right border-r border-slate-100 text-slate-400">{{ line.taux_s > 0 ? formatPercent(line.taux_s) : '-' }}</td>
               <!-- Emp Deduct -->
@@ -853,7 +865,9 @@ onMounted(() => {
                 {{ line.montant_pr !== 0 ? formatXOF(line.montant_pr) : '-' }}
               </td>
               <!-- Pat Base -->
-              <td class="px-2 py-2 text-right border-r border-slate-100 text-slate-550">{{ line.base_p || '-' }}</td>
+              <td class="px-2 py-2 text-right border-r border-slate-100 text-slate-550">
+                {{ line.base_p ? `${line.base_p} ${line.code.startsWith('HS_') ? 'h' : (contrat?.unite_temps === 'Jours' ? 'j' : 'h')}` : '-' }}
+              </td>
               <!-- Pat Taux -->
               <td class="px-2 py-2 text-right border-r border-slate-100 text-slate-400">{{ line.taux_p > 0 ? formatPercent(line.taux_p) : '-' }}</td>
               <!-- Pat Montant -->
@@ -884,7 +898,7 @@ onMounted(() => {
               <!-- Emp Taux -->
               <td class="px-2 py-2 text-right border-r border-slate-100 text-slate-400">{{ line.taux_s > 0 ? formatPercent(line.taux_s) : '-' }}</td>
               <!-- Emp Deduct -->
-              <td class="px-2 py-2 text-right border-r border-slate-100 font-bold text-slate-900">{{ line.montant_cs > 0 ? formatXOF(line.montant_cs) : '-' }}</td>
+              <td class="px-2 py-2 text-right border-r border-slate-100 font-bold text-slate-900">{{ line.montant_cs !== 0 ? formatXOF(line.montant_cs) : '-' }}</td>
               <!-- Emp Pay -->
               <td class="px-2 py-2 text-right border-r border-slate-100 text-slate-400">-</td>
               <!-- Pat Base -->
@@ -1027,7 +1041,7 @@ onMounted(() => {
               <tbody class="divide-y divide-slate-150 font-mono text-slate-700 bg-white">
                 <tr class="hover:bg-slate-50/50">
                   <td class="px-2 py-1.5 font-sans font-bold text-slate-900">Mensuel</td>
-                  <td class="px-2 py-1.5 text-right font-semibold">{{ bulletin.cumuls.mensuel.heures_jours }}</td>
+                  <td class="px-2 py-1.5 text-right font-semibold">{{ bulletin.cumuls.mensuel.heures_jours }} {{ contrat?.unite_temps === 'Jours' ? 'j' : 'h' }}</td>
                   <td class="px-2 py-1.5 text-right font-semibold">{{ formatXOF(bulletin.cumuls.mensuel.salaire_brut) }}</td>
                   <td class="px-2 py-1.5 text-right font-semibold">{{ formatXOF(bulletin.cumuls.mensuel.brut_cnps) }}</td>
                   <td class="px-2 py-1.5 text-right font-semibold">{{ formatXOF(bulletin.cumuls.mensuel.cot_retraite) }}</td>
@@ -1036,7 +1050,7 @@ onMounted(() => {
                 </tr>
                 <tr class="hover:bg-slate-50/50 bg-slate-50/30">
                   <td class="px-2 py-1.5 font-sans font-bold text-slate-900">Annuel</td>
-                  <td class="px-2 py-1.5 text-right font-semibold">{{ bulletin.cumuls.annuel.heures_jours }}</td>
+                  <td class="px-2 py-1.5 text-right font-semibold">{{ bulletin.cumuls.annuel.heures_jours }} {{ contrat?.unite_temps === 'Jours' ? 'j' : 'h' }}</td>
                   <td class="px-2 py-1.5 text-right font-semibold">{{ formatXOF(bulletin.cumuls.annuel.salaire_brut) }}</td>
                   <td class="px-2 py-1.5 text-right font-semibold">{{ formatXOF(bulletin.cumuls.annuel.brut_cnps) }}</td>
                   <td class="px-2 py-1.5 text-right font-semibold">{{ formatXOF(bulletin.cumuls.annuel.cot_retraite) }}</td>

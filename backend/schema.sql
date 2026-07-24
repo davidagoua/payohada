@@ -869,5 +869,42 @@ ALTER TABLE etablissements ADD COLUMN IF NOT EXISTS secteur_id INTEGER REFERENCE
 ALTER TABLE contrats ADD COLUMN IF NOT EXISTS poste_salaire_id INTEGER REFERENCES postes_salaires(id) ON DELETE SET NULL;
 
 
+ALTER TABLE etablissements
+    -- 1. Identification supplémentaire
+    ADD COLUMN sigle VARCHAR(50) DEFAULT NULL,
+    ADD COLUMN numero_rccm VARCHAR(100) DEFAULT NULL,
+    ADD COLUMN date_creation DATE DEFAULT NULL,
+
+    -- 2. Adresse physique détaillée
+    ADD COLUMN adresse_pays VARCHAR(100) DEFAULT 'COTE D''IVOIRE',
+    ADD COLUMN adresse_commune VARCHAR(100) DEFAULT NULL,
+    ADD COLUMN adresse_quartier VARCHAR(100) DEFAULT NULL,
+    ADD COLUMN adresse_rue VARCHAR(150) DEFAULT NULL,
+    ADD COLUMN adresse_ilot VARCHAR(50) DEFAULT NULL,
+    ADD COLUMN adresse_lot VARCHAR(50) DEFAULT NULL,
+    ADD COLUMN adresse_localisation TEXT DEFAULT NULL,
+
+    -- 3. Contacts
+    ADD COLUMN adresse_postale VARCHAR(255) DEFAULT NULL,
+    ADD COLUMN telephone VARCHAR(100) DEFAULT NULL,
+    ADD COLUMN fax VARCHAR(50) DEFAULT NULL,
+    ADD COLUMN email VARCHAR(150) DEFAULT NULL,
+    ADD COLUMN site_web VARCHAR(255) DEFAULT NULL,
+
+    -- 4. Edition de paie
+    ADD COLUMN adresse_bulletin_paie TEXT DEFAULT NULL,
+
+    -- 5. Paramètres de paie & RH
+    ADD COLUMN mode_decompte_anciennete VARCHAR(100) DEFAULT 'Date anniversaire de la date d''entrée',
+    ADD COLUMN conges_periode_reference_mois INTEGER DEFAULT 12,
+    ADD COLUMN conges_mode_gestion_solde VARCHAR(50) DEFAULT 'Jours calendaires',
+
+    -- 6. Configuration de la génération des matricules salariés
+    ADD COLUMN matricule_generation_auto BOOLEAN DEFAULT TRUE,
+    ADD COLUMN matricule_prefixe VARCHAR(20) DEFAULT NULL,
+    ADD COLUMN matricule_suffixe VARCHAR(20) DEFAULT NULL,
+    ADD COLUMN matricule_numero_sequentiel VARCHAR(20) DEFAULT '001';
+
+
 
 

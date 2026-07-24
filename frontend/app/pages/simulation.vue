@@ -583,7 +583,7 @@ onMounted(() => {
                   <!-- Emp Taux -->
                   <td class="px-2 py-2 text-right border-r border-slate-100 text-slate-400">{{ line.taux_s > 0 ? formatPercent(line.taux_s) : '-' }}</td>
                   <!-- Emp Deduct -->
-                  <td class="px-2 py-2 text-right border-r border-slate-100 font-semibold text-slate-900">{{ line.montant_cs > 0 ? formatXOF(line.montant_cs) : '-' }}</td>
+                  <td class="px-2 py-2 text-right border-r border-slate-100 font-semibold text-slate-900">{{ line.montant_cs !== 0 ? formatXOF(line.montant_cs) : '-' }}</td>
                   <!-- Emp Pay -->
                   <td class="px-2 py-2 text-right border-r border-slate-100 text-slate-400">-</td>
                   <!-- Pat Base -->

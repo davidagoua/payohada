@@ -405,7 +405,7 @@ const handleChangePassword = async () => {
                     <td class="px-3 py-1.5 text-left font-sans font-medium text-slate-900 border-r border-slate-100">{{ line.libelle }}</td>
                     <td class="px-2 py-1.5 text-right border-r border-slate-100 text-slate-500">{{ line.base_s || '-' }}</td>
                     <td class="px-2 py-1.5 text-right border-r border-slate-100 text-slate-400">{{ line.taux_s > 0 ? formatPercent(line.taux_s) : '-' }}</td>
-                    <td class="px-2 py-1.5 text-right border-r border-slate-100 font-bold text-slate-900">{{ line.montant_cs > 0 ? formatXOF(line.montant_cs) : '-' }}</td>
+                    <td class="px-2 py-1.5 text-right border-r border-slate-100 font-bold text-slate-900">{{ line.montant_cs !== 0 ? formatXOF(line.montant_cs) : '-' }}</td>
                     <td class="px-2 py-1.5 text-right border-r border-slate-100 text-slate-400">-</td>
                     <td class="px-2 py-1.5 text-right border-r border-slate-100 text-slate-500">{{ line.base_p || '-' }}</td>
                     <td class="px-2 py-1.5 text-right border-r border-slate-100 text-slate-400">{{ line.taux_p > 0 ? formatPercent(line.taux_p) : '-' }}</td>
