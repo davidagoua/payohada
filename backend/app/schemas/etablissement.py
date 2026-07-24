@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
-from datetime import datetime
+from datetime import date, datetime
 
 
 # ─────────────────────────────────────────
@@ -117,6 +117,36 @@ class EtablissementBase(BaseModel):
     dgi_periodicite_declaration: Optional[str] = None
     dgi_regime_fiscal: Optional[str] = None
 
+    # Nouveaux champs d'identification et d'adresse
+    sigle: Optional[str] = None
+    numero_rccm: Optional[str] = None
+    date_creation: Optional[date] = None
+    
+    adresse_pays: Optional[str] = "COTE D'IVOIRE"
+    adresse_commune: Optional[str] = None
+    adresse_quartier: Optional[str] = None
+    adresse_rue: Optional[str] = None
+    adresse_ilot: Optional[str] = None
+    adresse_lot: Optional[str] = None
+    adresse_localisation: Optional[str] = None
+    
+    adresse_postale: Optional[str] = None
+    telephone: Optional[str] = None
+    fax: Optional[str] = None
+    email: Optional[str] = None
+    site_web: Optional[str] = None
+    
+    adresse_bulletin_paie: Optional[str] = None
+    
+    mode_decompte_anciennete: Optional[str] = "Date anniversaire de la date d'entrée"
+    conges_periode_reference_mois: Optional[int] = 12
+    conges_mode_gestion_solde: Optional[str] = "Jours calendaires"
+    
+    matricule_generation_auto: Optional[bool] = True
+    matricule_prefixe: Optional[str] = None
+    matricule_suffixe: Optional[str] = None
+    matricule_numero_sequentiel: Optional[str] = "001"
+
 
 class EtablissementCreate(EtablissementBase):
     adresse: Optional[AdresseEtablissementCreate] = None
@@ -157,6 +187,37 @@ class EtablissementUpdate(BaseModel):
     dgi_centre_impots: Optional[str] = None
     dgi_periodicite_declaration: Optional[str] = None
     dgi_regime_fiscal: Optional[str] = None
+    
+    # Nouveaux champs d'identification et d'adresse
+    sigle: Optional[str] = None
+    numero_rccm: Optional[str] = None
+    date_creation: Optional[date] = None
+    
+    adresse_pays: Optional[str] = None
+    adresse_commune: Optional[str] = None
+    adresse_quartier: Optional[str] = None
+    adresse_rue: Optional[str] = None
+    adresse_ilot: Optional[str] = None
+    adresse_lot: Optional[str] = None
+    adresse_localisation: Optional[str] = None
+    
+    adresse_postale: Optional[str] = None
+    telephone: Optional[str] = None
+    fax: Optional[str] = None
+    email: Optional[str] = None
+    site_web: Optional[str] = None
+    
+    adresse_bulletin_paie: Optional[str] = None
+    
+    mode_decompte_anciennete: Optional[str] = None
+    conges_periode_reference_mois: Optional[int] = None
+    conges_mode_gestion_solde: Optional[str] = None
+    
+    matricule_generation_auto: Optional[bool] = None
+    matricule_prefixe: Optional[str] = None
+    matricule_suffixe: Optional[str] = None
+    matricule_numero_sequentiel: Optional[str] = None
+    
     adresse: Optional[AdresseEtablissementCreate] = None
     banque: Optional[BanqueEtablissementCreate] = None
 

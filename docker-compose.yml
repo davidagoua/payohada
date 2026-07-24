@@ -26,6 +26,7 @@ services:
     image: caddy 
     expose:
       - 80
+      - 2019
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80"]
       interval: 1m30s

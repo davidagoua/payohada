@@ -408,6 +408,41 @@ const dgiCentreImpots = ref('')
 const dgiPeriodiciteDeclaration = ref('Mensuelle')
 const dgiRegimeFiscal = ref('Régime général')
 
+// Identification supplémentaire
+const etabSigle = ref('')
+const etabNumeroRccm = ref('')
+const etabDateCreation = ref('')
+
+// Adresse physique détaillée
+const etabAdressePays = ref("COTE D'IVOIRE")
+const etabAdresseCommune = ref('')
+const etabAdresseQuartier = ref('')
+const etabAdresseRue = ref('')
+const etabAdresseIlot = ref('')
+const etabAdresseLot = ref('')
+const etabAdresseLocalisation = ref('')
+
+// Contacts
+const etabAdressePostale = ref('')
+const etabTelephone = ref('')
+const etabFax = ref('')
+const etabEmail = ref('')
+const etabSiteWeb = ref('')
+
+// Edition de paie
+const etabAdresseBulletinPaie = ref('')
+
+// Paramètres de paie & RH
+const etabModeDecompteAnciennete = ref("Date anniversaire de la date d'entrée")
+const etabCongesPeriodeReferenceMois = ref(12)
+const etabCongesModeGestionSolde = ref('Jours calendaires')
+
+// Configuration de la génération des matricules salariés
+const etabMatriculeGenerationAuto = ref(true)
+const etabMatriculePrefixe = ref('')
+const etabMatriculeSuffixe = ref('')
+const etabMatriculeNumeroSequentiel = ref('001')
+
 // Address Form Fields
 const addrVoie = ref('')
 const addrVoie2 = ref('')
@@ -497,6 +532,41 @@ const fetchEtabDetails = async () => {
     dgiPeriodiciteDeclaration.value = data.dgi_periodicite_declaration || 'Mensuelle'
     dgiRegimeFiscal.value = data.dgi_regime_fiscal || 'Régime général'
 
+    // Populate Identification supplémentaire
+    etabSigle.value = data.sigle || ''
+    etabNumeroRccm.value = data.numero_rccm || ''
+    etabDateCreation.value = data.date_creation ? data.date_creation.substring(0, 10) : ''
+
+    // Populate Detailed Physical Address
+    etabAdressePays.value = data.adresse_pays || "COTE D'IVOIRE"
+    etabAdresseCommune.value = data.adresse_commune || ''
+    etabAdresseQuartier.value = data.adresse_quartier || ''
+    etabAdresseRue.value = data.adresse_rue || ''
+    etabAdresseIlot.value = data.adresse_ilot || ''
+    etabAdresseLot.value = data.adresse_lot || ''
+    etabAdresseLocalisation.value = data.adresse_localisation || ''
+
+    // Populate Contacts
+    etabAdressePostale.value = data.adresse_postale || ''
+    etabTelephone.value = data.telephone || ''
+    etabFax.value = data.fax || ''
+    etabEmail.value = data.email || ''
+    etabSiteWeb.value = data.site_web || ''
+
+    // Populate Edition de paie
+    etabAdresseBulletinPaie.value = data.adresse_bulletin_paie || ''
+
+    // Populate Paramètres de paie & RH
+    etabModeDecompteAnciennete.value = data.mode_decompte_anciennete || "Date anniversaire de la date d'entrée"
+    etabCongesPeriodeReferenceMois.value = data.conges_periode_reference_mois ?? 12
+    etabCongesModeGestionSolde.value = data.conges_mode_gestion_solde || 'Jours calendaires'
+
+    // Populate Configuration matricules
+    etabMatriculeGenerationAuto.value = data.matricule_generation_auto ?? true
+    etabMatriculePrefixe.value = data.matricule_prefixe || ''
+    etabMatriculeSuffixe.value = data.matricule_suffixe || ''
+    etabMatriculeNumeroSequentiel.value = data.matricule_numero_sequentiel || '001'
+
     // Populate Address
     if (data.adresse) {
       addrVoie.value = data.adresse.adresse_postale || ''
@@ -571,7 +641,30 @@ const handleUpdateEtab = async () => {
       dgi_compte_contribuable: dgiCompteContribuable.value || null,
       dgi_centre_impots: dgiCentreImpots.value || null,
       dgi_periodicite_declaration: dgiPeriodiciteDeclaration.value || null,
-      dgi_regime_fiscal: dgiRegimeFiscal.value || null
+      dgi_regime_fiscal: dgiRegimeFiscal.value || null,
+      sigle: etabSigle.value || null,
+      numero_rccm: etabNumeroRccm.value || null,
+      date_creation: etabDateCreation.value || null,
+      adresse_pays: etabAdressePays.value || null,
+      adresse_commune: etabAdresseCommune.value || null,
+      adresse_quartier: etabAdresseQuartier.value || null,
+      adresse_rue: etabAdresseRue.value || null,
+      adresse_ilot: etabAdresseIlot.value || null,
+      adresse_lot: etabAdresseLot.value || null,
+      adresse_localisation: etabAdresseLocalisation.value || null,
+      adresse_postale: etabAdressePostale.value || null,
+      telephone: etabTelephone.value || null,
+      fax: etabFax.value || null,
+      email: etabEmail.value || null,
+      site_web: etabSiteWeb.value || null,
+      adresse_bulletin_paie: etabAdresseBulletinPaie.value || null,
+      mode_decompte_anciennete: etabModeDecompteAnciennete.value || null,
+      conges_periode_reference_mois: etabCongesPeriodeReferenceMois.value !== null ? Number(etabCongesPeriodeReferenceMois.value) : 12,
+      conges_mode_gestion_solde: etabCongesModeGestionSolde.value || null,
+      matricule_generation_auto: etabMatriculeGenerationAuto.value,
+      matricule_prefixe: etabMatriculePrefixe.value || null,
+      matricule_suffixe: etabMatriculeSuffixe.value || null,
+      matricule_numero_sequentiel: etabMatriculeNumeroSequentiel.value || null
     }
 
     const res = await put(`/etablissements/${etabId}`, payload)
@@ -1162,6 +1255,35 @@ onMounted(async () => {
             </div>
           </div>
 
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Sigle</label>
+              <input 
+                v-model="etabSigle" 
+                type="text" 
+                placeholder="Ex: ACME" 
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">N° RCCM</label>
+              <input 
+                v-model="etabNumeroRccm" 
+                type="text" 
+                placeholder="Ex: CI-ABJ-01-202X-B12..." 
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Date de création</label>
+              <input 
+                v-model="etabDateCreation" 
+                type="date" 
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+              />
+            </div>
+          </div>
+
           <div class="flex items-center space-x-2 pt-2">
             <input id="is-principal" v-model="etabPrincipal" type="checkbox" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
             <label for="is-principal" class="text-sm font-bold text-slate-700 uppercase tracking-wider">Établissement Principal du dossier</label>
@@ -1195,6 +1317,132 @@ onMounted(async () => {
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Pays</label>
               <input v-model="addrPays" type="text" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Detailed Physical Address & Contacts Section -->
+        <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-slate-500">
+          <h3 class="text-sm font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Adresse physique détaillée & Contacts (Côte d'Ivoire / Local)</h3>
+          
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Pays d'adresse</label>
+              <input 
+                v-model="etabAdressePays" 
+                type="text" 
+                placeholder="Ex: COTE D'IVOIRE"
+                class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Commune</label>
+              <input 
+                v-model="etabAdresseCommune" 
+                type="text" 
+                placeholder="Ex: Cocody"
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Quartier</label>
+              <input 
+                v-model="etabAdresseQuartier" 
+                type="text" 
+                placeholder="Ex: Angré"
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Rue</label>
+              <input 
+                v-model="etabAdresseRue" 
+                type="text" 
+                placeholder="Ex: Rue des Banques"
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Îlot</label>
+              <input 
+                v-model="etabAdresseIlot" 
+                type="text" 
+                placeholder="Ex: 12"
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Lot</label>
+              <input 
+                v-model="etabAdresseLot" 
+                type="text" 
+                placeholder="Ex: 45"
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Localisation détaillée / Indications</label>
+            <textarea 
+              v-model="etabAdresseLocalisation" 
+              rows="2"
+              placeholder="Ex: Non loin du rond-point, face à la pharmacie..."
+              class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
+            ></textarea>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Boîte Postale / Adresse postale</label>
+              <input 
+                v-model="etabAdressePostale" 
+                type="text" 
+                placeholder="Ex: BP 123 Abidjan"
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Téléphone</label>
+              <input 
+                v-model="etabTelephone" 
+                type="text" 
+                placeholder="Ex: +225 07 00 00 00 00"
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Fax</label>
+              <input 
+                v-model="etabFax" 
+                type="text" 
+                placeholder="Ex: +225 27 00 00 00 00"
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">E-mail</label>
+              <input 
+                v-model="etabEmail" 
+                type="email" 
+                placeholder="Ex: contact@entreprise.com"
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Site Web</label>
+              <input 
+                v-model="etabSiteWeb" 
+                type="url" 
+                placeholder="Ex: https://www.entreprise.com"
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
+              />
             </div>
           </div>
         </div>
@@ -1355,6 +1603,86 @@ onMounted(async () => {
                 <option value="Régime simplifié">Régime simplifié</option>
                 <option value="Impôt synthétique">Impôt synthétique</option>
               </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payroll, HR & Matricule Settings Section -->
+        <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-slate-500">
+          <h3 class="text-sm font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Paramètres de Paie, RH & Matricules</h3>
+          
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Adresse d'édition (sur le bulletin de paie)</label>
+            <textarea 
+              v-model="etabAdresseBulletinPaie" 
+              rows="2"
+              placeholder="Ex: Siège Social - Abidjan, Cocody..."
+              class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white focus:ring-green-500 focus:border-green-500"
+            ></textarea>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Mode de décompte ancienneté</label>
+              <select v-model="etabModeDecompteAnciennete" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white select focus:ring-green-500 focus:border-green-500">
+                <option value="Date anniversaire de la date d'entrée">Date anniversaire de la date d'entrée</option>
+                <option value="Année civile">Année civile</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Période de référence congés (mois)</label>
+              <input 
+                v-model="etabCongesPeriodeReferenceMois" 
+                type="number" 
+                min="1"
+                max="12"
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Mode de gestion du solde congés</label>
+              <select v-model="etabCongesModeGestionSolde" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white select focus:ring-green-500 focus:border-green-500">
+                <option value="Jours calendaires">Jours calendaires</option>
+                <option value="Jours ouvrables">Jours ouvrables</option>
+                <option value="Jours ouvrés">Jours ouvrés</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="space-y-4 pt-2">
+            <div class="flex items-center space-x-2">
+              <input id="edit-matricule-auto" v-model="etabMatriculeGenerationAuto" type="checkbox" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+              <label for="edit-matricule-auto" class="text-sm font-bold text-slate-700 uppercase tracking-wider">Génération automatique des matricules salariés</label>
+            </div>
+
+            <div v-if="etabMatriculeGenerationAuto" class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-50 p-4 border border-slate-200 rounded-none">
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Préfixe matricule</label>
+                <input 
+                  v-model="etabMatriculePrefixe" 
+                  type="text" 
+                  placeholder="Ex: EMP-"
+                  class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Suffixe matricule</label>
+                <input 
+                  v-model="etabMatriculeSuffixe" 
+                  type="text" 
+                  placeholder="Ex: -CI"
+                  class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Numéro séquentiel de départ</label>
+                <input 
+                  v-model="etabMatriculeNumeroSequentiel" 
+                  type="text" 
+                  placeholder="Ex: 001"
+                  class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white"
+                />
+              </div>
             </div>
           </div>
         </div>

@@ -6,7 +6,17 @@
   <component name="ChangeListManager">
     <list default="true" id="fb8e9003-8131-4cb6-8b99-22a619d0dbad" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/[etabId]/salaries/[salarieId]/contrats/new.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/[etabId]/salaries/[salarieId]/contrats/new.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/models/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/models/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/routers/bulletins.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/routers/bulletins.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/schemas/etablissement.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/schemas/etablissement.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/app/services/payroll.py" beforeDir="false" afterPath="$PROJECT_DIR$/backend/app/services/payroll.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/schema.sql" beforeDir="false" afterPath="$PROJECT_DIR$/backend/schema.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/[etabId]/print-bulletins.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/[etabId]/print-bulletins.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/[etabId]/salaries/[salarieId]/contrats/[contratId]/bulletins/[id].vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/[etabId]/salaries/[salarieId]/contrats/[contratId]/bulletins/[id].vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/[id].vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/[id].vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/new.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/pages/dossiers/[dossierId]/etablissements/new.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/pages/salaries/bulletins.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/pages/salaries/bulletins.vue" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/app/pages/simulation.vue" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/app/pages/simulation.vue" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -38,23 +48,23 @@
 }</component>
   <component name="NextEditCompletionFeaturesState">
     <decayedCancelled>
-      <entry key="MS100" value="1.0000000007058243" />
-      <entry key="MS500" value="1.016473042459618" />
-      <entry key="S2" value="1.5514801120521928" />
-      <entry key="S5" value="2.255513811374289" />
-      <entry key="S10" value="3.955800832785236" />
-      <entry key="S30" value="14.268734724926945" />
-      <entry key="S60" value="22.592240045747964" />
-      <entry key="M2" value="30.190832454402667" />
-      <entry key="M5" value="46.80030615747805" />
-      <entry key="M10" value="64.88210863086448" />
-      <entry key="M15" value="74.80950260231184" />
-      <entry key="M30" value="87.92974651898979" />
-      <entry key="H1" value="96.45028562854372" />
-      <entry key="H2" value="109.42942957256798" />
-      <entry key="H4" value="161.00721168609164" />
-      <entry key="D1" value="440.6643326234179" />
-      <entry key="W1" value="566.6211382546896" />
+      <entry key="MS100" value="1.0" />
+      <entry key="MS500" value="1.0" />
+      <entry key="S2" value="1.0" />
+      <entry key="S5" value="1.0" />
+      <entry key="S10" value="1.0" />
+      <entry key="S30" value="1.0" />
+      <entry key="S60" value="1.0000000000000004" />
+      <entry key="M2" value="1.0000001541903838" />
+      <entry key="M5" value="1.0269111927820915" />
+      <entry key="M10" value="2.7307787379621895" />
+      <entry key="M15" value="8.149626764204392" />
+      <entry key="M30" value="31.103608108927478" />
+      <entry key="H1" value="63.46346278790433" />
+      <entry key="H2" value="97.08361302484532" />
+      <entry key="H4" value="157.9903315696821" />
+      <entry key="D1" value="453.1157098577734" />
+      <entry key="W1" value="589.3156154335464" />
     </decayedCancelled>
     <decayedSelected>
       <entry key="MS100" value="0.0" />
@@ -63,36 +73,36 @@
       <entry key="S5" value="0.0" />
       <entry key="S10" value="0.0" />
       <entry key="S30" value="0.0" />
-      <entry key="S60" value="6.433063937397299E-169" />
-      <entry key="M2" value="1.3675618037121982E-84" />
-      <entry key="M5" value="7.661741434392009E-34" />
-      <entry key="M10" value="7.094617915175426E-17" />
-      <entry key="M15" value="3.255974389305692E-11" />
-      <entry key="M30" value="1.5053807578088154E-5" />
-      <entry key="H1" value="0.010350606795666658" />
-      <entry key="H2" value="0.28196733941788754" />
-      <entry key="H4" value="1.564383474915554" />
-      <entry key="D1" value="7.22233777665668" />
-      <entry key="W1" value="9.540987291046049" />
+      <entry key="S60" value="4.8260749037404176E-186" />
+      <entry key="M2" value="3.745717823482074E-93" />
+      <entry key="M5" value="2.8798026668416216E-37" />
+      <entry key="M10" value="1.3754557724106294E-18" />
+      <entry key="M15" value="2.3497738131293978E-12" />
+      <entry key="M30" value="4.044072195955636E-6" />
+      <entry key="H1" value="0.005364782019681898" />
+      <entry key="H2" value="0.20299808517487827" />
+      <entry key="H4" value="1.327363243214482" />
+      <entry key="D1" value="7.027252473279952" />
+      <entry key="W1" value="9.50373736480505" />
     </decayedSelected>
     <decayedShown>
-      <entry key="MS100" value="0.1792444061736089" />
-      <entry key="MS500" value="0.7214555318692532" />
-      <entry key="S2" value="1.430367101404076" />
-      <entry key="S5" value="2.187348999415667" />
-      <entry key="S10" value="3.914168419745737" />
-      <entry key="S30" value="14.245976288685291" />
-      <entry key="S60" value="22.577200690937044" />
-      <entry key="M2" value="30.181703913014456" />
-      <entry key="M5" value="46.7952683098249" />
-      <entry key="M10" value="64.87878479816732" />
-      <entry key="M15" value="74.80698398678496" />
-      <entry key="M30" value="87.92829542659052" />
-      <entry key="H1" value="96.45982548405628" />
-      <entry key="H2" value="109.71086630549355" />
-      <entry key="H4" value="162.57104944352784" />
-      <entry key="D1" value="447.88633741722384" />
-      <entry key="W1" value="576.1620624970805" />
+      <entry key="MS100" value="0.7071067811865475" />
+      <entry key="MS500" value="0.9330329915368074" />
+      <entry key="S2" value="0.9828205985452511" />
+      <entry key="S5" value="0.9930924954370359" />
+      <entry key="S10" value="0.9965402628278678" />
+      <entry key="S30" value="0.9988454217380301" />
+      <entry key="S60" value="0.9994225441413812" />
+      <entry key="M2" value="0.9997113845243786" />
+      <entry key="M5" value="1.0267928885613635" />
+      <entry key="M10" value="2.7306341343457503" />
+      <entry key="M15" value="8.149351393401188" />
+      <entry key="M30" value="31.10309738446159" />
+      <entry key="H1" value="63.468300098778045" />
+      <entry key="H2" value="97.28615664031265" />
+      <entry key="H4" value="159.3171895466699" />
+      <entry key="D1" value="460.1426303371331" />
+      <entry key="W1" value="598.8192888265975" />
     </decayedShown>
   </component>
   <component name="ProjectColorInfo">{
@@ -104,28 +114,28 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ASKED_SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Python.test_its.executor": "Run",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "codeWithMe.voiceChat.enabledByDefault": "false",
-    "git-widget-placeholder": "main",
-    "last_opened_file_path": "/Users/macbookpro/devspace/logiciel_paie",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "pnpm",
-    "remoteSync.welcome.shown.1.1.8": "true",
-    "settings.editor.selected.configurable": "preferences.lookFeel",
-    "ts.external.directory.path": "/Users/macbookpro/devspace/logiciel_paie/frontend/node_modules/typescript/lib"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ASKED_SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python.test_its.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/macbookpro/devspace/logiciel_paie&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;pnpm&quot;,
+    &quot;remoteSync.welcome.shown.1.1.8&quot;: &quot;true&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.lookFeel&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;/Users/macbookpro/devspace/logiciel_paie/frontend/node_modules/typescript/lib&quot;
   }
-}]]></component>
+}</component>
   <component name="RunManager">
     <configuration name="test_its" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="logiciel_paie" />

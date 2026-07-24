@@ -333,10 +333,17 @@ def _calculate_cnps_cotisations(
 
     lignes_cotisations = []
 
-    # Calcul dynamique de l'ITS (IBS et RICF)
-    celibat = (salarie.situation_matrimoniale != "Marié") if salarie else True
-    nb_enfants = (salarie.enfants_charge or 0) if salarie else 0
+    # 1. CNPS Retraite Salariale & Patronale (calculée en premier pour déduire du brut imposable)
+    base_retraite = min(salaire_brut, cnps_retraite_plafond) if salaire_brut > 0 else 0.0
+    montant_retraite_s = base_retraite * (cnps_retraite_taux_s / 100.0)
+    montant_retraite_p = base_retraite * (cnps_retraite_taux_p / 100.0)
+    cotisations_salariales_totales += montant_retraite_s
+    cotisations_patronales_totales += montant_retraite_p
 
+    # Net Imposable = Salaire Brut - Retraite Salariale
+    net_imposable = max(0.0, salaire_brut - montant_retraite_s)
+
+    # 2. Calcul dynamique de l'ITS (IBS et RICF) sur le Net Imposable
     tranches = [
         (0, 75000, 0.0),  
         (75000, 240000, 0.16),
@@ -348,55 +355,60 @@ def _calculate_cnps_cotisations(
     its_brut = 0.0
 
     for min_val, max_val, taux in tranches:
-        if salaire_brut > min_val:
-            portion = min(salaire_brut, max_val) - min_val
+        if net_imposable > min_val:
+            portion = min(net_imposable, max_val) - min_val
             if portion > 0:
                 its_brut += portion * taux
 
-    if celibat and nb_enfants == 0:
-        parts = 0.0
-    else:
-        parts = 0.0
-        if not celibat:  
-            parts += 1.0  
-        parts += nb_enfants * 0.5
-        parts = min(parts, 5.0)
+    # Calcul des parts familiales
+    sit = (salarie.situation_matrimoniale if salarie else "").strip().lower() if (salarie and salarie.situation_matrimoniale) else ""
+    kids = max(0, int(salarie.enfants_charge or 0)) if salarie else 0
+    
+    if "mari" in sit:
+        parts = 2.0 + (kids * 0.5)
+    elif "veuf" in sit or "veuve" in sit:
+        parts = 1.0 if kids == 0 else 2.0 + (kids * 0.5)
+    else:  # Célibataire / Divorcé(e)
+        if kids == 0:
+            parts = 1.0
+        elif kids == 1:
+            parts = 2.0
+        else:
+            parts = 2.0 + ((kids - 1) * 0.5)
+    parts = min(5.0, parts)
 
-    ricf = parts * 11000
-    ricf_applicable = min(ricf, its_brut)
+    # Réduction d'Impôt pour Charge Familiale (RICF)
+    ricf_montant = max(0.0, (parts - 1.0) * 11000.0)
+    ricf_applicable = min(ricf_montant, its_brut)
 
-    # 1. IBS
+    # IBS Line
     lignes_cotisations.append(
         LigneBulletinPaie(
             bulletin_id=bulletin_id,
             code="IBS",
             libelle="Impôt brut sur salaire",
-            base_s=round(salaire_brut, 2),
+            base_s=round(net_imposable, 2),
             taux_s=0.0,
             montant_cs=round(its_brut, 2)
         )
     )
     cotisations_salariales_totales += its_brut
 
-    # 2. RICF
+    # RICF Line
+    parts_str = f"{parts:.1f}".rstrip('0').rstrip('.')
     lignes_cotisations.append(
         LigneBulletinPaie(
             bulletin_id=bulletin_id,
             code="RICF",
-            libelle="Réduction d'impôt pour charge familiale",
-            base_s=round(salaire_brut, 2),
+            libelle=f"Réduction d'impôt charge familiale ({parts_str} part{'s' if parts > 1 else ''})",
+            base_s=round(net_imposable, 2),
             taux_s=0.0,
-            montant_cs=round(-ricf_applicable, 2) # stored as negative in deductions
+            montant_cs=round(-ricf_applicable, 2)
         )
     )
     cotisations_salariales_totales += -ricf_applicable
 
-    # 3. CNPS Retraite Salariale & Patronale
-    base_retraite = min(salaire_brut, cnps_retraite_plafond) if salaire_brut > 0 else 0.0
-    montant_retraite_s = base_retraite * (cnps_retraite_taux_s / 100.0)
-    montant_retraite_p = base_retraite * (cnps_retraite_taux_p / 100.0)
-    cotisations_salariales_totales += montant_retraite_s
-    cotisations_patronales_totales += montant_retraite_p
+    # CNPS Retraite Line
     lignes_cotisations.append(
         LigneBulletinPaie(
             bulletin_id=bulletin_id,
