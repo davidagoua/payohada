@@ -65,6 +65,7 @@ if db_url and db_url.startswith("postgresql"):
         """)
         cur.execute("CREATE INDEX IF NOT EXISTS idx_reclamations_salarie ON reclamations (salarie_id);")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_reclamations_bulletin ON reclamations (bulletin_id);")
+        cur.execute("ALTER TABLE lignes_bulletins_paies ADD COLUMN IF NOT EXISTS pret_id INTEGER REFERENCES prets_salaries(id) ON DELETE SET NULL;")
         
         conn.commit()
         cur.close()
@@ -161,6 +162,11 @@ if sqlite_path.exists():
             cur.execute("CREATE INDEX IF NOT EXISTS idx_reclamations_bulletin ON reclamations (bulletin_id);")
         except Exception as e:
             print("Error creating reclamations in SQLite:", e)
+            
+        try:
+            cur.execute("ALTER TABLE lignes_bulletins_paies ADD COLUMN pret_id INTEGER REFERENCES prets_salaries(id) ON DELETE SET NULL;")
+        except sqlite3.OperationalError:
+            print("pret_id column already exists or error in lignes_bulletins_paies")
             
         conn.commit()
         conn.close()

@@ -204,6 +204,8 @@ CREATE TABLE salaries (
     bic VARCHAR(11) DEFAULT NULL,
     is_active BOOLEAN DEFAULT TRUE,
     expatrie BOOLEAN DEFAULT FALSE,
+    situation_matrimoniale VARCHAR(50) DEFAULT NULL,
+    enfants_charge INTEGER DEFAULT 0,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT uq_salarie_etablissement_matricule UNIQUE (etablissement_id, matricule)
@@ -435,6 +437,7 @@ CREATE TABLE lignes_bulletins_paies (
     montant_pr DOUBLE PRECISION DEFAULT 0.0,
     montant_cs DOUBLE PRECISION DEFAULT 0.0,
     montant_cp DOUBLE PRECISION DEFAULT 0.0,
+    pret_id INTEGER REFERENCES prets_salaries(id) ON DELETE SET NULL,
     CONSTRAINT uq_ligne_bulletin_code UNIQUE (bulletin_id, code)
 );
 CREATE INDEX idx_ligne_bulletin_code ON lignes_bulletins_paies (bulletin_id, code);
@@ -904,6 +907,128 @@ ALTER TABLE etablissements
     ADD COLUMN matricule_prefixe VARCHAR(20) DEFAULT NULL,
     ADD COLUMN matricule_suffixe VARCHAR(20) DEFAULT NULL,
     ADD COLUMN matricule_numero_sequentiel VARCHAR(20) DEFAULT '001';
+
+
+-- ==============================================================================
+-- NOUVELLES TABLES POUR L'ONGLET RH (INFORMATION SALARIÉ)
+-- ==============================================================================
+
+-- 29. Table : entretiens_evaluations
+CREATE TABLE entretiens_evaluations (
+    id SERIAL PRIMARY KEY,
+    salarie_id INTEGER NOT NULL REFERENCES salaries(id) ON DELETE CASCADE,
+    date_entretien DATE NOT NULL,
+    nom_evaluateur VARCHAR(100) NOT NULL,
+    note_globale DOUBLE PRECISION DEFAULT NULL,
+    commentaires TEXT DEFAULT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_entretiens_evaluations_salarie ON entretiens_evaluations (salarie_id);
+
+-- 30. Table : visites_medicales
+CREATE TABLE visites_medicales (
+    id SERIAL PRIMARY KEY,
+    salarie_id INTEGER NOT NULL REFERENCES salaries(id) ON DELETE CASCADE,
+    date_visite DATE NOT NULL,
+    type_visite VARCHAR(50) NOT NULL,
+    aptitude VARCHAR(50) NOT NULL,
+    prochaine_visite DATE DEFAULT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_visites_medicales_salarie ON visites_medicales (salarie_id);
+
+-- 31. Table : suivi_formations
+CREATE TABLE suivi_formations (
+    id SERIAL PRIMARY KEY,
+    salarie_id INTEGER NOT NULL REFERENCES salaries(id) ON DELETE CASCADE,
+    intitule_formation VARCHAR(200) NOT NULL,
+    organisme VARCHAR(200) NOT NULL,
+    date_debut DATE NOT NULL,
+    date_fin DATE NOT NULL,
+    statut_formation VARCHAR(50) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_suivi_formations_salarie ON suivi_formations (salarie_id);
+
+-- 32. Table : salaries_absences
+CREATE TABLE salaries_absences (
+    id SERIAL PRIMARY KEY,
+    salarie_id INTEGER NOT NULL REFERENCES salaries(id) ON DELETE CASCADE,
+    type_absence VARCHAR(100) NOT NULL,
+    date_debut_absence DATE NOT NULL,
+    date_fin_absence DATE NOT NULL,
+    justificatif_fourni BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_salaries_absences_salarie ON salaries_absences (salarie_id);
+
+-- 33. Table : prets_salaries
+CREATE TABLE prets_salaries (
+    id SERIAL PRIMARY KEY,
+    salarie_id INTEGER NOT NULL REFERENCES salaries(id) ON DELETE CASCADE,
+    montant_pret DOUBLE PRECISION NOT NULL,
+    date_deblocage DATE NOT NULL,
+    montant_mensualite DOUBLE PRECISION NOT NULL,
+    reste_a_rembourser DOUBLE PRECISION NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_prets_salaries_salarie ON prets_salaries (salarie_id);
+
+-- 34. Table : salaries_contrats_info
+CREATE TABLE salaries_contrats_info (
+    id SERIAL PRIMARY KEY,
+    salarie_id INTEGER NOT NULL REFERENCES salaries(id) ON DELETE CASCADE,
+    type_contrat VARCHAR(50) NOT NULL,
+    date_embauche DATE NOT NULL,
+    date_fin_contrat DATE DEFAULT NULL,
+    fin_periode_essai DATE DEFAULT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_salaries_contrats_info_salarie ON salaries_contrats_info (salarie_id);
+
+-- 35. Table : salaries_services
+CREATE TABLE salaries_services (
+    id SERIAL PRIMARY KEY,
+    salarie_id INTEGER NOT NULL REFERENCES salaries(id) ON DELETE CASCADE,
+    departement VARCHAR(100) NOT NULL,
+    poste_occupe VARCHAR(100) NOT NULL,
+    manager VARCHAR(100) NOT NULL,
+    dotation_materiel TEXT DEFAULT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_salaries_services_salarie ON salaries_services (salarie_id);
+
+-- 36. Table : archivages_documents
+CREATE TABLE archivages_documents (
+    id SERIAL PRIMARY KEY,
+    salarie_id INTEGER NOT NULL REFERENCES salaries(id) ON DELETE CASCADE,
+    type_document VARCHAR(100) NOT NULL,
+    fichier_joint VARCHAR(255) DEFAULT NULL,
+    date_ajout DATE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_archivages_documents_salarie ON archivages_documents (salarie_id);
+
+-- 37. Table : departements
+CREATE TABLE departements (
+    id SERIAL PRIMARY KEY,
+    dossier_id INTEGER NOT NULL REFERENCES dossiers(id) ON DELETE CASCADE,
+    nom VARCHAR(100) NOT NULL,
+    code VARCHAR(50) DEFAULT NULL,
+    description TEXT DEFAULT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_departements_dossier ON departements (dossier_id);
+
 
 
 

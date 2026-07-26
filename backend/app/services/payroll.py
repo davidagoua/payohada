@@ -4,7 +4,7 @@ from datetime import datetime
 
 from app.models.models import (
     Contrat, BulletinPaie, LigneBulletinPaie, VariableBulletin,
-    Absence, HeureSupplementaire, Prime, Option, CaisseCotisation, Etablissement, Constante, Salarie
+    Absence, HeureSupplementaire, Prime, Option, CaisseCotisation, Etablissement, Constante, Salarie, PretSalarie
 )
 
 from typing import Optional
@@ -746,11 +746,36 @@ def calculate_payslip(db: Session, contrat_id: int, mois: int, annee: int, acomp
                 )
             )
 
+    # 5.5 Retenue sur prêts
+    loans = db.query(PretSalarie).filter(
+        PretSalarie.salarie_id == contrat.salarie_id,
+        PretSalarie.reste_a_rembourser > 0
+    ).all()
+    
+    loans_deduction = 0.0
+    for loan in loans:
+        deblocage_period = loan.date_deblocage.year * 12 + loan.date_deblocage.month
+        current_period = annee * 12 + mois
+        if deblocage_period <= current_period:
+            mensualite = min(loan.montant_mensualite, loan.reste_a_rembourser)
+            if mensualite > 0:
+                loans_deduction += mensualite
+                lignes_sup.append(
+                    LigneBulletinPaie(
+                        bulletin_id=bulletin.id,
+                        code=f"RET_PRET_{loan.id}",
+                        libelle=f"Retenue sur prêt (Reste: {loan.reste_a_rembourser - mensualite:,.0f} F CFA)",
+                        montant_cs=round(mensualite, 2),
+                        pret_id=loan.id
+                    )
+                )
+
     # 6. Calcul des totaux nets et imposables
     net_a_payer = (
         salaire_brut
         - cot_salariales
         - acompte
+        - loans_deduction
         + transport_montant
         + telephone_montant
         + options_gains_net
