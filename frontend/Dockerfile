@@ -15,7 +15,7 @@ RUN ls /app/
 
 FROM caddy:latest as production
 
-COPY --from=builder /app/dist /srv
+COPY --from=builder /app/.output/public /srv
 
 COPY Caddyfile /etc/caddy/Caddyfile
 
