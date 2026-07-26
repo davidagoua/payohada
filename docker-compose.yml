@@ -21,6 +21,12 @@ services:
       - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
     networks:
       - payohada-test
+
+  frontend:
+    build: 
+      context: ./frontend
+    volumes:
+      - frontend_assets:/app/dist
     
   caddy:
     image: caddy 
@@ -34,7 +40,7 @@ services:
       start_period: 30s
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
-      - ./frontend/dist:/srv
+      - frontend_assets:/srv
     develop:
       watch:
         - action: sync+restart 
@@ -46,4 +52,7 @@ services:
 networks:
   payohada-test:
     external: true
+
+volumes:
+  frontend_assets:
 
