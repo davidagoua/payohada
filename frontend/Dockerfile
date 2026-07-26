@@ -12,7 +12,7 @@ RUN bun run build
 
 FROM caddy:latest as production
 
-COPY --from=builder /app/dist /srv
+COPY --from=builder /app/frontend/dist /srv
 
 COPY Caddyfile /etc/caddy/Caddyfile
 
