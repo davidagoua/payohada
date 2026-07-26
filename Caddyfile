@@ -9,7 +9,7 @@
 
     # Route all requests starting with /api/ to the backend container,
     # stripping the /api prefix before forwarding.
-    handle_path /api* {
+    handle /api/* {
         reverse_proxy backend:8000
     }
 
