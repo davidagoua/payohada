@@ -124,6 +124,7 @@ class Dossier(TimestampMixin, Base):
     proprietaire = relationship("Utilisateur", back_populates="dossiers")
     etablissements = relationship("Etablissement", back_populates="dossier", cascade="all, delete-orphan")
     net_entreprise = relationship("NetEntreprise", back_populates="dossier", uselist=False)
+    departements = relationship("Departement", back_populates="dossier", cascade="all, delete-orphan")
 
     __table_args__ = (
         Index("ix_dossiers_siret", "siret"),
@@ -352,6 +353,14 @@ class Salarie(TimestampMixin, Base):
     contrats = relationship("Contrat", back_populates="salarie", cascade="all, delete-orphan")
     utilisateur = relationship("Utilisateur", back_populates="salarie", uselist=False, cascade="all, delete-orphan")
     reclamations = relationship("Reclamation", back_populates="salarie", cascade="all, delete-orphan")
+    entretiens = relationship("EntretienEvaluation", back_populates="salarie", cascade="all, delete-orphan")
+    visites_medicales = relationship("VisiteMedicale", back_populates="salarie", cascade="all, delete-orphan")
+    formations = relationship("SuiviFormation", back_populates="salarie", cascade="all, delete-orphan")
+    absences_hr = relationship("SalarieAbsence", back_populates="salarie", cascade="all, delete-orphan")
+    prets = relationship("PretSalarie", back_populates="salarie", cascade="all, delete-orphan")
+    contrats_hr = relationship("SalarieContratInfo", back_populates="salarie", cascade="all, delete-orphan")
+    services = relationship("SalarieService", back_populates="salarie", cascade="all, delete-orphan")
+    archivages = relationship("ArchivageDocument", back_populates="salarie", cascade="all, delete-orphan")
 
     __table_args__ = (
         UniqueConstraint("etablissement_id", "matricule", name="uq_salarie_etablissement_matricule"),
@@ -671,8 +680,10 @@ class LigneBulletinPaie(Base):
     montant_pr = Column(Float, default=0.0)  # Montant à percevoir
     montant_cs = Column(Float, default=0.0)  # Montant cotisation salarié
     montant_cp = Column(Float, default=0.0)  # Montant cotisation patronal
+    pret_id = Column(Integer, ForeignKey("prets_salaries.id", ondelete="SET NULL"), nullable=True)
 
     bulletin = relationship("BulletinPaie", back_populates="lignes")
+    pret = relationship("PretSalarie")
 
     __table_args__ = (
         UniqueConstraint("bulletin_id", "code", name="uq_ligne_bulletin_code"),
@@ -814,3 +825,132 @@ class Reclamation(TimestampMixin, Base):
     # Relations
     bulletin = relationship("BulletinPaie", back_populates="reclamations")
     salarie = relationship("Salarie", back_populates="reclamations")
+
+
+# ─────────────────────────────────────────
+#  ONGLET RH / INFORMATIONS COMPLÉMENTAIRES
+# ─────────────────────────────────────────
+
+class EntretienEvaluation(TimestampMixin, Base):
+    __tablename__ = "entretiens_evaluations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    salarie_id = Column(Integer, ForeignKey("salaries.id", ondelete="CASCADE"), nullable=False)
+    date_entretien = Column(Date, nullable=False)
+    nom_evaluateur = Column(String(100), nullable=False)
+    note_globale = Column(Float, nullable=True)
+    commentaires = Column(Text, nullable=True)
+
+    # Relations
+    salarie = relationship("Salarie", back_populates="entretiens")
+
+
+class VisiteMedicale(TimestampMixin, Base):
+    __tablename__ = "visites_medicales"
+
+    id = Column(Integer, primary_key=True, index=True)
+    salarie_id = Column(Integer, ForeignKey("salaries.id", ondelete="CASCADE"), nullable=False)
+    date_visite = Column(Date, nullable=False)
+    type_visite = Column(String(50), nullable=False)  # Embauche, Reprise, Périodique
+    aptitude = Column(String(50), nullable=False)     # Apte, Inapte, Apte avec réserves
+    prochaine_visite = Column(Date, nullable=True)
+
+    # Relations
+    salarie = relationship("Salarie", back_populates="visites_medicales")
+
+
+class SuiviFormation(TimestampMixin, Base):
+    __tablename__ = "suivi_formations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    salarie_id = Column(Integer, ForeignKey("salaries.id", ondelete="CASCADE"), nullable=False)
+    intitule_formation = Column(String(200), nullable=False)
+    organisme = Column(String(200), nullable=False)
+    date_debut = Column(Date, nullable=False)
+    date_fin = Column(Date, nullable=False)
+    statut_formation = Column(String(50), nullable=False)  # Demandée, En cours, Terminée
+
+    # Relations
+    salarie = relationship("Salarie", back_populates="formations")
+
+
+class SalarieAbsence(TimestampMixin, Base):
+    __tablename__ = "salaries_absences"
+
+    id = Column(Integer, primary_key=True, index=True)
+    salarie_id = Column(Integer, ForeignKey("salaries.id", ondelete="CASCADE"), nullable=False)
+    type_absence = Column(String(100), nullable=False)  # Congés payés, Maladie, Maternité/Paternité, Sans solde
+    date_debut_absence = Column(Date, nullable=False)
+    date_fin_absence = Column(Date, nullable=False)
+    justificatif_fourni = Column(Boolean, default=False)
+
+    # Relations
+    salarie = relationship("Salarie", back_populates="absences_hr")
+
+
+class PretSalarie(TimestampMixin, Base):
+    __tablename__ = "prets_salaries"
+
+    id = Column(Integer, primary_key=True, index=True)
+    salarie_id = Column(Integer, ForeignKey("salaries.id", ondelete="CASCADE"), nullable=False)
+    montant_pret = Column(Float, nullable=False)
+    date_deblocage = Column(Date, nullable=False)
+    montant_mensualite = Column(Float, nullable=False)
+    reste_a_rembourser = Column(Float, nullable=False)
+
+    # Relations
+    salarie = relationship("Salarie", back_populates="prets")
+
+
+class SalarieContratInfo(TimestampMixin, Base):
+    __tablename__ = "salaries_contrats_info"
+
+    id = Column(Integer, primary_key=True, index=True)
+    salarie_id = Column(Integer, ForeignKey("salaries.id", ondelete="CASCADE"), nullable=False)
+    type_contrat = Column(String(50), nullable=False)  # CDI, CDD, Apprentissage, Stage
+    date_embauche = Column(Date, nullable=False)
+    date_fin_contrat = Column(Date, nullable=True)
+    fin_periode_essai = Column(Date, nullable=True)
+
+    # Relations
+    salarie = relationship("Salarie", back_populates="contrats_hr")
+
+
+class SalarieService(TimestampMixin, Base):
+    __tablename__ = "salaries_services"
+
+    id = Column(Integer, primary_key=True, index=True)
+    salarie_id = Column(Integer, ForeignKey("salaries.id", ondelete="CASCADE"), nullable=False)
+    departement = Column(String(100), nullable=False)
+    poste_occupe = Column(String(100), nullable=False)
+    manager = Column(String(100), nullable=False)
+    dotation_materiel = Column(Text, nullable=True)
+
+    # Relations
+    salarie = relationship("Salarie", back_populates="services")
+
+
+class ArchivageDocument(TimestampMixin, Base):
+    __tablename__ = "archivages_documents"
+
+    id = Column(Integer, primary_key=True, index=True)
+    salarie_id = Column(Integer, ForeignKey("salaries.id", ondelete="CASCADE"), nullable=False)
+    type_document = Column(String(100), nullable=False)
+    fichier_joint = Column(String(255), nullable=True)
+    date_ajout = Column(Date, nullable=False)
+
+    # Relations
+    salarie = relationship("Salarie", back_populates="archivages")
+
+
+class Departement(TimestampMixin, Base):
+    __tablename__ = "departements"
+
+    id = Column(Integer, primary_key=True, index=True)
+    dossier_id = Column(Integer, ForeignKey("dossiers.id", ondelete="CASCADE"), nullable=False)
+    nom = Column(String(100), nullable=False)
+    code = Column(String(50), nullable=True)
+    description = Column(Text, nullable=True)
+
+    # Relations
+    dossier = relationship("Dossier", back_populates="departements")

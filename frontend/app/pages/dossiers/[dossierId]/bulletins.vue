@@ -79,7 +79,7 @@ const handleCalculateSelected = async () => {
 }
 
 const handleEmailedSelected = async () => {
-  
+
 
   if (!confirm(`Envoier par mail les bulletins de paie pour les ${selectedBulletins.value.length} salarié(s) sélectionnés ?`)) return
 
@@ -164,19 +164,19 @@ const fetchDossierData = async () => {
     if (!currentDossier.value) {
       currentDossier.value = await get(`/dossiers/${dossierId}`)
     }
-    
+
     // Fetch all contracts of this dossier
     const cts = await get(`/dossiers/${dossierId}/contrats`)
     contracts.value = cts || []
-    
+
     // Fetch all generated bulletins of this dossier for the selected period
-    const bList = await get(`/dossiers/${dossierId}/bulletins`, { 
-      query: { 
-        mois: selectedMois.value, 
-        annee: selectedAnnee.value 
-      } 
+    const bList = await get(`/dossiers/${dossierId}/bulletins`, {
+      query: {
+        mois: selectedMois.value,
+        annee: selectedAnnee.value
+      }
     })
-    
+
     // Map bulletins by contract_id for easy lookup
     const map = {}
     if (bList) {
@@ -327,7 +327,7 @@ onMounted(() => {
 
 <template>
   <div class="space-y-6">
-    
+
     <!-- Header bar -->
     <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div class="flex items-center space-x-4">
@@ -344,7 +344,7 @@ onMounted(() => {
 
       <!-- Action buttons -->
       <div class="flex flex-wrap gap-3 w-full md:w-auto justify-end">
-        <button 
+        <button
           @click="handleValidateAll"
           :disabled="loading || bulkProcessing"
           class="px-4 py-2 border border-slate-200 text-sm font-semibold rounded-lg hover:bg-slate-50 text-slate-700 transition-colors flex items-center gap-1.5 disabled:opacity-50"
@@ -352,7 +352,7 @@ onMounted(() => {
           <UIcon name="i-lucide-check-circle-2" class="w-4 h-4 text-green-600" />
           Valider la période
         </button>
-        <button 
+        <button
           @click="handleCalculateAll"
           :disabled="loading || bulkProcessing"
           class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors flex items-center gap-1.5 disabled:opacity-50"
@@ -370,16 +370,16 @@ onMounted(() => {
         <select v-model="selectedMois" class="block w-full sm:w-40 px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select">
           <option v-for="m in 12" :key="m" :value="m">{{ getPeriodLabel(m, 2026).split(' ')[0] }}</option>
         </select>
-        <input 
-          v-model="selectedAnnee" 
-          type="number" 
-          placeholder="Année" 
-          class="block w-full sm:w-28 px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono" 
+        <input
+          v-model="selectedAnnee"
+          type="number"
+          placeholder="Année"
+          class="block w-full sm:w-28 px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono"
         />
       </div>
-      
+
       <div class="text-xs font-medium text-slate-500 sm:ml-auto">
-        Salariés actifs : <span class="font-bold text-slate-800">{{ contracts.length }}</span> | 
+        Salariés actifs : <span class="font-bold text-slate-800">{{ contracts.length }}</span> |
         Bulletins générés : <span class="font-bold text-green-600">{{ Object.keys(bulletinsMap).length }}</span>
       </div>
     </div>
@@ -401,14 +401,14 @@ onMounted(() => {
         {{ selectedBulletins.length }} bulletin(s) sélectionné(s)
       </div>
       <div class="flex flex-wrap gap-2 justify-end w-full sm:w-auto">
-        <button 
+        <button
           @click="handleCalculateSelected"
           class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
         >
           <UIcon name="i-lucide-calculator" class="w-3.5 h-3.5" />
           Calculer la sélection
         </button>
-        <button 
+        <button
           @click="handleValidateSelected"
           class="px-3 py-1.5 bg-yellow-500 hover:bg-yellow-650 text-slate-900 font-semibold rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
         >
@@ -449,7 +449,7 @@ onMounted(() => {
               <td class="px-4 py-4" @click.stop>
                 <input type="checkbox" :value="c.id" v-model="selectedBulletins" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
               </td>
-              
+
               <!-- Employee Column -->
               <td class="px-6 py-4">
                 <div class="flex items-center space-x-3">
@@ -479,7 +479,7 @@ onMounted(() => {
 
               <!-- Payslip Status Column -->
               <td class="px-6 py-4">
-                <span 
+                <span
                   v-if="bulletinsMap[c.id]"
                   :class="[
                     bulletinsMap[c.id].statut === 'valide' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-yellow-50 text-yellow-700 border-yellow-200',
@@ -488,8 +488,8 @@ onMounted(() => {
                 >
                   {{ bulletinsMap[c.id].statut }}
                 </span>
-                <span 
-                  v-else 
+                <span
+                  v-else
                   class="bg-slate-100 text-slate-400 border-slate-200 px-2.5 py-0.5 rounded text-[10px] uppercase font-bold border inline-block"
                 >
                   Non calculé
@@ -509,7 +509,7 @@ onMounted(() => {
               <!-- Actions Column -->
               <td class="px-6 py-4 text-right">
                 <div class="flex justify-end space-x-2">
-                  <NuxtLink 
+                  <NuxtLink
                     v-if="bulletinsMap[c.id]"
                     :to="`/dossiers/${dossierId}/etablissements/${c.etablissement_id}/salaries/${c.salarie_id}/contrats/${c.id}/bulletins/${bulletinsMap[c.id].id}`"
                     class="px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1"
@@ -517,7 +517,7 @@ onMounted(() => {
                     <UIcon name="i-lucide-eye" class="w-3.5 h-3.5" />
                     Voir
                   </NuxtLink>
-                  <button 
+                  <button
                     v-else
                     @click="handleCalculateSingle(c.id)"
                     class="px-2.5 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-semibold transition-colors flex items-center gap-1"

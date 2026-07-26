@@ -989,10 +989,10 @@ const planPaieItems = ref([])
 const primesDisponibles = computed(() => {
   const excludedCodes = ['BASE', 'SURSALAIRE', 'ABS', '1001', '1051', '1101', '1111', '1121', '1131', '1141', '1151', '1161', '1181']
   return planPaieItems.value.filter(item => {
-    return item.type === 'B' && 
-           !excludedCodes.includes(item.code) && 
-           !item.code.startsWith('HS_') && 
-           !item.code.startsWith('ABS_') && 
+    return item.type === 'B' &&
+           !excludedCodes.includes(item.code) &&
+           !item.code.startsWith('HS_') &&
+           !item.code.startsWith('ABS_') &&
            item.est_actif
   })
 })
@@ -1115,7 +1115,7 @@ const handleAddHeureSupp = async () => {
     await post(`/contrats/${activeContrat.value.id}/heures-supplementaires`, payload)
     hsModalOpen.value = false
     hsNombre.value = 0
-    
+
     let currentAcompte = 0
     if (activeBulletin.value) {
       const acompteLine = (activeBulletin.value.lignes || []).find(l => l.code === 'ACOMPTE')
@@ -1148,7 +1148,7 @@ const handleAddAbsence = async () => {
     absDateFin.value = ''
     absNbrHeure.value = 0
     absNbrJour.value = 0
-    
+
     let currentAcompte = 0
     if (activeBulletin.value) {
       const acompteLine = (activeBulletin.value.lignes || []).find(l => l.code === 'ACOMPTE')
@@ -1183,7 +1183,7 @@ const handleAddPrime = async () => {
     primeBase.value = 0
     primeTaux.value = 0
     primeEstPersistant.value = false
-    
+
     let currentAcompte = 0
     if (activeBulletin.value) {
       const acompteLine = (activeBulletin.value.lignes || []).find(l => l.code === 'ACOMPTE')
@@ -1245,8 +1245,8 @@ onMounted(async () => {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Secteur d'activité</label>
-              <select 
-                v-model="etabSecteurId" 
+              <select
+                v-model="etabSecteurId"
                 class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 w-full"
               >
                 <option :value="null">-- Aucun secteur sélectionné --</option>
@@ -1258,27 +1258,27 @@ onMounted(async () => {
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Sigle</label>
-              <input 
-                v-model="etabSigle" 
-                type="text" 
-                placeholder="Ex: ACME" 
+              <input
+                v-model="etabSigle"
+                type="text"
+                placeholder="Ex: ACME"
                 class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">N° RCCM</label>
-              <input 
-                v-model="etabNumeroRccm" 
-                type="text" 
-                placeholder="Ex: CI-ABJ-01-202X-B12..." 
+              <input
+                v-model="etabNumeroRccm"
+                type="text"
+                placeholder="Ex: CI-ABJ-01-202X-B12..."
                 class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Date de création</label>
-              <input 
-                v-model="etabDateCreation" 
-                type="date" 
+              <input
+                v-model="etabDateCreation"
+                type="date"
                 class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
@@ -1324,31 +1324,31 @@ onMounted(async () => {
         <!-- Detailed Physical Address & Contacts Section -->
         <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-slate-500">
           <h3 class="text-sm font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Adresse physique détaillée & Contacts (Côte d'Ivoire / Local)</h3>
-          
+
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Pays d'adresse</label>
-              <input 
-                v-model="etabAdressePays" 
-                type="text" 
+              <input
+                v-model="etabAdressePays"
+                type="text"
                 placeholder="Ex: COTE D'IVOIRE"
                 class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Commune</label>
-              <input 
-                v-model="etabAdresseCommune" 
-                type="text" 
+              <input
+                v-model="etabAdresseCommune"
+                type="text"
                 placeholder="Ex: Cocody"
                 class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Quartier</label>
-              <input 
-                v-model="etabAdresseQuartier" 
-                type="text" 
+              <input
+                v-model="etabAdresseQuartier"
+                type="text"
                 placeholder="Ex: Angré"
                 class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
@@ -1358,27 +1358,27 @@ onMounted(async () => {
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Rue</label>
-              <input 
-                v-model="etabAdresseRue" 
-                type="text" 
+              <input
+                v-model="etabAdresseRue"
+                type="text"
                 placeholder="Ex: Rue des Banques"
                 class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Îlot</label>
-              <input 
-                v-model="etabAdresseIlot" 
-                type="text" 
+              <input
+                v-model="etabAdresseIlot"
+                type="text"
                 placeholder="Ex: 12"
                 class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Lot</label>
-              <input 
-                v-model="etabAdresseLot" 
-                type="text" 
+              <input
+                v-model="etabAdresseLot"
+                type="text"
                 placeholder="Ex: 45"
                 class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
@@ -1387,8 +1387,8 @@ onMounted(async () => {
 
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Localisation détaillée / Indications</label>
-            <textarea 
-              v-model="etabAdresseLocalisation" 
+            <textarea
+              v-model="etabAdresseLocalisation"
               rows="2"
               placeholder="Ex: Non loin du rond-point, face à la pharmacie..."
               class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
@@ -1398,27 +1398,27 @@ onMounted(async () => {
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Boîte Postale / Adresse postale</label>
-              <input 
-                v-model="etabAdressePostale" 
-                type="text" 
+              <input
+                v-model="etabAdressePostale"
+                type="text"
                 placeholder="Ex: BP 123 Abidjan"
                 class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Téléphone</label>
-              <input 
-                v-model="etabTelephone" 
-                type="text" 
+              <input
+                v-model="etabTelephone"
+                type="text"
                 placeholder="Ex: +225 07 00 00 00 00"
                 class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Fax</label>
-              <input 
-                v-model="etabFax" 
-                type="text" 
+              <input
+                v-model="etabFax"
+                type="text"
                 placeholder="Ex: +225 27 00 00 00 00"
                 class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
@@ -1428,18 +1428,18 @@ onMounted(async () => {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">E-mail</label>
-              <input 
-                v-model="etabEmail" 
-                type="email" 
+              <input
+                v-model="etabEmail"
+                type="email"
                 placeholder="Ex: contact@entreprise.com"
                 class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Site Web</label>
-              <input 
-                v-model="etabSiteWeb" 
-                type="url" 
+              <input
+                v-model="etabSiteWeb"
+                type="url"
                 placeholder="Ex: https://www.entreprise.com"
                 class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
@@ -1610,11 +1610,11 @@ onMounted(async () => {
         <!-- Payroll, HR & Matricule Settings Section -->
         <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-slate-500">
           <h3 class="text-sm font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Paramètres de Paie, RH & Matricules</h3>
-          
+
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Adresse d'édition (sur le bulletin de paie)</label>
-            <textarea 
-              v-model="etabAdresseBulletinPaie" 
+            <textarea
+              v-model="etabAdresseBulletinPaie"
               rows="2"
               placeholder="Ex: Siège Social - Abidjan, Cocody..."
               class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white focus:ring-green-500 focus:border-green-500"
@@ -1631,9 +1631,9 @@ onMounted(async () => {
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Période de référence congés (mois)</label>
-              <input 
-                v-model="etabCongesPeriodeReferenceMois" 
-                type="number" 
+              <input
+                v-model="etabCongesPeriodeReferenceMois"
+                type="number"
                 min="1"
                 max="12"
                 class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white focus:ring-green-500 focus:border-green-500"
@@ -1658,27 +1658,27 @@ onMounted(async () => {
             <div v-if="etabMatriculeGenerationAuto" class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-50 p-4 border border-slate-200 rounded-none">
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Préfixe matricule</label>
-                <input 
-                  v-model="etabMatriculePrefixe" 
-                  type="text" 
+                <input
+                  v-model="etabMatriculePrefixe"
+                  type="text"
                   placeholder="Ex: EMP-"
                   class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white"
                 />
               </div>
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Suffixe matricule</label>
-                <input 
-                  v-model="etabMatriculeSuffixe" 
-                  type="text" 
+                <input
+                  v-model="etabMatriculeSuffixe"
+                  type="text"
                   placeholder="Ex: -CI"
                   class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white"
                 />
               </div>
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Numéro séquentiel de départ</label>
-                <input 
-                  v-model="etabMatriculeNumeroSequentiel" 
-                  type="text" 
+                <input
+                  v-model="etabMatriculeNumeroSequentiel"
+                  type="text"
                   placeholder="Ex: 001"
                   class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white"
                 />
@@ -2139,7 +2139,6 @@ onMounted(async () => {
                   <input type="checkbox" v-model="allBulletinsSelected" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
                 </th>
                 <th scope="col" class="px-6 py-3 text-left">Employé</th>
-                <th scope="col" class="px-6 py-3 text-left">Poste </th>
                 <th scope="col" class="px-6 py-3 text-left">Statut Bulletin</th>
                 <th scope="col" class="px-6 py-3 text-right">Salaire Brut</th>
                 <th scope="col" class="px-6 py-3 text-right">Net à Payer</th>
@@ -2168,12 +2167,7 @@ onMounted(async () => {
                   </div>
                 </td>
 
-                <!-- Job / Contract -->
-                <td class="px-6 py-4">
-                  <span class="block font-medium text-slate-800 leading-tight">
-                    {{ c.emploi || 'Poste non renseigné' }}
-                  </span>
-                </td>
+
 
                 <!-- Status -->
                 <td class="px-6 py-4">
@@ -2269,7 +2263,7 @@ onMounted(async () => {
                           }
                         ]]"
                       >
-                        <button 
+                        <button
                           class="px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-none text-xs font-bold transition-colors flex items-center gap-1 uppercase tracking-wider cursor-pointer"
                         >
                           Saisies
@@ -2362,13 +2356,13 @@ onMounted(async () => {
     </UModal>
 
     <!-- Modals for adding variables -->
-    
+
     <!-- Modal: Overtime -->
     <UModal v-model:open="hsModalOpen" title="Saisir des Heures Supplémentaires">
       <template #content>
         <div class="p-6 space-y-4 bg-white border border-slate-200">
           <h2 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Heure Supp.</h2>
-          
+
           <div class="space-y-4">
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Taux de majoration</label>
@@ -2401,7 +2395,7 @@ onMounted(async () => {
       <template #content>
         <div class="p-6 space-y-4 bg-white border border-slate-200">
           <h2 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Saisir Absence</h2>
-          
+
           <div class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
               <div>
@@ -2453,7 +2447,7 @@ onMounted(async () => {
       <template #content>
         <div class="p-6 space-y-4 bg-white border border-slate-200">
           <h2 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Prime</h2>
-          
+
           <div class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
               <div>
@@ -2519,7 +2513,7 @@ onMounted(async () => {
       <template #content>
         <div class="p-6 space-y-4 bg-white border border-slate-200">
           <h2 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Acompte sur salaire</h2>
-          
+
           <div class="space-y-4">
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Montant de l'acompte (FCFA)</label>

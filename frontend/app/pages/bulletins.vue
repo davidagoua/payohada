@@ -131,7 +131,7 @@ const fetchDossiers = async () => {
   try {
     const data = await get('/dossiers')
     dossiers.value = data || []
-    
+
     // Set initial selected dossier
     if (currentDossier.value) {
       selectedDossierId.value = currentDossier.value.id
@@ -150,7 +150,7 @@ const fetchDossiers = async () => {
 // Fetch contracts and bulletins for the selected dossier and period
 const fetchDossierData = async () => {
   if (!selectedDossierId.value) return
-  
+
   loadingData.value = true
   try {
     // Sync currentDossier state with selection
@@ -158,19 +158,19 @@ const fetchDossierData = async () => {
     if (activeDossier) {
       currentDossier.value = activeDossier
     }
-    
+
     // 1. Fetch contracts of this dossier
     const cts = await get(`/dossiers/${selectedDossierId.value}/contrats`)
     contracts.value = cts || []
-    
+
     // 2. Fetch all generated bulletins of this dossier for the selected period
-    const bList = await get(`/dossiers/${selectedDossierId.value}/bulletins`, { 
-      query: { 
-        mois: selectedMois.value, 
-        annee: selectedAnnee.value 
-      } 
+    const bList = await get(`/dossiers/${selectedDossierId.value}/bulletins`, {
+      query: {
+        mois: selectedMois.value,
+        annee: selectedAnnee.value
+      }
     })
-    
+
     // Map bulletins by contract_id
     const map = {}
     if (bList) {
@@ -344,7 +344,7 @@ const stats = computed(() => {
   const generatedBulletins = Object.values(bulletinsMap.value)
   let masseBrut = 0
   let masseNet = 0
-  
+
   generatedBulletins.forEach(b => {
     masseBrut += b.salaire_brut || 0
     masseNet += b.net_a_payer || 0
@@ -414,10 +414,10 @@ const planPaieItems = ref([])
 const primesDisponibles = computed(() => {
   const excludedCodes = ['BASE', 'SURSALAIRE', 'ABS', '1001', '1051', '1101', '1111', '1121', '1131', '1141', '1151', '1161', '1181']
   return planPaieItems.value.filter(item => {
-    return item.type === 'B' && 
-           !excludedCodes.includes(item.code) && 
-           !item.code.startsWith('HS_') && 
-           !item.code.startsWith('ABS_') && 
+    return item.type === 'B' &&
+           !excludedCodes.includes(item.code) &&
+           !item.code.startsWith('HS_') &&
+           !item.code.startsWith('ABS_') &&
            item.est_actif
   })
 })
@@ -540,7 +540,7 @@ const handleAddHeureSupp = async () => {
     await post(`/contrats/${activeContrat.value.id}/heures-supplementaires`, payload)
     hsModalOpen.value = false
     hsNombre.value = 0
-    
+
     let currentAcompte = 0
     if (activeBulletin.value) {
       const acompteLine = (activeBulletin.value.lignes || []).find(l => l.code === 'ACOMPTE')
@@ -573,7 +573,7 @@ const handleAddAbsence = async () => {
     absDateFin.value = ''
     absNbrHeure.value = 0
     absNbrJour.value = 0
-    
+
     let currentAcompte = 0
     if (activeBulletin.value) {
       const acompteLine = (activeBulletin.value.lignes || []).find(l => l.code === 'ACOMPTE')
@@ -608,7 +608,7 @@ const handleAddPrime = async () => {
     primeBase.value = 0
     primeTaux.value = 0
     primeEstPersistant.value = false
-    
+
     let currentAcompte = 0
     if (activeBulletin.value) {
       const acompteLine = (activeBulletin.value.lignes || []).find(l => l.code === 'ACOMPTE')
@@ -636,7 +636,7 @@ onMounted(async () => {
 
 <template>
   <div class="space-y-6">
-    
+
     <!-- Top Action / Title Header -->
     <div class="bg-white border-2 border-slate-200 p-6 shadow-flat flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-t-4 border-t-green-600">
       <div class="flex items-center space-x-4">
@@ -653,7 +653,7 @@ onMounted(async () => {
 
       <!-- Action buttons for selected dossier -->
       <div v-if="selectedDossierId && contracts.length > 0" class="flex flex-wrap gap-3 w-full md:w-auto justify-end">
-        <button 
+        <button
           @click="handleValidateAll"
           :disabled="loadingData || bulkProcessing || stats.generatedCount === 0"
           class="px-4 py-2 border-2 border-slate-200 text-xs font-bold uppercase tracking-wider hover:bg-slate-50 text-slate-700 transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-flat-hover shadow-flat-active"
@@ -661,7 +661,7 @@ onMounted(async () => {
           <UIcon name="i-lucide-check-circle-2" class="w-4 h-4 text-green-600" />
           Valider la période
         </button>
-        <button 
+        <button
           @click="handleCalculateAll"
           :disabled="loadingData || bulkProcessing || stats.pendingCount === 0"
           class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-bold uppercase tracking-wider shadow-flat transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-flat-hover shadow-flat-active"
@@ -676,8 +676,8 @@ onMounted(async () => {
     <div class="bg-white border-2 border-slate-200 p-4 shadow-flat flex flex-col md:flex-row items-center gap-4">
       <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
         <span class="text-xs font-bold uppercase tracking-wider text-slate-400 shrink-0">Entreprise :</span>
-        <select 
-          v-model="selectedDossierId" 
+        <select
+          v-model="selectedDossierId"
           :disabled="loadingDossiers"
           class="block w-full sm:w-64 px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select"
         >
@@ -692,11 +692,11 @@ onMounted(async () => {
           <select v-model="selectedMois" class="block w-full sm:w-40 px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select">
             <option v-for="m in 12" :key="m" :value="m">{{ getPeriodLabel(m, 2026).split(' ')[0] }}</option>
           </select>
-          <input 
-            v-model="selectedAnnee" 
-            type="number" 
-            placeholder="Année" 
-            class="block w-full sm:w-28 px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono" 
+          <input
+            v-model="selectedAnnee"
+            type="number"
+            placeholder="Année"
+            class="block w-full sm:w-28 px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono"
           />
         </div>
       </div>
@@ -728,7 +728,7 @@ onMounted(async () => {
       <p class="text-sm text-slate-500">
         Vous devez d'abord créer un dossier d'entreprise avant de pouvoir gérer et générer des bulletins de paie.
       </p>
-      <NuxtLink 
+      <NuxtLink
         to="/dossiers"
         class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg text-sm transition-colors inline-flex items-center space-x-2 shadow"
       >
@@ -739,10 +739,10 @@ onMounted(async () => {
 
     <!-- ENTERPRISE DETAILS DASHBOARD -->
     <div v-else-if="selectedDossierId" class="space-y-6">
-      
+
       <!-- Statistics Cards Row -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        
+
         <!-- Total Employees -->
         <div class="bg-white border-2 border-slate-200 p-5 shadow-flat space-y-2 border-t-4 border-t-slate-500">
           <div class="flex items-center justify-between">
@@ -806,14 +806,14 @@ onMounted(async () => {
           {{ selectedBulletins.length }} bulletin(s) sélectionné(s)
         </div>
         <div class="flex flex-wrap gap-2 justify-end w-full sm:w-auto">
-          <button 
+          <button
             @click="handleCalculateSelected"
             class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
           >
             <UIcon name="i-lucide-calculator" class="w-3.5 h-3.5" />
             Calculer la sélection
           </button>
-          <button 
+          <button
             @click="handleValidateSelected"
             class="px-3 py-1.5 bg-yellow-500 hover:bg-yellow-650 text-slate-900 font-semibold rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
           >
@@ -838,7 +838,7 @@ onMounted(async () => {
           <p class="text-xs text-slate-500 max-w-sm mx-auto">
             Afin de calculer la paie, vous devez d'abord ajouter des salariés et créer des contrats de travail actifs dans cette entreprise.
           </p>
-          <NuxtLink 
+          <NuxtLink
             :to="`/dossiers/${selectedDossierId}`"
             class="px-3.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold rounded-lg transition-colors inline-flex items-center gap-1.5"
           >
@@ -867,7 +867,7 @@ onMounted(async () => {
                 <td class="px-4 py-4" @click.stop>
                   <input type="checkbox" :value="c.id" v-model="selectedBulletins" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
                 </td>
-                
+
                 <!-- Employee Column -->
                 <td class="px-6 py-4">
                   <div class="flex items-center space-x-3">
@@ -907,19 +907,19 @@ onMounted(async () => {
 
                 <!-- Payslip Status Column -->
                 <td class="px-6 py-4">
-                  <span 
+                  <span
                     v-if="bulletinsMap[c.id]"
                     :class="[
-                      bulletinsMap[c.id].statut === 'valide' 
-                        ? 'bg-green-50 text-green-700 border-green-200' 
+                      bulletinsMap[c.id].statut === 'valide'
+                        ? 'bg-green-50 text-green-700 border-green-200'
                         : 'bg-yellow-50 text-yellow-700 border-yellow-200',
                       'px-2.5 py-0.5 rounded text-[10px] uppercase font-bold border inline-block tracking-wider'
                     ]"
                   >
                     {{ bulletinsMap[c.id].statut }}
                   </span>
-                  <span 
-                    v-else 
+                  <span
+                    v-else
                     class="bg-slate-100 text-slate-400 border-slate-200 px-2.5 py-0.5 rounded text-[10px] uppercase font-bold border inline-block tracking-wider"
                   >
                     Non calculé
@@ -939,21 +939,21 @@ onMounted(async () => {
                 <!-- Individual Actions -->
                 <td class="px-6 py-4 text-right">
                   <div class="flex justify-end items-center space-x-2">
-                    
+
                     <!-- If payslip is generated -->
                     <template v-if="bulletinsMap[c.id]">
-                      
+
                       <!-- View Link -->
-                      <NuxtLink 
+                      <NuxtLink
                         :to="`/dossiers/${selectedDossierId}/etablissements/${c.etablissement_id}/salaries/${c.salarie_id}/contrats/${c.id}/bulletins/${bulletinsMap[c.id].id}`"
                         class="px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-none text-xs font-bold transition-colors flex items-center gap-1 uppercase tracking-wider"
                       >
                         <UIcon name="i-lucide-eye" class="w-3.5 h-3.5" />
                         Voir
                       </NuxtLink>
-                      
+
                       <!-- Recalculate (recalculate is just running compute again) -->
-                      <button 
+                      <button
                         v-if="bulletinsMap[c.id].statut !== 'valide'"
                         @click="handleCalculateSingle(c.id)"
                         class="px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-750 transition-colors rounded-none text-xs font-bold flex items-center gap-1 uppercase tracking-wider cursor-pointer"
@@ -964,7 +964,7 @@ onMounted(async () => {
                       </button>
 
                       <!-- Validate (if draft) -->
-                      <button 
+                      <button
                         v-if="bulletinsMap[c.id].statut !== 'valide'"
                         @click="handleValidateSingle(bulletinsMap[c.id].id)"
                         class="px-2.5 py-1.5 border border-yellow-250 bg-yellow-50 hover:bg-yellow-100 text-yellow-750 transition-colors rounded-none text-xs font-bold flex items-center gap-1 uppercase tracking-wider cursor-pointer"
@@ -1000,7 +1000,7 @@ onMounted(async () => {
                           }
                         ]]"
                       >
-                        <button 
+                        <button
                           class="px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-none text-xs font-bold transition-colors flex items-center gap-1 uppercase tracking-wider cursor-pointer"
                         >
                           Saisies
@@ -1009,7 +1009,7 @@ onMounted(async () => {
                       </UDropdownMenu>
 
                       <!-- Delete (if draft) -->
-                      <button 
+                      <button
                         v-if="bulletinsMap[c.id].statut !== 'valide'"
                         @click="handleDeleteSingle(bulletinsMap[c.id].id)"
                         class="px-2.5 py-1.5 border border-red-200 bg-red-50 hover:bg-red-100 text-red-650 transition-colors rounded-none cursor-pointer flex items-center justify-center"
@@ -1021,7 +1021,7 @@ onMounted(async () => {
                     </template>
 
                     <!-- If not generated yet -->
-                    <button 
+                    <button
                       v-else
                       @click="handleCalculateSingle(c.id)"
                       class="px-2.5 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-none text-xs font-bold transition-colors flex items-center gap-1 shadow-flat uppercase tracking-wider cursor-pointer"
@@ -1029,7 +1029,7 @@ onMounted(async () => {
                       <UIcon name="i-lucide-calculator" class="w-3.5 h-3.5" />
                       Calculer
                     </button>
-                    
+
                   </div>
                 </td>
 
@@ -1042,13 +1042,13 @@ onMounted(async () => {
     </div>
 
     <!-- Modals for adding variables -->
-    
+
     <!-- Modal: Overtime -->
     <UModal v-model:open="hsModalOpen" title="Saisir des Heures Supplémentaires">
       <template #content>
         <div class="p-6 space-y-4 bg-white border border-slate-200">
           <h2 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Heure Supp.</h2>
-          
+
           <div class="space-y-4">
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Taux de majoration</label>
@@ -1081,7 +1081,7 @@ onMounted(async () => {
       <template #content>
         <div class="p-6 space-y-4 bg-white border border-slate-200">
           <h2 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Saisir Absence</h2>
-          
+
           <div class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
               <div>
@@ -1133,7 +1133,7 @@ onMounted(async () => {
       <template #content>
         <div class="p-6 space-y-4 bg-white border border-slate-200">
           <h2 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Prime</h2>
-          
+
           <div class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
               <div>
@@ -1199,7 +1199,7 @@ onMounted(async () => {
       <template #content>
         <div class="p-6 space-y-4 bg-white border border-slate-200">
           <h2 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Acompte sur salaire</h2>
-          
+
           <div class="space-y-4">
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Montant de l'acompte (FCFA)</label>

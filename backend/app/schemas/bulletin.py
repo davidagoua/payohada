@@ -84,6 +84,9 @@ class BulletinCumulRow(BaseModel):
     ricf: Optional[float] = 0.0
     cmu: Optional[float] = 0.0
     cot_retraite: Optional[float] = 0.0
+    conges_acquis: Optional[float] = 0.0
+    conges_pris: Optional[float] = 0.0
+    conges_solde: Optional[float] = 0.0
 
 class BulletinCumuls(BaseModel):
     mensuel: BulletinCumulRow

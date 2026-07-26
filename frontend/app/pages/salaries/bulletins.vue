@@ -367,7 +367,14 @@ const handleChangePassword = async () => {
               <table class="min-w-full divide-y divide-slate-250 text-xs">
                 <thead class="bg-slate-100 text-slate-650 font-bold uppercase tracking-wider text-[8px] border-b-2 border-slate-200">
                   <tr>
-                    <th scope="col" rowspan="2" class="px-3 py-2 text-left w-2/5 border-r border-slate-200 align-middle">Rubrique / Libellé</th>
+                    <th scope="col" rowspan="2" class="px-3 py-2 text-left w-2/5 border-r border-slate-200 align-middle">
+                      <div class="flex items-center">
+                        <div class="inline-block px-1.5 py-0.5 bg-slate-200 border border-slate-350 text-[10px] font-mono text-slate-800 font-bold uppercase mr-2" title="Nombre de jours ou d'heures travaillés (Base de calcul)">
+                          {{ selectedBulletin.cumuls?.mensuel?.heures_jours }} {{ selectedBulletin.contrat?.unite_temps === 'Jours' ? 'j' : 'h' }}
+                        </div>
+                        <span>Rubrique / Libellé</span>
+                      </div>
+                    </th>
                     <th scope="col" colspan="4" class="px-2 py-1 text-center bg-slate-50 border-r border-slate-200 border-b border-slate-200">Charges Employé</th>
                     <th scope="col" colspan="3" class="px-2 py-1 text-center bg-slate-100 border-b border-slate-200">Charges Patronales</th>
                   </tr>

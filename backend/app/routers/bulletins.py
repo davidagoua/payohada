@@ -4,7 +4,7 @@ from typing import List, Optional
 from datetime import datetime
 
 from app.database import get_db
-from app.models.models import BulletinPaie, Contrat, Dossier, Utilisateur, Constante, Salarie, VariableRepriseDossier
+from app.models.models import BulletinPaie, Contrat, Dossier, Utilisateur, Constante, Salarie, VariableRepriseDossier, PretSalarie, SalarieAbsence
 from app.schemas.bulletin import (
     BulletinPaieOut, BulletinPaieCreate, SimulationInput, SimulationOut, 
     LigneSimulationOut, BulletinCumuls, BulletinCumulRow
@@ -85,6 +85,67 @@ def compute_bulletin_cumuls(db: Session, bulletin: BulletinPaie) -> BulletinCumu
 
     mensuel_data = get_row_values(bulletin)
     
+    # Dynamic paid vacation calculations
+    import calendar
+    from datetime import date, datetime
+    
+    start_date = None
+    if contrat.date_debut_contrat:
+        try:
+            start_date = datetime.strptime(contrat.date_debut_contrat[:10], "%Y-%m-%d").date()
+        except Exception:
+            pass
+    if not start_date:
+        start_date = date(bulletin.annee, 1, 1)
+        
+    months_seniority = (bulletin.annee - start_date.year) * 12 + (bulletin.mois - start_date.month) + 1
+    months_seniority = max(1, months_seniority)
+    conges_acquis_cumules = round(months_seniority * 2.5, 2)
+    
+    absences_cp = db.query(SalarieAbsence).filter(
+        SalarieAbsence.salarie_id == contrat.salarie_id,
+        SalarieAbsence.type_absence == "Congés payés"
+    ).all()
+    
+    month_start = date(bulletin.annee, bulletin.mois, 1)
+    _, last_day = calendar.monthrange(bulletin.annee, bulletin.mois)
+    month_end = date(bulletin.annee, bulletin.mois, last_day)
+    
+    conges_pris_ce_mois = 0.0
+    for a in absences_cp:
+        a_start = a.date_debut_absence
+        a_end = a.date_fin_absence
+        if isinstance(a_start, datetime):
+            a_start = a_start.date()
+        if isinstance(a_end, datetime):
+            a_end = a_end.date()
+            
+        overlap_start = max(a_start, month_start)
+        overlap_end = min(a_end, month_end)
+        if overlap_start <= overlap_end:
+            conges_pris_ce_mois += (overlap_end - overlap_start).days + 1
+            
+    conges_pris_cumules = 0.0
+    for a in absences_cp:
+        a_start = a.date_debut_absence
+        a_end = a.date_fin_absence
+        if isinstance(a_start, datetime):
+            a_start = a_start.date()
+        if isinstance(a_end, datetime):
+            a_end = a_end.date()
+            
+        if a_start <= month_end:
+            actual_end = min(a_end, month_end)
+            conges_pris_cumules += (actual_end - a_start).days + 1
+            
+    conges_solde = round(conges_acquis_cumules - conges_pris_cumules, 2)
+    conges_pris_ce_mois = round(conges_pris_ce_mois, 2)
+    conges_pris_cumules = round(conges_pris_cumules, 2)
+    
+    mensuel_data["conges_acquis"] = 2.5
+    mensuel_data["conges_pris"] = conges_pris_ce_mois
+    mensuel_data["conges_solde"] = conges_solde
+    
     # Récupérer tous les bulletins calculés ou validés de la même année jusqu'au mois en cours
     prior_bulletins = db.query(BulletinPaie).filter(
         BulletinPaie.contrat_id == bulletin.contrat_id,
@@ -141,6 +202,10 @@ def compute_bulletin_cumuls(db: Session, bulletin: BulletinPaie) -> BulletinCumu
             
     for k in annuel_totals.keys():
         annuel_totals[k] = round(annuel_totals[k], 2)
+        
+    annuel_totals["conges_acquis"] = conges_acquis_cumules
+    annuel_totals["conges_pris"] = conges_pris_cumules
+    annuel_totals["conges_solde"] = conges_solde
         
     return BulletinCumuls(
         mensuel=BulletinCumulRow(**mensuel_data),
@@ -273,9 +338,15 @@ def validate_bulletin(
 ):
     """Valide définitivement un bulletin de paie."""
     bulletin = check_bulletin_ownership(bulletin_id, current_user.id, db)
-    bulletin.statut = "valide"
-    db.commit()
-    db.refresh(bulletin)
+    if bulletin.statut != "valide":
+        for line in bulletin.lignes:
+            if line.pret_id:
+                loan = db.query(PretSalarie).filter(PretSalarie.id == line.pret_id).first()
+                if loan:
+                    loan.reste_a_rembourser = round(max(0.0, loan.reste_a_rembourser - line.montant_cs), 2)
+        bulletin.statut = "valide"
+        db.commit()
+        db.refresh(bulletin)
     
     bout = BulletinPaieOut.model_validate(bulletin)
     bout.cumuls = compute_bulletin_cumuls(db, bulletin)
@@ -311,6 +382,12 @@ def invalidate_bulletin(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Impossible d'invalider ce bulletin : un bulletin plus récent a déjà été validé pour ce salarié."
         )
+
+    for line in bulletin.lignes:
+        if line.pret_id:
+            loan = db.query(PretSalarie).filter(PretSalarie.id == line.pret_id).first()
+            if loan:
+                loan.reste_a_rembourser = round(loan.reste_a_rembourser + line.montant_cs, 2)
 
     bulletin.statut = "brouillon"
     db.commit()
