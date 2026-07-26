@@ -114,11 +114,11 @@ export const useSupabase = () => {
       if (password) {
         try {
           const apiBase = config.public.apiBase || 'http://localhost:8000'
-          const response = await $fetch<any>(`${apiBase}/api/v1/auth/login`, {
+          const response = await $fetch<any>(`${apiBase}/auth/login`, {
             method: 'POST',
             body: { email, password }
           })
-          
+
           if (response && response.access_token) {
             token.value = response.access_token
             user.value = {
