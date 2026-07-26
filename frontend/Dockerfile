@@ -3,7 +3,7 @@ FROM oven/bun:1 as builder
 
 WORKDIR /app
 
-COPY package.json bun.lock* ./
+COPY ./frontend/package.json ./frontend/bun.lock* ./
 RUN bun install
 COPY ./frontend/ .
 ENV NUXT_PUBLIC_API_BASE=${NUXT_PUBLIC_API_BASE}
