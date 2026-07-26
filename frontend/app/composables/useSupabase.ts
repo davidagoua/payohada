@@ -20,7 +20,7 @@ export const useSupabase = () => {
     if (!accessToken) return
     try {
       const apiBase = config.public.apiBase || 'http://localhost:8000'
-      const profile = await $fetch<any>(`${apiBase}/api/v1/auth/me`, {
+      const profile = await $fetch<any>(`${apiBase}/auth/me`, {
         headers: {
           'Authorization': `Bearer ${accessToken}`
         }
