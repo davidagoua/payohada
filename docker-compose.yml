@@ -21,21 +21,18 @@ services:
       - SUPABASE_JWT_SECRET=${SUPABASE_JWT_SECRET}
     networks:
       - payohada-test
+    
 
-  frontend:
+  caddy:
     build: 
       context: ./frontend
-    volumes:
-      - frontend_assets:/app/dist
+      dockerfile: Dockerfile
+    expose:
+      - 80
     environment:
       - NUXT_PUBLIC_SUPABASE_URL=${NUXT_PUBLIC_SUPABASE_URL}
       - NUXT_PUBLIC_SUPABASE_ANON_KEY=${NUXT_PUBLIC_SUPABASE_ANON_KEY}
       - NUXT_PUBLIC_API_BASE=${NUXT_PUBLIC_API_BASE}
-
-  caddy:
-    image: caddy 
-    expose:
-      - 80
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80"]
       interval: 1m30s
@@ -44,7 +41,6 @@ services:
       start_period: 30s
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile
-      - frontend_assets:/srv
     develop:
       watch:
         - action: sync+restart 
@@ -57,6 +53,5 @@ networks:
   payohada-test:
     external: true
 
-volumes:
-  frontend_assets:
+
 
