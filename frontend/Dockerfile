@@ -1,11 +1,10 @@
 
-FROM oven/bun:1 
+FROM oven/bun:1
 
 WORKDIR /app
 
 COPY package.json bun.lock* ./
-RUN bun install 
+RUN bun install
 COPY . .
 ENV NUXT_PUBLIC_API_BASE=/api
 RUN bun run build
-RUN bun run generate
