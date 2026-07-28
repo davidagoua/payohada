@@ -2,3 +2,6 @@ __pycache__/
 .env 
 *.pyc
 .env
+*/.venv
+*/.venv/
+security_audit_report.html
