@@ -3,7 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
-from app.routers import auth, dossiers, etablissements, salaries, contrats, variables, bulletins, constantes, plan_paie, reclamations, secteurs, salaries_hr, departements
+from app.routers import auth, dossiers, etablissements, salaries, contrats, variables, bulletins, constantes, plan_paie, reclamations, secteurs, salaries_hr, departements, import_export_excel
 from app.database import Base, engine, SessionLocal
 from app.database_seeder import seed_database
 import sentry_sdk
@@ -93,6 +93,7 @@ api_router.include_router(reclamations.router)
 api_router.include_router(secteurs.router)
 api_router.include_router(salaries_hr.router)
 api_router.include_router(departements.router)
+api_router.include_router(import_export_excel.router)
 
 import os
 os.makedirs("uploads", exist_ok=True)

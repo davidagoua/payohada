@@ -625,6 +625,103 @@ const handleSaveAcompte = async () => {
   await handleRecalculateForContrat(activeContrat.value.id, acompteMontant.value)
 }
 
+
+// ─── Import/Export Excel ────────────────────────────────────────
+const excelExporting       = ref(false)
+const excelImporting       = ref(false)
+const excelFileInput       = ref(null)
+const excelImportResult    = ref(null)
+const showImportResult     = ref(false)
+const excelImportModalOpen = ref(false)
+
+const openImportModal = () => {
+  excelImportResult.value  = null
+  showImportResult.value   = false
+  excelImportModalOpen.value = true
+}
+
+const handleExportExcel = async () => {
+  if (!selectedDossierId.value) return
+  excelExporting.value = true
+  try {
+    const config = useRuntimeConfig()
+    const { token } = useSupabase()
+    const apiBase = config.public.apiBase || 'http://localhost:8000'
+    const params = new URLSearchParams({
+      mois: String(selectedMois.value),
+      annee: String(selectedAnnee.value)
+    })
+    const url = `${apiBase}/api/v1/dossiers/${selectedDossierId.value}/export-variables-excel?${params}`
+    const response = await fetch(url, {
+      headers: { Authorization: `Bearer ${token.value}` }
+    })
+    if (!response.ok) throw new Error('Export échoué')
+    const blob = await response.blob()
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    const dossierCode = dossiers.value.find(d => d.id === Number(selectedDossierId.value))?.code || 'dossier'
+    link.download = `variables_paie_${dossierCode}_${String(selectedMois.value).padStart(2,'0')}_${selectedAnnee.value}.xlsx`
+    link.click()
+    URL.revokeObjectURL(link.href)
+    toast.add({ title: 'Export réussi', description: 'Fichier Excel téléchargé avec succès.', color: 'success' })
+  } catch (e) {
+    toast.add({ title: 'Erreur export', description: "L'export Excel a échoué.", color: 'danger' })
+  } finally {
+    excelExporting.value = false
+  }
+}
+
+const handleImportExcel = async (event) => {
+  const input = event.target
+  if (!input.files || input.files.length === 0) return
+  if (!selectedDossierId.value) return
+  const file = input.files[0]
+  const ext = file.name.toLowerCase().slice(file.name.lastIndexOf('.'))
+  if (!['.xls', '.xlsx'].includes(ext)) {
+    toast.add({ title: 'Fichier invalide', description: 'Veuillez sélectionner un fichier .xls ou .xlsx', color: 'warning' })
+    input.value = ''
+    return
+  }
+  excelImporting.value = true
+  excelImportResult.value = null
+  showImportResult.value = false
+  try {
+    const config = useRuntimeConfig()
+    const { token } = useSupabase()
+    const apiBase = config.public.apiBase || 'http://localhost:8000'
+    const params = new URLSearchParams({
+      mois: String(selectedMois.value),
+      annee: String(selectedAnnee.value)
+    })
+    const url = `${apiBase}/api/v1/dossiers/${selectedDossierId.value}/import-variables-excel?${params}`
+    const formData = new FormData()
+    formData.append('fichier', file)
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token.value}` },
+      body: formData
+    })
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}))
+      throw new Error(err.detail || "Erreur lors de l'import")
+    }
+    const result = await response.json()
+    excelImportResult.value = result
+    showImportResult.value = true
+    toast.add({
+      title: 'Import réussi',
+      description: `${result.salaries_traites} salarié(s) traités, ${result.variables_creees} variable(s) créées.`,
+      color: 'success'
+    })
+    await fetchDossierData()
+  } catch (e) {
+    toast.add({ title: 'Erreur import', description: e.message || "L'import Excel a échoué.", color: 'danger' })
+  } finally {
+    excelImporting.value = false
+    if (excelFileInput.value) excelFileInput.value.value = ''
+  }
+}
+
 onMounted(async () => {
   await fetchDossiers()
   await fetchPlanPaie()
@@ -699,6 +796,79 @@ onMounted(async () => {
             class="block w-full sm:w-28 px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono"
           />
         </div>
+      </div>
+    </div>
+
+
+    <!-- ═══ Import/Export Excel QPXL1501 ═══ -->
+    <div v-if="selectedDossierId" class="bg-white border-2 border-slate-200 shadow-flat overflow-hidden">
+      <!-- Header -->
+      <div class="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-indigo-900 to-indigo-700 border-b-2 border-indigo-800">
+        <div class="w-8 h-8 bg-white/10 flex items-center justify-center rounded">
+          <UIcon name="i-lucide-file-spreadsheet" class="w-4 h-4 text-white" />
+        </div>
+        <div>
+          <h2 class="text-sm font-bold text-white tracking-wide uppercase">Import / Export Variables de Paie</h2>
+          <p class="text-indigo-200 text-[10px]">Format QPXL1501 — Période : {{ getPeriodLabel(selectedMois, selectedAnnee) }}</p>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-slate-200">
+
+        <!-- ── Colonne Export ── -->
+        <div class="p-5 space-y-3">
+          <div class="flex items-center gap-2 mb-1">
+            <div class="w-6 h-6 rounded bg-indigo-50 flex items-center justify-center">
+              <UIcon name="i-lucide-download" class="w-3.5 h-3.5 text-indigo-700" />
+            </div>
+            <span class="text-sm font-bold text-slate-800">Exporter le modèle</span>
+          </div>
+          <p class="text-xs text-slate-500 leading-relaxed">
+            Téléchargez un fichier Excel pré-rempli avec la liste des salariés du dossier.
+            Remplissez les variables (heures sup, absences, primes...) puis réimportez-le.
+          </p>
+          <div class="bg-indigo-50 border border-indigo-100 rounded p-3 text-xs text-indigo-700 space-y-1">
+            <div class="flex items-center gap-1.5 font-semibold"><UIcon name="i-lucide-table-2" class="w-3.5 h-3.5" /> 4 feuilles générées</div>
+            <div class="text-indigo-600 pl-5 space-y-0.5">
+              <div>📋 Saisie — Heures sup, primes (BP01, BP02, BP06)</div>
+              <div>🗓 Absences — Congés, maladie, AT...</div>
+              <div>⏱ RTT — Journées de repos</div>
+              <div>💶 Acomptes — Sur salaire ou CP</div>
+            </div>
+          </div>
+          <button
+            @click="handleExportExcel"
+            :disabled="excelExporting || excelImporting"
+            class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-flat"
+          >
+            <UIcon v-if="excelExporting" name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
+            <UIcon v-else name="i-lucide-download-cloud" class="w-4 h-4" />
+            {{ excelExporting ? 'Export en cours...' : 'Télécharger le fichier Excel' }}
+          </button>
+        </div>
+
+        <!-- ── Colonne Import : bouton → modal ── -->
+        <div class="p-5 flex flex-col justify-center space-y-3">
+          <div class="flex items-center gap-2 mb-1">
+            <div class="w-6 h-6 rounded bg-emerald-50 flex items-center justify-center">
+              <UIcon name="i-lucide-upload" class="w-3.5 h-3.5 text-emerald-700" />
+            </div>
+            <span class="text-sm font-bold text-slate-800">Importer les variables</span>
+          </div>
+          <p class="text-xs text-slate-500 leading-relaxed">
+            Importez le fichier Excel rempli pour créer automatiquement les variables
+            (heures sup, absences, primes, acomptes) pour la période sélectionnée.
+          </p>
+          <button
+            @click="openImportModal"
+            :disabled="excelImporting"
+            class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-flat"
+          >
+            <UIcon name="i-lucide-upload-cloud" class="w-4 h-4" />
+            Importer un fichier Excel
+          </button>
+        </div>
+
       </div>
     </div>
 
@@ -1219,6 +1389,121 @@ onMounted(async () => {
         </div>
       </template>
     </UModal>
+
+    <!-- ═══ Modal : Import Variables Excel ═══ -->
+    <UModal v-model:open="excelImportModalOpen" title="Importer les variables de paie">
+      <template #body>
+        <div class="space-y-5 p-1">
+
+          <!-- Info période -->
+          <div class="flex items-center gap-2 px-3 py-2 bg-indigo-50 border border-indigo-100 rounded text-xs text-indigo-700 font-medium">
+            <UIcon name="i-lucide-calendar" class="w-4 h-4 shrink-0" />
+            Période : <span class="font-bold">{{ getPeriodLabel(selectedMois, selectedAnnee) }}</span>
+            &nbsp;·&nbsp; Dossier : <span class="font-bold">{{ dossiers.find(d => d.id === Number(selectedDossierId))?.code }}</span>
+          </div>
+
+          <!-- Résultat import (affiché si import déjà effectué) -->
+          <div v-if="showImportResult && excelImportResult" class="space-y-3">
+            <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4 space-y-3">
+              <div class="flex items-center gap-2 text-emerald-700 font-bold text-sm">
+                <UIcon name="i-lucide-check-circle-2" class="w-5 h-5" />
+                Import terminé — {{ excelImportResult.salaries_traites }} salarié(s) traités
+              </div>
+              <div class="grid grid-cols-3 gap-3 text-center">
+                <div class="bg-white border border-emerald-100 rounded-lg p-3">
+                  <div class="text-2xl font-black text-emerald-700">{{ excelImportResult.absences_creees }}</div>
+                  <div class="text-[10px] text-slate-500 uppercase font-semibold mt-0.5">Absences</div>
+                </div>
+                <div class="bg-white border border-emerald-100 rounded-lg p-3">
+                  <div class="text-2xl font-black text-indigo-700">{{ excelImportResult.heures_sup_creees }}</div>
+                  <div class="text-[10px] text-slate-500 uppercase font-semibold mt-0.5">Heures Sup.</div>
+                </div>
+                <div class="bg-white border border-emerald-100 rounded-lg p-3">
+                  <div class="text-2xl font-black text-amber-700">{{ excelImportResult.primes_creees }}</div>
+                  <div class="text-[10px] text-slate-500 uppercase font-semibold mt-0.5">Primes</div>
+                </div>
+              </div>
+            </div>
+            <!-- Avertissements -->
+            <div v-if="excelImportResult.avertissements?.length" class="bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-2">
+              <div class="text-xs font-bold text-amber-700 flex items-center gap-1.5">
+                <UIcon name="i-lucide-alert-triangle" class="w-4 h-4" />
+                {{ excelImportResult.avertissements.length }} avertissement(s)
+              </div>
+              <ul class="text-xs text-amber-600 space-y-1 pl-4 list-disc">
+                <li v-for="w in excelImportResult.avertissements.slice(0, 8)" :key="w">{{ w }}</li>
+                <li v-if="excelImportResult.avertissements.length > 8" class="font-semibold">
+                  ...et {{ excelImportResult.avertissements.length - 8 }} autre(s)
+                </li>
+              </ul>
+            </div>
+            <!-- Bouton nouvel import -->
+            <button
+              @click="showImportResult = false; excelImportResult = null"
+              class="w-full text-xs text-indigo-600 hover:text-indigo-800 font-semibold underline text-center"
+            >
+              Importer un autre fichier
+            </button>
+          </div>
+
+          <!-- Zone de sélection fichier (visible si pas encore importé) -->
+          <div v-else class="space-y-4">
+            <label
+              :class="[
+                'flex flex-col items-center justify-center gap-3 border-2 border-dashed rounded-lg p-8 cursor-pointer transition-all',
+                excelImporting ? 'border-indigo-400 bg-indigo-50/60 cursor-wait' : 'border-slate-300 hover:border-emerald-400 hover:bg-emerald-50/50'
+              ]"
+            >
+              <input
+                ref="excelFileInput"
+                type="file"
+                accept=".xls,.xlsx"
+                class="hidden"
+                :disabled="excelImporting"
+                @change="handleImportExcel"
+              />
+              <div v-if="excelImporting" class="flex flex-col items-center gap-3">
+                <UIcon name="i-lucide-loader-2" class="w-10 h-10 text-indigo-500 animate-spin" />
+                <div class="text-center">
+                  <p class="text-sm font-bold text-indigo-700">Import en cours...</p>
+                  <p class="text-xs text-indigo-500 mt-0.5">Veuillez patienter</p>
+                </div>
+              </div>
+              <div v-else class="flex flex-col items-center gap-2 text-center">
+                <div class="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center">
+                  <UIcon name="i-lucide-file-spreadsheet" class="w-7 h-7 text-slate-400" />
+                </div>
+                <div>
+                  <p class="text-sm font-bold text-slate-700">Cliquer pour sélectionner un fichier</p>
+                  <p class="text-xs text-slate-400 mt-0.5">ou glisser-déposer ici</p>
+                </div>
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-slate-100 text-slate-500 text-[10px] font-mono rounded-full">
+                  .xls &nbsp;·&nbsp; .xlsx
+                </span>
+              </div>
+            </label>
+
+            <p class="text-[11px] text-slate-400 text-center">
+              ⚠️ Les variables existantes pour cette période seront remplacées.
+              Les bulletins ne sont pas recalculés automatiquement.
+            </p>
+          </div>
+
+        </div>
+      </template>
+      <template #footer>
+        <div class="flex justify-end gap-2 px-1">
+          <button
+            type="button"
+            @click="excelImportModalOpen = false"
+            class="px-4 py-2 text-sm font-bold border-2 border-slate-200 hover:bg-slate-50 text-slate-700 rounded-none uppercase tracking-wider cursor-pointer transition-colors"
+          >
+            Fermer
+          </button>
+        </div>
+      </template>
+    </UModal>
+
 
   </div>
 </template>
