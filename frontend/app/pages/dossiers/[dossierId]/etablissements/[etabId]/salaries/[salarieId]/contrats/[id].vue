@@ -675,7 +675,7 @@ onMounted(() => {
             <button 
               type="button"
               @click="showDepartModal = true"
-              class="w-full px-4 py-2 bg-red-650 hover:bg-red-700 text-white font-semibold rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+              class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm"
             >
               <UIcon name="i-lucide-log-out" class="w-4 h-4" />
               Déclarer la sortie du salarié
@@ -893,7 +893,7 @@ onMounted(() => {
             <button type="button" @click="showDepartModal = false" class="px-4 py-2 border border-slate-200 text-sm font-semibold rounded-lg hover:bg-slate-50 text-slate-700 transition-colors">
               Annuler
             </button>
-            <button type="submit" class="px-4 py-2 text-sm font-semibold bg-red-650 hover:bg-red-700 text-white rounded-lg shadow transition-colors flex items-center gap-1.5">
+            <button type="submit" class="px-4 py-2 text-sm font-semibold bg-red-600 hover:bg-red-700 text-white rounded-lg shadow transition-colors flex items-center gap-1.5">
               Déclarer le départ
             </button>
           </div>
