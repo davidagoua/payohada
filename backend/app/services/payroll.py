@@ -4,7 +4,8 @@ from datetime import datetime
 
 from app.models.models import (
     Contrat, BulletinPaie, LigneBulletinPaie, VariableBulletin,
-    Absence, HeureSupplementaire, Prime, Option, CaisseCotisation, Etablissement, Constante, Salarie, PretSalarie
+    Absence, HeureSupplementaire, Prime, Option, CaisseCotisation, Etablissement, Constante, Salarie, PretSalarie,
+    SalarieAbsence
 )
 
 from typing import Optional
@@ -26,6 +27,60 @@ def _get_payroll_inputs(db: Session, contrat_id: int, mois: int, annee: int):
         Absence.annee == str(annee),
         Absence.mois == mois
     ).all()
+
+    # Intégrer les absences de la fiche salarié (salaries_absences)
+    import calendar
+    from datetime import date
+    import unicodedata
+
+    month_start = date(annee, mois, 1)
+    _, last_day = calendar.monthrange(annee, mois)
+    month_end = date(annee, mois, last_day)
+
+    hr_absences = db.query(SalarieAbsence).filter(
+        SalarieAbsence.salarie_id == contrat.salarie_id,
+        SalarieAbsence.date_debut_absence <= month_end,
+        SalarieAbsence.date_fin_absence >= month_start
+    ).all()
+
+    daily_hours = 7.0
+    if contrat.horaires and contrat.horaires.horaire_hebdo:
+        daily_hours = contrat.horaires.horaire_hebdo / 5.0
+
+    for a_hr in hr_absences:
+        overlap_start = max(a_hr.date_debut_absence, month_start)
+        overlap_end = min(a_hr.date_fin_absence, month_end)
+        overlap_days = (overlap_end - overlap_start).days + 1
+
+        # Normaliser le motif d'absence pour construire un code d'absence (ex: CONGES, MALADIE, etc.)
+        raw_type = a_hr.type_absence or "ABSENCE"
+        type_code = "".join(
+            c for c in unicodedata.normalize('NFD', raw_type)
+            if unicodedata.category(c) != 'Mn'
+        ).upper().replace(" ", "_").replace("'", "_").replace("-", "_")
+
+        # Éviter les doublons si l'absence a déjà été saisie manuellement dans les variables du bulletin
+        duplicate = False
+        for db_abs in absences:
+            if db_abs.code == type_code and db_abs.date_debut and db_abs.date_fin:
+                db_start = db_abs.date_debut.date() if isinstance(db_abs.date_debut, datetime) else db_abs.date_debut
+                db_end = db_abs.date_fin.date() if isinstance(db_abs.date_fin, datetime) else db_abs.date_fin
+                if db_start == overlap_start and db_end == overlap_end:
+                    duplicate = True
+                    break
+
+        if not duplicate:
+            virtual_abs = Absence(
+                contrat_id=contrat_id,
+                code=type_code,
+                date_debut=datetime.combine(overlap_start, datetime.min.time()),
+                date_fin=datetime.combine(overlap_end, datetime.min.time()),
+                nbr_heure_by_user=float(overlap_days * daily_hours),
+                nbr_jour_by_user=float(overlap_days),
+                mois=mois,
+                annee=str(annee)
+            )
+            absences.append(virtual_abs)
 
     heures_sup = db.query(HeureSupplementaire).filter(
         HeureSupplementaire.contrat_id == contrat_id,

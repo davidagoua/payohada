@@ -1,6 +1,8 @@
 import os
 import shutil
 import uuid
+import logging
+from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
 from sqlalchemy.orm import Session
 from typing import List
@@ -9,7 +11,7 @@ from app.database import get_db
 from app.models.models import (
     Utilisateur, EntretienEvaluation, VisiteMedicale, SuiviFormation,
     SalarieAbsence, PretSalarie, SalarieContratInfo, SalarieService,
-    ArchivageDocument
+    ArchivageDocument, Contrat, BulletinPaie
 )
 from app.schemas.salarie_hr import (
     EntretienEvaluationCreate, EntretienEvaluationUpdate, EntretienEvaluationOut,
@@ -23,6 +25,10 @@ from app.schemas.salarie_hr import (
 )
 from app.services.security import get_current_user
 from app.routers.salaries import check_salarie_ownership
+from app.services.payroll import calculate_payslip
+
+logger = logging.getLogger(__name__)
+
 
 router = APIRouter(prefix="/salaries", tags=["Salariés RH"])
 
@@ -252,6 +258,45 @@ def get_absences_hr(
     return db.query(SalarieAbsence).filter(SalarieAbsence.salarie_id == salarie_id).all()
 
 
+def auto_recalculate_payslips(db: Session, salarie_id: int, start_date: date, end_date: date):
+    """Recherche et recalcule automatiquement les bulletins de paie brouillons chevauchant l'absence."""
+    contracts = db.query(Contrat).filter(Contrat.salarie_id == salarie_id).all()
+    contract_ids = [c.id for c in contracts]
+    if not contract_ids:
+        return
+        
+    # Déterminer la liste des mois et années concernés par l'absence
+    months = []
+    current = start_date
+    while current <= end_date:
+        months.append((current.month, current.year))
+        if current.month == 12:
+            current = date(current.year + 1, 1, 1)
+        else:
+            current = date(current.year, current.month + 1, 1)
+            
+    for c_id in contract_ids:
+        for m, y in months:
+            bulletin = db.query(BulletinPaie).filter(
+                BulletinPaie.contrat_id == c_id,
+                BulletinPaie.mois == m,
+                BulletinPaie.annee == y
+            ).first()
+            if bulletin and bulletin.statut != "valide":
+                try:
+                    # Préserver l'acompte
+                    from app.models.models import LigneBulletinPaie
+                    acompte_line = db.query(LigneBulletinPaie).filter(
+                        LigneBulletinPaie.bulletin_id == bulletin.id,
+                        LigneBulletinPaie.code == "ACOMPTE"
+                    ).first()
+                    acompte_val = acompte_line.montant_cs if acompte_line else 0.0
+                    
+                    calculate_payslip(db, contrat_id=c_id, mois=m, annee=y, acompte=acompte_val)
+                except Exception as e:
+                    logger.error(f"Erreur lors du recalcul automatique du bulletin pour le contrat {c_id}, période {m}/{y}: {e}")
+
+
 @router.post("/{salarie_id}/absences-hr", response_model=SalarieAbsenceOut)
 def create_absence_hr(
     salarie_id: int,
@@ -264,6 +309,7 @@ def create_absence_hr(
     db.add(db_item)
     db.commit()
     db.refresh(db_item)
+    auto_recalculate_payslips(db, salarie_id, db_item.date_debut_absence, db_item.date_fin_absence)
     return db_item
 
 
@@ -278,10 +324,19 @@ def update_absence_hr(
     if not db_item:
         raise HTTPException(status_code=404, detail="Absence introuvable.")
     check_salarie_ownership(db_item.salarie_id, current_user.id, db)
+    
+    old_start = db_item.date_debut_absence
+    old_end = db_item.date_fin_absence
+    salarie_id = db_item.salarie_id
+
     for field, value in absence_in.model_dump(exclude_unset=True).items():
         setattr(db_item, field, value)
     db.commit()
     db.refresh(db_item)
+    
+    # Recalculer pour l'ancienne et la nouvelle période
+    auto_recalculate_payslips(db, salarie_id, old_start, old_end)
+    auto_recalculate_payslips(db, salarie_id, db_item.date_debut_absence, db_item.date_fin_absence)
     return db_item
 
 
@@ -295,8 +350,15 @@ def delete_absence_hr(
     if not db_item:
         raise HTTPException(status_code=404, detail="Absence introuvable.")
     check_salarie_ownership(db_item.salarie_id, current_user.id, db)
+    
+    salarie_id = db_item.salarie_id
+    old_start = db_item.date_debut_absence
+    old_end = db_item.date_fin_absence
+    
     db.delete(db_item)
     db.commit()
+    
+    auto_recalculate_payslips(db, salarie_id, old_start, old_end)
     return None
 
 

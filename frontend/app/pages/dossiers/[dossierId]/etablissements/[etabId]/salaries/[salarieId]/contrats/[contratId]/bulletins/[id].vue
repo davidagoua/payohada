@@ -120,8 +120,45 @@ const activeOptions = ref([])
 const fetchVariables = async () => {
   if (!bulletin.value) return
   try {
-    const absList = await get(`/contrats/${contratId}/absences`)
-    activeAbsences.value = (absList || []).filter(a => a.mois === Number(bulletin.value.mois) && String(a.annee) === String(bulletin.value.annee))
+    const [absList, hrAbsList] = await Promise.all([
+      get(`/contrats/${contratId}/absences`),
+      get(`/salaries/${salarieId}/absences-hr`)
+    ])
+
+    const year = Number(bulletin.value.annee)
+    const month = Number(bulletin.value.mois)
+    const monthStart = new Date(year, month - 1, 1)
+    const monthEnd = new Date(year, month, 0)
+
+    const mappedHrAbs = (hrAbsList || []).filter(a => {
+      const start = new Date(a.date_debut_absence)
+      const end = new Date(a.date_fin_absence)
+      return start <= monthEnd && end >= monthStart
+    }).map(a => {
+      const start = new Date(a.date_debut_absence)
+      const end = new Date(a.date_fin_absence)
+      const overlapStart = new Date(Math.max(start, monthStart))
+      const overlapEnd = new Date(Math.min(end, monthEnd))
+      const overlapDays = Math.round((overlapEnd - overlapStart) / (1000 * 60 * 60 * 24)) + 1
+      
+      let dailyHours = 7.0
+      if (contrat.value?.horaires?.horaire_hebdo) {
+        dailyHours = contrat.value.horaires.horaire_hebdo / 5.0
+      }
+      
+      return {
+        id: a.id,
+        code: a.type_absence,
+        nbr_jour_by_user: overlapDays,
+        nbr_heure_by_user: overlapDays * dailyHours,
+        date_debut: a.date_debut_absence,
+        date_fin: a.date_fin_absence,
+        is_hr: true
+      }
+    })
+
+    const contractAbs = (absList || []).filter(a => a.mois === Number(bulletin.value.mois) && String(a.annee) === String(bulletin.value.annee))
+    activeAbsences.value = [...contractAbs, ...mappedHrAbs]
     
     const hsList = await get(`/contrats/${contratId}/heures-supplementaires`)
     activeHs.value = (hsList || []).filter(h => h.mois === Number(bulletin.value.mois) && String(h.annee) === String(bulletin.value.annee))
@@ -1105,10 +1142,11 @@ onMounted(() => {
               <div>
                 <span class="font-bold text-slate-800 uppercase">{{ a.code }}</span>
                 <span class="block text-[10px] text-slate-500 font-mono">
-                  {{ a.nbr_jour_by_user }} j ({{ a.nbr_heure_by_user }} h)
+                  {{ a.nbr_jour_by_user }} j ({{ a.nbr_heure_by_user ? a.nbr_heure_by_user.toFixed(1) : '0' }} h)
+                  <span v-if="a.is_hr" class="ml-1 px-1 bg-blue-100 text-blue-700 font-bold uppercase text-[8px] rounded">Fiche Salarié</span>
                 </span>
               </div>
-              <button @click="handleDeleteAbsence(a.id)" class="text-red-650 hover:text-red-750 p-1 cursor-pointer">
+              <button v-if="!a.is_hr" @click="handleDeleteAbsence(a.id)" class="text-red-650 hover:text-red-750 p-1 cursor-pointer">
                 <UIcon name="i-lucide-trash-2" class="w-4 h-4" />
               </button>
             </div>
