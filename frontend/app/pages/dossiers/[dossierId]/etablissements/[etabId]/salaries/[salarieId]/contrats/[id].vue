@@ -29,6 +29,31 @@ const editSursalaire = ref(0.0)
 const editIndemniteTransport = ref(0.0)
 const editDotationTelephonique = ref(0.0)
 
+// Departure & STC State
+const departSalarie = ref(null)
+const soldeToutCompte = ref(null)
+const showDepartModal = ref(false)
+
+const departDateSortie = ref('')
+const departMotifSortie = ref(10)
+const departDernierJourTravaille = ref('')
+const departMaintienAffiliation = ref(false)
+const departCommentaire = ref('')
+
+const editIndemniteLicenciement = ref(0.0)
+const editIndemniteCongesPayes = ref(0.0)
+const editIndemnitePreavis = ref(0.0)
+const editIndemniteAutre = ref(0.0)
+const editStcCommentaire = ref('')
+const savingStc = ref(false)
+
+const totalStc = computed(() => {
+  return (Number(editIndemniteCongesPayes.value) || 0) +
+         (Number(editIndemniteLicenciement.value) || 0) +
+         (Number(editIndemnitePreavis.value) || 0) +
+         (Number(editIndemniteAutre.value) || 0)
+})
+
 const currentEtab = ref(null)
 const postes = ref([])
 const editPosteSalaireId = ref(null)
@@ -120,6 +145,9 @@ const fetchContratDetails = async () => {
     const bList = await get(`/dossiers/${dossierId}/bulletins`, { query: { contrat_id: contratId } })
     bulletins.value = bList || []
 
+    // Fetch departure info
+    await fetchDepartInfo()
+
   } catch (e) {
     console.error(e)
     router.push(`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}`)
@@ -205,6 +233,124 @@ const handleDeleteContrat = async () => {
   } catch (e) {
     console.error(e)
   }
+}
+
+const fetchDepartInfo = async () => {
+  try {
+    const dep = await get(`/contrats/${contratId}/depart`)
+    departSalarie.value = dep
+    if (dep) {
+      departDateSortie.value = dep.date_sortie || ''
+      departMotifSortie.value = dep.motif_sortie || 10
+      departDernierJourTravaille.value = dep.dernier_jour_travaille || ''
+      departMaintienAffiliation.value = dep.maintien_affiliation || false
+      departCommentaire.value = dep.commentaire || ''
+
+      const stcData = await get(`/contrats/${contratId}/solde-tout-compte`)
+      soldeToutCompte.value = stcData
+      if (stcData) {
+        editIndemniteLicenciement.value = stcData.indemnite_licenciement || 0.0
+        editIndemniteCongesPayes.value = stcData.indemnite_conges_payes || 0.0
+        editIndemnitePreavis.value = stcData.indemnite_preavis || 0.0
+        editIndemniteAutre.value = stcData.indemnite_autre || 0.0
+        editStcCommentaire.value = stcData.commentaire || ''
+      }
+    } else {
+      soldeToutCompte.value = null
+    }
+  } catch (e) {
+    console.error("Error fetching departure info:", e)
+  }
+}
+
+const handleDeclareDepart = async () => {
+  if (!departDateSortie.value) {
+    toast.add({
+      title: 'Validation',
+      description: 'La date de sortie est obligatoire.',
+      color: 'warning'
+    })
+    return
+  }
+  try {
+    const payload = {
+      date_sortie: departDateSortie.value,
+      motif_sortie: Number(departMotifSortie.value),
+      dernier_jour_travaille: departDernierJourTravaille.value || null,
+      maintien_affiliation: departMaintienAffiliation.value,
+      commentaire: departCommentaire.value || null
+    }
+    const res = await post(`/contrats/${contratId}/depart`, payload)
+    if (res) {
+      toast.add({
+        title: 'Départ enregistré',
+        description: 'Le départ du salarié a été enregistré avec succès.',
+        color: 'success'
+      })
+      showDepartModal.value = false
+      await fetchContratDetails()
+    }
+  } catch (e) {
+    console.error("Error declaring departure:", e)
+  }
+}
+
+const handleCancelDepart = async () => {
+  if (!confirm('Êtes-vous sûr de vouloir annuler le départ de ce salarié ? Cela réactivera le contrat et supprimera le Solde de Tout Compte.')) return
+  try {
+    await apiDelete(`/contrats/${contratId}/depart`)
+    toast.add({
+      title: 'Départ annulé',
+      description: 'Le départ a été annulé et le contrat est repassé à l\'état actif.',
+      color: 'success'
+    })
+    departSalarie.value = null
+    soldeToutCompte.value = null
+    await fetchContratDetails()
+  } catch (e) {
+    console.error("Error cancelling departure:", e)
+  }
+}
+
+const handleSaveStc = async () => {
+  savingStc.value = true
+  try {
+    const payload = {
+      indemnite_licenciement: Number(editIndemniteLicenciement.value) || 0.0,
+      indemnite_conges_payes: Number(editIndemniteCongesPayes.value) || 0.0,
+      indemnite_preavis: Number(editIndemnitePreavis.value) || 0.0,
+      indemnite_autre: Number(editIndemniteAutre.value) || 0.0,
+      commentaire: editStcCommentaire.value || null,
+      statut: soldeToutCompte.value ? soldeToutCompte.value.statut : 'genere'
+    }
+    const res = await put(`/contrats/${contratId}/solde-tout-compte`, payload)
+    if (res) {
+      toast.add({
+        title: 'Solde Tout Compte mis à jour',
+        description: 'Les montants du Solde de Tout Compte ont été enregistrés.',
+        color: 'success'
+      })
+      await fetchContratDetails()
+    }
+  } catch (e) {
+    console.error("Error saving STC:", e)
+  } finally {
+    savingStc.value = false
+  }
+}
+
+const getMotifLabel = (code) => {
+  const motifs = {
+    10: 'Démission',
+    20: 'Licenciement',
+    30: 'Rupture conventionnelle',
+    40: 'Fin de CDD',
+    50: 'Retraite',
+    60: 'Décès',
+    70: 'Force majeure',
+    99: 'Autre motif'
+  }
+  return motifs[code] || 'Non spécifié'
 }
 
 onMounted(() => {
@@ -517,6 +663,137 @@ onMounted(() => {
             </div>
           </div>
         </div>
+
+        <!-- Départ Salarié & Solde Tout Compte -->
+        <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
+          <h3 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">Départ & Solde Tout Compte</h3>
+          
+          <div v-if="!departSalarie" class="space-y-4">
+            <p class="text-xs text-slate-500 italic">
+              Aucun départ n'a été enregistré pour ce salarié.
+            </p>
+            <button 
+              type="button"
+              @click="showDepartModal = true"
+              class="w-full px-4 py-2 bg-red-650 hover:bg-red-700 text-white font-semibold rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+            >
+              <UIcon name="i-lucide-log-out" class="w-4 h-4" />
+              Déclarer la sortie du salarié
+            </button>
+          </div>
+
+          <div v-else class="space-y-6">
+            <!-- Summary -->
+            <div class="bg-red-50/50 border border-red-200 rounded-lg p-3 space-y-2 text-xs text-slate-700">
+              <div class="flex justify-between items-center">
+                <span class="font-bold uppercase tracking-wider text-[10px] text-red-700">Sortie enregistrée</span>
+                <span class="bg-red-100 text-red-800 text-[9px] font-bold px-1.5 py-0.5 rounded uppercase">
+                  {{ getMotifLabel(departSalarie.motif_sortie) }}
+                </span>
+              </div>
+              <div class="space-y-1">
+                <p><strong>Date de sortie :</strong> {{ departSalarie.date_sortie }}</p>
+                <p v-if="departSalarie.dernier_jour_travaille"><strong>Dernier jour travaillé :</strong> {{ departSalarie.dernier_jour_travaille }}</p>
+                <p><strong>Maintien affiliation prévoyance :</strong> {{ departSalarie.maintien_affiliation ? 'Oui' : 'Non' }}</p>
+              </div>
+            </div>
+
+            <!-- STC Form -->
+            <div v-if="soldeToutCompte" class="space-y-3 pt-2 border-t border-slate-100">
+              <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wide">Indemnités de rupture (FCFA)</h4>
+              
+              <div class="space-y-2">
+                <div>
+                  <label class="block text-[10px] font-semibold text-slate-500 uppercase">Indemnité Congés Payés (brute)</label>
+                  <input v-model="editIndemniteCongesPayes" type="number" step="0.01" class="mt-1 block w-full px-2 py-1 border border-slate-350 rounded-lg text-xs font-mono bg-white focus:outline-none focus:ring-1 focus:ring-green-500" />
+                </div>
+                <div>
+                  <label class="block text-[10px] font-semibold text-slate-500 uppercase">Indemnité Licenciement / Rupture</label>
+                  <input v-model="editIndemniteLicenciement" type="number" step="0.01" class="mt-1 block w-full px-2 py-1 border border-slate-350 rounded-lg text-xs font-mono bg-white focus:outline-none focus:ring-1 focus:ring-green-500" />
+                </div>
+                <div>
+                  <label class="block text-[10px] font-semibold text-slate-500 uppercase">Indemnité de Préavis</label>
+                  <input v-model="editIndemnitePreavis" type="number" step="0.01" class="mt-1 block w-full px-2 py-1 border border-slate-350 rounded-lg text-xs font-mono bg-white focus:outline-none focus:ring-1 focus:ring-green-500" />
+                </div>
+                <div>
+                  <label class="block text-[10px] font-semibold text-slate-500 uppercase">Autre Indemnité</label>
+                  <input v-model="editIndemniteAutre" type="number" step="0.01" class="mt-1 block w-full px-2 py-1 border border-slate-350 rounded-lg text-xs font-mono bg-white focus:outline-none focus:ring-1 focus:ring-green-500" />
+                </div>
+                <div class="bg-slate-50 border border-slate-200 rounded-lg p-2 flex justify-between items-center text-xs font-bold text-slate-900 font-mono">
+                  <span>TOTAL STC :</span>
+                  <span class="text-green-700 text-sm">{{ totalStc.toLocaleString('fr-FR') }} FCFA</span>
+                </div>
+                <div>
+                  <label class="block text-[10px] font-semibold text-slate-500 uppercase">Notes / Commentaires</label>
+                  <textarea v-model="editStcCommentaire" rows="2" class="mt-1 block w-full px-2 py-1 border border-slate-350 rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-green-500"></textarea>
+                </div>
+              </div>
+
+              <button 
+                type="button"
+                @click="handleSaveStc"
+                :disabled="savingStc"
+                class="w-full px-3 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+              >
+                <UIcon name="i-lucide-save" class="w-4 h-4" />
+                Mettre à jour le STC
+              </button>
+            </div>
+
+            <!-- Exit Documents print links -->
+            <div class="space-y-2 pt-4 border-t border-slate-100">
+              <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wide">Documents de sortie</h4>
+              
+              <div class="grid grid-cols-1 gap-2">
+                <a 
+                  :href="`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}/contrats/${contratId}/depart/print-stc`" 
+                  target="_blank"
+                  class="px-3 py-2 border border-slate-250 hover:bg-slate-50 text-slate-700 font-semibold rounded-lg text-xs transition-colors flex items-center justify-between"
+                >
+                  <span class="flex items-center gap-1.5">
+                    <UIcon name="i-lucide-printer" class="w-4 h-4 text-green-600" />
+                    Reçu pour Solde de Tout Compte
+                  </span>
+                  <UIcon name="i-lucide-external-link" class="w-3.5 h-3.5 text-slate-400" />
+                </a>
+
+                <a 
+                  :href="`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}/contrats/${contratId}/depart/print-certificat`" 
+                  target="_blank"
+                  class="px-3 py-2 border border-slate-250 hover:bg-slate-50 text-slate-700 font-semibold rounded-lg text-xs transition-colors flex items-center justify-between"
+                >
+                  <span class="flex items-center gap-1.5">
+                    <UIcon name="i-lucide-file-text" class="w-4 h-4 text-green-600" />
+                    Certificat de travail
+                  </span>
+                  <UIcon name="i-lucide-external-link" class="w-3.5 h-3.5 text-slate-400" />
+                </a>
+
+                <a 
+                  :href="`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}/contrats/${contratId}/depart/print-attestation`" 
+                  target="_blank"
+                  class="px-3 py-2 border border-slate-250 hover:bg-slate-50 text-slate-700 font-semibold rounded-lg text-xs transition-colors flex items-center justify-between"
+                >
+                  <span class="flex items-center gap-1.5">
+                    <UIcon name="i-lucide-file-signature" class="w-4 h-4 text-green-600" />
+                    Attestation de travail
+                  </span>
+                  <UIcon name="i-lucide-external-link" class="w-3.5 h-3.5 text-slate-400" />
+                </a>
+              </div>
+            </div>
+
+            <!-- Cancel -->
+            <button 
+              type="button"
+              @click="handleCancelDepart"
+              class="w-full px-3 py-1.5 border border-red-200 text-red-650 hover:bg-red-50 font-semibold rounded-lg text-xs transition-colors flex items-center justify-center gap-1"
+            >
+              <UIcon name="i-lucide-x-circle" class="w-4 h-4" />
+              Annuler la déclaration de sortie
+            </button>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -562,6 +839,62 @@ onMounted(() => {
             <button type="submit" :disabled="calcLoading" class="px-4 py-2 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white rounded-lg shadow transition-colors flex items-center gap-1.5">
               <UIcon v-if="calcLoading" name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
               Lancer le calcul
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <!-- Modal Déclarer Départ Salarié -->
+    <div v-if="showDepartModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+      <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xl w-full max-w-md space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+          <h3 class="text-lg font-bold text-slate-900">Déclarer le départ du salarié</h3>
+          <button @click="showDepartModal = false" class="text-slate-400 hover:text-slate-600">
+            <UIcon name="i-lucide-x" class="w-5 h-5" />
+          </button>
+        </div>
+
+        <form @submit.prevent="handleDeclareDepart" class="space-y-4">
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Date de sortie</label>
+            <input v-model="departDateSortie" type="date" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Motif de la sortie</label>
+            <select v-model="departMotifSortie" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select">
+              <option :value="10">Démission</option>
+              <option :value="20">Licenciement</option>
+              <option :value="30">Rupture conventionnelle</option>
+              <option :value="40">Fin de CDD</option>
+              <option :value="50">Retraite</option>
+              <option :value="60">Décès</option>
+              <option :value="70">Force majeure</option>
+              <option :value="99">Autre motif</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Dernier jour travaillé (Optionnel)</label>
+            <input v-model="departDernierJourTravaille" type="date" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+          </div>
+
+          <div class="flex items-center space-x-2 pt-1">
+            <input v-model="departMaintienAffiliation" type="checkbox" id="maintien_aff" class="w-4 h-4 text-green-600 border-slate-300 rounded focus:ring-green-500" />
+            <label for="maintien_aff" class="text-xs text-slate-650">Maintien de l'affiliation prévoyance / santé</label>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Commentaire / Motif détaillé</label>
+            <textarea v-model="departCommentaire" rows="2" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" placeholder="Ex: rupture d'un commun accord..."></textarea>
+          </div>
+
+          <div class="flex justify-end space-x-3 pt-3 border-t border-slate-100">
+            <button type="button" @click="showDepartModal = false" class="px-4 py-2 border border-slate-200 text-sm font-semibold rounded-lg hover:bg-slate-50 text-slate-700 transition-colors">
+              Annuler
+            </button>
+            <button type="submit" class="px-4 py-2 text-sm font-semibold bg-red-650 hover:bg-red-700 text-white rounded-lg shadow transition-colors flex items-center gap-1.5">
+              Déclarer le départ
             </button>
           </div>
         </form>

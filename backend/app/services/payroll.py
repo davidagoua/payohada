@@ -5,7 +5,7 @@ from datetime import datetime
 from app.models.models import (
     Contrat, BulletinPaie, LigneBulletinPaie, VariableBulletin,
     Absence, HeureSupplementaire, Prime, Option, CaisseCotisation, Etablissement, Constante, Salarie, PretSalarie,
-    SalarieAbsence
+    SalarieAbsence, DepartSalarie, SoldeToutCompte
 )
 
 from typing import Optional
@@ -692,6 +692,54 @@ def calculate_payslip(db: Session, contrat_id: int, mois: int, annee: int, acomp
     # 2. Récupération ou création du bulletin de paie
     bulletin = _get_or_create_bulletin(db, contrat_id, contrat.dossier_id, mois, annee)
 
+    # Récupérer les informations de Solde Tout Compte
+    stc = db.query(SoldeToutCompte).filter(SoldeToutCompte.contrat_id == contrat_id).first()
+    depart = db.query(DepartSalarie).filter(DepartSalarie.contrat_id == contrat_id).first()
+    
+    stc_gross_conges = 0.0
+    stc_net_gains = 0.0
+    stc_lines_to_add = []
+    
+    if stc and depart and depart.date_sortie:
+        try:
+            exit_date = datetime.strptime(depart.date_sortie[:10], "%Y-%m-%d")
+            if exit_date.year == annee and exit_date.month == mois:
+                if stc.indemnite_conges_payes and stc.indemnite_conges_payes > 0:
+                    stc_gross_conges = stc.indemnite_conges_payes
+                    
+                if stc.indemnite_licenciement and stc.indemnite_licenciement > 0:
+                    stc_net_gains += stc.indemnite_licenciement
+                    stc_lines_to_add.append(
+                        LigneBulletinPaie(
+                            bulletin_id=bulletin.id,
+                            code="INDEMNITE_LICENCIEMENT",
+                            libelle="Indemnité de licenciement / rupture",
+                            montant_pr=round(stc.indemnite_licenciement, 2)
+                        )
+                    )
+                if stc.indemnite_preavis and stc.indemnite_preavis > 0:
+                    stc_net_gains += stc.indemnite_preavis
+                    stc_lines_to_add.append(
+                        LigneBulletinPaie(
+                            bulletin_id=bulletin.id,
+                            code="INDEMNITE_PREAVIS",
+                            libelle="Indemnité compensatrice de préavis",
+                            montant_pr=round(stc.indemnite_preavis, 2)
+                        )
+                    )
+                if stc.indemnite_autre and stc.indemnite_autre > 0:
+                    stc_net_gains += stc.indemnite_autre
+                    stc_lines_to_add.append(
+                        LigneBulletinPaie(
+                            bulletin_id=bulletin.id,
+                            code="INDEMNITE_AUTRE",
+                            libelle="Autre indemnité de rupture / départ",
+                            montant_pr=round(stc.indemnite_autre, 2)
+                        )
+                    )
+        except Exception as e:
+            logger.error(f"Error parsing date_sortie for STC calculation: {e}")
+
     # Résolution net -> brut si mode_calcul == "net"
     override_val = None
     target_net = contrat.salaire_mensuel if contrat.type_salaire == "Mensuel" else contrat.salaire_horaire
@@ -707,6 +755,9 @@ def calculate_payslip(db: Session, contrat_id: int, mois: int, annee: int, acomp
                 db, bulletin.id, contrat, etab, salarie,
                 absences, heures_sup, primes, options, acompte, mid
             )
+            # Add conges payes to target comparison if it's there
+            if stc_gross_conges > 0:
+                net += stc_gross_conges * 0.8  # approximate net part of ICP
             if abs(net - target_net) < 0.1:
                 override_val = mid
                 break
@@ -722,6 +773,18 @@ def calculate_payslip(db: Session, contrat_id: int, mois: int, annee: int, acomp
         bulletin.id, contrat, absences, heures_sup, primes, options,
         override_salary_value=override_val
     )
+    
+    # Intégrer l'indemnité compensatrice de congés payés au brut (soumise à cotisations)
+    if stc_gross_conges > 0:
+        lignes_brut.append(
+            LigneBulletinPaie(
+                bulletin_id=bulletin.id,
+                code="INDEMNITE_CONGES_PAYES",
+                libelle="Indemnité compensatrice de congés payés",
+                montant_pr=round(stc_gross_conges, 2)
+            )
+        )
+        salaire_brut += stc_gross_conges
 
     # 4. Calcul des cotisations sociales et taxes
     lignes_cotisations, cot_salariales, cot_patronales = _calculate_cnps_cotisations(db, bulletin.id, etab, contrat, salarie, salaire_brut)
@@ -825,6 +888,9 @@ def calculate_payslip(db: Session, contrat_id: int, mois: int, annee: int, acomp
                     )
                 )
 
+    # 5.6 Ajouter les indemnités de rupture exonérées du STC
+    lignes_sup.extend(stc_lines_to_add)
+
     # 6. Calcul des totaux nets et imposables
     net_a_payer = (
         salaire_brut
@@ -835,6 +901,7 @@ def calculate_payslip(db: Session, contrat_id: int, mois: int, annee: int, acomp
         + telephone_montant
         + options_gains_net
         - options_deductions_net
+        + stc_net_gains
     )
     net_imposable = salaire_brut - (min(salaire_brut, 3375000) * 0.063) # basic net imposable (brut - retraite)
     
