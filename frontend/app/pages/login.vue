@@ -112,10 +112,14 @@ onMounted(() => {
 
     <div class="sm:mx-auto sm:w-full sm:max-w-md text-center">
       <!-- Logo payohada -->
-      <div class="inline-flex w-12 h-12 rounded-xl bg-green-600 items-center justify-center text-white font-bold text-2xl shadow-sm mb-4">
-        P
+      <div class="flex justify-center mb-6">
+        <img 
+          src="/payohada-logo.png" 
+          alt="payohada" 
+          class="h-12 sm:h-14 w-auto object-contain drop-shadow-sm" 
+        />
       </div>
-      <h2 class="text-3xl font-extrabold text-slate-900">
+      <h2 class="text-2xl sm:text-3xl font-extrabold text-slate-900">
         {{ isRegister ? "Créer un compte" : "Connexion à payohada" }}
       </h2>
       <p class="mt-2 text-sm text-slate-600">
