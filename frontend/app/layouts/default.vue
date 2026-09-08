@@ -138,15 +138,14 @@ const handleLogout = async () => {
           
           <!-- Left: Logo & Breadcrumbs -->
           <div class="flex items-center space-x-6">
-            <NuxtLink to="/dossiers" class="flex items-center space-x-2 shrink-0">
-              <!-- Corporate Square Logo -->
-              <div class="w-8 h-8 bg-green-600 flex items-center justify-center text-white font-black text-lg border border-green-700 shadow-flat">
-                P
-              </div>
-              <span class="text-xl font-bold tracking-tight text-slate-900 uppercase">
-                payohada
-              </span>
-              <span v-if="contextName" class="text-[9px] px-2 py-0.5 bg-slate-100 text-slate-600 font-bold border border-slate-350 tracking-wider uppercase">
+            <NuxtLink to="/dossiers" class="flex items-center space-x-3 shrink-0 group">
+              <!-- Official Payohada Logo -->
+              <img 
+                src="/payohada-logo.png" 
+                alt="payohada" 
+                class="h-8 w-auto object-contain transition-transform group-hover:scale-105" 
+              />
+              <span v-if="contextName" class="text-[9px] px-2 py-0.5 bg-slate-100 text-slate-600 font-bold border border-slate-350 tracking-wider uppercase ml-1">
                 {{ contextName }}
               </span>
             </NuxtLink>

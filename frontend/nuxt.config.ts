@@ -4,6 +4,16 @@ export default defineNuxtConfig({
   nitro: {
     preset: "bun",
   },
+  app: {
+    head: {
+      title: 'payohada — Logiciel de Paie SAP-Style',
+      link: [
+        { rel: 'icon', type: 'image/png', href: '/payohada-icon.png' },
+        { rel: 'apple-touch-icon', href: '/payohada-icon.png' }
+      ]
+    }
+  },
+
   modules: [
     '@nuxt/eslint',
     '@nuxt/ui',
