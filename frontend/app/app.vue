@@ -34,5 +34,6 @@ useHead({
     <NuxtLayout v-else>
       <NuxtPage />
     </NuxtLayout>
+    <AppChatbot v-if="initialized" />
   </UApp>
 </template>
