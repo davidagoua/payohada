@@ -20,16 +20,19 @@ router = APIRouter(tags=["Contrats"])
 
 
 def check_contrat_ownership(contrat_id: int, user_id: int, db: Session) -> Contrat:
-    contrat = db.query(Contrat).join(Dossier).filter(
-        Contrat.id == contrat_id,
-        Dossier.utilisateur_id == user_id
-    ).first()
+    user = db.query(Utilisateur).filter(Utilisateur.id == user_id).first()
+    contrat = db.query(Contrat).join(Dossier).filter(Contrat.id == contrat_id).first()
     if not contrat:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Contrat introuvable ou accès refusé."
         )
-    return contrat
+    if user and (user.is_admin or (user.role == "client" and user.dossier_id == contrat.dossier_id) or (user.role == "cabinet" and contrat.dossier.utilisateur_id == user_id) or (user.role == "salarie" and user.salarie_id == contrat.salarie_id)):
+        return contrat
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Accès non autorisé à ce contrat."
+    )
 
 
 @router.get("/salaries/{salarie_id}/contrats", response_model=List[ContratOut])

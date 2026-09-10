@@ -48,17 +48,19 @@ router = APIRouter(tags=["Import/Export Excel"])
 # ──────────────────────────────────────────────────────────────
 
 def _check_dossier(dossier_id: int, user_id: int, db: Session) -> Dossier:
-    dossier = (
-        db.query(Dossier)
-        .filter(Dossier.id == dossier_id, Dossier.utilisateur_id == user_id)
-        .first()
-    )
+    user = db.query(Utilisateur).filter(Utilisateur.id == user_id).first()
+    dossier = db.query(Dossier).filter(Dossier.id == dossier_id).first()
     if not dossier:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Dossier introuvable ou accès refusé.",
+            detail="Dossier introuvable.",
         )
-    return dossier
+    if user and (user.is_admin or (user.role == "client" and user.dossier_id == dossier_id) or (user.role == "cabinet" and dossier.utilisateur_id == user_id)):
+        return dossier
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Accès non autorisé à ce dossier.",
+    )
 
 
 def _get_salaries_actifs(dossier_id: int, db: Session):

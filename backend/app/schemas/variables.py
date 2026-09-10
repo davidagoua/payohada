@@ -159,3 +159,50 @@ class VariableOut(VariableBase):
 
     class Config:
         from_attributes = True
+
+
+# ─────────────────────────────────────────
+#  SCHÉMAS PÉRIODE DE PAIE & SAISIE COLLECTIVE
+# ─────────────────────────────────────────
+
+class PeriodePaieOut(BaseModel):
+    id: Optional[int] = None
+    dossier_id: int
+    mois: int
+    annee: str
+    statut: str = "saisie_en_cours" # "saisie_en_cours", "transmis", "calcule", "valide"
+    date_transmission: Optional[datetime] = None
+    notes_client: Optional[str] = None
+    notes_cabinet: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
+class PeriodePaieTransmettre(BaseModel):
+    notes: Optional[str] = None
+
+
+class SalarieVariableRowOut(BaseModel):
+    salarie_id: int
+    matricule: str
+    nom: str
+    prenom: str
+    contrat_id: int
+    intitule_poste: Optional[str] = None
+    salaire_base: Optional[float] = 0.0
+    heures_supplementaires: list = []
+    absences: list = []
+    primes: list = []
+    options: list = []
+    has_bulletin: bool = False
+    bulletin_id: Optional[int] = None
+    bulletin_statut: Optional[str] = None
+    net_a_payer: Optional[float] = None
+
+
+class SalarieVariableBulkItem(BaseModel):
+    contrat_id: int
+    heures_supp: list[dict] = [] # [{"code": "HS15", "nombre": 4}]
+    absences: list[dict] = [] # [{"code": "CP", "date_debut": "...", "date_fin": "...", "nbr_jour_by_user": 2}]
+    primes: list[dict] = [] # [{"code": "PRIME_RENDEMENT", "montant": 25000, "libelle": "Prime"}]
