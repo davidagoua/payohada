@@ -15,26 +15,35 @@ router = APIRouter(tags=["Etablissements"])
 
 
 def check_dossier_ownership(dossier_id: int, user_id: int, db: Session) -> Dossier:
-    dossier = db.query(Dossier).filter(Dossier.id == dossier_id, Dossier.utilisateur_id == user_id).first()
+    user = db.query(Utilisateur).filter(Utilisateur.id == user_id).first()
+    dossier = db.query(Dossier).filter(Dossier.id == dossier_id).first()
     if not dossier:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Dossier introuvable ou accès refusé."
         )
-    return dossier
+    if user and (user.is_admin or (user.role == "client" and user.dossier_id == dossier_id) or (user.role == "cabinet" and dossier.utilisateur_id == user_id)):
+        return dossier
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Accès refusé à ce dossier."
+    )
 
 
 def check_etablissement_ownership(etablissement_id: int, user_id: int, db: Session) -> Etablissement:
-    etab = db.query(Etablissement).join(Dossier).filter(
-        Etablissement.id == etablissement_id,
-        Dossier.utilisateur_id == user_id
-    ).first()
+    user = db.query(Utilisateur).filter(Utilisateur.id == user_id).first()
+    etab = db.query(Etablissement).join(Dossier).filter(Etablissement.id == etablissement_id).first()
     if not etab:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Établissement introuvable ou accès refusé."
         )
-    return etab
+    if user and (user.is_admin or (user.role == "client" and user.dossier_id == etab.dossier_id) or (user.role == "cabinet" and etab.dossier.utilisateur_id == user_id)):
+        return etab
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Accès refusé à cet établissement."
+    )
 
 
 # ─────────────────────────────────────────

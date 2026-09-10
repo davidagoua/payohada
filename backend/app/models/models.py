@@ -62,11 +62,50 @@ class Utilisateur(TimestampMixin, Base):
     supabase_uid = Column(String(255), unique=True, nullable=False, index=True)
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
+    role = Column(String(20), default="cabinet", nullable=False) # "cabinet", "client", "salarie"
+    dossier_id = Column(Integer, ForeignKey("dossiers.id", ondelete="SET NULL"), nullable=True)
     salarie_id = Column(Integer, ForeignKey("salaries.id", ondelete="CASCADE"), nullable=True)
 
     # Relations
-    dossiers = relationship("Dossier", back_populates="proprietaire")
+    dossiers = relationship("Dossier", back_populates="proprietaire", foreign_keys="[Dossier.utilisateur_id]")
+    dossier_client = relationship("Dossier", foreign_keys=[dossier_id], backref="comptes_clients")
     salarie = relationship("Salarie", back_populates="utilisateur", uselist=False)
+
+
+
+# ─────────────────────────────────────────
+#  PÉRIODES DE PAIE & TRANSMISSION VARIABLES
+# ─────────────────────────────────────────
+
+class PeriodePaie(TimestampMixin, Base):
+    """
+    Suivi du statut de la paie pour un dossier et un mois donné :
+    - 'saisie_en_cours' : l'entreprise cliente saisit ses variables (heures sup, congés, absences, primes).
+    - 'transmis' : l'entreprise a validé et transmis sa saisie au cabinet.
+    - 'calcule' : le cabinet a calculé les bulletins pour ce mois.
+    - 'valide' : la période est validée et clôturée.
+    """
+    __tablename__ = "periodes_paie"
+
+    id = Column(Integer, primary_key=True, index=True)
+    dossier_id = Column(Integer, ForeignKey("dossiers.id", ondelete="CASCADE"), nullable=False, index=True)
+    mois = Column(Integer, nullable=False) # 1-12
+    annee = Column(String(4), nullable=False)
+    statut = Column(String(50), default="saisie_en_cours")
+    date_transmission = Column(DateTime(timezone=True), nullable=True)
+    transmis_par_id = Column(Integer, ForeignKey("utilisateurs.id", ondelete="SET NULL"), nullable=True)
+    notes_client = Column(Text, nullable=True)
+    notes_cabinet = Column(Text, nullable=True)
+
+    # Relations
+    dossier = relationship("Dossier", backref="periodes_paie")
+    transmis_par = relationship("Utilisateur", foreign_keys=[transmis_par_id])
+
+    __table_args__ = (
+        UniqueConstraint("dossier_id", "annee", "mois", name="uk_periodes_paie_dossier_periode"),
+        Index("ix_periodes_paie_dossier_periode", "dossier_id", "annee", "mois"),
+    )
+
 
 
 
@@ -121,7 +160,7 @@ class Dossier(TimestampMixin, Base):
     utilisateur_id = Column(Integer, ForeignKey("utilisateurs.id"), nullable=False)
 
     # Relations
-    proprietaire = relationship("Utilisateur", back_populates="dossiers")
+    proprietaire = relationship("Utilisateur", back_populates="dossiers", foreign_keys=[utilisateur_id])
     etablissements = relationship("Etablissement", back_populates="dossier", cascade="all, delete-orphan")
     net_entreprise = relationship("NetEntreprise", back_populates="dossier", uselist=False)
     departements = relationship("Departement", back_populates="dossier", cascade="all, delete-orphan")

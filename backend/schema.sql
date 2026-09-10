@@ -12,12 +12,16 @@ CREATE TABLE utilisateurs (
     supabase_uid VARCHAR(255) NOT NULL UNIQUE,
     is_active BOOLEAN DEFAULT TRUE,
     is_admin BOOLEAN DEFAULT FALSE,
+    role VARCHAR(20) DEFAULT 'cabinet' NOT NULL,
+    dossier_id INTEGER DEFAULT NULL,
     salarie_id INTEGER DEFAULT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 CREATE INDEX idx_utilisateurs_email ON utilisateurs (email);
 CREATE INDEX idx_utilisateurs_supabase_uid ON utilisateurs (supabase_uid);
+CREATE INDEX idx_utilisateurs_role ON utilisateurs (role);
+CREATE INDEX idx_utilisateurs_dossier ON utilisateurs (dossier_id);
 
 -- 2. Table : variables (Référentiel)
 CREATE TABLE variables (
@@ -532,8 +536,9 @@ COMMENT ON COLUMN plan_paie.est_actif IS 'Indique si le poste est actif ou non';
 COMMENT ON COLUMN plan_paie.date_creation IS 'Date de création de l''enregistrement';
 COMMENT ON COLUMN plan_paie.date_modification IS 'Date de dernière modification';
 
--- Foreign key for utilisateurs to salaries (added at end because salaries is created later)
+-- Foreign key for utilisateurs to salaries and dossiers
 ALTER TABLE utilisateurs ADD CONSTRAINT fk_utilisateurs_salarie FOREIGN KEY (salarie_id) REFERENCES salaries(id) ON DELETE CASCADE;
+ALTER TABLE utilisateurs ADD CONSTRAINT fk_utilisateurs_dossier FOREIGN KEY (dossier_id) REFERENCES dossiers(id) ON DELETE SET NULL;
 
 -- 28. Table : reclamations
 CREATE TABLE reclamations (
@@ -1029,7 +1034,20 @@ CREATE TABLE departements (
 );
 CREATE INDEX idx_departements_dossier ON departements (dossier_id);
 
-
-
-
-
+-- 38. Table : periodes_paie (Suivi des variables et transmission mensuelle par dossier)
+CREATE TABLE periodes_paie (
+    id SERIAL PRIMARY KEY,
+    dossier_id INTEGER NOT NULL REFERENCES dossiers(id) ON DELETE CASCADE,
+    mois INTEGER NOT NULL,
+    annee VARCHAR(4) NOT NULL,
+    statut VARCHAR(50) DEFAULT 'saisie_en_cours',
+    date_transmission TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    transmis_par_id INTEGER REFERENCES utilisateurs(id) ON DELETE SET NULL,
+    notes_client TEXT DEFAULT NULL,
+    notes_cabinet TEXT DEFAULT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uk_periodes_paie_dossier_periode UNIQUE (dossier_id, annee, mois)
+);
+CREATE INDEX idx_periodes_paie_dossier ON periodes_paie (dossier_id);
+CREATE INDEX idx_periodes_paie_dossier_periode ON periodes_paie (dossier_id, annee, mois);

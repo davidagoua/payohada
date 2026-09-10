@@ -13,13 +13,16 @@ def read_current_user(current_user: Utilisateur = Depends(get_current_user)):
     """
     Récupère ou synchronise le profil de l'utilisateur actuellement connecté via Supabase.
     """
-    return current_user
+    user_out = UtilisateurOut.model_validate(current_user)
+    if current_user.dossier_id and current_user.dossier_client:
+        user_out.nom_dossier = current_user.dossier_client.nom_dossier
+    return user_out
 
 
 @router.post("/login")
 def login(request: LoginRequest, db: Session = Depends(get_db)):
     """
-    Connexion pour les salariés et utilisateurs locaux via email et mot de passe.
+    Connexion pour les salariés, clients et gestionnaires via email et mot de passe.
     """
     user = db.query(Utilisateur).filter(Utilisateur.email == request.email).first()
     if not user:
@@ -47,6 +50,10 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
         data={"sub": user.supabase_uid, "email": user.email}
     )
 
+    nom_dossier = None
+    if user.dossier_id and user.dossier_client:
+        nom_dossier = user.dossier_client.nom_dossier
+
     return {
         "access_token": access_token,
         "token_type": "bearer",
@@ -56,6 +63,9 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
             "nom": user.nom,
             "prenom": user.prenom,
             "is_admin": user.is_admin,
+            "role": user.role or "cabinet",
+            "dossier_id": user.dossier_id,
+            "nom_dossier": nom_dossier,
             "salarie_id": user.salarie_id,
             "supabase_uid": user.supabase_uid
         }

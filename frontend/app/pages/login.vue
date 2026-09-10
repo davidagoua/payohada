@@ -5,7 +5,7 @@ definePageMeta({
 
 const route = useRoute()
 const router = useRouter()
-const { user, login, signup, loading } = useSupabase()
+const { user, login, signup, loading, getDefaultRedirect } = useSupabase()
 
 const isRegister = ref(route.query.register === 'true')
 const email = ref('')
@@ -21,6 +21,11 @@ watch(() => route.query.register, (val) => {
   fieldErrors.value = {}
   errorMsg.value = ''
 })
+
+const redirectToPlatform = () => {
+  const dest = getDefaultRedirect(user.value)
+  router.push(dest)
+}
 
 const handleSubmit = async () => {
   errorMsg.value = ''
@@ -55,11 +60,7 @@ const handleSubmit = async () => {
     if (error) {
       errorMsg.value = error
     } else {
-      if (user.value?.salarie_id) {
-        router.push('/salaries/bulletins')
-      } else {
-        router.push('/dossiers')
-      }
+      redirectToPlatform()
     }
   } else {
     if (!password.value) {
@@ -72,36 +73,27 @@ const handleSubmit = async () => {
     if (error) {
       errorMsg.value = error
     } else {
-      if (user.value?.salarie_id) {
-        router.push('/salaries/bulletins')
-      } else {
-        router.push('/dossiers')
-      }
+      redirectToPlatform()
     }
   }
 }
 
-const handleMockLogin = async () => {
+const quickLoginRole = async (targetEmail) => {
   errorMsg.value = ''
   fieldErrors.value = {}
-  const mockEmail = email.value || 'demo@payohada.cloud'
-  const { error } = await login(mockEmail)
-  if (!error) {
-    if (user.value?.salarie_id) {
-      router.push('/salaries/bulletins')
-    } else {
-      router.push('/dossiers')
-    }
+  email.value = targetEmail
+  password.value = 'Payohada@123'
+  const { error } = await login(targetEmail, 'Payohada@123')
+  if (error) {
+    // Si échec mot de passe, fallback mock
+    await login(targetEmail)
   }
+  redirectToPlatform()
 }
 
 onMounted(() => {
   if (user.value) {
-    if (user.value.salarie_id) {
-      router.push('/salaries/bulletins')
-    } else {
-      router.push('/dossiers')
-    }
+    redirectToPlatform()
   }
 })
 </script>
@@ -219,25 +211,52 @@ onMounted(() => {
           </div>
         </form>
 
-        <!-- Mock demo mode divider -->
+        <!-- 3 Plateformes Démo -->
         <div class="mt-6">
           <div class="relative">
             <div class="absolute inset-0 flex items-center">
               <div class="w-full border-t border-slate-200"></div>
             </div>
             <div class="relative flex justify-center text-xs uppercase">
-              <span class="px-2 bg-white text-slate-400 font-semibold tracking-wider">Option Locale / Démo</span>
+              <span class="px-2 bg-white text-slate-400 font-bold tracking-wider">Accès Rapide par Plateforme</span>
             </div>
           </div>
 
-          <div class="mt-6">
+          <div class="mt-4 grid grid-cols-3 gap-2">
+            <!-- Cabinet -->
             <button 
               type="button"
-              @click="handleMockLogin"
-              class="w-full flex items-center justify-center px-4 py-2.5 border border-dashed border-amber-300 rounded-lg text-sm font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 focus:outline-none transition-colors"
+              class="flex flex-col items-center justify-center p-2.5 rounded-lg border border-slate-250 bg-slate-50 hover:bg-green-50 hover:border-green-300 transition-all cursor-pointer group"
+              title="Connexion Gestionnaire / Cabinet"
+              @click="quickLoginRole('demo@payohada.cloud')"
             >
-              <UIcon name="i-lucide-shield-alert" class="w-5 h-5 mr-2 text-amber-500" />
-              Accéder en Mode Démo
+              <span class="text-base mb-1">🏢</span>
+              <span class="text-[11px] font-bold text-slate-800 group-hover:text-green-800">Cabinet</span>
+              <span class="text-[9px] text-slate-500">Multi-dossiers</span>
+            </button>
+
+            <!-- Client Entreprise -->
+            <button 
+              type="button"
+              class="flex flex-col items-center justify-center p-2.5 rounded-lg border border-slate-250 bg-slate-50 hover:bg-blue-50 hover:border-blue-300 transition-all cursor-pointer group"
+              title="Connexion Entreprise / Client (Saisie variables)"
+              @click="quickLoginRole('client.liugong@payohada.com')"
+            >
+              <span class="text-base mb-1">🏬</span>
+              <span class="text-[11px] font-bold text-slate-800 group-hover:text-blue-800">Client</span>
+              <span class="text-[9px] text-slate-500">Entreprise</span>
+            </button>
+
+            <!-- Salarié -->
+            <button 
+              type="button"
+              class="flex flex-col items-center justify-center p-2.5 rounded-lg border border-slate-250 bg-slate-50 hover:bg-purple-50 hover:border-purple-300 transition-all cursor-pointer group"
+              title="Connexion Salarié (Bulletins & Réclamations)"
+              @click="quickLoginRole('employee.test@payohada.com')"
+            >
+              <span class="text-base mb-1">👤</span>
+              <span class="text-[11px] font-bold text-slate-800 group-hover:text-purple-800">Salarié</span>
+              <span class="text-[9px] text-slate-500">Mes Bulletins</span>
             </button>
           </div>
         </div>

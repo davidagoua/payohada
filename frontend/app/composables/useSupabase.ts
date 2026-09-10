@@ -30,6 +30,9 @@ export const useSupabase = () => {
           ...user.value,
           id: profile.id,
           salarie_id: profile.salarie_id,
+          role: profile.role || (profile.salarie_id ? 'salarie' : 'cabinet'),
+          dossier_id: profile.dossier_id,
+          nom_dossier: profile.nom_dossier,
           is_admin: profile.is_admin,
           is_active: profile.is_active,
           user_metadata: {
@@ -128,7 +131,11 @@ export const useSupabase = () => {
                 first_name: response.user.prenom,
                 last_name: response.user.nom
               },
-              salarie_id: response.user.salarie_id
+              role: response.user.role || (response.user.salarie_id ? 'salarie' : 'cabinet'),
+              dossier_id: response.user.dossier_id,
+              nom_dossier: response.user.nom_dossier,
+              salarie_id: response.user.salarie_id,
+              is_admin: response.user.is_admin
             }
             isMock.value = response.access_token.startsWith("mock-")
             localStorage.setItem('mock-user', JSON.stringify(user.value))
@@ -240,6 +247,18 @@ export const useSupabase = () => {
     }
   }
 
+  const getDefaultRedirect = (targetUser?: any) => {
+    const u = targetUser || user.value
+    if (!u) return '/login'
+    if (u.role === 'salarie' || u.salarie_id) {
+      return '/salaries/bulletins'
+    }
+    if (u.role === 'client') {
+      return '/client'
+    }
+    return '/dossiers'
+  }
+
   return {
     user,
     token,
@@ -249,6 +268,7 @@ export const useSupabase = () => {
     init,
     login,
     signup,
-    logout
+    logout,
+    getDefaultRedirect
   }
 }

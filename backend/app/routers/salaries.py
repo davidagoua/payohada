@@ -14,16 +14,19 @@ router = APIRouter(tags=["Salariés"])
 
 
 def check_salarie_ownership(salarie_id: int, user_id: int, db: Session) -> Salarie:
-    salarie = db.query(Salarie).join(Etablissement).join(Dossier).filter(
-        Salarie.id == salarie_id,
-        Dossier.utilisateur_id == user_id
-    ).first()
+    user = db.query(Utilisateur).filter(Utilisateur.id == user_id).first()
+    salarie = db.query(Salarie).join(Etablissement).join(Dossier).filter(Salarie.id == salarie_id).first()
     if not salarie:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Salarié introuvable ou accès refusé."
         )
-    return salarie
+    if user and (user.is_admin or (user.role == "client" and user.dossier_id == salarie.etablissement.dossier_id) or (user.role == "cabinet" and salarie.etablissement.dossier.utilisateur_id == user_id) or (user.role == "salarie" and user.salarie_id == salarie_id)):
+        return salarie
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Accès non autorisé à ce salarié."
+    )
 
 
 @router.get("/etablissements/{etablissement_id}/salaries", response_model=List[SalarieOut])

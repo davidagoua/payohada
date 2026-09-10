@@ -6,6 +6,8 @@ class UtilisateurBase(BaseModel):
     email: EmailStr
     nom: Optional[str] = None
     prenom: Optional[str] = None
+    role: str = "cabinet" # "cabinet", "client", "salarie"
+    dossier_id: Optional[int] = None
 
 
 class UtilisateurCreate(UtilisateurBase):
@@ -18,6 +20,7 @@ class UtilisateurOut(UtilisateurBase):
     is_active: bool
     is_admin: bool
     salarie_id: Optional[int] = None
+    nom_dossier: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -31,4 +34,11 @@ class LoginRequest(BaseModel):
 class ChangePasswordRequest(BaseModel):
     old_password: str
     new_password: str
+
+
+class CompteClientCreate(BaseModel):
+    email: EmailStr
+    nom: str
+    prenom: str
+    password: Optional[str] = "Payohada@123"
 

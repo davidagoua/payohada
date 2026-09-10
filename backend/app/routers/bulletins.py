@@ -1,10 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
 
 from app.database import get_db
-from app.models.models import BulletinPaie, Contrat, Dossier, Utilisateur, Constante, Salarie, VariableRepriseDossier, PretSalarie, SalarieAbsence
+from app.models.models import BulletinPaie, Contrat, Dossier, Utilisateur, Constante, Salarie, VariableRepriseDossier, PretSalarie, SalarieAbsence, Etablissement, PeriodePaie
 from app.schemas.bulletin import (
     BulletinPaieOut, BulletinPaieCreate, SimulationInput, SimulationOut, 
     LigneSimulationOut, BulletinCumuls, BulletinCumulRow
@@ -25,23 +25,30 @@ def check_bulletin_ownership(bulletin_id: int, user_id: int, db: Session) -> Bul
             detail="Utilisateur introuvable."
         )
 
-    if user.salarie_id:
-        bulletin = db.query(BulletinPaie).join(Contrat).filter(
-            BulletinPaie.id == bulletin_id,
-            Contrat.salarie_id == user.salarie_id
-        ).first()
-    else:
-        bulletin = db.query(BulletinPaie).join(Dossier).filter(
-            BulletinPaie.id == bulletin_id,
-            Dossier.utilisateur_id == user_id
-        ).first()
-
+    bulletin = db.query(BulletinPaie).filter(BulletinPaie.id == bulletin_id).first()
     if not bulletin:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Bulletin de paie introuvable ou accès refusé."
+            detail="Bulletin de paie introuvable."
         )
-    return bulletin
+
+    if user.is_admin:
+        return bulletin
+
+    if user.salarie_id or user.role == "salarie":
+        if bulletin.contrat.salarie_id == user.salarie_id:
+            return bulletin
+    elif user.role == "client":
+        if bulletin.dossier_id == user.dossier_id:
+            return bulletin
+    elif user.role == "cabinet":
+        if bulletin.dossier.utilisateur_id == user.id:
+            return bulletin
+
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="Accès non autorisé à ce bulletin de paie."
+    )
 
 
 def compute_bulletin_cumuls(db: Session, bulletin: BulletinPaie) -> BulletinCumuls:
@@ -228,9 +235,16 @@ def get_dossier_bulletins(
             BulletinPaie.dossier_id == dossier_id,
             Contrat.salarie_id == current_user.salarie_id
         )
+    elif current_user.role == "client":
+        if current_user.dossier_id != dossier_id and not current_user.is_admin:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Accès refusé à ce dossier."
+            )
+        query = db.query(BulletinPaie).filter(BulletinPaie.dossier_id == dossier_id)
     else:
-        dossier = db.query(Dossier).filter(Dossier.id == dossier_id, Dossier.utilisateur_id == current_user.id).first()
-        if not dossier:
+        dossier = db.query(Dossier).filter(Dossier.id == dossier_id).first()
+        if not dossier or (not current_user.is_admin and dossier.utilisateur_id != current_user.id):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Dossier introuvable ou accès refusé."
@@ -258,6 +272,61 @@ def get_dossier_bulletins(
         result.append(bout)
         
     return result
+
+
+@router.post("/dossiers/{dossier_id}/bulletins/calculer-lot", response_model=List[BulletinPaieOut])
+def calculate_dossier_bulletins_lot(
+    dossier_id: int,
+    mois: int = Query(..., ge=1, le=12),
+    annee: int = Query(..., ge=2000, le=2100),
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user)
+):
+    """
+    Calcule ou recalcule en masse tous les bulletins de paie pour tous les salariés d'un dossier
+    pour la période indiquée, et met à jour le statut de la période.
+    """
+    dossier = db.query(Dossier).filter(Dossier.id == dossier_id).first()
+    if not dossier:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Dossier introuvable.")
+    if not current_user.is_admin and current_user.role == "cabinet" and dossier.utilisateur_id != current_user.id:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Accès non autorisé.")
+
+    # Récupérer tous les contrats du dossier
+    contrats = (
+        db.query(Contrat)
+        .join(Etablissement, Contrat.etablissement_id == Etablissement.id)
+        .filter(Etablissement.dossier_id == dossier_id)
+        .all()
+    )
+
+    result_bulletins = []
+    for c in contrats:
+        try:
+            bulletin = calculate_payslip(
+                db=db,
+                contrat_id=c.id,
+                mois=mois,
+                annee=annee,
+                acompte=0.0
+            )
+            bout = BulletinPaieOut.model_validate(bulletin)
+            bout.cumuls = compute_bulletin_cumuls(db, bulletin)
+            result_bulletins.append(bout)
+        except Exception as e:
+            print(f"Erreur lors du calcul pour le contrat {c.id}: {e}")
+
+    # Mettre à jour la période à "calcule"
+    periode = db.query(PeriodePaie).filter(
+        PeriodePaie.dossier_id == dossier_id,
+        PeriodePaie.annee == str(annee),
+        PeriodePaie.mois == mois
+    ).first()
+    if periode:
+        periode.statut = "calcule"
+        db.commit()
+
+    return result_bulletins
 
 
 @router.get("/salaries/me/bulletins", response_model=List[BulletinPaieOut])

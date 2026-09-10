@@ -4,6 +4,16 @@ const { get } = useApi()
 const route = useRoute()
 const isAdmin = computed(() => !!user.value?.is_admin)
 
+const isClientRoute = computed(() => route.path.startsWith('/client'))
+const isSalarieRoute = computed(() => route.path.startsWith('/salaries'))
+const userRole = computed(() => user.value?.role || (user.value?.salarie_id ? 'salarie' : 'cabinet'))
+
+const activeSpace = computed(() => {
+  if (isClientRoute.value || userRole.value === 'client') return 'client'
+  if (isSalarieRoute.value || userRole.value === 'salarie') return 'salarie'
+  return 'cabinet'
+})
+
 
 // State for active company/dossier context
 const currentDossier = useState('current-dossier', () => null)
@@ -68,13 +78,19 @@ watch(() => routeInfo.value, async (newVal) => {
 }, { immediate: true })
 
 const contextName = computed(() => {
+  if (activeSpace.value === 'client') {
+    return user.value?.nom_dossier || currentDossier.value?.nom_dossier || 'Espace Entreprise'
+  }
+  if (activeSpace.value === 'salarie') {
+    return 'Espace Salarié'
+  }
   if (currentEtablissement.value) {
     return currentEtablissement.value.raison_sociale
   }
   if (currentDossier.value) {
     return currentDossier.value.nom_dossier
   }
-  return ''
+  return 'Espace Cabinet'
 })
 
 // Reactive breadcrumbs computed from route meta or path segments
@@ -169,10 +185,35 @@ const handleLogout = async () => {
           </div>
 
           <!-- Right: Actions & Profile -->
-          <div class="flex items-center space-x-4">
+          <div class="flex items-center space-x-3">
+            <!-- Platform Switcher / Quick Preview for Cabinet / Admin users -->
+            <div v-if="userRole === 'cabinet' || isAdmin" class="hidden md:flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs font-semibold mr-1">
+              <NuxtLink 
+                to="/dossiers" 
+                class="px-2 py-1 rounded transition-all flex items-center gap-1"
+                :class="activeSpace === 'cabinet' ? 'bg-white text-green-700 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'"
+              >
+                <span>🏢</span> Cabinet
+              </NuxtLink>
+              <NuxtLink 
+                to="/client" 
+                class="px-2 py-1 rounded transition-all flex items-center gap-1"
+                :class="activeSpace === 'client' ? 'bg-white text-green-700 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'"
+              >
+                <span>🏬</span> Client
+              </NuxtLink>
+              <NuxtLink 
+                to="/salaries/bulletins" 
+                class="px-2 py-1 rounded transition-all flex items-center gap-1"
+                :class="activeSpace === 'salarie' ? 'bg-white text-green-700 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'"
+              >
+                <span>👤</span> Salarié
+              </NuxtLink>
+            </div>
+
             <div v-if="isMock" class="px-2.5 py-1 rounded bg-amber-50 border border-amber-200 text-amber-700 text-xs font-semibold flex items-center gap-1.5">
               <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-              Mode Démo (Local)
+              Mode Démo
             </div>
 
             <div v-if="user" class="flex items-center space-x-3">
@@ -218,8 +259,8 @@ const handleLogout = async () => {
       <div class="bg-slate-50/40">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-start">
           <nav class="flex items-center space-x-1 h-12">
-            <!-- If salarié -->
-            <template v-if="user?.salarie_id">
+            <!-- 1. ESPACE SALARIÉ -->
+            <template v-if="activeSpace === 'salarie'">
               <NuxtLink 
                 to="/salaries/bulletins" 
                 class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
@@ -229,7 +270,46 @@ const handleLogout = async () => {
               </NuxtLink>
             </template>
 
-            <!-- If no establishment selected -->
+            <!-- 2. ESPACE CLIENT (ENTREPRISE) -->
+            <template v-else-if="activeSpace === 'client'">
+              <NuxtLink 
+                to="/client" 
+                class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
+                exact-active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
+              >
+                Tableau de bord
+              </NuxtLink>
+              <NuxtLink 
+                to="/client/variables" 
+                class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
+                active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
+              >
+                Saisie des Variables
+              </NuxtLink>
+              <NuxtLink 
+                to="/client/bulletins" 
+                class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
+                active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
+              >
+                Bulletins de Paie
+              </NuxtLink>
+              <NuxtLink 
+                to="/client/salaries" 
+                class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
+                active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
+              >
+                Personnel
+              </NuxtLink>
+              <NuxtLink 
+                to="/client/reclamations" 
+                class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
+                active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
+              >
+                Réclamations
+              </NuxtLink>
+            </template>
+
+            <!-- 3. ESPACE CABINET -->
             <template v-else-if="!routeInfo.isEtabSelected">
               <NuxtLink 
                 to="/dossiers" 
@@ -261,6 +341,7 @@ const handleLogout = async () => {
                 Administration
               </NuxtLink>
             </template>
+
             
             <!-- If an establishment IS selected -->
             <template v-else>

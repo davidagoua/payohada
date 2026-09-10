@@ -18,6 +18,12 @@ const showDeptForm = ref(false)
 const editingDept = ref(null)
 const formDept = ref({ nom: '', code: '', description: '' })
 
+// Comptes Clients (Accès Entreprise)
+const comptesClients = ref([])
+const showClientForm = ref(false)
+const formClient = ref({ nom: '', prenom: '', email: '', password: 'Payohada@123' })
+const clientSubmitting = ref(false)
+
 const allEtabsSelected = computed({
   get: () => etablissements.value.length > 0 && selectedEtabs.value.length === etablissements.value.length,
   set: (val) => {
@@ -114,6 +120,9 @@ const fetchDossierDetails = async () => {
     // Fetch Departments
     const deptsData = await get(`/dossiers/${dossierId}/departements`)
     departements.value = deptsData || []
+
+    // Fetch Comptes Clients
+    await fetchComptesClients()
 
   } catch (e) {
     console.error(e)
@@ -254,6 +263,54 @@ const cancelDept = () => {
   formDept.value = { nom: '', code: '', description: '' }
 }
 
+// Comptes Clients Handlers
+const fetchComptesClients = async () => {
+  try {
+    const clients = await get(`/dossiers/${dossierId}/comptes-clients`)
+    comptesClients.value = clients || []
+  } catch (e) {
+    console.error('Erreur chargement comptes clients:', e)
+    comptesClients.value = []
+  }
+}
+
+const handleCreateClient = async () => {
+  if (!formClient.value.nom || !formClient.value.email) {
+    toast.add({ title: 'Champs requis', description: 'Veuillez renseigner le nom et l\'adresse email.', color: 'warning' })
+    return
+  }
+  clientSubmitting.value = true
+  try {
+    await post(`/dossiers/${dossierId}/comptes-clients`, formClient.value)
+    toast.add({
+      title: 'Accès client créé avec succès',
+      description: `L'utilisateur ${formClient.value.nom} peut maintenant se connecter à l'espace Entreprise.`,
+      color: 'success'
+    })
+    formClient.value = { nom: '', prenom: '', email: '', password: 'Payohada@123' }
+    showClientForm.value = false
+    await fetchComptesClients()
+  } catch (e) {
+    console.error(e)
+    toast.add({
+      title: 'Erreur',
+      description: e.data?.detail || 'Impossible de créer le compte client.',
+      color: 'error'
+    })
+  } finally {
+    clientSubmitting.value = false
+  }
+}
+
+const copyToClipboard = (text, label = 'Identifiant') => {
+  navigator.clipboard.writeText(text)
+  toast.add({
+    title: 'Copié',
+    description: `${label} copié dans le presse-papier.`,
+    color: 'success'
+  })
+}
+
 onMounted(() => {
   fetchDossierDetails()
 })
@@ -315,6 +372,19 @@ onMounted(() => {
           ]"
         >
           Informations Générales
+        </button>
+        <button 
+          @click="activeTab = 'comptes'"
+          :class="[
+            activeTab === 'comptes' 
+              ? 'border-emerald-600 text-emerald-700 font-bold bg-emerald-50/20' 
+              : 'border-transparent text-slate-500 hover:text-slate-750 hover:bg-slate-50',
+            'whitespace-nowrap py-4 px-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2'
+          ]"
+        >
+          <UIcon name="i-lucide-building-2" class="w-4 h-4" />
+          <span>Accès Client (Entreprise)</span>
+          <span class="px-2 py-0.5 rounded-full text-[10px] bg-slate-100 text-slate-700 font-bold">{{ comptesClients.length }}</span>
         </button>
 
       </nav>
@@ -645,6 +715,198 @@ onMounted(() => {
                 <td class="px-6 py-4 text-right space-x-2">
                   <button @click="editDept(item)" class="text-green-600 hover:text-green-800 text-xs font-semibold">Modifier</button>
                   <button @click="deleteDept(item.id)" class="text-red-600 hover:text-red-800 text-xs font-semibold">Supprimer</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 5: Accès Client Entreprise -->
+    <div v-show="activeTab === 'comptes'" class="space-y-6">
+      <div class="bg-white border-2 border-slate-200 p-6 shadow-flat border-t-4 border-t-emerald-600">
+        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-slate-100 pb-4 mb-6">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-emerald-100 text-emerald-800 uppercase tracking-wider">
+                Plateforme Entreprise
+              </span>
+              <h3 class="text-lg font-bold text-slate-900">Comptes d'accès Client pour {{ dossier.nom_dossier }}</h3>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">
+              Permettez aux responsables RH et comptables de cette entreprise de se connecter à leur portail dédié pour saisir leurs variables de paie mensuelles et consulter leurs bulletins.
+            </p>
+          </div>
+          <button 
+            v-if="!showClientForm"
+            @click="showClientForm = true"
+            class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-flat cursor-pointer rounded-lg self-start sm:self-auto"
+          >
+            <UIcon name="i-lucide-user-plus" class="w-4 h-4" />
+            Créer un compte d'accès
+          </button>
+        </div>
+
+        <!-- Banner Info -->
+        <div class="mb-6 p-4 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 flex items-start gap-3">
+          <div class="p-2 rounded-lg bg-emerald-100 text-emerald-700 shrink-0">
+            <UIcon name="i-lucide-info" class="w-5 h-5" />
+          </div>
+          <div class="text-xs text-slate-600 space-y-1">
+            <p class="font-bold text-slate-800 text-sm">Comment fonctionne l'accès client ?</p>
+            <p>
+              L'utilisateur créé aura le rôle <strong>Client Entreprise</strong> restreint à ce dossier ({{ dossier.nom_dossier }}).
+              Dès sa connexion sur la page de login, il sera automatiquement redirigé vers l'espace <code>/client</code> pour gérer les variables du mois (heures sup, congés, absences, acomptes) et transmettre le dossier au cabinet.
+            </p>
+          </div>
+        </div>
+
+        <!-- Create Client Form Modal / Section -->
+        <div v-if="showClientForm" class="bg-slate-50 p-6 rounded-xl border border-slate-200 mb-6 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+            <h4 class="font-bold text-sm text-slate-800 flex items-center gap-2">
+              <UIcon name="i-lucide-shield-check" class="w-4 h-4 text-emerald-600" />
+              Nouveau compte d'accès pour {{ dossier.nom_dossier }}
+            </h4>
+            <button @click="showClientForm = false" class="text-slate-400 hover:text-slate-600 text-sm">✕ Fermer</button>
+          </div>
+
+          <form @submit.prevent="handleCreateClient" class="space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase">Nom du responsable <span class="text-red-500">*</span></label>
+                <input 
+                  type="text" 
+                  v-model="formClient.nom" 
+                  required 
+                  class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" 
+                  placeholder="Ex: TRAORE" 
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase">Prénom</label>
+                <input 
+                  type="text" 
+                  v-model="formClient.prenom" 
+                  class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" 
+                  placeholder="Ex: Ibrahim" 
+                />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase">Adresse Email de connexion <span class="text-red-500">*</span></label>
+                <input 
+                  type="email" 
+                  v-model="formClient.email" 
+                  required 
+                  class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" 
+                  placeholder="rh@entreprise-cliente.com" 
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase">Mot de passe temporaire</label>
+                <input 
+                  type="text" 
+                  v-model="formClient.password" 
+                  class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" 
+                  placeholder="Payohada@123" 
+                />
+                <span class="text-[11px] text-slate-400">Par défaut: Payohada@123</span>
+              </div>
+            </div>
+
+            <div class="flex justify-end space-x-3 pt-2">
+              <button 
+                type="button" 
+                @click="showClientForm = false" 
+                class="px-4 py-2 border border-slate-300 text-slate-600 hover:bg-slate-100 rounded-lg text-xs font-semibold"
+              >
+                Annuler
+              </button>
+              <button 
+                type="submit" 
+                :disabled="clientSubmitting"
+                class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-sm flex items-center gap-2"
+              >
+                <UIcon v-if="clientSubmitting" name="i-lucide-loader-2" class="w-3.5 h-3.5 animate-spin" />
+                <span>{{ clientSubmitting ? 'Création en cours...' : 'Créer le compte client' }}</span>
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Comptes Clients List -->
+        <div v-if="comptesClients.length === 0 && !showClientForm" class="text-center py-12 px-4 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+          <div class="w-12 h-12 mx-auto rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
+            <UIcon name="i-lucide-users" class="w-6 h-6" />
+          </div>
+          <h4 class="text-sm font-bold text-slate-700">Aucun accès client configuré</h4>
+          <p class="text-xs text-slate-500 max-w-md mx-auto mt-1 mb-4">
+            Créez un compte pour votre client afin qu'il puisse saisir directement les heures supplémentaires, les congés et les absences de ses salariés chaque mois.
+          </p>
+          <button 
+            @click="showClientForm = true"
+            class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-sm"
+          >
+            Créer le premier compte
+          </button>
+        </div>
+
+        <div v-else-if="!showClientForm" class="overflow-x-auto border border-slate-200 rounded-xl">
+          <table class="min-w-full divide-y divide-slate-200 text-sm">
+            <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
+              <tr>
+                <th scope="col" class="px-6 py-3.5 text-left">Responsable</th>
+                <th scope="col" class="px-6 py-3.5 text-left">Email de connexion</th>
+                <th scope="col" class="px-6 py-3.5 text-left">Rôle plateforme</th>
+                <th scope="col" class="px-6 py-3.5 text-left">Statut</th>
+                <th scope="col" class="px-6 py-3.5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-150 bg-white">
+              <tr v-for="user in comptesClients" :key="user.id" class="hover:bg-slate-50">
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center">
+                      {{ (user.prenom?.[0] || '') + (user.nom?.[0] || 'C') }}
+                    </div>
+                    <div>
+                      <span class="font-bold text-slate-900 block">{{ user.prenom }} {{ user.nom }}</span>
+                      <span class="text-xs text-slate-400">ID: {{ user.id }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 font-mono text-xs text-slate-700">
+                  <div class="flex items-center gap-2">
+                    <span>{{ user.email }}</span>
+                    <button @click="copyToClipboard(user.email, 'Email')" class="text-slate-400 hover:text-slate-600" title="Copier l'email">
+                      <UIcon name="i-lucide-copy" class="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </td>
+                <td class="px-6 py-4">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <UIcon name="i-lucide-briefcase" class="w-3 h-3 mr-1 text-emerald-600" />
+                    Client Entreprise
+                  </span>
+                </td>
+                <td class="px-6 py-4">
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-50 text-green-700">
+                    <span class="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5 animate-pulse"></span>
+                    Actif
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-right space-x-2">
+                  <button 
+                    @click="copyToClipboard(user.email, 'Email')"
+                    class="text-xs font-semibold text-emerald-600 hover:text-emerald-800 inline-flex items-center gap-1"
+                  >
+                    <UIcon name="i-lucide-copy" class="w-3.5 h-3.5" />
+                    Copier email
+                  </button>
                 </td>
               </tr>
             </tbody>
