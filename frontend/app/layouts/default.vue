@@ -199,33 +199,7 @@ const handleLogout = async () => {
 
           <!-- Right: Actions & Profile -->
           <div class="flex items-center space-x-3">
-            <!-- Platform Switcher / Quick Preview for Cabinet / Admin users -->
-            <div
-              v-if="userRole === 'cabinet' || isAdmin"
-              class="hidden md:flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs font-semibold mr-1"
-            >
-              <NuxtLink
-                to="/dossiers"
-                class="px-2 py-1 rounded transition-all flex items-center gap-1"
-                :class="activeSpace === 'cabinet' ? 'bg-white text-green-700 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'"
-              >
-                <span>🏢</span> Cabinet
-              </NuxtLink>
-              <NuxtLink
-                to="/client"
-                class="px-2 py-1 rounded transition-all flex items-center gap-1"
-                :class="activeSpace === 'client' ? 'bg-white text-green-700 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'"
-              >
-                <span>🏬</span> Client
-              </NuxtLink>
-              <NuxtLink
-                to="/salaries/bulletins"
-                class="px-2 py-1 rounded transition-all flex items-center gap-1"
-                :class="activeSpace === 'salarie' ? 'bg-white text-green-700 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'"
-              >
-                <span>👤</span> Salarié
-              </NuxtLink>
-            </div>
+            
 
             <div
               v-if="user"
