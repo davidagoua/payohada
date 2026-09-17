@@ -1,5 +1,5 @@
 <script setup>
-const { user, logout, isMock } = useSupabase()
+const { user, logout } = useSupabase()
 const { get } = useApi()
 const route = useRoute()
 const isAdmin = computed(() => !!user.value?.is_admin)
@@ -211,10 +211,7 @@ const handleLogout = async () => {
               </NuxtLink>
             </div>
 
-            <div v-if="isMock" class="px-2.5 py-1 rounded bg-amber-50 border border-amber-200 text-amber-700 text-xs font-semibold flex items-center gap-1.5">
-              <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-              Mode Démo
-            </div>
+
 
             <div v-if="user" class="flex items-center space-x-3">
               <div class="text-right hidden sm:block">

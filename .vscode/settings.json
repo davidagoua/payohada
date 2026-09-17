@@ -1,0 +1,16 @@
+{
+    "sqltools.connections": [
+        {
+            "ssh": "Disabled",
+            "previewLimit": 50,
+            "server": "icoop.live",
+            "port": 5433,
+            "askForPassword": true,
+            "driver": "PostgreSQL",
+            "name": "icollect_dev",
+            "group": "icoop",
+            "database": "icollect_dev",
+            "username": "icollect"
+        }
+    ]
+}
