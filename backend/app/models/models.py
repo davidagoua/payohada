@@ -65,6 +65,10 @@ class Utilisateur(TimestampMixin, Base):
     role = Column(String(20), default="cabinet", nullable=False) # "cabinet", "client", "salarie"
     dossier_id = Column(Integer, ForeignKey("dossiers.id", ondelete="SET NULL"), nullable=True)
     salarie_id = Column(Integer, ForeignKey("salaries.id", ondelete="CASCADE"), nullable=True)
+    # Informations du cabinet (pour le rôle "cabinet")
+    cabinet_nom = Column(String(200), nullable=True)
+    cabinet_telephone = Column(String(30), nullable=True)
+    cabinet_ville = Column(String(100), nullable=True)
 
     # Relations
     dossiers = relationship("Dossier", back_populates="proprietaire", foreign_keys="[Dossier.utilisateur_id]")

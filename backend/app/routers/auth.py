@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app.schemas.utilisateur import UtilisateurOut, LoginRequest, ChangePasswordRequest
+from app.schemas.utilisateur import UtilisateurOut, LoginRequest, ChangePasswordRequest, CabinetSignupRequest
 from app.services.security import get_current_user, verify_password, get_password_hash, create_access_token
 from app.models.models import Utilisateur
 from app.database import get_db
+import uuid
 
 router = APIRouter(prefix="/auth", tags=["Authentification"])
 
@@ -67,7 +68,10 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
             "dossier_id": user.dossier_id,
             "nom_dossier": nom_dossier,
             "salarie_id": user.salarie_id,
-            "supabase_uid": user.supabase_uid
+            "supabase_uid": user.supabase_uid,
+            "cabinet_nom": user.cabinet_nom,
+            "cabinet_telephone": user.cabinet_telephone,
+            "cabinet_ville": user.cabinet_ville
         }
     }
 
@@ -105,4 +109,76 @@ def change_password(
     db.refresh(current_user)
 
     return {"message": "Mot de passe mis à jour avec succès."}
+
+
+@router.post("/signup-cabinet", status_code=status.HTTP_201_CREATED)
+def signup_cabinet(
+    request: CabinetSignupRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Inscription d'un nouveau cabinet de paie.
+    Crée un compte utilisateur avec rôle 'cabinet' et retourne un JWT
+    pour une connexion immédiate sans validation email.
+    """
+    # Vérifier que l'email n'est pas déjà utilisé
+    existing = db.query(Utilisateur).filter(Utilisateur.email == request.email).first()
+    if existing:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Cette adresse email est déjà associée à un compte."
+        )
+
+    # Validation du mot de passe
+    if len(request.password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Le mot de passe doit contenir au moins 8 caractères."
+        )
+
+    # Création du compte cabinet
+    hashed = get_password_hash(request.password)
+    uid = f"local-cabinet-{uuid.uuid4()}"
+
+    new_user = Utilisateur(
+        email=request.email,
+        nom=request.nom,
+        prenom=request.prenom,
+        hashed_password=hashed,
+        supabase_uid=uid,
+        is_active=True,
+        is_admin=False,
+        role="cabinet",
+        cabinet_nom=request.cabinet_nom,
+        cabinet_telephone=request.cabinet_telephone,
+        cabinet_ville=request.cabinet_ville,
+    )
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    # Génération du JWT pour connexion immédiate
+    access_token = create_access_token(
+        data={"sub": new_user.supabase_uid, "email": new_user.email}
+    )
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user": {
+            "id": new_user.id,
+            "email": new_user.email,
+            "nom": new_user.nom,
+            "prenom": new_user.prenom,
+            "is_admin": new_user.is_admin,
+            "role": new_user.role,
+            "dossier_id": None,
+            "nom_dossier": None,
+            "salarie_id": None,
+            "supabase_uid": new_user.supabase_uid,
+            "cabinet_nom": new_user.cabinet_nom,
+            "cabinet_telephone": new_user.cabinet_telephone,
+            "cabinet_ville": new_user.cabinet_ville,
+        }
+    }
 

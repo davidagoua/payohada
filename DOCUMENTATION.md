@@ -97,8 +97,9 @@ Le système est cloisonné en trois espaces dédiés avec contrôles d'accès st
 ##  API / Interfaces
 
 ### Authentification & Utilisateurs (`/api/v1/auth`)
-- `GET /api/v1/auth/me` : Récupère le profil de l'utilisateur connecté avec son rôle (`cabinet`, `client`, `salarie`), son `dossier_id` et son `nom_dossier`.
-- `POST /api/v1/auth/login` : Authentification locale (email + mot de passe) renvoyant le token JWT et les métadonnées de rôle.
+- `POST /api/v1/auth/signup-cabinet` : Inscription d'un nouveau cabinet d'expertise comptable / RH (nom du cabinet, contact, localisation pays OHADA, prénom/nom du gestionnaire, email et mot de passe). Crée le compte avec le rôle `cabinet` et renvoie immédiatement un token JWT pour une connexion directe.
+- `GET /api/v1/auth/me` : Récupère le profil de l'utilisateur connecté avec son rôle (`cabinet`, `client`, `salarie`), son `dossier_id`, son `nom_dossier` et les métadonnées cabinet (`cabinet_nom`, `cabinet_telephone`, `cabinet_ville`).
+- `POST /api/v1/auth/login` : Authentification locale (email + mot de passe) renvoyant le token JWT et les métadonnées de rôle et cabinet.
 - `POST /api/v1/auth/change-password` : Modification du mot de passe.
 
 ### Dossiers & Comptes Clients (`/api/v1/dossiers`)

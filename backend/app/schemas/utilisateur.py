@@ -21,6 +21,9 @@ class UtilisateurOut(UtilisateurBase):
     is_admin: bool
     salarie_id: Optional[int] = None
     nom_dossier: Optional[str] = None
+    cabinet_nom: Optional[str] = None
+    cabinet_telephone: Optional[str] = None
+    cabinet_ville: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -41,4 +44,17 @@ class CompteClientCreate(BaseModel):
     nom: str
     prenom: str
     password: Optional[str] = "Payohada@123"
+
+
+class CabinetSignupRequest(BaseModel):
+    """Données nécessaires pour la création d'un compte cabinet."""
+    # Identité du responsable
+    prenom: str
+    nom: str
+    email: EmailStr
+    password: str
+    # Informations du cabinet
+    cabinet_nom: str
+    cabinet_telephone: Optional[str] = None
+    cabinet_ville: Optional[str] = None
 
