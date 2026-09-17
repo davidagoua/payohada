@@ -18,36 +18,6 @@ def get_current_user(
     db: Session = Depends(get_db)
 ) -> Utilisateur:
     token = credentials.credentials
-    
-    # Mode développement/mock si activé et token au format "mock-email-uuid"
-    if settings.DEBUG and token.startswith("mock-"):
-        parts = token.split("-")
-        email = parts[1] if len(parts) > 1 else "test@example.com"
-        supabase_uid = parts[2] if len(parts) > 2 else "mock-uuid-12345"
-        
-        # Récupération ou création de l'utilisateur de test local
-        user = db.query(Utilisateur).filter(Utilisateur.supabase_uid == supabase_uid).first()
-        if not user:
-            # Essayer d'abord de trouver par email pour le mode démo / mock
-            user = db.query(Utilisateur).filter(Utilisateur.email == email).first()
-            if user:
-                # Associer le supabase_uid du mock au user existant pour permettre la connexion mock
-                user.supabase_uid = supabase_uid
-                db.commit()
-                db.refresh(user)
-            else:
-                user = Utilisateur(
-                    email=email,
-                    nom="Mock",
-                    prenom="User",
-                    supabase_uid=supabase_uid,
-                    is_active=True,
-                    is_admin=True
-                )
-                db.add(user)
-                db.commit()
-                db.refresh(user)
-        return user
 
     try:
         # Décodage du token Supabase (HS256 avec la clé secrète Supabase)

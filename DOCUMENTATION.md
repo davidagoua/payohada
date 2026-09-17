@@ -172,6 +172,7 @@ logiciel_paie/
 - Endpoints de gestion des variables collectives (`GET /dossiers/{id}/variables-mensuelles`) et de transmission officielle au cabinet (`POST /dossiers/{id}/periodes/{annee}/{mois}/transmettre`).
 - Endpoint de calcul groupé de tous les bulletins d'un dossier en un clic (`POST /dossiers/{id}/bulletins/calculer-lot`).
 - Interface client complète sous `/client` avec tableau de bord, saisie collective des variables (heures sup, congés, absences, primes), consultation des bulletins, annuaire du personnel et suivi des réclamations.
-- Barre de navigation adaptative dans `default.vue` avec commutateur d'espaces (Cabinet, Client, Salarié) pour les gestionnaires et administrateurs.
+- Onglet « Accès Client (Entreprise) » intégré dans la vue détaillée d'un dossier cabinet ([`[id].vue`](file:///Users/macbookpro/devspace/logiciel_paie/frontend/app/pages/dossiers/%5Bid%5D.vue)) permettant de créer et administrer les accès RH des clients.
+- Organisation incrémentale des migrations dans [`backend/schema.sql`](file:///Users/macbookpro/devspace/logiciel_paie/backend/schema.sql) à la fin du fichier, préservant l'historique et la structure des tables initiales.
 - Cartes d'accès rapide en mode démo sur `/login` pour tester immédiatement chaque plateforme avec 1 clic.
 - Mise à jour du fichier de schéma SQL central [`backend/schema.sql`](file:///Users/macbookpro/devspace/logiciel_paie/backend/schema.sql).

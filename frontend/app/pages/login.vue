@@ -78,18 +78,7 @@ const handleSubmit = async () => {
   }
 }
 
-const quickLoginRole = async (targetEmail) => {
-  errorMsg.value = ''
-  fieldErrors.value = {}
-  email.value = targetEmail
-  password.value = 'Payohada@123'
-  const { error } = await login(targetEmail, 'Payohada@123')
-  if (error) {
-    // Si échec mot de passe, fallback mock
-    await login(targetEmail)
-  }
-  redirectToPlatform()
-}
+
 
 onMounted(() => {
   if (user.value) {
@@ -189,7 +178,7 @@ onMounted(() => {
               id="password" 
               v-model="password" 
               type="password" 
-              :required="!isRegister"
+              required
               placeholder="••••••••"
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg focus:outline-none text-sm transition-colors',
@@ -211,55 +200,7 @@ onMounted(() => {
           </div>
         </form>
 
-        <!-- 3 Plateformes Démo -->
-        <div class="mt-6">
-          <div class="relative">
-            <div class="absolute inset-0 flex items-center">
-              <div class="w-full border-t border-slate-200"></div>
-            </div>
-            <div class="relative flex justify-center text-xs uppercase">
-              <span class="px-2 bg-white text-slate-400 font-bold tracking-wider">Accès Rapide par Plateforme</span>
-            </div>
-          </div>
 
-          <div class="mt-4 grid grid-cols-3 gap-2">
-            <!-- Cabinet -->
-            <button 
-              type="button"
-              class="flex flex-col items-center justify-center p-2.5 rounded-lg border border-slate-250 bg-slate-50 hover:bg-green-50 hover:border-green-300 transition-all cursor-pointer group"
-              title="Connexion Gestionnaire / Cabinet"
-              @click="quickLoginRole('demo@payohada.cloud')"
-            >
-              <span class="text-base mb-1">🏢</span>
-              <span class="text-[11px] font-bold text-slate-800 group-hover:text-green-800">Cabinet</span>
-              <span class="text-[9px] text-slate-500">Multi-dossiers</span>
-            </button>
-
-            <!-- Client Entreprise -->
-            <button 
-              type="button"
-              class="flex flex-col items-center justify-center p-2.5 rounded-lg border border-slate-250 bg-slate-50 hover:bg-blue-50 hover:border-blue-300 transition-all cursor-pointer group"
-              title="Connexion Entreprise / Client (Saisie variables)"
-              @click="quickLoginRole('client.liugong@payohada.com')"
-            >
-              <span class="text-base mb-1">🏬</span>
-              <span class="text-[11px] font-bold text-slate-800 group-hover:text-blue-800">Client</span>
-              <span class="text-[9px] text-slate-500">Entreprise</span>
-            </button>
-
-            <!-- Salarié -->
-            <button 
-              type="button"
-              class="flex flex-col items-center justify-center p-2.5 rounded-lg border border-slate-250 bg-slate-50 hover:bg-purple-50 hover:border-purple-300 transition-all cursor-pointer group"
-              title="Connexion Salarié (Bulletins & Réclamations)"
-              @click="quickLoginRole('employee.test@payohada.com')"
-            >
-              <span class="text-base mb-1">👤</span>
-              <span class="text-[11px] font-bold text-slate-800 group-hover:text-purple-800">Salarié</span>
-              <span class="text-[9px] text-slate-500">Mes Bulletins</span>
-            </button>
-          </div>
-        </div>
 
       </div>
     </div>
