@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@supabase/supabase-js'
 
 export const useSupabase = () => {
@@ -21,7 +22,7 @@ export const useSupabase = () => {
       const apiBase = config.public.apiBase || 'http://localhost:8000'
       const profile = await $fetch<any>(`${apiBase}/auth/me`, {
         headers: {
-          'Authorization': `Bearer ${accessToken}`
+          Authorization: `Bearer ${accessToken}`
         }
       })
       if (profile && user.value) {
@@ -32,6 +33,9 @@ export const useSupabase = () => {
           role: profile.role || (profile.salarie_id ? 'salarie' : 'cabinet'),
           dossier_id: profile.dossier_id,
           nom_dossier: profile.nom_dossier,
+          cabinet_nom: profile.cabinet_nom,
+          cabinet_telephone: profile.cabinet_telephone,
+          cabinet_ville: profile.cabinet_ville,
           is_admin: profile.is_admin,
           is_active: profile.is_active,
           user_metadata: {
@@ -39,6 +43,9 @@ export const useSupabase = () => {
             first_name: profile.prenom,
             last_name: profile.nom
           }
+        }
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('sb-user-cache', JSON.stringify(user.value))
         }
       }
     } catch (e) {
@@ -48,6 +55,22 @@ export const useSupabase = () => {
 
   const init = async () => {
     if (typeof window === 'undefined') return
+
+    // 1. Restaurer depuis le cache local (pour connexions directes backend)
+    try {
+      const cachedToken = localStorage.getItem('sb-token-cache')
+      const cachedUser = localStorage.getItem('sb-user-cache')
+      if (cachedToken) {
+        token.value = cachedToken
+        if (cachedUser) {
+          user.value = JSON.parse(cachedUser)
+        }
+        await fetchAndEnrichProfile(cachedToken)
+      }
+    } catch (e) {
+      console.warn('Erreur restauration session locale:', e)
+    }
+
     if (!client) {
       initialized.value = true
       return
@@ -59,6 +82,10 @@ export const useSupabase = () => {
       if (session) {
         user.value = session.user
         token.value = session.access_token
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('sb-token-cache', session.access_token)
+          localStorage.setItem('sb-user-cache', JSON.stringify(session.user))
+        }
         await fetchAndEnrichProfile(session.access_token)
       }
 
@@ -66,10 +93,18 @@ export const useSupabase = () => {
         if (session) {
           user.value = session.user
           token.value = session.access_token
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('sb-token-cache', session.access_token)
+            localStorage.setItem('sb-user-cache', JSON.stringify(session.user))
+          }
           await fetchAndEnrichProfile(session.access_token)
-        } else {
+        } else if (!token.value) {
           user.value = null
           token.value = null
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('sb-token-cache')
+            localStorage.removeItem('sb-user-cache')
+          }
         }
       })
     } catch (e) {
@@ -104,27 +139,38 @@ export const useSupabase = () => {
             dossier_id: response.user.dossier_id,
             nom_dossier: response.user.nom_dossier,
             salarie_id: response.user.salarie_id,
-            is_admin: response.user.is_admin
+            is_admin: response.user.is_admin,
+            cabinet_nom: response.user.cabinet_nom,
+            cabinet_telephone: response.user.cabinet_telephone,
+            cabinet_ville: response.user.cabinet_ville
+          }
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('sb-token-cache', response.access_token)
+            localStorage.setItem('sb-user-cache', JSON.stringify(user.value))
           }
           return { error: null }
         }
       } catch (e: any) {
-        console.warn("Backend local login failed:", e)
+        console.warn('Backend local login failed:', e)
         if (e.status === 401) {
-          return { error: "Adresse email ou mot de passe incorrect." }
+          return { error: 'Adresse email ou mot de passe incorrect.' }
         }
         // Si 404 (non trouvé), on laisse passer à Supabase
       }
 
       // 2. Supabase production
       if (!client) {
-        return { error: "Service d'authentification non disponible." }
+        return { error: 'Service d\'authentification non disponible.' }
       }
       const { data, error } = await client.auth.signInWithPassword({ email, password })
       if (error) throw error
       if (data?.session) {
         user.value = data.session.user
         token.value = data.session.access_token
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('sb-token-cache', data.session.access_token)
+          localStorage.setItem('sb-user-cache', JSON.stringify(data.session.user))
+        }
         await fetchAndEnrichProfile(data.session.access_token)
       }
       return { error: null }
@@ -135,11 +181,62 @@ export const useSupabase = () => {
     }
   }
 
+  const signupCabinet = async (formData: {
+    prenom: string
+    nom: string
+    email: string
+    password: string
+    cabinet_nom: string
+    cabinet_telephone?: string
+    cabinet_ville?: string
+  }) => {
+    loading.value = true
+    try {
+      const apiBase = config.public.apiBase || 'http://localhost:8000'
+      const response = await $fetch<any>(`${apiBase}/auth/signup-cabinet`, {
+        method: 'POST',
+        body: formData
+      })
+
+      if (response && response.access_token) {
+        token.value = response.access_token
+        user.value = {
+          id: response.user.id,
+          email: response.user.email,
+          user_metadata: {
+            first_name: response.user.prenom,
+            last_name: response.user.nom
+          },
+          role: 'cabinet',
+          dossier_id: null,
+          nom_dossier: null,
+          salarie_id: null,
+          is_admin: response.user.is_admin || false,
+          cabinet_nom: response.user.cabinet_nom,
+          cabinet_telephone: response.user.cabinet_telephone,
+          cabinet_ville: response.user.cabinet_ville
+        }
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('sb-token-cache', response.access_token)
+          localStorage.setItem('sb-user-cache', JSON.stringify(user.value))
+        }
+        return { error: null }
+      }
+      return { error: 'Une réponse inattendue a été reçue du serveur.' }
+    } catch (e: any) {
+      console.error('Erreur signup cabinet:', e)
+      const detail = e.data?.detail || e.message || 'Erreur lors de la création du compte cabinet.'
+      return { error: detail }
+    } finally {
+      loading.value = false
+    }
+  }
+
   const signup = async (email: string, password: string, metadata?: any) => {
     loading.value = true
     try {
       if (!client) {
-        return { error: "Service d'authentification non disponible." }
+        return { error: 'Service d\'authentification non disponible.' }
       }
 
       const { data, error } = await client.auth.signUp({
@@ -155,7 +252,7 @@ export const useSupabase = () => {
       }
       return { error: null }
     } catch (e: any) {
-      return { error: e.message || "Erreur d'inscription" }
+      return { error: e.message || 'Erreur d\'inscription' }
     } finally {
       loading.value = false
     }
@@ -172,6 +269,10 @@ export const useSupabase = () => {
     } finally {
       user.value = null
       token.value = null
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('sb-token-cache')
+        localStorage.removeItem('sb-user-cache')
+      }
       loading.value = false
       navigateTo('/login')
     }
@@ -197,6 +298,7 @@ export const useSupabase = () => {
     init,
     login,
     signup,
+    signupCabinet,
     logout,
     getDefaultRedirect
   }

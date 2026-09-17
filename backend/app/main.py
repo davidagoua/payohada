@@ -101,6 +101,7 @@ os.makedirs("uploads", exist_ok=True)
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 app.include_router(api_router)
+app.include_router(auth.router)
 
 app.add_middleware(
     CORSMiddleware,

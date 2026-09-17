@@ -50,6 +50,9 @@ if db_url and db_url.startswith("postgresql"):
         cur.execute("ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS salarie_id INTEGER REFERENCES salaries(id) ON DELETE CASCADE;")
         cur.execute("ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS role VARCHAR(20) DEFAULT 'cabinet';")
         cur.execute("ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS dossier_id INTEGER REFERENCES dossiers(id) ON DELETE SET NULL;")
+        cur.execute("ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS cabinet_nom VARCHAR(200) DEFAULT NULL;")
+        cur.execute("ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS cabinet_telephone VARCHAR(30) DEFAULT NULL;")
+        cur.execute("ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS cabinet_ville VARCHAR(100) DEFAULT NULL;")
         
         # Create periodes_paie table
         cur.execute("""
@@ -192,6 +195,21 @@ if sqlite_path.exists():
             cur.execute("ALTER TABLE utilisateurs ADD COLUMN dossier_id INTEGER REFERENCES dossiers(id) ON DELETE SET NULL;")
         except sqlite3.OperationalError:
             print("dossier_id column already exists or error in utilisateurs")
+
+        try:
+            cur.execute("ALTER TABLE utilisateurs ADD COLUMN cabinet_nom VARCHAR(200) DEFAULT NULL;")
+        except sqlite3.OperationalError:
+            print("cabinet_nom column already exists or error in utilisateurs")
+
+        try:
+            cur.execute("ALTER TABLE utilisateurs ADD COLUMN cabinet_telephone VARCHAR(30) DEFAULT NULL;")
+        except sqlite3.OperationalError:
+            print("cabinet_telephone column already exists or error in utilisateurs")
+
+        try:
+            cur.execute("ALTER TABLE utilisateurs ADD COLUMN cabinet_ville VARCHAR(100) DEFAULT NULL;")
+        except sqlite3.OperationalError:
+            print("cabinet_ville column already exists or error in utilisateurs")
 
         try:
             cur.execute("""

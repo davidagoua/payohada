@@ -14,7 +14,6 @@ const activeSpace = computed(() => {
   return 'cabinet'
 })
 
-
 // State for active company/dossier context
 const currentDossier = useState('current-dossier', () => null)
 const currentEtablissement = useState('current-etablissement', () => null)
@@ -24,19 +23,19 @@ const routeInfo = computed(() => {
   const segments = route.path.split('/').filter(Boolean)
   let dossierId = null
   let etabId = null
-  
+
   const dossierIdx = segments.indexOf('dossiers')
   if (dossierIdx !== -1 && segments[dossierIdx + 1] && segments[dossierIdx + 1] !== 'new') {
     dossierId = segments[dossierIdx + 1]
   }
-  
+
   const etabIdx = segments.indexOf('etablissements')
   if (etabIdx !== -1 && segments[etabIdx + 1] && segments[etabIdx + 1] !== 'new') {
     etabId = segments[etabIdx + 1]
   }
-  
+
   const isEtab = !!etabId
-  
+
   return {
     isEtabSelected: isEtab,
     dossierId,
@@ -57,7 +56,7 @@ watch(() => routeInfo.value, async (newVal) => {
     try {
       currentDossier.value = await get(`/dossiers/${newVal.dossierId}`)
     } catch (e) {
-      console.error("Error fetching dossier in layout:", e)
+      console.error('Error fetching dossier in layout:', e)
       currentDossier.value = null
     }
   }
@@ -68,7 +67,7 @@ watch(() => routeInfo.value, async (newVal) => {
       try {
         currentEtablissement.value = await get(`/etablissements/${newVal.etabId}`)
       } catch (e) {
-        console.error("Error fetching establishment in layout:", e)
+        console.error('Error fetching establishment in layout:', e)
         currentEtablissement.value = null
       }
     }
@@ -97,7 +96,7 @@ const contextName = computed(() => {
 const breadcrumbs = computed(() => {
   const paths = route.path.split('/').filter(Boolean)
   const items = [{ label: 'Accueil', to: '/dossiers', icon: 'i-lucide-home' }]
-  
+
   if (paths.length > 0) {
     if (paths[0] === 'dossiers') {
       if (paths[1] && paths[1] !== 'new') {
@@ -105,21 +104,21 @@ const breadcrumbs = computed(() => {
           label: currentDossier.value ? currentDossier.value.nom_dossier : 'Dossier',
           to: `/dossiers/${paths[1]}`
         })
-        
+
         if (paths[2] === 'etablissements' && paths[3]) {
           const isNewEtab = paths[3] === 'new'
           items.push({
             label: isNewEtab ? 'Nouvel Établissement' : 'Établissement',
             to: `/dossiers/${paths[1]}/etablissements/${paths[3]}`
           })
-          
+
           if (!isNewEtab && paths[4] === 'salaries' && paths[5]) {
             const isNewSal = paths[5] === 'new'
             items.push({
               label: isNewSal ? 'Nouvel Employé' : 'Salarié',
               to: `/dossiers/${paths[1]}/etablissements/${paths[3]}/salaries/${paths[5]}`
             })
-            
+
             if (!isNewSal && paths[6] === 'contrats' && paths[7]) {
               const isNewContrat = paths[7] === 'new'
               items.push({
@@ -147,21 +146,25 @@ const handleLogout = async () => {
 
     <!-- SAP Fiori Shell Bar -->
     <header class="bg-white border-b-2 border-slate-200 shadow-flat sticky top-0 z-50">
-      
       <!-- Top Row: Logo & Profile -->
       <div class="border-b border-slate-150">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-          
           <!-- Left: Logo & Breadcrumbs -->
           <div class="flex items-center space-x-6">
-            <NuxtLink to="/dossiers" class="flex items-center space-x-3 shrink-0 group">
+            <NuxtLink
+              to="/dossiers"
+              class="flex items-center space-x-3 shrink-0 group"
+            >
               <!-- Official Payohada Logo -->
-              <img 
-                src="/payohada-logo.png" 
-                alt="payohada" 
-                class="h-8 w-auto object-contain transition-transform group-hover:scale-105" 
-              />
-              <span v-if="contextName" class="text-[9px] px-2 py-0.5 bg-slate-100 text-slate-600 font-bold border border-slate-350 tracking-wider uppercase ml-1">
+              <img
+                src="/payohada-logo.png"
+                alt="payohada"
+                class="h-8 w-auto object-contain transition-transform group-hover:scale-105"
+              >
+              <span
+                v-if="contextName"
+                class="text-[9px] px-2 py-0.5 bg-slate-100 text-slate-600 font-bold border border-slate-350 tracking-wider uppercase ml-1"
+              >
                 {{ contextName }}
               </span>
             </NuxtLink>
@@ -170,13 +173,23 @@ const handleLogout = async () => {
             <div class="hidden md:flex items-center space-x-2 text-sm text-slate-500">
               <span class="text-slate-300">|</span>
               <div class="flex items-center space-x-2">
-                <template v-for="(item, index) in breadcrumbs" :key="index">
-                  <span v-if="index > 0" class="text-slate-300">/</span>
-                  <NuxtLink 
-                    :to="item.to" 
+                <template
+                  v-for="(item, index) in breadcrumbs"
+                  :key="index"
+                >
+                  <span
+                    v-if="index > 0"
+                    class="text-slate-300"
+                  >/</span>
+                  <NuxtLink
+                    :to="item.to"
                     class="hover:text-green-600 font-medium transition-colors duration-150 flex items-center"
                   >
-                    <UIcon v-if="item.icon" :name="item.icon" class="w-4 h-4 mr-1 text-slate-400" />
+                    <UIcon
+                      v-if="item.icon"
+                      :name="item.icon"
+                      class="w-4 h-4 mr-1 text-slate-400"
+                    />
                     {{ item.label }}
                   </NuxtLink>
                 </template>
@@ -187,23 +200,26 @@ const handleLogout = async () => {
           <!-- Right: Actions & Profile -->
           <div class="flex items-center space-x-3">
             <!-- Platform Switcher / Quick Preview for Cabinet / Admin users -->
-            <div v-if="userRole === 'cabinet' || isAdmin" class="hidden md:flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs font-semibold mr-1">
-              <NuxtLink 
-                to="/dossiers" 
+            <div
+              v-if="userRole === 'cabinet' || isAdmin"
+              class="hidden md:flex items-center bg-slate-100 p-0.5 rounded-lg border border-slate-200 text-xs font-semibold mr-1"
+            >
+              <NuxtLink
+                to="/dossiers"
                 class="px-2 py-1 rounded transition-all flex items-center gap-1"
                 :class="activeSpace === 'cabinet' ? 'bg-white text-green-700 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'"
               >
                 <span>🏢</span> Cabinet
               </NuxtLink>
-              <NuxtLink 
-                to="/client" 
+              <NuxtLink
+                to="/client"
                 class="px-2 py-1 rounded transition-all flex items-center gap-1"
                 :class="activeSpace === 'client' ? 'bg-white text-green-700 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'"
               >
                 <span>🏬</span> Client
               </NuxtLink>
-              <NuxtLink 
-                to="/salaries/bulletins" 
+              <NuxtLink
+                to="/salaries/bulletins"
                 class="px-2 py-1 rounded transition-all flex items-center gap-1"
                 :class="activeSpace === 'salarie' ? 'bg-white text-green-700 shadow-2xs font-bold' : 'text-slate-600 hover:text-slate-900'"
               >
@@ -211,14 +227,24 @@ const handleLogout = async () => {
               </NuxtLink>
             </div>
 
-
-
-            <div v-if="user" class="flex items-center space-x-3">
+            <div
+              v-if="user"
+              class="flex items-center space-x-3"
+            >
               <div class="text-right hidden sm:block">
-                <p class="text-sm font-semibold text-slate-900">
-                  {{ user.user_metadata?.first_name }} {{ user.user_metadata?.last_name }}
-                </p>
-                <p class="text-xs text-slate-500 truncate max-w-[150px]">
+                <div class="flex items-center justify-end gap-1.5">
+                  <span
+                    v-if="user.cabinet_nom"
+                    class="text-[11px] bg-emerald-50 text-emerald-700 font-semibold px-2 py-0.5 rounded-md border border-emerald-200/60 max-w-[140px] truncate"
+                    :title="user.cabinet_nom"
+                  >
+                    🏢 {{ user.cabinet_nom }}
+                  </span>
+                  <p class="text-sm font-semibold text-slate-900">
+                    {{ user.user_metadata?.first_name }} {{ user.user_metadata?.last_name }}
+                  </p>
+                </div>
+                <p class="text-xs text-slate-500 truncate max-w-[180px]">
                   {{ user.email }}
                 </p>
               </div>
@@ -238,9 +264,9 @@ const handleLogout = async () => {
                   }
                 ]]"
               >
-                <UButton 
-                  color="neutral" 
-                  variant="ghost" 
+                <UButton
+                  color="neutral"
+                  variant="ghost"
                   class="rounded-full w-9 h-9 p-0 bg-green-50 text-green-700 hover:bg-green-100 flex items-center justify-center font-bold"
                 >
                   {{ user.email?.[0].toUpperCase() }}
@@ -248,7 +274,6 @@ const handleLogout = async () => {
               </UDropdownMenu>
             </div>
           </div>
-
         </div>
       </div>
 
@@ -258,8 +283,8 @@ const handleLogout = async () => {
           <nav class="flex items-center space-x-1 h-12">
             <!-- 1. ESPACE SALARIÉ -->
             <template v-if="activeSpace === 'salarie'">
-              <NuxtLink 
-                to="/salaries/bulletins" 
+              <NuxtLink
+                to="/salaries/bulletins"
                 class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
                 active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
               >
@@ -269,36 +294,36 @@ const handleLogout = async () => {
 
             <!-- 2. ESPACE CLIENT (ENTREPRISE) -->
             <template v-else-if="activeSpace === 'client'">
-              <NuxtLink 
-                to="/client" 
+              <NuxtLink
+                to="/client"
                 class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
                 exact-active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
               >
                 Tableau de bord
               </NuxtLink>
-              <NuxtLink 
-                to="/client/variables" 
+              <NuxtLink
+                to="/client/variables"
                 class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
                 active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
               >
                 Saisie des Variables
               </NuxtLink>
-              <NuxtLink 
-                to="/client/bulletins" 
+              <NuxtLink
+                to="/client/bulletins"
                 class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
                 active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
               >
                 Bulletins de Paie
               </NuxtLink>
-              <NuxtLink 
-                to="/client/salaries" 
+              <NuxtLink
+                to="/client/salaries"
                 class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
                 active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
               >
                 Personnel
               </NuxtLink>
-              <NuxtLink 
-                to="/client/reclamations" 
+              <NuxtLink
+                to="/client/reclamations"
                 class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
                 active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
               >
@@ -308,30 +333,30 @@ const handleLogout = async () => {
 
             <!-- 3. ESPACE CABINET -->
             <template v-else-if="!routeInfo.isEtabSelected">
-              <NuxtLink 
-                to="/dossiers" 
+              <NuxtLink
+                to="/dossiers"
                 class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
                 active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
               >
                 Entreprises
               </NuxtLink>
-              <NuxtLink 
-                to="/simulation" 
+              <NuxtLink
+                to="/simulation"
                 class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
                 active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
               >
                 Simulateur de Paie
               </NuxtLink>
-              <NuxtLink 
-                to="/admin/reclamations" 
+              <NuxtLink
+                to="/admin/reclamations"
                 class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
                 active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
               >
                 Réclamations
               </NuxtLink>
-              <NuxtLink 
+              <NuxtLink
                 v-if="isAdmin"
-                to="/admin" 
+                to="/admin"
                 class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
                 active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
               >
@@ -339,12 +364,10 @@ const handleLogout = async () => {
               </NuxtLink>
             </template>
 
-            
             <!-- If an establishment IS selected -->
             <template v-else>
-              
-              <NuxtLink 
-                :to="`/dossiers/${routeInfo.dossierId}/etablissements/${routeInfo.etabId}?tab=sals`" 
+              <NuxtLink
+                :to="`/dossiers/${routeInfo.dossierId}/etablissements/${routeInfo.etabId}?tab=sals`"
                 class="px-4 py-3.5 border-b-2 text-xs font-bold uppercase tracking-wider transition-all"
                 :class="[
                   (!route.query.tab || route.query.tab === 'sals')
@@ -354,8 +377,8 @@ const handleLogout = async () => {
               >
                 Salariés
               </NuxtLink>
-              <NuxtLink 
-                :to="`/dossiers/${routeInfo.dossierId}/etablissements/${routeInfo.etabId}?tab=contrats`" 
+              <NuxtLink
+                :to="`/dossiers/${routeInfo.dossierId}/etablissements/${routeInfo.etabId}?tab=contrats`"
                 class="px-4 py-3.5 border-b-2 text-xs font-bold uppercase tracking-wider transition-all"
                 :class="[
                   route.query.tab === 'contrats'
@@ -365,8 +388,8 @@ const handleLogout = async () => {
               >
                 Contrats
               </NuxtLink>
-              <NuxtLink 
-                :to="`/dossiers/${routeInfo.dossierId}/etablissements/${routeInfo.etabId}?tab=bulletins`" 
+              <NuxtLink
+                :to="`/dossiers/${routeInfo.dossierId}/etablissements/${routeInfo.etabId}?tab=bulletins`"
                 class="px-4 py-3.5 border-b-2 text-xs font-bold uppercase tracking-wider transition-all"
                 :class="[
                   route.query.tab === 'bulletins'
@@ -376,8 +399,8 @@ const handleLogout = async () => {
               >
                 Bulletins de Salaire
               </NuxtLink>
-              <NuxtLink 
-                :to="`/dossiers/${routeInfo.dossierId}/etablissements/${routeInfo.etabId}?tab=infos`" 
+              <NuxtLink
+                :to="`/dossiers/${routeInfo.dossierId}/etablissements/${routeInfo.etabId}?tab=infos`"
                 class="px-4 py-3.5 border-b-2 text-xs font-bold uppercase tracking-wider transition-all"
                 :class="[
                   route.query.tab === 'infos'
@@ -391,7 +414,6 @@ const handleLogout = async () => {
           </nav>
         </div>
       </div>
-
     </header>
 
     <!-- Main Workspace Container -->

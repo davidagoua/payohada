@@ -1036,7 +1036,10 @@ CREATE INDEX idx_departements_dossier ON departements (dossier_id);
 -- 1. Extension de la table utilisateurs pour le multi-rôle et l'affectation entreprise
 ALTER TABLE utilisateurs 
     ADD COLUMN IF NOT EXISTS role VARCHAR(20) DEFAULT 'cabinet' NOT NULL,
-    ADD COLUMN IF NOT EXISTS dossier_id INTEGER DEFAULT NULL;
+    ADD COLUMN IF NOT EXISTS dossier_id INTEGER DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS cabinet_nom VARCHAR(200) DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS cabinet_telephone VARCHAR(30) DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS cabinet_ville VARCHAR(100) DEFAULT NULL;
 
 -- Clé étrangère vers le dossier d'entreprise client
 ALTER TABLE utilisateurs 
