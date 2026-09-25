@@ -1,8 +1,16 @@
 <script setup>
 const { user, logout } = useSupabase()
+const { openModal: openPasswordModal, checkAndSuggest: checkPasswordSuggestion } = useChangePasswordModal()
 const { get } = useApi()
 const route = useRoute()
 const isAdmin = computed(() => !!user.value?.is_admin)
+
+// Suggestion automatique du modal de mot de passe par défaut pour client / salarié
+watch(() => user.value, (u) => {
+  if (u) {
+    checkPasswordSuggestion(u)
+  }
+}, { immediate: true })
 
 const isClientRoute = computed(() => route.path.startsWith('/client'))
 const isSalarieRoute = computed(() => route.path.startsWith('/salaries'))
@@ -199,7 +207,13 @@ const handleLogout = async () => {
 
           <!-- Right: Actions & Profile -->
           <div class="flex items-center space-x-3">
-            
+            <span
+                v-if="user.cabinet_nom"
+                class="text-[11px] bg-emerald-50 text-emerald-700 font-semibold px-2 py-0.5 rounded-md border border-emerald-200/60 max-w-[140px] truncate"
+                :title="user.cabinet_nom"
+              >
+                🏢 {{ user.cabinet_nom }}
+            </span>
 
             <div
               v-if="user"
@@ -207,13 +221,7 @@ const handleLogout = async () => {
             >
               <div class="text-right hidden sm:block">
                 <div class="flex items-center justify-end gap-1.5">
-                  <span
-                    v-if="user.cabinet_nom"
-                    class="text-[11px] bg-emerald-50 text-emerald-700 font-semibold px-2 py-0.5 rounded-md border border-emerald-200/60 max-w-[140px] truncate"
-                    :title="user.cabinet_nom"
-                  >
-                    🏢 {{ user.cabinet_nom }}
-                  </span>
+                  
                   <p class="text-sm font-semibold text-slate-900">
                     {{ user.user_metadata?.first_name }} {{ user.user_metadata?.last_name }}
                   </p>
@@ -229,6 +237,11 @@ const handleLogout = async () => {
                   {
                     label: 'Mon Profil',
                     icon: 'i-lucide-user'
+                  },
+                  {
+                    label: 'Modifier le mot de passe',
+                    icon: 'i-lucide-key',
+                    onSelect: openPasswordModal
                   },
                   {
                     label: 'Se déconnecter',

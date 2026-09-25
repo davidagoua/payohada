@@ -99,6 +99,7 @@ def sync_salarie_user(salarie: Salarie, db: Session):
             prenom=salarie.prenom,
             supabase_uid=supabase_uid,
             salarie_id=salarie.id,
+            role="salarie",
             is_active=True,
             is_admin=False
         )

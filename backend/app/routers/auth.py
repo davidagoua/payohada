@@ -9,6 +9,12 @@ import uuid
 router = APIRouter(prefix="/auth", tags=["Authentification"])
 
 
+def check_is_default_password(user: Utilisateur) -> bool:
+    if not user.hashed_password:
+        return True
+    return verify_password("Payohada@123", user.hashed_password)
+
+
 @router.get("/me", response_model=UtilisateurOut)
 def read_current_user(current_user: Utilisateur = Depends(get_current_user)):
     """
@@ -17,6 +23,7 @@ def read_current_user(current_user: Utilisateur = Depends(get_current_user)):
     user_out = UtilisateurOut.model_validate(current_user)
     if current_user.dossier_id and current_user.dossier_client:
         user_out.nom_dossier = current_user.dossier_client.nom_dossier
+    user_out.is_default_password = check_is_default_password(current_user)
     return user_out
 
 
@@ -55,6 +62,8 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
     if user.dossier_id and user.dossier_client:
         nom_dossier = user.dossier_client.nom_dossier
 
+    is_default = check_is_default_password(user)
+
     return {
         "access_token": access_token,
         "token_type": "bearer",
@@ -71,7 +80,8 @@ def login(request: LoginRequest, db: Session = Depends(get_db)):
             "supabase_uid": user.supabase_uid,
             "cabinet_nom": user.cabinet_nom,
             "cabinet_telephone": user.cabinet_telephone,
-            "cabinet_ville": user.cabinet_ville
+            "cabinet_ville": user.cabinet_ville,
+            "is_default_password": is_default
         }
     }
 
@@ -104,11 +114,20 @@ def change_password(
             detail="Le nouveau mot de passe doit faire au moins 6 caractères."
         )
 
+    if request.new_password == "Payohada@123":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Le nouveau mot de passe doit être différent du mot de passe par défaut."
+        )
+
     current_user.hashed_password = get_password_hash(request.new_password)
     db.commit()
     db.refresh(current_user)
 
-    return {"message": "Mot de passe mis à jour avec succès."}
+    return {
+        "message": "Mot de passe mis à jour avec succès.",
+        "is_default_password": False
+    }
 
 
 @router.post("/signup-cabinet", status_code=status.HTTP_201_CREATED)

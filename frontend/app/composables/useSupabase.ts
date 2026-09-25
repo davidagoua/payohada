@@ -38,6 +38,7 @@ export const useSupabase = () => {
           cabinet_ville: profile.cabinet_ville,
           is_admin: profile.is_admin,
           is_active: profile.is_active,
+          is_default_password: !!profile.is_default_password,
           user_metadata: {
             ...user.value.user_metadata,
             first_name: profile.prenom,
@@ -142,7 +143,8 @@ export const useSupabase = () => {
             is_admin: response.user.is_admin,
             cabinet_nom: response.user.cabinet_nom,
             cabinet_telephone: response.user.cabinet_telephone,
-            cabinet_ville: response.user.cabinet_ville
+            cabinet_ville: response.user.cabinet_ville,
+            is_default_password: !!response.user.is_default_password
           }
           if (typeof window !== 'undefined') {
             localStorage.setItem('sb-token-cache', response.access_token)
@@ -278,6 +280,50 @@ export const useSupabase = () => {
     }
   }
 
+  const changePassword = async (oldPassword: string, newPassword: string) => {
+    loading.value = true
+    try {
+      const apiBase = config.public.apiBase || 'http://localhost:8000'
+      const headers: Record<string, string> = {}
+      if (token.value) {
+        headers.Authorization = `Bearer ${token.value}`
+      }
+      const response = await $fetch<any>(`${apiBase}/auth/change-password`, {
+        method: 'POST',
+        headers,
+        body: {
+          old_password: oldPassword,
+          new_password: newPassword
+        }
+      })
+
+      if (client) {
+        try {
+          await client.auth.updateUser({ password: newPassword })
+        } catch (err) {
+          console.warn('Supabase updateUser password notice:', err)
+        }
+      }
+
+      if (user.value) {
+        user.value = {
+          ...user.value,
+          is_default_password: false
+        }
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('sb-user-cache', JSON.stringify(user.value))
+        }
+      }
+
+      return { error: null, message: response?.message || 'Mot de passe mis à jour avec succès.' }
+    } catch (e: any) {
+      const detail = e.data?.detail || e.message || 'Erreur lors de la modification du mot de passe.'
+      return { error: detail }
+    } finally {
+      loading.value = false
+    }
+  }
+
   const getDefaultRedirect = (targetUser?: any) => {
     const u = targetUser || user.value
     if (!u) return '/login'
@@ -300,6 +346,7 @@ export const useSupabase = () => {
     signup,
     signupCabinet,
     logout,
+    changePassword,
     getDefaultRedirect
   }
 }
