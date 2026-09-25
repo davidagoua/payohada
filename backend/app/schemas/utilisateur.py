@@ -24,6 +24,7 @@ class UtilisateurOut(UtilisateurBase):
     cabinet_nom: Optional[str] = None
     cabinet_telephone: Optional[str] = None
     cabinet_ville: Optional[str] = None
+    is_default_password: Optional[bool] = False
 
     class Config:
         from_attributes = True
