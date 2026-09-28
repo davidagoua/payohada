@@ -177,3 +177,7 @@ logiciel_paie/
 - Organisation incrémentale des migrations dans [`backend/schema.sql`](file:///Users/macbookpro/devspace/logiciel_paie/backend/schema.sql) à la fin du fichier, préservant l'historique et la structure des tables initiales.
 - Cartes d'accès rapide en mode démo sur `/login` pour tester immédiatement chaque plateforme avec 1 clic.
 - Mise à jour du fichier de schéma SQL central [`backend/schema.sql`](file:///Users/macbookpro/devspace/logiciel_paie/backend/schema.sql).
+
+#### Fixed
+- Ajout de la dépendance `psycopg[binary]>=3.1.0` dans [`backend/requirements.txt`](file:///Users/macbookpro/devspace/logiciel_paie/backend/requirements.txt) pour corriger l'erreur `ModuleNotFoundError: No module named 'psycopg'` lors de l'utilisation d'URLs `postgresql+psycopg://`.
+- Normalisation automatique des schémas d'URL PostgreSQL (`postgres://` vers `postgresql://`) et compatibilité duale `psycopg` / `psycopg2` dans [`backend/app/database.py`](file:///Users/macbookpro/devspace/logiciel_paie/backend/app/database.py), [`backend/alembic/env.py`](file:///Users/macbookpro/devspace/logiciel_paie/backend/alembic/env.py) et [`backend/alter_db.py`](file:///Users/macbookpro/devspace/logiciel_paie/backend/alter_db.py).
