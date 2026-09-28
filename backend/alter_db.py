@@ -14,10 +14,17 @@ if env_path.exists():
 print("DATABASE_URL:", db_url)
 
 # 1. Update PostgreSQL
-if db_url and db_url.startswith("postgresql"):
+if db_url and (db_url.startswith("postgresql") or db_url.startswith("postgres")):
     try:
-        import psycopg2
-        conn = psycopg2.connect(db_url)
+        clean_url = db_url.replace("postgresql+psycopg://", "postgresql://").replace("postgresql+psycopg2://", "postgresql://")
+        if clean_url.startswith("postgres://"):
+            clean_url = clean_url.replace("postgres://", "postgresql://", 1)
+        try:
+            import psycopg2
+            conn = psycopg2.connect(clean_url)
+        except ImportError:
+            import psycopg
+            conn = psycopg.connect(clean_url)
         cur = conn.cursor()
         
         # Add expatrie to salaries
