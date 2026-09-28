@@ -124,6 +124,6 @@ from fastapi.responses import HTMLResponse
 import os
 
 
-app.
+
 app.frontend("/api/documentation", directory="./frontend")
 
