@@ -2,7 +2,6 @@ from fastapi import FastAPI, APIRouter, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from mcp.server.fastmcp import FastMCP
 from app.config import settings
 from app.routers import auth, dossiers, etablissements, salaries, contrats, variables, bulletins, constantes, plan_paie, reclamations, secteurs, salaries_hr, departements, import_export_excel
 from app.database import Base, engine, SessionLocal
@@ -43,11 +42,6 @@ app = FastAPI(
 )
 
 
-
-mcp = FastMCP(
-    "mcp",
-    dependencies=["fastapi"]
-)
 
 
 @app.exception_handler(IntegrityError)
@@ -124,6 +118,6 @@ from fastapi.responses import HTMLResponse
 import os
 
 
-
+os.makedirs("uploads", exist_ok=True)
 app.frontend("/api/documentation", directory="./frontend")
 
