@@ -57,6 +57,42 @@ class AuthentificationTests(unittest.TestCase):
         })
         self.assertEqual(r.status_code, 401)
 
+    def test_login_insensible_a_la_casse_de_l_email(self):
+        """Un compte enregistré en majuscules doit pouvoir se connecter."""
+        make_user(self.db, "Utilisateur.Majuscules@Exemple.CI", role="cabinet")
+
+        r = client.post(f"{API}/auth/login", json={
+            "email": "utilisateur.majuscules@exemple.ci", "password": DEFAULT_PASSWORD,
+        })
+        self.assertEqual(r.status_code, 200, r.text)
+
+    def test_echec_de_connexion_journalise_le_motif(self):
+        """Le 401 reste générique côté client mais la cause est journalisée.
+
+        Sans cette trace, un exploitant ne peut pas distinguer un mot de passe
+        erroné d'un compte resté sans mot de passe (ancienne backdoor).
+        """
+        make_user(self.db, "sans-mdp-log@exemple.ci", role="client", password="")
+
+        with self.assertLogs("app.routers.auth", level="WARNING") as journal:
+            r = client.post(f"{API}/auth/login", json={
+                "email": "sans-mdp-log@exemple.ci", "password": "Payohada@123",
+            })
+
+        self.assertEqual(r.status_code, 401)
+        self.assertNotIn("Payohada@123", r.text)
+        trace = "\n".join(journal.output)
+        self.assertIn("aucun mot de passe défini", trace)
+        self.assertIn("set_password.py", trace)
+
+    def test_echec_de_connexion_mot_de_passe_incorrect_journalise(self):
+        with self.assertLogs("app.routers.auth", level="WARNING") as journal:
+            r = client.post(f"{API}/auth/login", json={
+                "email": "cabinet@exemple.ci", "password": "mauvais-mot-de-passe",
+            })
+        self.assertEqual(r.status_code, 401)
+        self.assertIn("mot de passe incorrect", "\n".join(journal.output))
+
     def test_compte_a_mot_de_passe_genere_refuse_le_mot_de_passe_partage(self):
         """Un compte créé par le cabinet n'a plus de mot de passe connu d'avance."""
         user = make_user(

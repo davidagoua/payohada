@@ -1,4 +1,7 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Request, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app.schemas.utilisateur import (
@@ -15,7 +18,22 @@ import uuid
 
 router = APIRouter(prefix="/auth", tags=["Authentification"])
 
+logger = logging.getLogger(__name__)
+
 INVALID_CREDENTIALS = "Adresse email ou mot de passe incorrect."
+
+
+def _find_user_by_email(db: Session, email: str) -> Utilisateur | None:
+    """Recherche un compte par email, sans tenir compte de la casse.
+
+    Les emails sont stockés tels qu'ils ont été saisis : comparer directement
+    ferait échouer la connexion d'un compte enregistré en majuscules.
+    """
+    return (
+        db.query(Utilisateur)
+        .filter(func.lower(Utilisateur.email) == email.strip().lower())
+        .first()
+    )
 
 
 def _build_user_payload(user: Utilisateur, nom_dossier: str | None = None) -> dict:
@@ -58,10 +76,29 @@ def login(request: LoginRequest, http_request: Request, db: Session = Depends(ge
     ip_rate_limiter.check(f"login:ip:{source}")
     compte_rate_limiter.check(f"login:email:{email}")
 
-    user = db.query(Utilisateur).filter(Utilisateur.email == email).first()
+    user = _find_user_by_email(db, email)
 
-    # Message unique pour ne pas permettre l'énumération des comptes.
-    if not user or not user.hashed_password or not verify_password(request.password, user.hashed_password):
+    # Le message renvoyé est volontairement unique (pas d'énumération des
+    # comptes), mais la cause exacte est journalisée côté serveur pour que
+    # l'exploitant puisse diagnostiquer un 401 sans exposer d'information.
+    if not user:
+        logger.warning("Connexion refusée : aucun compte pour %s", email)
+        motif = None
+    elif not user.hashed_password:
+        logger.warning(
+            "Connexion refusée : le compte %s n'a aucun mot de passe défini "
+            "(ancien compte créé avec la backdoor « Payohada@123 »). "
+            "Définissez-en un : python set_password.py --email %s --password '<secret>'",
+            email, user.email,
+        )
+        motif = None
+    elif not verify_password(request.password, user.hashed_password):
+        logger.warning("Connexion refusée : mot de passe incorrect pour %s", email)
+        motif = None
+    else:
+        motif = user
+
+    if motif is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail=INVALID_CREDENTIALS,
@@ -135,7 +172,7 @@ def signup_cabinet(
     ip_rate_limiter.check(f"signup:ip:{client_ip(http_request)}")
 
     email = (request.email or "").strip().lower()
-    existing = db.query(Utilisateur).filter(Utilisateur.email == email).first()
+    existing = _find_user_by_email(db, email)
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

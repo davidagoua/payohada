@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 from typing import List
 
@@ -203,7 +204,11 @@ def create_compte_client(
         )
 
     email = (request.email or "").strip().lower()
-    existing = db.query(Utilisateur).filter(Utilisateur.email == email).first()
+    existing = (
+        db.query(Utilisateur)
+        .filter(func.lower(Utilisateur.email) == email)
+        .first()
+    )
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

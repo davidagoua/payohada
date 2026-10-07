@@ -60,16 +60,36 @@ doivent être repris explicitement.** Le cas est réel — la base actuelle cont
 notamment un compte `cabinet` **administrateur** sans mot de passe, qui était
 donc entièrement compromis.
 
-```bash
-cd backend
-# Réinitialise le mot de passe ET accorde les droits d'administration
-python create_admin.py --email <email_du_compte> \
-    --password '<mot-de-passe-solide-de-12-caracteres-minimum>' --promouvoir
+**Symptôme** : `POST /api/v1/auth/login` répond `401` alors que le mot de passe
+semble correct — c'était l'ancien mot de passe par défaut. La cause exacte est
+désormais écrite dans les logs du serveur, par exemple :
+
+```
+WARNING app.routers.auth: Connexion refusée : le compte x@y.ci n'a aucun mot de
+passe défini (ancien compte créé avec la backdoor « Payohada@123 »).
+Définissez-en un : python set_password.py --email x@y.ci --password '<secret>'
 ```
 
-Pour un simple compte client ou salarié, recréer le compte via l'API
-(`POST /api/v1/dossiers/{id}/comptes-clients`) : un mot de passe aléatoire est
-généré et affiché une seule fois.
+**Diagnostic** (lecture seule, aucune modification) :
+
+```bash
+cd backend
+python set_password.py --lister
+```
+
+**Reprise** — définir un mot de passe sans changer le rôle ni recréer le compte
+(donc sans perdre l'historique rattaché) :
+
+```bash
+# Compte client ou salarié (8 caractères minimum)
+python set_password.py --email <email> --password '<secret-solide>'
+
+# Compte administrateur : 12 caractères minimum exigés
+python set_password.py --email <email> --password '<secret-solide>' --promouvoir
+```
+
+`create_admin.py` reste disponible pour créer un administrateur **supplémentaire**
+(et non pour reprendre un compte existant).
 
 ### 1.3 Purger l'historique Git
 
