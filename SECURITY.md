@@ -119,6 +119,13 @@ activer la protection de branche et l'analyse `gitleaks` (déjà câblée dans
   (`must_change_password`).
 - **Anti brute-force** : 10 tentatives / 5 minutes par IP et par compte
   (`app/services/rate_limit.py`).
+- **Mot de passe oublié** : jeton aléatoire de 256 bits transmis par email,
+  stocké **uniquement sous forme de condensat SHA-256**, à usage unique et valable
+  30 minutes (`PASSWORD_RESET_EXPIRE_MINUTES`). La réponse est identique que
+  l'adresse existe ou non (pas d'énumération), un échec d'envoi n'est pas révélé
+  au client, une nouvelle demande invalide le lien précédent, et tout changement
+  de mot de passe invalide les jetons en attente. Quotas dédiés : 5 demandes /
+  15 min par compte, 20 / 15 min par IP, 20 / 15 min sur la consommation du jeton.
 
 ### Matrice des rôles
 

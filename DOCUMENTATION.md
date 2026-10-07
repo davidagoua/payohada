@@ -100,6 +100,19 @@ bun run dev              # Lance le serveur sur http://localhost:3000
 - `MAX_UPLOAD_SIZE_BYTES` / `ALLOWED_UPLOAD_EXTENSIONS` : limites des pièces jointes.
 - `BUGSINK_DSN` : facultatif ; si vide, la télémétrie d'erreurs est désactivée.
 
+### Configuration du parcours « mot de passe oublié »
+
+```bash
+# URL publique du frontend : sert à construire le lien envoyé par email
+FRONTEND_BASE_URL=https://app.payohada.ci
+# Durée de validité d'un lien (minutes)
+PASSWORD_RESET_EXPIRE_MINUTES=30
+```
+
+Le lien envoyé est de la forme
+`{FRONTEND_BASE_URL}/reset-password?token=…`. Si `FRONTEND_BASE_URL` est absent
+ou faux, l'email part mais le lien ne mène nulle part.
+
 ### Configuration de l'envoi d'emails (SMTP)
 
 L'envoi des bulletins utilise `backend/app/services/email.py`. Deux modes sont
@@ -210,6 +223,36 @@ Le système est cloisonné en trois espaces dédiés avec contrôles d'accès st
 - `GET /api/v1/auth/me` : Récupère le profil de l'utilisateur connecté avec son rôle (`cabinet`, `client`, `salarie`), son `dossier_id`, son `nom_dossier` et les métadonnées cabinet (`cabinet_nom`, `cabinet_telephone`, `cabinet_ville`).
 - `POST /api/v1/auth/login` : Authentification locale (email + mot de passe) renvoyant le token JWT et les métadonnées de rôle et cabinet.
 - `POST /api/v1/auth/change-password` : Modification du mot de passe.
+
+### Mot de passe oublié (`/api/v1/auth`)
+- `POST /api/v1/auth/forgot-password` : Envoie par email un lien de réinitialisation. La réponse est **toujours identique**, que l'adresse existe ou non, afin de ne pas permettre de découvrir les comptes enregistrés.
+- `GET /api/v1/auth/reset-password/valider?token=…` : Vérifie un lien **avant** d'afficher le formulaire et retourne l'email masqué (`cd*****@gm***.com`).
+- `POST /api/v1/auth/reset-password` : Définit le nouveau mot de passe à partir du jeton.
+
+Parcours utilisateur :
+
+```text
+/login  →  « Mot de passe oublié ? »  →  /forgot-password  (saisie de l'email)
+        →  email contenant /reset-password?token=…
+        →  /reset-password  (vérification du lien, puis nouveau mot de passe)
+        →  /login
+```
+
+Propriétés de sécurité :
+
+| Propriété | Mise en œuvre |
+|---|---|
+| Jeton non stocké en clair | Seul le condensat SHA-256 est enregistré (`password_reset_tokens.token_hash`) |
+| Durée limitée | `PASSWORD_RESET_EXPIRE_MINUTES` (défaut 30 minutes) |
+| Usage unique | `used_at` renseigné à la consommation ; un rejeu répond 400 |
+| Un seul lien actif | Une nouvelle demande invalide les jetons précédents |
+| Pas d'énumération | Réponse et statut identiques pour une adresse inconnue ; un échec SMTP n'est pas révélé |
+| Anti brute-force | 5 demandes / 15 min par compte, 20 / 15 min par IP, 20 / 15 min sur la consommation |
+| Jeton invalide après changement | Un changement de mot de passe (profil ou réinitialisation) invalide tous les jetons en attente |
+| Ménage | Les jetons expirés depuis plus de 7 jours sont purgés automatiquement |
+
+> Le lien pointe vers `FRONTEND_BASE_URL` : cette variable **doit** être renseignée
+> avec l'URL publique du frontend, sinon le lien reçu par email sera inutilisable.
 
 ### Dossiers & Comptes Clients (`/api/v1/dossiers`)
 - `GET /api/v1/dossiers` : Liste les dossiers (filtrés par propriétaire pour le cabinet, ou restreint au dossier assigné pour le client).
@@ -338,6 +381,13 @@ logiciel_paie/
 
 #### Added
 - Suite de tests de non-régression (moteur de paie et API) : `python -m unittest discover -s tests -t . -v`.
+
+#### Mot de passe oublié
+- Nouveau parcours complet : pages `/forgot-password` et `/reset-password`, lien « Mot de passe oublié ? » sur l'écran de connexion, et trois endpoints API (`forgot-password`, `reset-password/valider`, `reset-password`).
+- Table `password_reset_tokens` ajoutée en migration incrémentale dans `backend/schema.sql` : jeton stocké **haché** (SHA-256), à **usage unique**, à durée limitée, avec cascade à la suppression du compte.
+- Nouveau service `app/services/password_reset.py` (création, vérification, consommation, invalidation, purge) et `app/services/email_templates.py` pour le gabarit d'email.
+- Réglages `FRONTEND_BASE_URL` et `PASSWORD_RESET_EXPIRE_MINUTES` ; la consommation d'un lien lève l'obligation de changer le mot de passe.
+- 27 tests dédiés (usage unique, expiration, absence d'énumération, mot de passe faible, jeton haché, échappement HTML, limitation de débit) et 4 tests de navigation supplémentaires.
 
 #### Emails (`app/services/email.py`)
 - `send_email()` retourne désormais `(succès, message)` : les endpoints d'envoi de bulletin remontent un motif exploitable (« Authentification SMTP refusée », « Le destinataire … a été refusé ») au lieu d'un message générique.

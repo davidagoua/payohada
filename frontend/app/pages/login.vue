@@ -679,6 +679,12 @@ onMounted(() => {
               >
                 Mot de Passe
               </label>
+              <NuxtLink
+                to="/forgot-password"
+                class="text-xs font-semibold text-emerald-700 hover:text-emerald-800 hover:underline"
+              >
+                Mot de passe oublié ?
+              </NuxtLink>
             </div>
             <div class="mt-1 relative">
               <input

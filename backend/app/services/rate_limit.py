@@ -43,6 +43,11 @@ class SlidingWindowRateLimiter:
         with self._lock:
             self._hits.pop(key, None)
 
+    def reset_all(self) -> None:
+        """Vide le compteur (tests, ou réinitialisation administrative)."""
+        with self._lock:
+            self._hits.clear()
+
 
 def client_ip(request: Request) -> str:
     """Adresse source réelle de l'appelant.
@@ -76,5 +81,39 @@ ip_rate_limiter = SlidingWindowRateLimiter(
     window_seconds=settings.LOGIN_WINDOW_SECONDS,
 )
 
+#: Quotas dédiés à la réinitialisation de mot de passe. Ils sont séparés de
+#: ceux de la connexion pour qu'un utilisateur bloqué en connexion puisse
+#: toujours récupérer son accès.
+reinitialisation_compte_limiter = SlidingWindowRateLimiter(
+    max_attempts=5,
+    window_seconds=900,
+)
+reinitialisation_ip_limiter = SlidingWindowRateLimiter(
+    max_attempts=20,
+    window_seconds=900,
+)
+#: Protège l'endpoint de consommation du jeton (le jeton fait 256 bits, mais on
+#: ne laisse pas pour autant un attaquant marteler l'API).
+reset_token_limiter = SlidingWindowRateLimiter(
+    max_attempts=20,
+    window_seconds=900,
+)
+
 # Compatibilité avec les imports existants.
 login_rate_limiter = compte_rate_limiter
+
+#: Tous les limiteurs de l'application. Tenir cette liste à jour évite qu'un
+#: nouveau quota échappe à la réinitialisation des tests.
+TOUS_LES_LIMITEURS = (
+    compte_rate_limiter,
+    ip_rate_limiter,
+    reinitialisation_compte_limiter,
+    reinitialisation_ip_limiter,
+    reset_token_limiter,
+)
+
+
+def reinitialiser_tous_les_limiteurs() -> None:
+    """Remet tous les compteurs à zéro."""
+    for limiteur in TOUS_LES_LIMITEURS:
+        limiteur.reset_all()

@@ -46,6 +46,17 @@ class ChangePasswordRequest(BaseModel):
     new_password: str = Field(min_length=8, max_length=128)
 
 
+class MotDePasseOublieRequest(BaseModel):
+    """Demande d'envoi d'un lien de réinitialisation."""
+    email: EmailStr
+
+
+class ReinitialisationMotDePasseRequest(BaseModel):
+    """Consommation d'un lien de réinitialisation."""
+    token: str = Field(min_length=16, max_length=200)
+    new_password: str = Field(min_length=8, max_length=128)
+
+
 class CompteClientCreate(BaseModel):
     email: EmailStr
     nom: str

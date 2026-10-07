@@ -1005,3 +1005,33 @@ class Departement(TimestampMixin, Base):
 
     # Relations
     dossier = relationship("Dossier", back_populates="departements")
+
+
+# ─────────────────────────────────────────────
+#  RÉINITIALISATION DE MOT DE PASSE
+# ─────────────────────────────────────────────
+
+class PasswordResetToken(Base):
+    """Jeton de réinitialisation de mot de passe : usage unique, durée limitée.
+
+    Seul le condensat SHA-256 du jeton est stocké. Une fuite de la base ne
+    permet donc pas de réinitialiser un mot de passe. Le jeton en clair
+    n'existe que dans l'email envoyé à l'utilisateur.
+    """
+    __tablename__ = "password_reset_tokens"
+
+    id = Column(Integer, primary_key=True, index=True)
+    utilisateur_id = Column(
+        Integer,
+        ForeignKey("utilisateurs.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    token_hash = Column(String(64), unique=True, nullable=False, index=True)
+    expires_at = Column(DateTime(timezone=True), nullable=False, index=True)
+    used_at = Column(DateTime(timezone=True), nullable=True)
+    requested_ip = Column(String(45), nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    # Relations
+    utilisateur = relationship("Utilisateur")

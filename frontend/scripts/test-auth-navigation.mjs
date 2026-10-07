@@ -63,6 +63,16 @@ verifier('/login sans jeton reste sur /login',
 verifier('/ reste accessible sans session',
   deciderRedirection({ chemin: '/', aJeton: false, utilisateur: null }), laisser)
 
+console.log('\nParcours « mot de passe oublié » (accessible sans session)')
+verifier('/forgot-password accessible sans jeton',
+  deciderRedirection({ chemin: '/forgot-password', aJeton: false, utilisateur: null }), laisser)
+verifier('/reset-password accessible sans jeton (lien reçu par email)',
+  deciderRedirection({ chemin: '/reset-password', aJeton: false, utilisateur: null }), laisser)
+verifier('/forgot-password redirige un utilisateur connecté vers son espace',
+  deciderRedirection({ chemin: '/forgot-password', aJeton: true, utilisateur: CABINET }), laisser)
+verifier('/reset-password reste accessible même avec un jeton en cache',
+  deciderRedirection({ chemin: '/reset-password', aJeton: true, utilisateur: null }), laisser)
+
 console.log('\nProtection des routes')
 verifier('route protégée sans jeton renvoie vers /login avec redirect',
   deciderRedirection({ chemin: '/dossiers', aJeton: false, utilisateur: null }),
@@ -94,7 +104,7 @@ verifier('route inconnue laissée en l\'état',
 
 console.log('\nInvariant anti-boucle')
 // Aucune combinaison ne doit proposer de rediriger vers la route courante.
-const chemins = ['/', '/login', '/dossiers', '/client', '/salaries/bulletins', '/admin', '/bulletins', '/simulation']
+const chemins = ['/', '/login', '/forgot-password', '/reset-password', '/dossiers', '/client', '/salaries/bulletins', '/admin', '/bulletins', '/simulation']
 const profils = [null, CABINET, ADMIN, CLIENT, SALARIE]
 let boucles = 0
 for (const chemin of chemins) {

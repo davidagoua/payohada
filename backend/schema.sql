@@ -1158,6 +1158,35 @@ WHERE NOT EXISTS (
 --    en place pour ne rien supprimer sans validation :
 -- DELETE FROM constantes WHERE code = 'IBS_MONTANT' AND pays = 'CI';
 
+
+-- 7. Réinitialisation de mot de passe : jetons à usage unique.
+--    Seul le condensat SHA-256 du jeton est stocké (une fuite de la base ne
+--    permet pas de réinitialiser un mot de passe). Le jeton en clair n'existe
+--    que dans l'email envoyé à l'utilisateur.
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+    id SERIAL PRIMARY KEY,
+    utilisateur_id INTEGER NOT NULL REFERENCES utilisateurs(id) ON DELETE CASCADE,
+    token_hash VARCHAR(64) NOT NULL UNIQUE,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    used_at TIMESTAMP WITH TIME ZONE DEFAULT NULL,
+    requested_ip VARCHAR(45) DEFAULT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_utilisateur
+    ON password_reset_tokens (utilisateur_id);
+CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_hash
+    ON password_reset_tokens (token_hash);
+CREATE INDEX IF NOT EXISTS idx_password_reset_tokens_expires
+    ON password_reset_tokens (expires_at);
+
+COMMENT ON TABLE password_reset_tokens
+    IS 'Jetons de réinitialisation de mot de passe (usage unique, hachés, périssables)';
+COMMENT ON COLUMN password_reset_tokens.token_hash
+    IS 'Condensat SHA-256 du jeton ; le jeton en clair n''est jamais stocké';
+COMMENT ON COLUMN password_reset_tokens.used_at
+    IS 'Renseigné lors de la consommation : un jeton ne sert qu''une fois';
+
 -- 6. Contrôles post-migration (à exécuter manuellement) :
 --    -- Aucun compte sans mot de passe (sinon connexion impossible) :
 --    SELECT id, email, role FROM utilisateurs WHERE hashed_password IS NULL;

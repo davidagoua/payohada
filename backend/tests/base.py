@@ -32,7 +32,7 @@ from app.database import Base, SessionLocal, engine, get_db  # noqa: E402
 from app.database_seeder import seed_database  # noqa: E402
 from app.main import app  # noqa: E402
 from app.models import models as M  # noqa: E402
-from app.services.rate_limit import compte_rate_limiter, ip_rate_limiter, login_rate_limiter  # noqa: E402
+from app.services.rate_limit import reinitialiser_tous_les_limiteurs  # noqa: E402
 from app.services.security import create_access_token, get_password_hash  # noqa: E402
 
 
@@ -47,9 +47,7 @@ def reset_database() -> None:
         seed_database(db)
     finally:
         db.close()
-    login_rate_limiter._hits.clear()
-    compte_rate_limiter._hits.clear()
-    ip_rate_limiter._hits.clear()
+    reinitialiser_tous_les_limiteurs()
 
 
 def _override_get_db():
@@ -69,6 +67,9 @@ client = TestClient(app)
 # ─────────────────────────────────────────
 
 DEFAULT_PASSWORD = "MotDePasse!2024"
+
+#: Préfixe de l'API, partagé par les modules de test.
+API = "/api/v1"
 
 
 def make_user(

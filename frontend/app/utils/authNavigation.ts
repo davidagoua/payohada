@@ -17,8 +17,8 @@ export type Decision =
   | { action: 'laisser' }
   | { action: 'rediriger'; destination: string }
 
-/** Routes accessibles sans session. */
-export const ROUTES_PUBLIQUES = ['/', '/login']
+/** Routes accessibles sans session (dont le parcours « mot de passe oublié »). */
+export const ROUTES_PUBLIQUES = ['/', '/login', '/forgot-password', '/reset-password']
 
 /** Préfixes réservés à chaque espace, avec les rôles autorisés. */
 export const ESPACES = [

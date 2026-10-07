@@ -33,6 +33,13 @@ class Settings(BaseSettings):
     LOGIN_MAX_ATTEMPTS: int = 10
     LOGIN_WINDOW_SECONDS: int = 300
 
+    # Réinitialisation de mot de passe
+    #: Durée de validité d'un lien de réinitialisation.
+    PASSWORD_RESET_EXPIRE_MINUTES: int = 30
+    #: URL publique du frontend, utilisée pour construire le lien envoyé par
+    #: email (ex. https://app.payohada.cloud).
+    FRONTEND_BASE_URL: str = "http://localhost:3000"
+
     # Téléversement de documents
     MAX_UPLOAD_SIZE_BYTES: int = 10 * 1024 * 1024  # 10 Mo
     ALLOWED_UPLOAD_EXTENSIONS: str = ".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx,.txt,.csv"
