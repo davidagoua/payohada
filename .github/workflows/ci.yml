@@ -52,6 +52,9 @@ jobs:
       - name: Installer les dépendances
         run: bun install --frozen-lockfile
 
+      - name: Tests de la logique de navigation par rôle
+        run: node scripts/test-auth-navigation.mjs
+
       - name: Build (typecheck via vue-tsc inclus dans nuxt build)
         env:
           NUXT_PUBLIC_API_BASE: http://localhost:8000/api/v1

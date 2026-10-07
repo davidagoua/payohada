@@ -1,10 +1,29 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@supabase/supabase-js'
+import { destinationParDefaut } from '~/utils/authNavigation'
 
-// Promesse d'initialisation partagée au niveau du module : plusieurs appels
-// concurrents (layout, middleware de route) ne déclenchent qu'une seule
-// restauration de session.
-let initialisationEnCours: Promise<void> | null = null
+/**
+ * Client Supabase — SINGLETON au niveau du module.
+ *
+ * Un `createClient()` par appel de `useSupabase()` créait autant de clients que
+ * de composants (15 dans l'application) et surtout un nouveau client à CHAQUE
+ * navigation via le middleware. Or chaque client possède son propre minuteur
+ * d'auto-rafraîchissement et écoute `localStorage` : plusieurs clients
+ * partageant la même session se réveillent mutuellement, se rafraîchissent en
+ * boucle et déclenchent une tempête d'événements d'authentification — d'où un
+ * flot ininterrompu d'appels à `/auth/me` et une consommation CPU qui faisait
+ * tomber la machine.
+ */
+let clientSingleton: any = null
+
+/** Promesse d'initialisation unique : `init()` ne s'exécute qu'une seule fois. */
+let initialisation: Promise<void> | null = null
+
+/** Dernier enrichissement de profil, pour éviter les appels redondants. */
+let dernierEnrichissement = { jeton: null as string | null, date: 0 }
+
+/** Intervalle minimal entre deux appels identiques à `/auth/me`. */
+const ENRICHISSEMENT_MIN_INTERVALLE_MS = 5000
 
 export const useSupabase = () => {
   const config = useRuntimeConfig()
@@ -16,19 +35,49 @@ export const useSupabase = () => {
   const loading = useState<boolean>('sb-loading', () => false)
   const initialized = useState<boolean>('sb-initialized', () => false)
 
-  let client: any = null
-  if (url && key && typeof window !== 'undefined') {
-    client = createClient(url, key)
+  /** Retourne le client unique, en le créant au premier usage réel. */
+  const obtenirClient = () => {
+    if (clientSingleton) return clientSingleton
+    if (typeof window === 'undefined' || !url || !key) return null
+    clientSingleton = createClient(url, key, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        // Pas de session dans l'URL : évite les allers-retours d'OAuth non utilisés.
+        detectSessionInUrl: false
+      }
+    })
+    return clientSingleton
   }
 
-  const fetchAndEnrichProfile = async (accessToken: string | null | undefined) => {
+  /**
+   * Complète le profil local avec les données de l'API (`/auth/me`).
+   *
+   * Les appels sont dédupliqués : le même jeton n'est pas ré-enrichi moins de
+   * `ENRICHISSEMENT_MIN_INTERVALLE_MS` après le précédent. C'est le garde-fou
+   * qui empêche une rafale d'événements d'authentification de se transformer en
+   * boucle d'appels réseau.
+   */
+  const fetchAndEnrichProfile = async (
+    accessToken: string | null | undefined,
+    options: { force?: boolean } = {}
+  ) => {
     if (!accessToken) return
+
+    const maintenant = Date.now()
+    if (
+      !options.force &&
+      dernierEnrichissement.jeton === accessToken &&
+      maintenant - dernierEnrichissement.date < ENRICHISSEMENT_MIN_INTERVALLE_MS
+    ) {
+      return
+    }
+    dernierEnrichissement = { jeton: accessToken, date: maintenant }
+
     try {
       const apiBase = config.public.apiBase || 'http://localhost:8000'
       const profile = await $fetch<any>(`${apiBase}/auth/me`, {
-        headers: {
-          Authorization: `Bearer ${accessToken}`
-        }
+        headers: { Authorization: `Bearer ${accessToken}` }
       })
       if (profile && user.value) {
         user.value = {
@@ -59,10 +108,33 @@ export const useSupabase = () => {
     }
   }
 
-  const init = async () => {
-    if (typeof window === 'undefined') return
+  /** Applique une session à l'état local et au cache. */
+  const appliquerSession = (session: any) => {
+    user.value = session.user
+    token.value = session.access_token
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('sb-token-cache', session.access_token)
+      localStorage.setItem('sb-user-cache', JSON.stringify(session.user))
+    }
+  }
 
-    // 1. Restaurer depuis le cache local (pour connexions directes backend)
+  /** Efface la session locale (sans redirection). */
+  const effacerSession = () => {
+    user.value = null
+    token.value = null
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('sb-token-cache')
+      localStorage.removeItem('sb-user-cache')
+    }
+  }
+
+  const executerInit = async () => {
+    if (typeof window === 'undefined') {
+      initialized.value = true
+      return
+    }
+
+    // 1. Restaurer depuis le cache local (connexions directes au backend)
     try {
       const cachedToken = localStorage.getItem('sb-token-cache')
       const cachedUser = localStorage.getItem('sb-user-cache')
@@ -70,47 +142,50 @@ export const useSupabase = () => {
         token.value = cachedToken
         if (cachedUser) {
           user.value = JSON.parse(cachedUser)
+        } else {
+          // Jeton sans profil : état incohérent qui provoquait auparavant une
+          // boucle de redirection. On repart proprement d'une session vide.
+          effacerSession()
         }
-        await fetchAndEnrichProfile(cachedToken)
+        if (token.value) {
+          await fetchAndEnrichProfile(cachedToken)
+        }
       }
     } catch (e) {
       console.warn('Erreur restauration session locale:', e)
+      effacerSession()
     }
 
-    if (!client) {
+    const supabase = obtenirClient()
+    if (!supabase) {
       initialized.value = true
       return
     }
 
     loading.value = true
     try {
-      const { data: { session } } = await client.auth.getSession()
+      const { data: { session } } = await supabase.auth.getSession()
       if (session) {
-        user.value = session.user
-        token.value = session.access_token
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('sb-token-cache', session.access_token)
-          localStorage.setItem('sb-user-cache', JSON.stringify(session.user))
-        }
+        appliquerSession(session)
         await fetchAndEnrichProfile(session.access_token)
       }
 
-      client.auth.onAuthStateChange(async (event: string, session: any) => {
-        if (session) {
-          user.value = session.user
-          token.value = session.access_token
-          if (typeof window !== 'undefined') {
-            localStorage.setItem('sb-token-cache', session.access_token)
-            localStorage.setItem('sb-user-cache', JSON.stringify(session.user))
+      // Écouteur enregistré UNE SEULE FOIS (init() est unique).
+      supabase.auth.onAuthStateChange(async (event: string, nouvelleSession: any) => {
+        if (event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED') {
+          // Le profil ne change pas lors d'un simple rafraîchissement de jeton :
+          // inutile de rappeler l'API.
+          if (nouvelleSession) {
+            token.value = nouvelleSession.access_token
           }
-          await fetchAndEnrichProfile(session.access_token)
+          return
+        }
+
+        if (nouvelleSession) {
+          appliquerSession(nouvelleSession)
+          await fetchAndEnrichProfile(nouvelleSession.access_token)
         } else if (!token.value) {
-          user.value = null
-          token.value = null
-          if (typeof window !== 'undefined') {
-            localStorage.removeItem('sb-token-cache')
-            localStorage.removeItem('sb-user-cache')
-          }
+          effacerSession()
         }
       })
     } catch (e) {
@@ -121,15 +196,21 @@ export const useSupabase = () => {
     }
   }
 
-  /** Initialise la session si nécessaire (idempotent, sûr en concurrence). */
-  const ensureInitialized = async () => {
-    if (initialized.value) return
-    if (!initialisationEnCours) {
-      initialisationEnCours = init().finally(() => {
-        initialisationEnCours = null
+  /** Initialise la session. Idempotent : les appels concurrents partagent la même promesse. */
+  const init = async () => {
+    if (!initialisation) {
+      initialisation = executerInit().catch((e) => {
+        console.error('Échec de l\'initialisation de la session:', e)
+        initialized.value = true
       })
     }
-    await initialisationEnCours
+    return initialisation
+  }
+
+  /** Initialise la session si nécessaire (utilisé par le middleware de route). */
+  const ensureInitialized = async () => {
+    if (initialized.value) return
+    await init()
   }
 
   const login = async (email: string, password: string) => {
@@ -162,6 +243,7 @@ export const useSupabase = () => {
             cabinet_ville: response.user.cabinet_ville,
             is_default_password: !!response.user.is_default_password
           }
+          dernierEnrichissement = { jeton: response.access_token, date: Date.now() }
           if (typeof window !== 'undefined') {
             localStorage.setItem('sb-token-cache', response.access_token)
             localStorage.setItem('sb-user-cache', JSON.stringify(user.value))
@@ -177,18 +259,14 @@ export const useSupabase = () => {
       }
 
       // 2. Supabase production
-      if (!client) {
+      const supabase = obtenirClient()
+      if (!supabase) {
         return { error: 'Service d\'authentification non disponible.' }
       }
-      const { data, error } = await client.auth.signInWithPassword({ email, password })
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
       if (error) throw error
       if (data?.session) {
-        user.value = data.session.user
-        token.value = data.session.access_token
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('sb-token-cache', data.session.access_token)
-          localStorage.setItem('sb-user-cache', JSON.stringify(data.session.user))
-        }
+        appliquerSession(data.session)
         await fetchAndEnrichProfile(data.session.access_token)
       }
       return { error: null }
@@ -234,6 +312,7 @@ export const useSupabase = () => {
           cabinet_telephone: response.user.cabinet_telephone,
           cabinet_ville: response.user.cabinet_ville
         }
+        dernierEnrichissement = { jeton: response.access_token, date: Date.now() }
         if (typeof window !== 'undefined') {
           localStorage.setItem('sb-token-cache', response.access_token)
           localStorage.setItem('sb-user-cache', JSON.stringify(user.value))
@@ -253,19 +332,19 @@ export const useSupabase = () => {
   const signup = async (email: string, password: string, metadata?: any) => {
     loading.value = true
     try {
-      if (!client) {
+      const supabase = obtenirClient()
+      if (!supabase) {
         return { error: 'Service d\'authentification non disponible.' }
       }
 
-      const { data, error } = await client.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: { data: metadata }
       })
       if (error) throw error
       if (data?.session) {
-        user.value = data.session.user
-        token.value = data.session.access_token
+        appliquerSession(data.session)
         await fetchAndEnrichProfile(data.session.access_token)
       }
       return { error: null }
@@ -279,18 +358,16 @@ export const useSupabase = () => {
   const logout = async () => {
     loading.value = true
     try {
-      if (client) {
-        await client.auth.signOut()
+      const supabase = obtenirClient()
+      if (supabase) {
+        await supabase.auth.signOut()
       }
     } catch (e) {
       console.error(e)
     } finally {
-      user.value = null
-      token.value = null
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('sb-token-cache')
-        localStorage.removeItem('sb-user-cache')
-      }
+      effacerSession()
+      // Un nouveau jeton devra être enrichi sans attendre la fenêtre anti-rebond.
+      dernierEnrichissement = { jeton: null, date: 0 }
       loading.value = false
       navigateTo('/login')
     }
@@ -313,9 +390,10 @@ export const useSupabase = () => {
         }
       })
 
-      if (client) {
+      const supabase = obtenirClient()
+      if (supabase) {
         try {
-          await client.auth.updateUser({ password: newPassword })
+          await supabase.auth.updateUser({ password: newPassword })
         } catch (err) {
           console.warn('Supabase updateUser password notice:', err)
         }
@@ -343,13 +421,7 @@ export const useSupabase = () => {
   const getDefaultRedirect = (targetUser?: any) => {
     const u = targetUser || user.value
     if (!u) return '/login'
-    if (u.role === 'salarie' || u.salarie_id) {
-      return '/salaries/bulletins'
-    }
-    if (u.role === 'client') {
-      return '/client'
-    }
-    return '/dossiers'
+    return destinationParDefaut(u)
   }
 
   return {

@@ -1,64 +1,56 @@
 /**
  * Garde d'accès globale côté client.
  *
+ * La décision est déléguée à `~/utils/authNavigation`, une fonction pure
+ * couverte par des tests (`node scripts/test-auth-navigation.mjs`).
+ *
  * Rappel important : ce contrôle est un confort d'usage et une première barrière
  * d'interface. La véritable autorisation est appliquée par l'API
  * (rôles + portée dossier/salarié). Ne jamais considérer ce middleware comme
  * une protection suffisante.
  */
-const ROUTES_PUBLIQUES = ['/', '/login']
+import { deciderRedirection } from '~/utils/authNavigation'
 
-/** Préfixes réservés à chaque espace, avec les rôles autorisés. */
-const ESPACES = [
-  { prefixe: '/admin', roles: [], adminSeulement: true },
-  { prefixe: '/dossiers', roles: ['cabinet'] },
-  { prefixe: '/simulation', roles: ['cabinet'] },
-  { prefixe: '/bulletins', roles: ['cabinet'] },
-  { prefixe: '/client', roles: ['client'] },
-  { prefixe: '/salaries', roles: ['salarie'] }
-]
+// ─────────────────────────────────────────────────────────────
+//  Protection anti-boucle (ceinture et bretelles)
+// ─────────────────────────────────────────────────────────────
+// `deciderRedirection` ne propose jamais la route courante, mais une boucle
+// reste possible entre plusieurs règles. On compte donc les redirections sur
+// une fenêtre glissante et on coupe si elles s'emballent : c'est ce qui a
+// évité au navigateur (et à la machine) de saturer.
+const FENETRE_MS = 2000
+const MAX_REDIRECTIONS = 5
+let redirections: number[] = []
+
+function redirectionAutorisee(): boolean {
+  const maintenant = Date.now()
+  redirections = redirections.filter((t) => maintenant - t < FENETRE_MS)
+  if (redirections.length >= MAX_REDIRECTIONS) {
+    console.error(
+      '[auth] Boucle de redirection détectée : navigation laissée en l\'état ' +
+      'pour éviter de saturer le navigateur.'
+    )
+    return false
+  }
+  redirections.push(maintenant)
+  return true
+}
 
 export default defineNuxtRouteMiddleware(async (to) => {
-  const { token, user, initialized, ensureInitialized, getDefaultRedirect } = useSupabase()
+  const { token, user, initialized, ensureInitialized } = useSupabase()
 
-  if (ROUTES_PUBLIQUES.includes(to.path)) {
-    // Un utilisateur déjà connecté n'a rien à faire sur l'écran de connexion.
-    if (to.path === '/login' && token.value) {
-      return navigateTo(getDefaultRedirect())
-    }
-    return
-  }
-
+  // La session doit être restaurée avant de décider quoi que ce soit.
   if (!initialized.value) {
     await ensureInitialized()
   }
 
-  if (!token.value) {
-    return navigateTo(`/login?redirect=${encodeURIComponent(to.fullPath)}`)
-  }
+  const decision = deciderRedirection({
+    chemin: to.path,
+    aJeton: !!token.value,
+    utilisateur: user.value
+  })
 
-  const u = user.value
-  if (!u) {
-    // Jeton présent mais profil indisponible : on laisse l'API trancher.
-    return
-  }
-
-  const estAdmin = !!u.is_admin
-  const role = u.role || (u.salarie_id ? 'salarie' : 'cabinet')
-
-  for (const espace of ESPACES) {
-    if (!to.path.startsWith(espace.prefixe)) continue
-
-    if (espace.adminSeulement) {
-      if (!estAdmin) {
-        return navigateTo(getDefaultRedirect())
-      }
-      return
-    }
-
-    if (!estAdmin && !espace.roles.includes(role)) {
-      return navigateTo(getDefaultRedirect())
-    }
-    return
+  if (decision.action === 'rediriger' && redirectionAutorisee()) {
+    return navigateTo(decision.destination)
   }
 })
