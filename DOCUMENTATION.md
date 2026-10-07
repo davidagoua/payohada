@@ -36,6 +36,49 @@ La suite couvre le moteur de paie (CNPS, ITS, RICF, heures supplémentaires,
 absences, prêts, mode net→brut, idempotence) et le contrôle d'accès de l'API
 (isolation multi-tenant, rôles, pièces jointes, anti brute-force).
 
+##  Migrations de base de données
+
+**La base de production est le PostgreSQL de Supabase : `backend/schema.sql` est
+la source de vérité du schéma.** Toute modification de la base doit y être
+ajoutée, **de manière incrémentale**, dans la section
+`MIGRATION INCREMENTALE` située à la fin du fichier — sans réécrire les
+`CREATE TABLE` d'origine, afin de préserver l'historique.
+
+### Appliquer les migrations
+
+Sur une base **existante**, exécuter uniquement la partie incrémentale du
+fichier (à partir du repère `-- MIGRATION INCREMENTALE`) :
+
+```bash
+# Extraction de la partie incrémentale
+sed -n '/-- MIGRATION INCREMENTALE/,$p' backend/schema.sql > /tmp/migration.sql
+
+# Relecture puis application sur la base Supabase
+psql "$DATABASE_URL" --single-transaction -f /tmp/migration.sql
+```
+
+Sur une base **vierge**, le fichier complet s'applique d'un bloc :
+
+```bash
+psql "$DATABASE_URL" --single-transaction -f backend/schema.sql
+```
+
+### Règles à respecter
+
+- **Idempotence obligatoire** : `ADD COLUMN IF NOT EXISTS`, `CREATE TABLE IF NOT
+  EXISTS`, `CREATE INDEX IF NOT EXISTS`, `INSERT ... WHERE NOT EXISTS`, ou blocs
+  `DO $$ ... IF NOT EXISTS (SELECT 1 FROM pg_constraint ...) $$`. La section
+  incrémentale doit pouvoir être rejouée plusieurs fois sans erreur.
+- **Pas de référence en avant** : une colonne ne peut référencer par clé
+  étrangère qu'une table déjà créée plus haut dans le fichier.
+- **Ordre de déploiement** : appliquer la migration **avant** de déployer le code
+  correspondant.
+- **Données sensibles** : ne jamais insérer de mot de passe ni de secret.
+
+> Le fichier est validé en continu : il a été appliqué sur une base PostgreSQL
+> vierge (40 tables, 97 index) puis sa section incrémentale rejouée trois fois
+> de suite sans erreur.
+
 ### Lancement du Frontend
 ```bash
 cd frontend
@@ -246,6 +289,13 @@ logiciel_paie/
 - **Routeur `auth` monté deux fois** (`/api/v1/auth` et `/auth`) : montage unique.
 - Échappement HTML des données d'état civil dans les emails de bulletins.
 - Vérification du mot de passe en temps constant (`hmac.compare_digest`).
+
+#### Base de données (`backend/schema.sql`)
+- Ajout d'une section incrémentale idempotente couvrant les correctifs d'audit : colonne `utilisateurs.must_change_password`, défauts d'horaires `173.33` / `40.0`, et entrées `plan_paie` `HS_75` / `HS_100`.
+- **Correction d'un défaut bloquant** : `lignes_bulletins_paies.pret_id` référençait `prets_salaries` avant sa création, ce qui faisait échouer toute installation sur base vierge (`relation "prets_salaries" does not exist`). La colonne est désormais ajoutée dans la section incrémentale.
+- **Correction d'un fichier corrompu** : 35 lignes contenaient du balisage de document (`[span_N](start_span)`) qui avait fait perdre le préfixe `--` de 28 commentaires et polluait 7 lignes de valeurs de l'`INSERT` « GENS DE MAISON ». Le fichier est maintenant syntaxiquement valide et sans donnée polluée.
+- Les deux contraintes de clé étrangère sur `utilisateurs` sont encapsulées dans des blocs `DO $$` idempotents : la section incrémentale est rejouable.
+- Le plafond CNPS Prestations Familiales / AT / Maternité (75 000 → 70 000 FCFA) est fourni **commenté** : il modifie le montant des cotisations et doit être validé contre les textes officiels avant activation.
 
 #### Added
 - Suite de tests de non-régression (moteur de paie et API) : `python -m unittest discover -s tests -t . -v`.

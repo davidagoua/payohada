@@ -1,3 +1,10 @@
+"""Script de migration historique (SQLite local / PostgreSQL).
+
+SOURCE DE VÉRITÉ : `backend/schema.sql` (PostgreSQL / Supabase).
+Toute modification de la base doit y être ajoutée dans la section
+« MIGRATION INCREMENTALE » à la fin du fichier. Ce script ne fait que
+rejouer les mêmes changements pour les environnements de développement.
+"""
 import sqlite3
 import os
 from pathlib import Path
@@ -69,6 +76,25 @@ if db_url and (db_url.startswith("postgresql") or db_url.startswith("postgres"))
         cur.execute("ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS cabinet_telephone VARCHAR(30) DEFAULT NULL;")
         cur.execute("ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS cabinet_ville VARCHAR(100) DEFAULT NULL;")
         cur.execute("ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN NOT NULL DEFAULT FALSE;")
+
+        # --- Correctifs d'audit (cf. backend/schema.sql, section
+        #     « MIGRATION INCREMENTALE : CORRECTIFS D'AUDIT ») ---
+        # Défauts d'horaires alignés sur le droit ivoirien / UEMOA (40 h/semaine).
+        # SET DEFAULT n'affecte que les nouvelles lignes.
+        cur.execute("ALTER TABLE horaires ALTER COLUMN horaire_travail SET DEFAULT 173.33;")
+        cur.execute("ALTER TABLE horaires ALTER COLUMN horaire_hebdo SET DEFAULT 40.0;")
+
+        # Majorations d'heures supplémentaires 75 % et 100 % (absentes du référentiel).
+        cur.execute("""
+        INSERT INTO plan_paie (type, code, libelle, mode_calcul, sens, pays)
+        SELECT 'B', 'HS_75', 'Heures supplémentaires majorées à 75%', 'Sémi-auto', 'Gain', 'CI'
+        WHERE NOT EXISTS (SELECT 1 FROM plan_paie WHERE code = 'HS_75' AND pays = 'CI');
+        """)
+        cur.execute("""
+        INSERT INTO plan_paie (type, code, libelle, mode_calcul, sens, pays)
+        SELECT 'B', 'HS_100', 'Heures supplémentaires majorées à 100%', 'Sémi-auto', 'Gain', 'CI'
+        WHERE NOT EXISTS (SELECT 1 FROM plan_paie WHERE code = 'HS_100' AND pays = 'CI');
+        """)
         
         # Create periodes_paie table
         cur.execute("""
