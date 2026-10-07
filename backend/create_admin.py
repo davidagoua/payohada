@@ -10,7 +10,11 @@ Usage :
         [--prenom Ada] [--nom Lovelace] [--promouvoir]
 
 Options :
-    --promouvoir   Promeut un utilisateur existant au lieu d'en créer un.
+    --promouvoir   Compte existant : le promeut administrateur, le réactive et
+                   RÉINITIALISE son mot de passe avec la valeur fournie.
+                   C'est la procédure de reprise pour un compte administrateur
+                   sans mot de passe (ancienne backdoor « Payohada@123 », qui
+                   n'est plus acceptée).
 """
 import argparse
 import sys
@@ -50,14 +54,20 @@ def main() -> int:
             if not args.promouvoir:
                 print(
                     f"Un compte existe déjà pour {email}. "
-                    "Relancez avec --promouvoir pour lui donner les droits d'administration."
+                    "Relancez avec --promouvoir pour lui donner les droits "
+                    "d'administration et réinitialiser son mot de passe."
                 )
                 return 1
             user.is_admin = True
             user.is_active = True
             user.must_change_password = False
+            # Réinitialisation indispensable pour un compte sans mot de passe :
+            # sans elle, le compte resterait inaccessible.
+            user.hashed_password = get_password_hash(args.password)
             db.commit()
-            print(f"Compte {email} promu administrateur.")
+            print(
+                f"Compte {email} promu administrateur et mot de passe réinitialisé."
+            )
             return 0
 
         import uuid

@@ -9,6 +9,11 @@
 
 L'ordre des étapes est important : révoquer d'abord, purger ensuite.
 
+> **Avant de déployer le correctif** : appliquer la migration de schéma sur la
+> base Supabase (section `MIGRATION INCREMENTALE` de `backend/schema.sql`), puis
+> reprendre les comptes sans mot de passe (§1.2.1). Voir
+> [`DOCUMENTATION.md`](DOCUMENTATION.md#-migrations-de-base-de-données).
+
 ### 1.1 Révoquer et régénérer
 
 | Secret | Action |
@@ -46,6 +51,25 @@ Désactiver ou supprimer tout compte non reconnu :
 ```sql
 UPDATE utilisateurs SET is_active = false WHERE email = '<suspect>';
 ```
+
+### 1.2.1 Reprendre la main sur un compte sans mot de passe
+
+L'ancienne backdoor acceptait `Payohada@123` dès que `hashed_password` était
+`NULL`. Ce n'est plus le cas : **ces comptes sont désormais inaccessibles et
+doivent être repris explicitement.** Le cas est réel — la base actuelle contient
+notamment un compte `cabinet` **administrateur** sans mot de passe, qui était
+donc entièrement compromis.
+
+```bash
+cd backend
+# Réinitialise le mot de passe ET accorde les droits d'administration
+python create_admin.py --email <email_du_compte> \
+    --password '<mot-de-passe-solide-de-12-caracteres-minimum>' --promouvoir
+```
+
+Pour un simple compte client ou salarié, recréer le compte via l'API
+(`POST /api/v1/dossiers/{id}/comptes-clients`) : un mot de passe aléatoire est
+généré et affiché une seule fois.
 
 ### 1.3 Purger l'historique Git
 
