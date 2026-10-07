@@ -100,6 +100,45 @@ bun run dev              # Lance le serveur sur http://localhost:3000
 - `MAX_UPLOAD_SIZE_BYTES` / `ALLOWED_UPLOAD_EXTENSIONS` : limites des pièces jointes.
 - `BUGSINK_DSN` : facultatif ; si vide, la télémétrie d'erreurs est désactivée.
 
+### Configuration de l'envoi d'emails (SMTP)
+
+L'envoi des bulletins utilise `backend/app/services/email.py`. Deux modes sont
+supportés :
+
+| Mode | `SMTP_SECURE` | Port typique | Comportement |
+|---|---|---|---|
+| **SSL implicite** | `true` | `465` | Connexion chiffrée dès l'ouverture (`SMTP_SSL`) |
+| **STARTTLS** | `false` | `587` | Connexion en clair puis négociation TLS |
+
+Exemple validé avec Hostinger :
+
+```bash
+SMTP_HOST=smtp.hostinger.com
+SMTP_PORT=465
+SMTP_USER=support@payohada.com
+SMTP_PASSWORD=<mot-de-passe-de-la-boite>
+SMTP_SECURE=true
+SMTP_TIMEOUT=20
+EMAIL_FROM=support@payohada.com
+EMAIL_FROM_NAME=payohada Paie   # nom affiché chez le destinataire (espaces conseillés)
+```
+
+Points d'attention :
+
+- **`SMTP_TIMEOUT`** (défaut 20 s) : l'envoi est synchrone dans la requête HTTP.
+  Sans timeout, un serveur SMTP qui ne répond pas immobiliserait un worker
+  FastAPI indéfiniment.
+- `SMTP_USER` et `SMTP_PASSWORD` doivent correspondre à la **boîte** utilisée
+  comme expéditeur, sinon le serveur renvoie `535` et l'API répond
+  « Authentification SMTP refusée ».
+- L'authentification `SMTPAuthenticationError` **n'expose jamais le mot de passe**
+  dans la réponse HTTP ni dans les journaux.
+- Sur un serveur de développement sans TLS (MailHog, Mailpit), `SMTP_SECURE=false`
+  et l'absence de STARTTLS sont tolérées : l'envoi se poursuit en clair et
+  l'événement est journalisé en niveau `INFO`.
+- **Vérification rapide** : `POST /api/v1/bulletins/{id}/envoyer-employe`
+  renvoie `500` avec un motif exploitable si la configuration est incorrecte.
+
 ### Variables d'environnement Frontend (`frontend/.env`)
 - `NUXT_PUBLIC_API_BASE` : URL de base de l'API, **préfixe `/api/v1` inclus**
   (ex: `http://localhost:8000/api/v1`).
@@ -299,6 +338,13 @@ logiciel_paie/
 
 #### Added
 - Suite de tests de non-régression (moteur de paie et API) : `python -m unittest discover -s tests -t . -v`.
+
+#### Emails (`app/services/email.py`)
+- `send_email()` retourne désormais `(succès, message)` : les endpoints d'envoi de bulletin remontent un motif exploitable (« Authentification SMTP refusée », « Le destinataire … a été refusé ») au lieu d'un message générique.
+- Ajout de `SMTP_TIMEOUT` (défaut 20 s) : sans lui, un serveur SMTP muet immobilisait un worker FastAPI, l'envoi étant synchrone dans la requête.
+- Journalisation structurée (`logging`) à la place des `print`, erreurs typées et fermeture de connexion systématique (`finally`).
+- `formataddr` pour le nom d'expéditeur et validation TLS explicite en mode SSL.
+- 7 tests dédiés (envoi simulé) : retour, transmission du timeout, authentification refusée, serveur injoignable, destinataire refusé, SMTP non configuré, mode STARTTLS.
 - Workflow CI GitHub Actions (tests backend, build frontend, détection de secrets).
 - Endpoint `GET /api/v1/salaries/documents/{fichier}` (téléchargement contrôlé des pièces jointes).
 - Middleware Nuxt `auth.global.ts` pour la navigation par rôle.

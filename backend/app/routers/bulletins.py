@@ -1119,11 +1119,11 @@ def send_bulletin_to_employee(
     </html>
     """
     
-    success = send_email(email_dest, subject, html_content)
+    success, message = send_email(email_dest, subject, html_content)
     if not success:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Une erreur est survenue lors de l'envoi de l'e-mail."
+            detail=message,
         )
         
     return {"status": "success", "message": f"Bulletin envoyé à l'employé {salarie.prenom} {salarie.nom} ({email_dest})"}
@@ -1201,11 +1201,11 @@ def send_bulletin_to_manager(
     </html>
     """
     
-    success = send_email(email_dest, subject, html_content)
+    success, message = send_email(email_dest, subject, html_content)
     if not success:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Une erreur est survenue lors de l'envoi de l'e-mail."
+            detail=message,
         )
         
     return {"status": "success", "message": f"Bulletin envoyé au gestionnaire du dossier {dossier.nom_dossier} ({email_dest})"}

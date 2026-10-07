@@ -43,6 +43,9 @@ class Settings(BaseSettings):
     SMTP_USER: Optional[str] = None
     SMTP_PASSWORD: Optional[str] = None
     SMTP_SECURE: bool = False
+    #: Délai maximal des opérations SMTP (l'envoi est synchrone dans la requête :
+    #: sans timeout, un serveur muet immobiliserait un worker FastAPI).
+    SMTP_TIMEOUT: int = 20
     EMAIL_FROM: str = "noreply@payohada.com"
     EMAIL_FROM_NAME: str = "payohada Paie"
 
