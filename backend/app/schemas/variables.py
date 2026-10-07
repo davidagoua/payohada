@@ -1,6 +1,9 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
+
+#: Statuts autorisés du cycle de paie d'une période.
+STATUTS_PERIODE = frozenset({"saisie_en_cours", "transmis", "calcule", "valide"})
 
 
 # ─────────────────────────────────────────
@@ -8,13 +11,13 @@ from datetime import datetime
 # ─────────────────────────────────────────
 
 class AbsenceBase(BaseModel):
-    code: str  # CP, MAL, AT, etc.
+    code: str = Field(min_length=1, max_length=50)  # CP, MAL, AT, etc.
     date_debut: datetime
     date_fin: datetime
-    nbr_heure_by_user: Optional[float] = 0.0
-    nbr_jour_by_user: Optional[float] = 0.0
-    mois: int
-    annee: str
+    nbr_heure_by_user: Optional[float] = Field(default=0.0, ge=0)
+    nbr_jour_by_user: Optional[float] = Field(default=0.0, ge=0)
+    mois: int = Field(ge=1, le=12)
+    annee: str = Field(min_length=4, max_length=4)
 
 
 class AbsenceCreate(AbsenceBase):
@@ -36,10 +39,10 @@ class AbsenceOut(AbsenceBase):
 # ─────────────────────────────────────────
 
 class HeureSupplementaireBase(BaseModel):
-    code: str  # HS25, HS50, etc.
-    nombre: float
-    mois: int
-    annee: str
+    code: str = Field(min_length=1, max_length=50)  # HS15, HS25, HS50, HS75, HS100…
+    nombre: float = Field(gt=0)
+    mois: int = Field(ge=1, le=12)
+    annee: str = Field(min_length=4, max_length=4)
 
 
 class HeureSupplementaireCreate(HeureSupplementaireBase):
@@ -61,10 +64,10 @@ class HeureSupplementaireOut(HeureSupplementaireBase):
 # ─────────────────────────────────────────
 
 class PrimeBase(BaseModel):
-    code: str
-    montant: float
-    mois: int
-    annee: str
+    code: str = Field(min_length=1, max_length=50)
+    montant: float = Field(ge=0)
+    mois: int = Field(ge=1, le=12)
+    annee: str = Field(min_length=4, max_length=4)
     libelle: Optional[str] = None
     base: Optional[float] = None
     taux: Optional[float] = None

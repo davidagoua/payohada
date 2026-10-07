@@ -1,9 +1,15 @@
+import hashlib
+import hmac
 import logging
+import os
+from datetime import datetime, timedelta
 from typing import Optional
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from jose import jwt, JWTError
 from sqlalchemy.orm import Session
+
 from app.config import settings
 from app.database import get_db
 from app.models.models import Utilisateur
@@ -17,59 +23,57 @@ def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db)
 ) -> Utilisateur:
+    """Valide le jeton porteur et retourne l'utilisateur local correspondant.
+
+    Aucun compte n'est créé implicitement : un jeton dont le `sub` est inconnu
+    est rejeté. Cela évite qu'un jeton forgé (ou un compte Supabase orphelin)
+    ouvre un accès applicatif.
+    """
+    if not settings.SUPABASE_JWT_SECRET:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Configuration d'authentification incomplète (SUPABASE_JWT_SECRET absent).",
+        )
+
     token = credentials.credentials
 
     try:
-        # Décodage du token Supabase (HS256 avec la clé secrète Supabase)
         payload = jwt.decode(
             token,
             settings.SUPABASE_JWT_SECRET,
             algorithms=[settings.ALGORITHM],
-            options={"verify_aud": False}  # Supabase utilise son propre aud (ex: "authenticated")
+            options={"verify_aud": False}  # Supabase utilise son propre aud
         )
-        
-        # Extraction des identifiants Supabase
         supabase_uid = payload.get("sub")
-        email = payload.get("email")
-        
-        if not supabase_uid or not email:
+        if not supabase_uid:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Token Supabase invalide (champs sub/email manquants)",
+                detail="Jeton invalide (champ sub manquant).",
                 headers={"WWW-Authenticate": "Bearer"},
             )
-            
     except JWTError as e:
-        logger.error(f"Erreur de décodage JWT Supabase: {e}")
+        logger.warning("Jeton JWT refusé: %s", e)
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"Token invalide ou expiré: {str(e)}",
+            detail="Jeton invalide ou expiré.",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # Récupération ou création automatique de l'utilisateur local
     user = db.query(Utilisateur).filter(Utilisateur.supabase_uid == supabase_uid).first()
     if not user:
-        # Première connexion de l'utilisateur, synchronisation avec la BDD locale
-        user_metadata = payload.get("user_metadata", {})
-        user = Utilisateur(
-            email=email,
-            nom=user_metadata.get("last_name") or user_metadata.get("nom") or "Nom",
-            prenom=user_metadata.get("first_name") or user_metadata.get("prenom") or "Prenom",
-            supabase_uid=supabase_uid,
-            is_active=True,
-            is_admin=False
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Aucun compte local n'est associé à ce jeton.",
+            headers={"WWW-Authenticate": "Bearer"},
         )
-        db.add(user)
-        db.commit()
-        db.refresh(user)
-        
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Ce compte est désactivé.",
+        )
+
     return user
-
-
-import hashlib
-import os
-from datetime import datetime, timedelta
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -83,7 +87,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         salt = bytes.fromhex(parts[2])
         original_key = bytes.fromhex(parts[3])
         key = hashlib.pbkdf2_hmac('sha256', plain_password.encode('utf-8'), salt, iterations)
-        return key == original_key
+        return hmac.compare_digest(key, original_key)
     except Exception:
         return False
 
@@ -94,8 +98,39 @@ def get_password_hash(password: str) -> str:
     return f"pbkdf2_sha256$100000${salt.hex()}${key.hex()}"
 
 
+def generate_password(length: int = 16) -> str:
+    """Génère un mot de passe aléatoire robuste (remplace les mots de passe partagés)."""
+    import secrets
+    import string
+
+    alphabet = string.ascii_letters + string.digits + "!@#$%*-_"
+    while True:
+        pwd = "".join(secrets.choice(alphabet) for _ in range(length))
+        if (any(c.islower() for c in pwd) and any(c.isupper() for c in pwd)
+                and any(c.isdigit() for c in pwd) and any(c in "!@#$%*-_" for c in pwd)):
+            return pwd
+
+
+def validate_password_strength(password: str, minimum: int = 8) -> None:
+    """Lève une HTTPException 400 si le mot de passe est trop faible."""
+    if not password or len(password) < minimum:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Le mot de passe doit contenir au moins {minimum} caractères.",
+        )
+    if password.isdigit() or password.isalpha():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Le mot de passe doit mélanger lettres et chiffres.",
+        )
+
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
+    if not settings.SUPABASE_JWT_SECRET:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Configuration d'authentification incomplète (SUPABASE_JWT_SECRET absent).",
+        )
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -106,6 +141,4 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
         "aud": "authenticated",
         "role": "authenticated"
     })
-    encoded_jwt = jwt.encode(to_encode, settings.SUPABASE_JWT_SECRET, algorithm=settings.ALGORITHM)
-    return encoded_jwt
-
+    return jwt.encode(to_encode, settings.SUPABASE_JWT_SECRET, algorithm=settings.ALGORITHM)

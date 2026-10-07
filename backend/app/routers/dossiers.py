@@ -3,42 +3,34 @@ from sqlalchemy.orm import Session
 from typing import List
 
 from app.database import get_db
-from app.models.models import Dossier, NetEntreprise, Utilisateur
+from app.models.models import Dossier, Etablissement, NetEntreprise, Salarie, Utilisateur
 from app.schemas.dossier import DossierCreate, DossierUpdate, DossierOut, NetEntrepriseCreate, NetEntrepriseOut
 from app.schemas.utilisateur import CompteClientCreate, UtilisateurOut
-from app.services.security import get_current_user, get_password_hash
+from app.services.security import (
+    get_current_user, get_password_hash, generate_password, validate_password_strength,
+)
+from app.services.permissions import get_dossier_or_403, require_staff
 import uuid
 
 router = APIRouter(prefix="/dossiers", tags=["Dossiers"])
 
 
 def check_dossier_ownership(dossier_id: int, user: Utilisateur, db: Session) -> Dossier:
-    dossier = db.query(Dossier).filter(Dossier.id == dossier_id).first()
-    if not dossier:
+    """Vérifie que l'utilisateur a accès au dossier (cabinet propriétaire,
+    client rattaché ou administrateur)."""
+    return get_dossier_or_403(dossier_id, user, db)
+
+
+def _get_owned_dossier_for_write(dossier_id: int, user: Utilisateur, db: Session) -> Dossier:
+    """Écriture d'un dossier : réservé au cabinet propriétaire (ou admin)."""
+    require_staff(user)
+    dossier = get_dossier_or_403(dossier_id, user, db)
+    if not user.is_admin and dossier.utilisateur_id != user.id:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Dossier introuvable."
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Seul le cabinet propriétaire peut modifier ce dossier.",
         )
-    if user.is_admin:
-        return dossier
-    if user.role == "client":
-        if user.dossier_id != dossier_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Accès non autorisé à ce dossier."
-            )
-        return dossier
-    if user.role == "cabinet":
-        if dossier.utilisateur_id != user.id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Accès non autorisé à ce dossier."
-            )
-        return dossier
-    raise HTTPException(
-        status_code=status.HTTP_403_FORBIDDEN,
-        detail="Accès non autorisé."
-    )
+    return dossier
 
 
 @router.get("", response_model=List[DossierOut])
@@ -53,6 +45,16 @@ def get_dossiers(
         if not current_user.dossier_id:
             return []
         return db.query(Dossier).filter(Dossier.id == current_user.dossier_id).all()
+    if current_user.role == "salarie":
+        if not current_user.salarie_id:
+            return []
+        salarie = db.query(Salarie).filter(Salarie.id == current_user.salarie_id).first()
+        if not salarie:
+            return []
+        etab = db.query(Etablissement).filter(Etablissement.id == salarie.etablissement_id).first()
+        if not etab:
+            return []
+        return db.query(Dossier).filter(Dossier.id == etab.dossier_id).all()
     return db.query(Dossier).filter(Dossier.utilisateur_id == current_user.id).all()
 
 
@@ -114,16 +116,8 @@ def update_dossier(
     db: Session = Depends(get_db),
     current_user: Utilisateur = Depends(get_current_user)
 ):
-    """Met à jour un dossier."""
-    dossier = db.query(Dossier).filter(
-        Dossier.id == dossier_id,
-        Dossier.utilisateur_id == current_user.id
-    ).first()
-    if not dossier:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Dossier introuvable."
-        )
+    """Met à jour un dossier (cabinet propriétaire uniquement)."""
+    dossier = _get_owned_dossier_for_write(dossier_id, current_user, db)
 
     for field, value in dossier_in.model_dump(exclude_unset=True).items():
         setattr(dossier, field, value)
@@ -139,16 +133,8 @@ def delete_dossier(
     db: Session = Depends(get_db),
     current_user: Utilisateur = Depends(get_current_user)
 ):
-    """Supprime un dossier."""
-    dossier = db.query(Dossier).filter(
-        Dossier.id == dossier_id,
-        Dossier.utilisateur_id == current_user.id
-    ).first()
-    if not dossier:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Dossier introuvable."
-        )
+    """Supprime un dossier (cabinet propriétaire uniquement)."""
+    dossier = _get_owned_dossier_for_write(dossier_id, current_user, db)
 
     db.delete(dossier)
     db.commit()
@@ -163,15 +149,7 @@ def create_or_update_net_entreprise(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """Configure ou met à jour NetEntreprise pour un dossier."""
-    dossier = db.query(Dossier).filter(
-        Dossier.id == dossier_id,
-        Dossier.utilisateur_id == current_user.id
-    ).first()
-    if not dossier:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Dossier introuvable."
-        )
+    _get_owned_dossier_for_write(dossier_id, current_user, db)
 
     net_ent = db.query(NetEntreprise).filter(NetEntreprise.dossier_id == dossier_id).first()
     if net_ent:
@@ -211,29 +189,46 @@ def create_compte_client(
     db: Session = Depends(get_db),
     current_user: Utilisateur = Depends(get_current_user)
 ):
-    """Permet au cabinet de créer un compte d'accès pour son entreprise cliente."""
-    check_dossier_ownership(dossier_id, current_user, db)
+    """Permet au cabinet de créer un compte d'accès pour son entreprise cliente.
 
-    # Vérifier si l'email existe déjà
-    existing = db.query(Utilisateur).filter(Utilisateur.email == request.email).first()
+    Si aucun mot de passe n'est fourni, un mot de passe aléatoire est généré et
+    renvoyé une seule fois (`mot_de_passe_initial`) ; l'utilisateur devra le
+    remplacer à sa première connexion.
+    """
+    check_dossier_ownership(dossier_id, current_user, db)
+    if not current_user.is_admin and current_user.role != "cabinet":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Seul le cabinet peut créer un compte client.",
+        )
+
+    email = (request.email or "").strip().lower()
+    existing = db.query(Utilisateur).filter(Utilisateur.email == email).first()
     if existing:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cette adresse email est déjà utilisée par un autre compte."
         )
 
-    pwd = request.password or "Payohada@123"
-    hashed = get_password_hash(pwd)
-    uid = f"local-client-{uuid.uuid4()}"
+    password_genere = None
+    if request.password:
+        validate_password_strength(request.password, minimum=8)
+        pwd = request.password
+        must_change = False
+    else:
+        pwd = generate_password()
+        password_genere = pwd
+        must_change = True
 
     new_user = Utilisateur(
-        email=request.email,
+        email=email,
         nom=request.nom,
         prenom=request.prenom,
-        hashed_password=hashed,
-        supabase_uid=uid,
+        hashed_password=get_password_hash(pwd),
+        supabase_uid=f"local-client-{uuid.uuid4()}",
         is_active=True,
         is_admin=False,
+        must_change_password=must_change,
         role="client",
         dossier_id=dossier_id
     )
@@ -245,5 +240,7 @@ def create_compte_client(
     dossier = db.query(Dossier).filter(Dossier.id == dossier_id).first()
     if dossier:
         out.nom_dossier = dossier.nom_dossier
+    out.is_default_password = bool(new_user.must_change_password)
+    out.mot_de_passe_initial = password_genere
     return out
 

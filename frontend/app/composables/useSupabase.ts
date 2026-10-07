@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createClient } from '@supabase/supabase-js'
 
+// Promesse d'initialisation partagée au niveau du module : plusieurs appels
+// concurrents (layout, middleware de route) ne déclenchent qu'une seule
+// restauration de session.
+let initialisationEnCours: Promise<void> | null = null
+
 export const useSupabase = () => {
   const config = useRuntimeConfig()
   const url = config.public.supabaseUrl
@@ -114,6 +119,17 @@ export const useSupabase = () => {
       loading.value = false
       initialized.value = true
     }
+  }
+
+  /** Initialise la session si nécessaire (idempotent, sûr en concurrence). */
+  const ensureInitialized = async () => {
+    if (initialized.value) return
+    if (!initialisationEnCours) {
+      initialisationEnCours = init().finally(() => {
+        initialisationEnCours = null
+      })
+    }
+    await initialisationEnCours
   }
 
   const login = async (email: string, password: string) => {
@@ -342,6 +358,7 @@ export const useSupabase = () => {
     loading,
     initialized,
     init,
+    ensureInitialized,
     login,
     signup,
     signupCabinet,

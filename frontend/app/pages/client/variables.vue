@@ -24,7 +24,7 @@ const excelImportModalOpen = ref(false)
 const selectedContract = ref(null)
 
 // Form states
-const hsForm = ref({ code: 'HS15', nombre: 1 })
+const hsForm = ref({ code: 'HS_15', nombre: 1 })
 const absenceForm = ref({
   code: 'CP',
   date_debut: '',
@@ -129,7 +129,7 @@ const formatFCFA = (amount) => {
 // ── Modals Triggers ──
 const openHsModal = (row) => {
   selectedContract.value = row
-  hsForm.value = { code: 'HS15', nombre: 1 }
+  hsForm.value = { code: 'HS_15', nombre: 1 }
   hsModalOpen.value = true
 }
 
@@ -648,11 +648,11 @@ const handleImportExcel = async (event) => {
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">Type de majoration :</label>
             <select v-model="hsForm.code" class="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-xs font-semibold">
-              <option value="HS15">HS15 (Heures de jour de 41e à 48e h • +15%)</option>
-              <option value="HS25">HS25 (Majoration standard • +25%)</option>
-              <option value="HS50">HS50 (Au-delà de 48h ou nuit • +50%)</option>
-              <option value="HS75">HS75 (Dimanches & jours fériés de jour • +75%)</option>
-              <option value="HS100">HS100 (Dimanches & jours fériés de nuit • +100%)</option>
+              <option value="HS_15">HS15 (Heures de jour de 41e à 48e h • +15%)</option>
+              <option value="HS_25">HS25 (Majoration standard • +25%)</option>
+              <option value="HS_50">HS50 (Au-delà de 48h ou nuit • +50%)</option>
+              <option value="HS_75">HS75 (Dimanches & jours fériés de jour • +75%)</option>
+              <option value="HS_100">HS100 (Dimanches & jours fériés de nuit • +100%)</option>
             </select>
           </div>
 

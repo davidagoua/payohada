@@ -6,6 +6,7 @@ from app.database import get_db
 from app.models.models import Reclamation, BulletinPaie, Contrat, Dossier, Salarie, Utilisateur
 from app.schemas.reclamation import ReclamationCreate, ReclamationUpdate, ReclamationOut
 from app.services.security import get_current_user
+from app.services.permissions import require_staff
 
 router = APIRouter(prefix="/reclamations", tags=["Réclamations"])
 
@@ -58,14 +59,26 @@ def list_reclamations(
     """
     Liste les réclamations.
     - Les salariés ne voient que leurs réclamations.
-    - Les gestionnaires voient toutes les réclamations des salariés de leurs dossiers.
+    - Les comptes client voient toutes les réclamations de leur entreprise.
+    - Les gestionnaires voient toutes les réclamations de leurs dossiers.
     """
     if current_user.salarie_id:
         reclamations = db.query(Reclamation).filter(
             Reclamation.salarie_id == current_user.salarie_id
         ).order_by(Reclamation.created_at.desc()).all()
+    elif current_user.role == "client" and current_user.dossier_id:
+        # Le compte client est rattaché à un dossier : il voit les réclamations
+        # des bulletins de SON entreprise (et non de celles dont il serait
+        # propriétaire, ce qui renvoyait une liste vide).
+        reclamations = db.query(Reclamation)\
+            .join(BulletinPaie, BulletinPaie.id == Reclamation.bulletin_id)\
+            .filter(BulletinPaie.dossier_id == current_user.dossier_id)\
+            .order_by(Reclamation.created_at.desc()).all()
+    elif current_user.is_admin:
+        reclamations = db.query(Reclamation)\
+            .order_by(Reclamation.created_at.desc()).all()
     else:
-        # Pour les gestionnaires, on récupère les réclamations liées aux dossiers possédés
+        # Gestionnaires : réclamations liées aux dossiers qu'ils possèdent
         reclamations = db.query(Reclamation)\
             .join(BulletinPaie, BulletinPaie.id == Reclamation.bulletin_id)\
             .join(Dossier, Dossier.id == BulletinPaie.dossier_id)\
@@ -100,18 +113,16 @@ def update_reclamation(
     """
     Permet à un gestionnaire de traiter ou rejeter une réclamation.
     """
-    if current_user.salarie_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Les salariés ne peuvent pas modifier le statut des réclamations."
-        )
+    require_staff(current_user)
 
     # Récupérer la réclamation et vérifier qu'elle appartient à un dossier du gestionnaire connecté
-    reclamation = db.query(Reclamation)\
+    query = db.query(Reclamation)\
         .join(BulletinPaie, BulletinPaie.id == Reclamation.bulletin_id)\
         .join(Dossier, Dossier.id == BulletinPaie.dossier_id)\
-        .filter(Reclamation.id == reclamation_id, Dossier.utilisateur_id == current_user.id)\
-        .first()
+        .filter(Reclamation.id == reclamation_id)
+    if not current_user.is_admin:
+        query = query.filter(Dossier.utilisateur_id == current_user.id)
+    reclamation = query.first()
 
     if not reclamation:
         raise HTTPException(

@@ -42,13 +42,13 @@ const handleSubmit = async () => {
     return
   }
 
-  if (newPassword.value.length < 6) {
-    errorMessage.value = 'Le nouveau mot de passe doit contenir au moins 6 caractères.'
+  if (newPassword.value.length < 8) {
+    errorMessage.value = 'Le nouveau mot de passe doit contenir au moins 8 caractères.'
     return
   }
 
-  if (newPassword.value === 'Payohada@123') {
-    errorMessage.value = 'Le nouveau mot de passe doit être différent du mot de passe par défaut (Payohada@123).'
+  if (newPassword.value === oldPassword.value) {
+    errorMessage.value = 'Le nouveau mot de passe doit être différent de l\'ancien.'
     return
   }
 
@@ -98,6 +98,7 @@ const handleSubmit = async () => {
             </div>
           </div>
           <button
+            v-if="!isDefault"
             type="button"
             @click="dismissModal"
             class="text-slate-400 hover:text-slate-650 p-1 transition-colors cursor-pointer rounded"
@@ -118,7 +119,7 @@ const handleSubmit = async () => {
               Mot de passe par défaut actif
             </p>
             <p class="text-amber-850 text-[11px]">
-              Votre compte utilise actuellement le mot de passe provisoire. Pour protéger la confidentialité de vos données de paie, nous vous recommandons vivement de choisir votre propre mot de passe.
+              Votre compte utilise actuellement un mot de passe provisoire communiqué par votre gestionnaire. Pour protéger la confidentialité de vos données de paie, choisissez dès maintenant votre propre mot de passe.
             </p>
           </div>
         </div>
@@ -156,7 +157,7 @@ const handleSubmit = async () => {
               </button>
             </div>
             <p v-if="isDefault" class="text-[11px] text-slate-500 mt-1">
-              💡 Votre mot de passe initial est <code class="bg-amber-100/70 text-amber-900 px-1 py-0.5 border border-amber-200 font-mono font-bold text-[10px]">Payohada@123</code>.
+              💡 Saisissez le mot de passe provisoire qui vous a été communiqué par votre gestionnaire.
             </p>
           </div>
 
@@ -169,7 +170,7 @@ const handleSubmit = async () => {
               <input
                 v-model="newPassword"
                 :type="showNewPassword ? 'text' : 'password'"
-                placeholder="Au moins 6 caractères"
+                placeholder="Au moins 8 caractères"
                 class="block w-full px-3 py-2 pr-10 border border-slate-350 rounded-none text-sm bg-white focus:outline-none focus:border-green-600"
                 required
               />
@@ -182,11 +183,11 @@ const handleSubmit = async () => {
               </button>
             </div>
             <div class="flex items-center gap-3 mt-1 text-[11px] text-slate-500">
-              <span :class="newPassword.length >= 6 ? 'text-emerald-700 font-bold' : ''">
-                ✓ Au moins 6 caractères
+              <span :class="newPassword.length >= 8 ? 'text-emerald-700 font-bold' : ''">
+                ✓ Au moins 8 caractères
               </span>
-              <span v-if="newPassword === 'Payohada@123'" class="text-red-600 font-bold">
-                ✕ Doit être différent de Payohada@123
+              <span v-if="newPassword && !/[0-9]/.test(newPassword)" class="text-amber-600 font-bold">
+                ✕ Ajoutez au moins un chiffre
               </span>
             </div>
           </div>
@@ -223,12 +224,16 @@ const handleSubmit = async () => {
           <!-- Footer Actions -->
           <div class="flex items-center justify-between pt-4 border-t border-slate-200 mt-6">
             <button
+              v-if="!isDefault"
               type="button"
               @click="dismissModal"
               class="px-4 py-2 border-2 border-slate-200 text-xs font-bold rounded-none hover:bg-slate-100 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer"
             >
-              {{ isDefault ? "Modifier plus tard" : "Annuler" }}
+              Annuler
             </button>
+            <span v-else class="text-[11px] font-semibold text-amber-700">
+              Définissez votre mot de passe pour continuer
+            </span>
             <button
               type="submit"
               :disabled="submitting || authLoading"

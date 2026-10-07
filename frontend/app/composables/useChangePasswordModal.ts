@@ -1,6 +1,8 @@
 export const useChangePasswordModal = () => {
   const isOpen = useState<boolean>('change-password-modal-open', () => false)
   const dismissedInSession = useState<boolean>('change-password-dismissed-session', () => false)
+  // Vrai lorsque l'utilisateur doit définir son propre mot de passe.
+  const mustChangePassword = useState<boolean>('change-password-required', () => false)
 
   const openModal = () => {
     isOpen.value = true
@@ -11,6 +13,9 @@ export const useChangePasswordModal = () => {
   }
 
   const dismissModal = () => {
+    // Tant que le mot de passe provisoire n'a pas été remplacé, la
+    // fermeture du modal n'est pas autorisée.
+    if (mustChangePassword.value) return
     isOpen.value = false
     dismissedInSession.value = true
     if (typeof window !== 'undefined') {
@@ -27,7 +32,9 @@ export const useChangePasswordModal = () => {
     const isClientOrSalarie = currentUser.role === 'client' || currentUser.role === 'salarie' || !!currentUser.salarie_id
     if (!isClientOrSalarie) return
 
-    // Vérifier si le mot de passe est celui par défaut
+    mustChangePassword.value = !!currentUser.is_default_password
+
+    // Vérifier si le mot de passe provisoire est encore actif
     if (currentUser.is_default_password) {
       if (typeof window !== 'undefined') {
         try {
@@ -49,6 +56,7 @@ export const useChangePasswordModal = () => {
   return {
     isOpen,
     dismissedInSession,
+    mustChangePassword,
     openModal,
     closeModal,
     dismissModal,

@@ -1,12 +1,15 @@
-from pydantic import BaseModel, EmailStr
-from typing import Optional
+from pydantic import BaseModel, EmailStr, Field
+from typing import Literal, Optional
+
+
+RoleUtilisateur = Literal["cabinet", "client", "salarie"]
 
 
 class UtilisateurBase(BaseModel):
     email: EmailStr
     nom: Optional[str] = None
     prenom: Optional[str] = None
-    role: str = "cabinet" # "cabinet", "client", "salarie"
+    role: RoleUtilisateur = "cabinet"
     dossier_id: Optional[int] = None
 
 
@@ -24,7 +27,10 @@ class UtilisateurOut(UtilisateurBase):
     cabinet_nom: Optional[str] = None
     cabinet_telephone: Optional[str] = None
     cabinet_ville: Optional[str] = None
+    #: `True` lorsque l'utilisateur doit définir son propre mot de passe.
     is_default_password: Optional[bool] = False
+    #: Mot de passe généré, renvoyé UNE SEULE FOIS à la création du compte.
+    mot_de_passe_initial: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -37,14 +43,16 @@ class LoginRequest(BaseModel):
 
 class ChangePasswordRequest(BaseModel):
     old_password: str
-    new_password: str
+    new_password: str = Field(min_length=8, max_length=128)
 
 
 class CompteClientCreate(BaseModel):
     email: EmailStr
     nom: str
     prenom: str
-    password: Optional[str] = "Payohada@123"
+    #: Laisser vide pour que le serveur génère un mot de passe aléatoire
+    #: (recommandé : plus aucun mot de passe partagé par défaut).
+    password: Optional[str] = Field(default=None, min_length=8, max_length=128)
 
 
 class CabinetSignupRequest(BaseModel):
@@ -53,9 +61,8 @@ class CabinetSignupRequest(BaseModel):
     prenom: str
     nom: str
     email: EmailStr
-    password: str
+    password: str = Field(min_length=8, max_length=128)
     # Informations du cabinet
     cabinet_nom: str
     cabinet_telephone: Optional[str] = None
     cabinet_ville: Optional[str] = None
-

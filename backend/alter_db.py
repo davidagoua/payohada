@@ -11,7 +11,15 @@ if env_path.exists():
             if line.startswith("DATABASE_URL="):
                 db_url = line.split("DATABASE_URL=")[1].strip()
 
-print("DATABASE_URL:", db_url)
+def _mask_url(url):
+    """Masque les identifiants avant toute journalisation."""
+    if not url:
+        return "<non défini>"
+    import re
+    return re.sub(r"://[^@/]*@", "://<identifiants masqués>@", url)
+
+
+print("DATABASE_URL:", _mask_url(db_url))
 
 # 1. Update PostgreSQL
 if db_url and (db_url.startswith("postgresql") or db_url.startswith("postgres")):
@@ -60,6 +68,7 @@ if db_url and (db_url.startswith("postgresql") or db_url.startswith("postgres"))
         cur.execute("ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS cabinet_nom VARCHAR(200) DEFAULT NULL;")
         cur.execute("ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS cabinet_telephone VARCHAR(30) DEFAULT NULL;")
         cur.execute("ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS cabinet_ville VARCHAR(100) DEFAULT NULL;")
+        cur.execute("ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS must_change_password BOOLEAN NOT NULL DEFAULT FALSE;")
         
         # Create periodes_paie table
         cur.execute("""
@@ -103,18 +112,10 @@ if db_url and (db_url.startswith("postgresql") or db_url.startswith("postgres"))
         cur.execute("UPDATE utilisateurs SET role = 'salarie' WHERE salarie_id IS NOT NULL AND (role IS NULL OR role = 'cabinet');")
         cur.execute("UPDATE utilisateurs SET role = 'cabinet' WHERE salarie_id IS NULL AND (role IS NULL);")
         
-        # Créer le compte démo Client (Entreprise Liugong) si inexistant
-        cur.execute("SELECT id FROM dossiers LIMIT 1;")
-        first_dossier = cur.fetchone()
-        first_dossier_id = first_dossier[0] if first_dossier else 1
-
-        cur.execute("SELECT id FROM utilisateurs WHERE email = 'client.liugong@payohada.com';")
-        if not cur.fetchone():
-            cur.execute("""
-            INSERT INTO utilisateurs (email, nom, prenom, supabase_uid, is_active, is_admin, role, dossier_id)
-            VALUES ('client.liugong@payohada.com', 'Responsable RH', 'Client Liugong', 'local-client-liugong-demo', true, false, 'client', %s);
-            """, (first_dossier_id,))
-            print("Compte démo client créé : client.liugong@payohada.com")
+        # NOTE : la création automatique d'un compte de démonstration sans mot
+        # de passe a été supprimée. Un compte est désormais créé via
+        # POST /api/v1/dossiers/{id}/comptes-clients (mot de passe aléatoire
+        # généré et retourné une seule fois) ou via create_admin.py.
 
         conn.commit()
         cur.close()
@@ -217,6 +218,11 @@ if sqlite_path.exists():
             cur.execute("ALTER TABLE utilisateurs ADD COLUMN cabinet_ville VARCHAR(100) DEFAULT NULL;")
         except sqlite3.OperationalError:
             print("cabinet_ville column already exists or error in utilisateurs")
+
+        try:
+            cur.execute("ALTER TABLE utilisateurs ADD COLUMN must_change_password BOOLEAN NOT NULL DEFAULT 0;")
+        except sqlite3.OperationalError:
+            print("must_change_password column already exists or error in utilisateurs")
 
         try:
             cur.execute("""

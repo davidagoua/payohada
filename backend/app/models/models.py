@@ -62,6 +62,9 @@ class Utilisateur(TimestampMixin, Base):
     supabase_uid = Column(String(255), unique=True, nullable=False, index=True)
     is_active = Column(Boolean, default=True)
     is_admin = Column(Boolean, default=False)
+    #: Passe à True lorsque le mot de passe a été généré par un tiers (compte
+    #: créé par le cabinet) : l'utilisateur doit le remplacer à la 1re connexion.
+    must_change_password = Column(Boolean, default=False, nullable=False, server_default="false")
     role = Column(String(20), default="cabinet", nullable=False) # "cabinet", "client", "salarie"
     dossier_id = Column(Integer, ForeignKey("dossiers.id", ondelete="SET NULL"), nullable=True)
     salarie_id = Column(Integer, ForeignKey("salaries.id", ondelete="CASCADE"), nullable=True)
@@ -151,7 +154,10 @@ class Dossier(TimestampMixin, Base):
 
     id = Column(Integer, primary_key=True, index=True)
     code = Column(String(10), unique=True, nullable=False, index=True)
-    siret = Column(String(14), index=True)
+    # L'index sur `siret` est déclaré explicitement dans __table_args__ ;
+    # ne pas ajouter index=True ici (cela produisait deux DDL du même nom et
+    # faisait échouer Base.metadata.create_all sur une base vierge).
+    siret = Column(String(14))
     nom_dossier = Column(String(50), nullable=False)
     adresse_email = Column(String(150))
     telephone = Column(String(15))
@@ -436,8 +442,10 @@ class Horaires(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     contrat_id = Column(Integer, ForeignKey("contrats.id", ondelete="CASCADE"), unique=True)
-    horaire_travail = Column(Float, default=151.67)   # heures/mois légal
-    horaire_hebdo = Column(Float, default=35.0)
+    # Défauts alignés sur le droit du travail ivoirien / UEMOA :
+    # 40 heures par semaine, soit 173,33 heures par mois.
+    horaire_travail = Column(Float, default=173.33)   # heures/mois légal
+    horaire_hebdo = Column(Float, default=40.0)
     horaire_lundi = Column(Float, default=7.0)
     horaire_mardi = Column(Float, default=7.0)
     horaire_mercredi = Column(Float, default=7.0)

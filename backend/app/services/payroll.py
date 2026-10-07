@@ -1,5 +1,8 @@
 import logging
+import re
+from collections import Counter
 from sqlalchemy.orm import Session
+from sqlalchemy import or_
 from datetime import datetime
 
 from app.models.models import (
@@ -11,6 +14,84 @@ from app.models.models import (
 from typing import Optional
 
 logger = logging.getLogger(__name__)
+
+#: Majorations légales des heures supplémentaires (Côte d'Ivoire / UEMOA).
+#: 15 % (41e-46e h), 50 % (au-delà), 75 % (nuit/dimanche/jours fériés),
+#: 100 % (nuit des dimanches et jours fériés).
+HS_MAJORATIONS = {
+    15: 1.15,
+    25: 1.25,
+    50: 1.50,
+    75: 1.75,
+    100: 2.00,
+}
+
+
+def _hs_majoration(code: Optional[str]) -> float:
+    """Déduit la majoration d'un code d'heure supplémentaire.
+
+    Accepte les codes `HS15`, `HS_15`, `HS-15`… Un code inconnu est traité
+    comme non majoré **et journalisé**, pour ne jamais payer silencieusement
+    des heures supplémentaires au taux de base.
+    """
+    if not code:
+        logger.warning("Code d'heure supplémentaire vide : majoration nulle appliquée.")
+        return 1.0
+
+    match = re.search(r"(\d+)", code)
+    if not match:
+        logger.warning("Code d'heure supplémentaire non reconnu : %s (majoration nulle).", code)
+        return 1.0
+
+    taux = int(match.group(1))
+    majoration = HS_MAJORATIONS.get(taux)
+    if majoration is None:
+        logger.warning("Majoration inconnue pour le code %s : taux de base appliqué.", code)
+        return 1.0
+    return majoration
+
+
+def _daily_hours(contrat: Contrat) -> float:
+    """Durée d'une journée de travail pour ce contrat (base unique de calcul).
+
+    Évite les incohérences entre une absence saisie en heures et une absence
+    issue du module RH (auparavant 7 h ici et 8 h là).
+    """
+    horaires = contrat.horaires
+    if horaires:
+        jours = None
+        if contrat.jours_hebdomadaires and contrat.jours_hebdomadaires.jours_hebdo:
+            jours = contrat.jours_hebdomadaires.jours_hebdo
+        if not jours:
+            jours = 5.0
+        if horaires.horaire_hebdo and jours > 0:
+            return round(horaires.horaire_hebdo / jours, 4)
+        if horaires.horaire_travail and jours > 0:
+            return round((horaires.horaire_travail * 12 / 52) / jours, 4)
+    # Repli : 40 h hebdomadaires sur 5 jours.
+    return 8.0
+
+
+def _unique_line_codes(lines: list) -> None:
+    """Rend les codes de lignes uniques au sein d'un bulletin.
+
+    La table `lignes_bulletins_paies` impose l'unicité de (bulletin_id, code) :
+    deux absences de même nature (ou deux primes de même code) dans le mois
+    faisaient échouer l'enregistrement du bulletin entier. On suffixe les
+    doublons (`ABS_MALADIE`, `ABS_MALADIE_2`, …) sans casser les préfixes
+    utilisés par les cumuls (`ABS_`, `HS_`).
+    """
+    counts: Counter = Counter()
+    for ligne in lines:
+        code = ligne.code or "LIGNE"
+        counts[code] += 1
+        if counts[code] > 1:
+            ligne.code = f"{code}_{counts[code]}"
+
+
+def _is_false_or_null(column):
+    """`column` vaut False ou NULL (les lignes historiques peuvent être NULL)."""
+    return or_(column.is_(None), column == False)  # noqa: E712
 
 
 def _get_payroll_inputs(db: Session, contrat_id: int, mois: int, annee: int):
@@ -43,9 +124,7 @@ def _get_payroll_inputs(db: Session, contrat_id: int, mois: int, annee: int):
         SalarieAbsence.date_fin_absence >= month_start
     ).all()
 
-    daily_hours = 7.0
-    if contrat.horaires and contrat.horaires.horaire_hebdo:
-        daily_hours = contrat.horaires.horaire_hebdo / 5.0
+    daily_hours = _daily_hours(contrat)
 
     for a_hr in hr_absences:
         overlap_start = max(a_hr.date_debut_absence, month_start)
@@ -92,11 +171,11 @@ def _get_payroll_inputs(db: Session, contrat_id: int, mois: int, annee: int):
         Prime.contrat_id == contrat_id
     ).filter(
         (
-            (Prime.est_persistant == False) & 
-            (Prime.annee == str(annee)) & 
+            _is_false_or_null(Prime.est_persistant) &
+            (Prime.annee == str(annee)) &
             (Prime.mois == mois)
         ) | (
-            (Prime.est_persistant == True) & 
+            (Prime.est_persistant == True) &  # noqa: E712
             (
                 (Prime.annee < str(annee)) |
                 ((Prime.annee == str(annee)) & (Prime.mois <= mois))
@@ -108,11 +187,11 @@ def _get_payroll_inputs(db: Session, contrat_id: int, mois: int, annee: int):
         Option.contrat_id == contrat_id
     ).filter(
         (
-            (Option.est_persistant == False) & 
-            (Option.annee == str(annee)) & 
+            _is_false_or_null(Option.est_persistant) &
+            (Option.annee == str(annee)) &
             (Option.mois == mois)
         ) | (
-            (Option.est_persistant == True) & 
+            (Option.est_persistant == True) &  # noqa: E712
             (
                 (Option.annee < str(annee)) |
                 ((Option.annee == str(annee)) & (Option.mois <= mois))
@@ -124,7 +203,12 @@ def _get_payroll_inputs(db: Session, contrat_id: int, mois: int, annee: int):
 
 
 def _get_or_create_bulletin(db: Session, contrat_id: int, dossier_id: int, mois: int, annee: int) -> BulletinPaie:
-    """Récupère le bulletin de paie existant ou en crée un nouveau, en réinitialisant ses lignes."""
+    """Récupère le bulletin de paie existant ou en crée un nouveau, en réinitialisant ses lignes.
+
+    Un bulletin **validé** (période clôturée) n'est jamais recalculé
+    silencieusement : il doit d'abord être invalidé explicitement, ce qui
+    restaure les remboursements de prêts déjà appliqués.
+    """
     bulletin = db.query(BulletinPaie).filter(
         BulletinPaie.contrat_id == contrat_id,
         BulletinPaie.mois == mois,
@@ -132,9 +216,19 @@ def _get_or_create_bulletin(db: Session, contrat_id: int, dossier_id: int, mois:
     ).first()
 
     if bulletin:
+        if bulletin.statut == "valide":
+            raise ValueError(
+                f"Le bulletin {mois}/{annee} est validé et ne peut pas être recalculé. "
+                "Invalidez-le d'abord si une correction est nécessaire."
+            )
         # Si le bulletin existe, on supprime les anciennes lignes pour recalculer
-        db.query(LigneBulletinPaie).filter(LigneBulletinPaie.bulletin_id == bulletin.id).delete()
-        db.query(VariableBulletin).filter(VariableBulletin.bulletin_id == bulletin.id).delete()
+        db.query(LigneBulletinPaie).filter(
+            LigneBulletinPaie.bulletin_id == bulletin.id
+        ).delete(synchronize_session=False)
+        db.query(VariableBulletin).filter(
+            VariableBulletin.bulletin_id == bulletin.id
+        ).delete(synchronize_session=False)
+        db.flush()
     else:
         bulletin = BulletinPaie(
             contrat_id=contrat_id,
@@ -213,14 +307,15 @@ def _calculate_gross_salary(
 
     # 3. Déduction des absences
     montant_deductions_absences = 0.0
+    daily_hours = _daily_hours(contrat)
     for absence in absences:
         # Determine absence units and rate
         if unite == "Jours":
-            heures_jours_abs = absence.nbr_jour_by_user if absence.nbr_jour_by_user > 0 else (absence.nbr_heure_by_user / 7.0 if absence.nbr_heure_by_user > 0 else 0.0)
+            heures_jours_abs = absence.nbr_jour_by_user if absence.nbr_jour_by_user > 0 else (absence.nbr_heure_by_user / daily_hours if absence.nbr_heure_by_user > 0 else 0.0)
             # Daily contract rate includes sursalaire
             taux_abs = (salaire_base_brut + sursalaire_brut) / 30.0
         else:
-            heures_jours_abs = absence.nbr_heure_by_user if absence.nbr_heure_by_user > 0 else (absence.nbr_jour_by_user * 8.0 if absence.nbr_jour_by_user > 0 else 0.0)
+            heures_jours_abs = absence.nbr_heure_by_user if absence.nbr_heure_by_user > 0 else (absence.nbr_jour_by_user * daily_hours if absence.nbr_jour_by_user > 0 else 0.0)
             taux_abs = taux_base
             
         deduction = heures_jours_abs * taux_abs
@@ -270,13 +365,7 @@ def _calculate_gross_salary(
     # 4. Heures supplémentaires
     montant_heures_sup = 0.0
     for hs in heures_sup:
-        majoration = 1.0
-        if "15" in hs.code:
-            majoration = 1.15
-        elif "25" in hs.code:
-            majoration = 1.25
-        elif "50" in hs.code:
-            majoration = 1.50
+        majoration = _hs_majoration(hs.code)
         
         taux_hs = taux_base * majoration
         gain_hs = hs.nombre * taux_hs
@@ -286,7 +375,7 @@ def _calculate_gross_salary(
             LigneBulletinPaie(
                 bulletin_id=bulletin_id,
                 code=hs.code,
-                libelle=f"Heures supplémentaires à {int((majoration-1)*100)}%" if "15" in hs.code else f"Heures supplémentaires majorées à {int((majoration-1)*100)}%",
+                libelle=f"Heures supplémentaires majorées à {int(round((majoration - 1) * 100))}%",
                 salaire_base=round(gain_hs, 2),
                 base_s=hs.nombre,
                 taux_s=round(taux_hs, 2),
@@ -331,6 +420,34 @@ def _calculate_gross_salary(
     return lignes_bulletin, salaire_brut
 
 
+def _resolve_pays_code(db: Session, etab: Etablissement) -> str:
+    """Détermine le code pays de paramétrage applicable au dossier.
+
+    On privilégie le pays du dossier (donnée de gestion), puis l'adresse de
+    l'établissement. Seule la Côte d'Ivoire dispose aujourd'hui d'un barème
+    complet : tout autre pays retombe sur « CI » mais est journalisé.
+    """
+    candidats = []
+    if etab is not None:
+        if getattr(etab, "dossier", None) is not None:
+            candidats.append(etab.dossier.pays)
+        if getattr(etab, "adresse", None) is not None:
+            candidats.append(etab.adresse.pays)
+
+    for candidat in candidats:
+        if not candidat:
+            continue
+        nom = candidat.strip().upper()
+        if "IVOIRE" in nom or nom in ("CI", "CIV", "COTE D IVOIRE"):
+            return "CI"
+        logger.warning(
+            "Pays « %s » non paramétré : application du barème Côte d'Ivoire.", candidat
+        )
+        return "CI"
+
+    return "CI"
+
+
 def _calculate_cnps_cotisations(
     db: Session,
     bulletin_id: int,
@@ -338,16 +455,17 @@ def _calculate_cnps_cotisations(
     contrat: Contrat,
     salarie: Salarie,
     salaire_brut: float
-) -> tuple[list[LigneBulletinPaie], float, float]:
-    """Calcule les cotisations sociales patronales et salariales ainsi que les impôts (zone UEMOA)."""
+) -> tuple[list[LigneBulletinPaie], float, float, float]:
+    """Calcule les cotisations sociales, taxes et impôts (zone UEMOA).
+
+    Retourne `(lignes, cotisations_salariales, cotisations_patronales, net_imposable)`.
+    Le net imposable retourné est **celui réellement utilisé** pour l'ITS, afin
+    qu'il ne puisse pas diverger de la valeur stockée sur le bulletin.
+    """
     cotisations_salariales_totales = 0.0
     cotisations_patronales_totales = 0.0
 
-    pays_code = "CI"
-    if etab and etab.adresse and etab.adresse.pays:
-        p_name = etab.adresse.pays.upper()
-        if "IVOIRE" in p_name or "CI" in p_name:
-            pays_code = "CI"
+    pays_code = _resolve_pays_code(db, etab)
 
     # Récupération dynamique des constantes depuis la base de données
     def get_val(code: str, default: float) -> float:
@@ -359,26 +477,28 @@ def _calculate_cnps_cotisations(
         return const.montant if const else default
 
     # Plafonds
-    cnps_pf_plafond = get_val("CNPS_PF_PLAFOND", 75000.0)
+    cnps_pf_plafond = get_val("CNPS_PF_PLAFOND", 70000.0)
     cnps_pf_taux_p = get_val("CNPS_PF_TAUX_P", 5.0)
 
     cnps_retraite_plafond = get_val("CNPS_RETRAITE_PLAFOND", 3375000.0)
     cnps_retraite_taux_s = get_val("CNPS_RETRAITE_TAUX_S", 6.3)
     cnps_retraite_taux_p = get_val("CNPS_RETRAITE_TAUX_P", 7.7)
 
-    cnps_at_plafond = get_val("CNPS_AT_PLAFOND", 75000.0)
+    cnps_at_plafond = get_val("CNPS_AT_PLAFOND", 70000.0)
     taux_at_patronal = etab.taux_at if (etab and etab.taux_at and etab.taux_at > 0) else 2.0
 
-    cnps_maternite_plafond = get_val("CNPS_MATERNITE_PLAFOND", 75000.0)
+    cnps_maternite_plafond = get_val("CNPS_MATERNITE_PLAFOND", 70000.0)
     cnps_maternite_taux_p = get_val("CNPS_MATERNITE_TAUX_P", 0.75)
 
     # CMU Constants
     cmu_salariale = get_val("CMU_MONTANT_S", 500.0)
     cmu_patronale = get_val("CMU_MONTANT_P", 500.0)
 
-    # IBS & RICF Constants
-    ibs_montant = get_val("IBS_MONTANT", 74577.0)
-    ricf_montant = get_val("RICF_MONTANT", -11000.0)
+    # RICF : réduction d'impôt par part de charge familiale (valeur positive).
+    ricf_par_part = abs(get_val("RICF_MONTANT", -11000.0))
+
+    # Réduction maximale : 5 parts retenues pour l'ITS (mêmes bornes que le calcul).
+    ricf_plafond = 4.0 * ricf_par_part
 
     # CN, TA, TFC Taux
     is_expat = salarie.expatrie if salarie else False
@@ -395,8 +515,9 @@ def _calculate_cnps_cotisations(
     cotisations_salariales_totales += montant_retraite_s
     cotisations_patronales_totales += montant_retraite_p
 
-    # Net Imposable = Salaire Brut - Retraite Salariale
-    net_imposable = max(0.0, salaire_brut - montant_retraite_s)
+    # Base imposable ITS = Salaire Brut - cotisations sociales déductibles
+    # (retraite CNPS + CMU part salariale).
+    net_imposable = max(0.0, salaire_brut - montant_retraite_s - cmu_salariale)
 
     # 2. Calcul dynamique de l'ITS (IBS et RICF) sur le Net Imposable
     tranches = [
@@ -432,8 +553,9 @@ def _calculate_cnps_cotisations(
             parts = 2.0 + ((kids - 1) * 0.5)
     parts = min(5.0, parts)
 
-    # Réduction d'Impôt pour Charge Familiale (RICF)
-    ricf_montant = max(0.0, (parts - 1.0) * 11000.0)
+    # Réduction d'Impôt pour Charge Familiale (RICF) — montant paramétrable
+    ricf_montant = max(0.0, (parts - 1.0) * ricf_par_part)
+    ricf_montant = min(ricf_montant, ricf_plafond)
     ricf_applicable = min(ricf_montant, its_brut)
 
     # IBS Line
@@ -484,7 +606,7 @@ def _calculate_cnps_cotisations(
             bulletin_id=bulletin_id,
             code="CMU_S",
             libelle="Cotisation CMU part salariale",
-            base_s=500.0,
+            base_s=round(cmu_salariale, 2),
             taux_s=100.0,
             montant_cs=round(cmu_salariale, 2)
         )
@@ -584,14 +706,14 @@ def _calculate_cnps_cotisations(
             bulletin_id=bulletin_id,
             code="CMU_P",
             libelle="Cotisation CMU part patronale",
-            base_p=500.0,
+            base_p=round(cmu_patronale, 2),
             taux_p=100.0,
             montant_cp=round(cmu_patronale, 2)
         )
     )
     cotisations_patronales_totales += cmu_patronale
 
-    return lignes_cotisations, cotisations_salariales_totales, cotisations_patronales_totales
+    return lignes_cotisations, cotisations_salariales_totales, cotisations_patronales_totales, net_imposable
 
 
 def _save_bulletin(
@@ -605,6 +727,11 @@ def _save_bulletin(
     net_imposable: float
 ) -> None:
     """Persiste le bulletin, met à jour ses totaux et ajoute les lignes/variables associées."""
+    # Garantit l'unicité de (bulletin_id, code) : deux absences de même nature
+    # dans le mois produisaient auparavant un IntegrityError qui faisait perdre
+    # le bulletin entier.
+    _unique_line_codes(lines)
+
     # Ajout des lignes au bulletin
     for ligne in lines:
         db.add(ligne)
@@ -616,7 +743,10 @@ def _save_bulletin(
     bulletin.net_a_payer = round(net_a_payer, 2)
     bulletin.net_imposable = round(net_imposable, 2)
     bulletin.statut = "calcule"
-    bulletin.date_paiement = datetime.now()
+    # La date de paiement n'est renseignée qu'une fois (elle marque la mise en
+    # paiement) : un recalcul ne doit pas la déplacer.
+    if bulletin.date_paiement is None:
+        bulletin.date_paiement = datetime.now()
 
     # Variables de bulletin spécifiques
     var_brut = VariableBulletin(bulletin_id=bulletin.id, code="BRUT", libelle="Salaire Brut", valeur=round(salaire_brut, 2))
@@ -652,7 +782,7 @@ def _calculate_payslip_raw(
     )
 
     # Calcul temporaire des cotisations sociales et taxes
-    _, cot_salariales, _ = _calculate_cnps_cotisations(db, bulletin_id, etab, contrat, salarie, salaire_brut)
+    _, cot_salariales, _, _ = _calculate_cnps_cotisations(db, bulletin_id, etab, contrat, salarie, salaire_brut)
 
     # Calcul temporaire des lignes complémentaires
     transport_montant = contrat.indemnite_transport or 0.0
@@ -787,7 +917,9 @@ def calculate_payslip(db: Session, contrat_id: int, mois: int, annee: int, acomp
         salaire_brut += stc_gross_conges
 
     # 4. Calcul des cotisations sociales et taxes
-    lignes_cotisations, cot_salariales, cot_patronales = _calculate_cnps_cotisations(db, bulletin.id, etab, contrat, salarie, salaire_brut)
+    lignes_cotisations, cot_salariales, cot_patronales, net_imposable = _calculate_cnps_cotisations(
+        db, bulletin.id, etab, contrat, salarie, salaire_brut
+    )
 
     # 5. Calcul des lignes complémentaires (non-salary / allowances / post-tax deductions)
     lignes_sup = []
@@ -891,7 +1023,11 @@ def calculate_payslip(db: Session, contrat_id: int, mois: int, annee: int, acomp
     # 5.6 Ajouter les indemnités de rupture exonérées du STC
     lignes_sup.extend(stc_lines_to_add)
 
-    # 6. Calcul des totaux nets et imposables
+    # 6. Calcul du net à payer
+    # `net_imposable` provient du calcul des cotisations : c'est exactement la
+    # base utilisée pour l'ITS. Il n'est plus recalculé ici avec des taux codés
+    # en dur, ce qui faisait diverger la valeur stockée de l'impôt réellement
+    # calculé dès que les constantes CNPS étaient modifiées.
     net_a_payer = (
         salaire_brut
         - cot_salariales
@@ -903,7 +1039,6 @@ def calculate_payslip(db: Session, contrat_id: int, mois: int, annee: int, acomp
         - options_deductions_net
         + stc_net_gains
     )
-    net_imposable = salaire_brut - (min(salaire_brut, 3375000) * 0.063) # basic net imposable (brut - retraite)
     
     # 7. Sauvegarde et persistance
     all_lines = lignes_brut + lignes_cotisations + lignes_sup

@@ -106,6 +106,30 @@ class BulletinPaieOut(BulletinPaieBase):
         from_attributes = True
 
 
+class ErreurCalculLot(BaseModel):
+    """Échec de calcul d'un salarié lors d'un traitement en lot."""
+    contrat_id: Optional[int] = None
+    salarie_id: Optional[int] = None
+    matricule: Optional[str] = None
+    nom_complet: Optional[str] = None
+    message: str
+
+
+class LotCalculOut(BaseModel):
+    """Résultat d'un calcul de paie en lot.
+
+    Les erreurs sont remontées explicitement : auparavant elles étaient
+    journalisées côté serveur et le client recevait une liste incomplète sans
+    aucun signe d'échec.
+    """
+    periode: str
+    bulletins: List[BulletinPaieOut] = []
+    erreurs: List[ErreurCalculLot] = []
+    total_contrats: int = 0
+    total_calcules: int = 0
+    total_erreurs: int = 0
+
+
 # ─────────────────────────────────────────
 #  SCHÉMAS SOLDE TOUT COMPTE
 # ─────────────────────────────────────────

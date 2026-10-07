@@ -4,9 +4,11 @@ import uuid
 import logging
 from datetime import date
 from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from typing import List
 
+from app.config import settings
 from app.database import get_db
 from app.models.models import (
     Utilisateur, EntretienEvaluation, VisiteMedicale, SuiviFormation,
@@ -40,6 +42,51 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 #  FICHIER UPLOAD
 # ─────────────────────────────────────────
 
+def _validate_upload(file: UploadFile) -> str:
+    """Contrôle l'extension et la taille du fichier téléversé.
+
+    Retourne l'extension normalisée. Lève une 400/413 explicite sinon.
+    """
+    ext = os.path.splitext(file.filename or "")[1].lower()
+    if not ext or ext not in settings.allowed_upload_extensions:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=(
+                "Type de fichier non autorisé. Extensions acceptées : "
+                + ", ".join(sorted(settings.allowed_upload_extensions))
+            ),
+        )
+
+    # Taille : on lit le flux par blocs pour ne pas charger tout en mémoire.
+    max_size = settings.MAX_UPLOAD_SIZE_BYTES
+    total = 0
+    try:
+        file.file.seek(0)
+        while True:
+            chunk = file.file.read(1024 * 1024)
+            if not chunk:
+                break
+            total += len(chunk)
+            if total > max_size:
+                raise HTTPException(
+                    status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+                    detail=(
+                        "Fichier trop volumineux "
+                        f"(maximum {max_size // (1024 * 1024)} Mo)."
+                    ),
+                )
+    finally:
+        file.file.seek(0)
+
+    if total == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Le fichier est vide.",
+        )
+
+    return ext
+
+
 @router.post("/{salarie_id}/upload-document")
 async def upload_document(
     salarie_id: int,
@@ -47,15 +94,54 @@ async def upload_document(
     db: Session = Depends(get_db),
     current_user: Utilisateur = Depends(get_current_user)
 ):
+    """Téléverse une pièce jointe RH pour un salarié.
+
+    Le nom de fichier est généré côté serveur (`<salarie_id>_<uuid><ext>`) :
+    le nom fourni par le client n'est jamais utilisé pour construire le chemin.
+    """
     check_salarie_ownership(salarie_id, current_user.id, db)
-    ext = os.path.splitext(file.filename)[1]
+    ext = _validate_upload(file)
     unique_filename = f"{salarie_id}_{uuid.uuid4().hex}{ext}"
     file_path = os.path.join(UPLOAD_DIR, unique_filename)
 
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    return {"filename": file.filename, "url": f"/uploads/{unique_filename}"}
+    # Le fichier n'est plus exposé publiquement : il est servi par
+    # l'endpoint authentifié ci-dessous.
+    return {
+        "filename": file.filename,
+        "url": f"/api/v1/salaries/documents/{unique_filename}",
+    }
+
+
+@router.get("/documents/{filename}")
+def download_document(
+    filename: str,
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user)
+):
+    """Sert une pièce jointe après contrôle d'accès.
+
+    Le préfixe du nom (`<salarie_id>_…`) permet de retrouver le salarié
+    propriétaire et d'appliquer la même règle de portée que le reste de l'API.
+    """
+    # Anti-traversée : un seul segment, pas de séparateur ni de « .. ».
+    if not filename or os.path.basename(filename) != filename or filename.startswith("."):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Nom de fichier invalide.")
+
+    try:
+        salarie_id = int(filename.split("_", 1)[0])
+    except (ValueError, IndexError):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document introuvable.")
+
+    check_salarie_ownership(salarie_id, current_user.id, db)
+
+    file_path = os.path.join(UPLOAD_DIR, filename)
+    if not os.path.isfile(file_path):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Document introuvable.")
+
+    return FileResponse(file_path, filename=filename)
 
 
 # ─────────────────────────────────────────

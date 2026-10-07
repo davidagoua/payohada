@@ -2,17 +2,26 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
+import html
+import logging
+import re
 
 from app.database import get_db
 from app.models.models import BulletinPaie, Contrat, Dossier, Utilisateur, Constante, Salarie, VariableRepriseDossier, PretSalarie, SalarieAbsence, Etablissement, PeriodePaie
 from app.schemas.bulletin import (
     BulletinPaieOut, BulletinPaieCreate, SimulationInput, SimulationOut, 
-    LigneSimulationOut, BulletinCumuls, BulletinCumulRow
+    LigneSimulationOut, BulletinCumuls, BulletinCumulRow, LotCalculOut, ErreurCalculLot
 )
 from app.services.security import get_current_user
+from app.services.permissions import get_dossier_or_403, require_staff
 from app.routers.contrats import check_contrat_ownership
 from app.services.payroll import calculate_payslip
 from app.services.email import send_email
+
+logger = logging.getLogger(__name__)
+
+#: Motif des codes d'heures supplémentaires : HS15, HS_15, HS-15, HS_100…
+_HS_CODE_RE = re.compile(r"^HS[_\-\s]?\d+", re.IGNORECASE)
 
 router = APIRouter(tags=["Bulletins de Paie"])
 
@@ -59,7 +68,13 @@ def compute_bulletin_cumuls(db: Session, bulletin: BulletinPaie) -> BulletinCumu
     def get_row_values(b: BulletinPaie) -> dict:
         lignes = b.lignes or []
         jours_absences = sum(line.base_s for line in lignes if line.code and line.code.startswith("ABS_") and line.base_s is not None)
-        heures_supp = sum(line.base_s for line in lignes if line.code and line.code.startswith("HS_") and line.base_s is not None)
+        # Les codes d'heures supplémentaires varient selon l'écran de saisie
+        # (HS15, HS_15, HS-15…) : on s'appuie sur un motif et non sur un
+        # préfixe littéral, sinon les heures supp n'étaient jamais cumulées.
+        heures_supp = sum(
+            line.base_s for line in lignes
+            if line.code and _HS_CODE_RE.match(line.code) and line.base_s is not None
+        )
         
         if unite == "Jours":
             heures_jours = 30.0 - jours_absences
@@ -274,7 +289,7 @@ def get_dossier_bulletins(
     return result
 
 
-@router.post("/dossiers/{dossier_id}/bulletins/calculer-lot", response_model=List[BulletinPaieOut])
+@router.post("/dossiers/{dossier_id}/bulletins/calculer-lot", response_model=LotCalculOut)
 def calculate_dossier_bulletins_lot(
     dossier_id: int,
     mois: int = Query(..., ge=1, le=12),
@@ -283,14 +298,20 @@ def calculate_dossier_bulletins_lot(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """
-    Calcule ou recalcule en masse tous les bulletins de paie pour tous les salariés d'un dossier
-    pour la période indiquée, et met à jour le statut de la période.
+    Calcule ou recalcule en masse tous les bulletins de paie d'un dossier pour
+    la période indiquée, et met à jour le statut de la période.
+
+    Réservé au cabinet propriétaire du dossier (ou à un administrateur) : le
+    calcul de la paie n'est pas une opération client. Les échecs par salarié
+    sont renvoyés dans `erreurs` au lieu d'être avalés.
     """
-    dossier = db.query(Dossier).filter(Dossier.id == dossier_id).first()
-    if not dossier:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Dossier introuvable.")
-    if not current_user.is_admin and current_user.role == "cabinet" and dossier.utilisateur_id != current_user.id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Accès non autorisé.")
+    dossier = get_dossier_or_403(dossier_id, current_user, db)
+    require_staff(current_user)
+    if not current_user.is_admin and dossier.utilisateur_id != current_user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Seul le cabinet propriétaire peut calculer la paie de ce dossier.",
+        )
 
     # Récupérer tous les contrats du dossier
     contrats = (
@@ -300,7 +321,9 @@ def calculate_dossier_bulletins_lot(
         .all()
     )
 
-    result_bulletins = []
+    result_bulletins: List[BulletinPaieOut] = []
+    erreurs: List[ErreurCalculLot] = []
+
     for c in contrats:
         try:
             bulletin = calculate_payslip(
@@ -314,19 +337,44 @@ def calculate_dossier_bulletins_lot(
             bout.cumuls = compute_bulletin_cumuls(db, bulletin)
             result_bulletins.append(bout)
         except Exception as e:
-            print(f"Erreur lors du calcul pour le contrat {c.id}: {e}")
+            db.rollback()
+            salarie = db.query(Salarie).filter(Salarie.id == c.salarie_id).first()
+            logger.exception(
+                "Échec du calcul de paie pour le contrat %s (dossier %s, %s/%s)",
+                c.id, dossier_id, mois, annee,
+            )
+            erreurs.append(
+                ErreurCalculLot(
+                    contrat_id=c.id,
+                    salarie_id=c.salarie_id,
+                    matricule=c.matricule_salarie,
+                    nom_complet=(
+                        f"{salarie.prenom} {salarie.nom}" if salarie else None
+                    ),
+                    message=str(e) or e.__class__.__name__,
+                )
+            )
 
-    # Mettre à jour la période à "calcule"
-    periode = db.query(PeriodePaie).filter(
-        PeriodePaie.dossier_id == dossier_id,
-        PeriodePaie.annee == str(annee),
-        PeriodePaie.mois == mois
-    ).first()
-    if periode:
-        periode.statut = "calcule"
-        db.commit()
+    # Mettre à jour la période à "calcule" uniquement si au moins un bulletin
+    # a été produit et qu'aucune erreur n'est survenue.
+    if result_bulletins and not erreurs:
+        periode = db.query(PeriodePaie).filter(
+            PeriodePaie.dossier_id == dossier_id,
+            PeriodePaie.annee == str(annee),
+            PeriodePaie.mois == mois
+        ).first()
+        if periode:
+            periode.statut = "calcule"
+            db.commit()
 
-    return result_bulletins
+    return LotCalculOut(
+        periode=f"{mois:02d}/{annee}",
+        bulletins=result_bulletins,
+        erreurs=erreurs,
+        total_contrats=len(contrats),
+        total_calcules=len(result_bulletins),
+        total_erreurs=len(erreurs),
+    )
 
 
 @router.get("/salaries/me/bulletins", response_model=List[BulletinPaieOut])
@@ -361,6 +409,7 @@ def calculate_bulletin_paie(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """Calcule ou recalcul le bulletin de paie pour un contrat et une période donnée."""
+    require_staff(current_user)
     check_contrat_ownership(bulletin_in.contrat_id, current_user.id, db)
 
     try:
@@ -405,7 +454,8 @@ def validate_bulletin(
     db: Session = Depends(get_db),
     current_user: Utilisateur = Depends(get_current_user)
 ):
-    """Valide définitivement un bulletin de paie."""
+    """Valide définitivement un bulletin de paie (cabinet / administrateur)."""
+    require_staff(current_user)
     bulletin = check_bulletin_ownership(bulletin_id, current_user.id, db)
     if bulletin.statut != "valide":
         for line in bulletin.lignes:
@@ -428,7 +478,12 @@ def invalidate_bulletin(
     db: Session = Depends(get_db),
     current_user: Utilisateur = Depends(get_current_user)
 ):
-    """Invalide (dé-valide) un bulletin de paie s'il s'agit du plus récent validé."""
+    """Invalide (dé-valide) un bulletin de paie s'il s'agit du plus récent validé.
+
+    Opération réservée au cabinet : elle rouvre la période et restaure les
+    remboursements de prêts appliqués lors de la validation.
+    """
+    require_staff(current_user)
     bulletin = check_bulletin_ownership(bulletin_id, current_user.id, db)
     if bulletin.statut != "valide":
         raise HTTPException(
@@ -474,6 +529,7 @@ def delete_bulletin(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """Supprime un bulletin de paie (si encore à l'état brouillon ou calculé)."""
+    require_staff(current_user)
     bulletin = check_bulletin_ownership(bulletin_id, current_user.id, db)
     if bulletin.statut == "valide":
         raise HTTPException(
@@ -995,7 +1051,8 @@ def send_bulletin_to_employee(
     db: Session = Depends(get_db),
     current_user: Utilisateur = Depends(get_current_user),
 ):
-    """Envoie le bulletin de paie par email à l'employé."""
+    """Envoie le bulletin de paie par email à l'employé (cabinet uniquement)."""
+    require_staff(current_user)
     bulletin = check_bulletin_ownership(bulletin_id, current_user.id, db)
     contrat = bulletin.contrat
     if not contrat:
@@ -1018,6 +1075,11 @@ def send_bulletin_to_employee(
     periode_lbl = f"{months[bulletin.mois - 1]} {bulletin.annee}"
     
     subject = f"Votre bulletin de paie de {periode_lbl}"
+    # Les données d'état civil proviennent de la base : on les échappe avant
+    # interpolation dans le corps HTML du message.
+    salarie_nom_echappe = html.escape(
+        f"{salarie.civilite or ''} {salarie.prenom or ''} {salarie.nom or ''}".strip()
+    )
     
     html_content = f"""
     <html>
@@ -1027,7 +1089,7 @@ def send_bulletin_to_employee(
                 <h1 style="margin: 0; font-size: 20px; text-transform: uppercase;">payohada paie</h1>
             </div>
             <div style="padding: 20px;">
-                <p>Bonjour <strong>{salarie.civilite} {salarie.prenom} {salarie.nom.upper()}</strong>,</p>
+                <p>Bonjour <strong>{salarie_nom_echappe}</strong>,</p>
                 <p>Votre bulletin de paie pour la période de <strong>{periode_lbl}</strong> a été généré et est disponible.</p>
                 
                 <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
@@ -1073,7 +1135,8 @@ def send_bulletin_to_manager(
     db: Session = Depends(get_db),
     current_user: Utilisateur = Depends(get_current_user)
 ):
-    """Envoie le bulletin de paie par email au gestionnaire / administrateur du dossier."""
+    """Envoie le bulletin de paie par email au gestionnaire du dossier (cabinet uniquement)."""
+    require_staff(current_user)
     bulletin = check_bulletin_ownership(bulletin_id, current_user.id, db)
     dossier = bulletin.dossier
     if not dossier:
@@ -1097,8 +1160,9 @@ def send_bulletin_to_manager(
         'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
     ]
     periode_lbl = f"{months[bulletin.mois - 1]} {bulletin.annee}"
-    salarie_name = f"{salarie.prenom} {salarie.nom.upper()}"
-    subject = f"Bulletin de paie {periode_lbl} - {salarie_name}"
+    salarie_name_brut = f"{salarie.prenom or ''} {salarie.nom.upper() if salarie.nom else ''}".strip()
+    salarie_name = html.escape(salarie_name_brut)
+    subject = f"Bulletin de paie {periode_lbl} - {salarie_name_brut}"
     
     html_content = f"""
     <html>

@@ -128,6 +128,11 @@ const handleChangePassword = async () => {
     return
   }
 
+  if (newPassword.value.length < 8) {
+    toast.add({ title: 'Validation', description: 'Le nouveau mot de passe doit contenir au moins 8 caractères.', color: 'warning' })
+    return
+  }
+
   if (newPassword.value !== confirmPassword.value) {
     toast.add({ title: 'Validation', description: 'Les nouveaux mots de passe ne correspondent pas.', color: 'warning' })
     return
@@ -181,12 +186,12 @@ const handleChangePassword = async () => {
           <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Mot de passe actuel</label>
           <input v-model="oldPassword" type="password" placeholder="Saisir l'ancien mot de passe" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white" required />
           <p class="text-[10px] text-amber-600 font-semibold mt-1">
-            Si c'est votre première connexion, le mot de passe par défaut est <code class="bg-amber-50 px-1 py-0.5 border border-amber-200 font-bold font-mono text-[11px]">Payohada@123</code>.
+            Lors de votre première connexion, utilisez le mot de passe provisoire communiqué par votre gestionnaire.
           </p>
         </div>
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Nouveau mot de passe</label>
-          <input v-model="newPassword" type="password" placeholder="Au moins 6 caractères" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white" required />
+          <input v-model="newPassword" type="password" placeholder="Au moins 8 caractères" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white" required />
         </div>
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Confirmer le nouveau mot de passe</label>

@@ -4,6 +4,7 @@ import { ref, computed, nextTick, watch, onMounted } from 'vue'
 const {
   isOpen,
   isLoading,
+  isConfigured,
   messages,
   initChat,
   toggleChat,
@@ -138,8 +139,10 @@ const activeContextLabel = computed(() => {
 </script>
 
 <template>
-  <!-- Conteneur global du Chatbot (exclu à l'impression) -->
+  <!-- Conteneur global du Chatbot (exclu à l'impression).
+       Masqué si aucun webhook n'est configuré sur cette instance. -->
   <aside
+    v-if="isConfigured"
     aria-label="Assistant IA PayOHADA"
     class="fixed bottom-5 right-5 z-50 flex flex-col items-end print:hidden select-none"
   >

@@ -17,8 +17,24 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 python alter_db.py       # Exécute les migrations du schéma
+python create_admin.py --email admin@moncabinet.ci --password 'MotDePasse!23'  # 1er administrateur
 uvicorn app.main:app --reload --port 8000
 ```
+
+> Les constantes de paie (SMIG, plafonds et taux CNPS, CMU, RICF) et le plan de
+> paie sont insérés **automatiquement et de façon idempotente** au démarrage :
+> une valeur modifiée par un administrateur n'est jamais écrasée.
+
+### Tests
+
+```bash
+cd backend
+python -m unittest discover -s tests -t . -v
+```
+
+La suite couvre le moteur de paie (CNPS, ITS, RICF, heures supplémentaires,
+absences, prêts, mode net→brut, idempotence) et le contrôle d'accès de l'API
+(isolation multi-tenant, rôles, pièces jointes, anti brute-force).
 
 ### Lancement du Frontend
 ```bash
@@ -35,11 +51,23 @@ bun run dev              # Lance le serveur sur http://localhost:3000
 - `SUPABASE_ANON_KEY` : Clé anonyme Supabase.
 - `SUPABASE_JWT_SECRET` : Clé secrète pour la signature des JWT locaux et Supabase.
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` : Configuration d'envoi d'emails.
+- `CORS_ORIGINS` : origines autorisées, séparées par des virgules (obligatoire en production).
+- `DEBUG` : `false` en production (désactive `/api/v1/docs` et le détail des erreurs).
+- `LOGIN_MAX_ATTEMPTS` / `LOGIN_WINDOW_SECONDS` : quota anti brute-force sur la connexion.
+- `MAX_UPLOAD_SIZE_BYTES` / `ALLOWED_UPLOAD_EXTENSIONS` : limites des pièces jointes.
+- `BUGSINK_DSN` : facultatif ; si vide, la télémétrie d'erreurs est désactivée.
 
 ### Variables d'environnement Frontend (`frontend/.env`)
-- `NUXT_PUBLIC_API_BASE` : URL de l'API backend (ex: `http://localhost:8000`).
+- `NUXT_PUBLIC_API_BASE` : URL de base de l'API, **préfixe `/api/v1` inclus**
+  (ex: `http://localhost:8000/api/v1`).
 - `NUXT_PUBLIC_SUPABASE_URL` : URL Supabase frontend.
 - `NUXT_PUBLIC_SUPABASE_ANON_KEY` : Clé anon Supabase.
+- `NUXT_PUBLIC_BUGSINK_DSN` : facultatif (télémétrie d'erreurs).
+- `NUXT_PUBLIC_N8N_CHAT_WEBHOOK` : facultatif ; si vide, le chatbot est masqué.
+
+> ⚠️ **Sécurité** : les secrets de ce projet ont été exposés dans l'historique
+> Git. La rotation est décrite dans [`SECURITY.md`](SECURITY.md) et doit être
+> effectuée avant toute mise en production.
 
 ---
 
@@ -60,7 +88,6 @@ Le système est cloisonné en trois espaces dédiés avec contrôles d'accès st
   - Calcul individuel et **calcul en lot** des bulletins pour toute l'entreprise (`POST /dossiers/{id}/bulletins/calculer-lot`).
   - Validation et clôture des périodes de paie.
   - Traitement des réclamations déposées par les salariés (réponse, statut `traite` ou `rejete`).
-  - Sélecteur rapide dans le header permettant de prévisualiser l'application en mode Cabinet, Client ou Salarié.
 
 ####  Plateforme Client (Entreprise / Dossier)
 - **Rôle** : `client` (rattaché à son entreprise via `dossier_id`).
@@ -79,7 +106,7 @@ Le système est cloisonné en trois espaces dédiés avec contrôles d'accès st
     - Vue globale de la masse salariale brute, du total net à verser et des cotisations patronales.
     - Consultation détaillée et impression/téléchargement des bulletins calculés par le cabinet.
   - **Gestion de l'Effectif** : Annuaire des salariés de l'entreprise et détails des contrats.
-  - **Suivi des Réclamations Salariés** : Vue sur les demandes des salariés et les retours du cabinet.
+  - **Suivi des Réclamations Salariés** : Vue sur toutes les demandes des salariés de l'entreprise et les retours du cabinet (lecture seule : le traitement est réservé au cabinet).
 
 ####  Plateforme Employé (Salarié)
 - **Rôle** : `salarie` (rattaché à sa fiche salarié via `salarie_id`).
@@ -117,16 +144,32 @@ Le système est cloisonné en trois espaces dédiés avec contrôles d'accès st
 - `POST /api/v1/dossiers/{id}/import-variables-excel` : Importation de la matrice Excel pour peupler les variables.
 
 ### Bulletins de Paie (`/api/v1/bulletins` & `/api/v1/dossiers/{id}/bulletins`)
-- `GET /api/v1/dossiers/{id}/bulletins` : Bulletins du dossier (accessible au cabinet et au client de ce dossier).
-- `POST /api/v1/dossiers/{id}/bulletins/calculer-lot` : Calcul en masse de tous les bulletins d'un dossier pour un mois.
+- `GET /api/v1/dossiers/{id}/bulletins` : Bulletins du dossier (cabinet propriétaire, client du dossier, salarié pour ses propres bulletins).
+- `POST /api/v1/dossiers/{id}/bulletins/calculer-lot` : Calcul en masse des bulletins d'un dossier pour un mois. **Réservé au cabinet propriétaire.** Retourne `{ periode, bulletins, erreurs, total_contrats, total_calcules, total_erreurs }` : les échecs par salarié sont désormais explicites au lieu d'être silencieusement ignorés.
 - `GET /api/v1/salaries/me/bulletins` : Bulletins personnels du salarié connecté.
-- `POST /api/v1/bulletins/calculer` : Calcul d'un bulletin individuel.
-- `PUT /api/v1/bulletins/{id}/valider` : Validation définitive d'un bulletin.
+- `POST /api/v1/bulletins/calculer` : Calcul d'un bulletin individuel (cabinet).
+- `PUT /api/v1/bulletins/{id}/valider` : Validation définitive d'un bulletin (cabinet).
+- `PUT /api/v1/bulletins/{id}/invalider` : Réouverture d'un bulletin validé ; restaure les remboursements de prêts appliqués (cabinet).
+- `DELETE /api/v1/bulletins/{id}` : Suppression d'un bulletin non validé (cabinet).
+
+> **Intégrité** : un bulletin au statut `valide` ne peut pas être recalculé. Il
+> faut d'abord l'invalider — ce qui rend le cycle *invalider → recalculer →
+> valider* idempotent et empêche tout double remboursement de prêt.
+
+### Pièces jointes RH
+- `POST /api/v1/salaries/{id}/upload-document` : Téléversement (extensions en liste blanche, 10 Mo maximum, nom de fichier généré côté serveur).
+- `GET /api/v1/salaries/documents/{fichier}` : Téléchargement **authentifié et contrôlé** (le dossier `/uploads` n'est plus exposé publiquement).
 
 ### Réclamations (`/api/v1/reclamations`)
 - `POST /api/v1/reclamations` : Création d'une réclamation par un salarié sur l'un de ses bulletins.
-- `GET /api/v1/reclamations` : Liste des réclamations (ses réclamations pour le salarié, toutes celles du dossier pour le client et le cabinet).
-- `PUT /api/v1/reclamations/{id}` : Réponse et traitement de la réclamation par le cabinet.
+- `GET /api/v1/reclamations` : Liste des réclamations — les siennes pour un salarié, celles de son entreprise pour un compte client, celles de ses dossiers pour le cabinet.
+- `PUT /api/v1/reclamations/{id}` : Réponse et traitement de la réclamation (**cabinet uniquement** ; un compte client ne peut pas traiter une réclamation).
+
+### Autorisations
+La matrice complète des rôles et les règles de portée sont documentées dans
+[`SECURITY.md`](SECURITY.md#matrice-des-rôles). Ces contrôles sont appliqués
+**côté API** ; le middleware Nuxt (`frontend/app/middleware/auth.global.ts`)
+n'est qu'une aide à la navigation.
 
 ---
 
@@ -145,18 +188,28 @@ logiciel_paie/
 │   │   │   ├── import_export_excel.py # Export/import matrice QPXL1501
 │   │   │   └── reclamations.py    # Dépôt et traitement des réclamations
 │   │   ├── schemas/               # Modèles Pydantic pour validation
-│   │   └── services/payroll.py    # Moteur de calcul de paie OHADA / UEMOA
+│   │   └── services/
+│   │       ├── payroll.py         # Moteur de calcul de paie OHADA / UEMOA
+│   │       ├── security.py        # JWT, hachage, génération de mots de passe
+│   │       ├── permissions.py     # Rôles et portée multi-tenant
+│   │       └── rate_limit.py      # Anti brute-force sur l'authentification
+│   ├── tests/                     # Tests de non-régression (unittest)
+│   ├── create_admin.py            # Création / promotion d'un administrateur
 │   ├── alter_db.py                # Script de migration automatique SQLite / PostgreSQL
 │   └── schema.sql                 # Schéma SQL de référence complet
 ├── frontend/
 │   ├── app/
-│   │   ├── composables/           # useSupabase.ts (gestion des rôles & redirection), useApi.ts
-│   │   ├── layouts/default.vue    # Layout adaptatif avec barre de navigation par plateforme & switcher de preview
+│   │   ├── composables/           # useSupabase.ts (session & rôles), useApi.ts
+│   │   ├── middleware/auth.global.ts # Garde de navigation par rôle (confort, pas sécurité)
+│   │   ├── layouts/default.vue    # Layout adaptatif avec barre de navigation par plateforme
 │   │   └── pages/
 │   │       ├── client/            # 🏬 Espace Entreprise (Dashboard, Saisie Variables, Bulletins, Salariés, Réclamations)
 │   │       ├── dossiers/          # 🏢 Espace Cabinet (Dossiers, Gestion des paies)
 │   │       ├── salaries/          # 👤 Espace Salarié (Bulletins personnels, Réclamations)
 │   │       └── login.vue          # Page de connexion unifiée avec cartes d'accès rapide 1-clic pour chaque rôle
+├── SECURITY.md                    # Procédure de rotation des secrets & matrice des rôles
+├── scripts/purge_git_secrets.sh   # Purge des secrets de l'historique Git (dry-run par défaut)
+├── .github/workflows/ci.yml       # Tests backend, build frontend, détection de secrets
 └── DOCUMENTATION.md               # Ce fichier unique de documentation
 ```
 
@@ -164,7 +217,43 @@ logiciel_paie/
 
 ##  Changelog
 
-### [Unreleased]
+### [Unreleased] — Correctifs d'audit sécurité & intégrité
+
+#### Security
+- **Suppression de la backdoor mot de passe** : `Payohada@123` n'est plus accepté pour les comptes sans mot de passe, et il n'existe plus aucun mot de passe partagé. Les comptes créés par le cabinet reçoivent un mot de passe aléatoire retourné une seule fois (`mot_de_passe_initial`) avec obligation de le changer (`must_change_password`).
+- **Suppression de la création implicite de compte** : un jeton dont le `sub` est inconnu est rejeté (auparavant, il créait un compte `cabinet`).
+- **Anti brute-force** sur `/auth/login` (10 tentatives / 5 min par compte, 50 par IP) et message d'erreur unique pour empêcher l'énumération des comptes.
+- **CORS restreint** aux origines de `CORS_ORIGINS` (fin du `*` avec credentials).
+- **`/uploads` n'est plus public** : les pièces jointes passent par un endpoint authentifié avec contrôle de portée ; extensions en liste blanche et taille limitée à 10 Mo.
+- Suppression du compte de démonstration créé sans mot de passe par `alter_db.py` ; la `DATABASE_URL` n'est plus journalisée en clair.
+- DSN Bugsink et webhook n8n retirés du code : uniquement par variables d'environnement.
+- Ajout de `SECURITY.md`, d'un script de purge d'historique et d'une détection de secrets en CI.
+
+#### Fixed
+- **Calcul en lot (IDOR)** : la restriction ne portait que sur le rôle `cabinet` ; un compte client pouvait recalculer la paie de n'importe quel dossier. Réservé au cabinet propriétaire.
+- **Collision de codes de lignes** : deux absences (ou deux HS/primes) de même nature dans un mois faisaient échouer le bulletin entier (`UNIQUE constraint failed`). Les codes sont désormais suffixés (`ABS_MALADIE`, `ABS_MALADIE_2`).
+- **Bulletins validés protégés** : un recalcul écrasait silencieusement un bulletin clôturé et permettait un double remboursement de prêt. Le recalcul exige une invalidation préalable.
+- **Heures supplémentaires 75 % et 100 %** payées au taux de base ; le barème complet (15/25/50/75/100) est maintenant appliqué, avec journalisation des codes inconnus.
+- **Cumuls d'heures supplémentaires** : le préfixe littéral `HS_` empêchait la prise en compte des codes `HS15`.
+- **`net_imposable`** recalculé avec des taux codés en dur ; il provient désormais du calcul des cotisations, avec déduction de la CMU salariale.
+- **`est_persistant` NULL** excluait silencieusement primes et options de la paie.
+- **Journée d'absence** incohérente (7 h d'un côté, 8 h de l'autre) ; une base unique est utilisée. Défauts d'horaires alignés sur 40 h/semaine et 173,33 h/mois (au lieu de 35 h / 151,67 h).
+- **Bootstrap SQLite** : un index dupliqué (`ix_dossiers_siret`) faisait échouer `create_all` sur une base vierge.
+- **Seeder réactivé et rendu idempotent** : les constantes et le plan de paie sont insérés au démarrage, sans jamais écraser une valeur administrateur. Ajout de `create_admin.py` pour disposer d'un administrateur.
+- **Entrées non validées** : statut de période contraint à `saisie_en_cours | transmis | calcule | valide` (réservé au cabinet), heures supplémentaires et absences positives, mois 1-12, montants de prime positifs.
+- **Réclamations** : un compte client voyait une liste vide ; il voit désormais celles de son entreprise, sans pouvoir les traiter.
+- **Rôles** : validation/invalidation/suppression de bulletin et envoi d'emails réservés au cabinet ; modification du dossier réservée au cabinet propriétaire.
+- **Routeur `auth` monté deux fois** (`/api/v1/auth` et `/auth`) : montage unique.
+- Échappement HTML des données d'état civil dans les emails de bulletins.
+- Vérification du mot de passe en temps constant (`hmac.compare_digest`).
+
+#### Added
+- Suite de tests de non-régression (moteur de paie et API) : `python -m unittest discover -s tests -t . -v`.
+- Workflow CI GitHub Actions (tests backend, build frontend, détection de secrets).
+- Endpoint `GET /api/v1/salaries/documents/{fichier}` (téléchargement contrôlé des pièces jointes).
+- Middleware Nuxt `auth.global.ts` pour la navigation par rôle.
+
+### [Unreleased] — Fonctionnalités initiales
 
 #### Added
 - Implémentation complète de l'architecture à 3 plateformes : **Cabinet**, **Client (Entreprise)** et **Employé (Salarié)**.

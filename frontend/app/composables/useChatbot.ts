@@ -19,7 +19,10 @@ const DEFAULT_WELCOME_MESSAGE: ChatMessage = {
 
 export const useChatbot = () => {
   const config = useRuntimeConfig()
-  const webhookUrl = computed(() => config.public.n8nChatWebhook as string || 'https://n8n-m4ymolk1iglny3uabdpli4sa.songon.shop/webhook/4edd13ea-6fd0-44c3-b5f8-49bac1c51902/chat')
+  // Aucune URL de repli codée en dur : si le webhook n'est pas configuré, le
+  // chatbot est simplement indisponible (cf. `isConfigured`).
+  const webhookUrl = computed(() => (config.public.n8nChatWebhook as string) || '')
+  const isConfigured = computed(() => !!webhookUrl.value)
 
   const isOpen = useState<boolean>('chatbot_is_open', () => false)
   const isMinimized = useState<boolean>('chatbot_is_minimized', () => false)
@@ -118,6 +121,16 @@ export const useChatbot = () => {
     }
     messages.value.push(botMsg)
     isLoading.value = true
+
+    if (!isConfigured.value) {
+      const target = messages.value.find(m => m.id === botMsgId)
+      if (target) {
+        target.content = "L'assistant n'est pas configuré sur cette instance."
+        target.status = 'error'
+      }
+      isLoading.value = false
+      return
+    }
 
     try {
       const response = await fetch(webhookUrl.value, {
@@ -227,6 +240,7 @@ export const useChatbot = () => {
     isOpen,
     isMinimized,
     isLoading,
+    isConfigured,
     messages,
     sessionId,
     initChat,

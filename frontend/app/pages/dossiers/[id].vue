@@ -21,7 +21,9 @@ const formDept = ref({ nom: '', code: '', description: '' })
 // Comptes Clients (Accès Entreprise)
 const comptesClients = ref([])
 const showClientForm = ref(false)
-const formClient = ref({ nom: '', prenom: '', email: '', password: 'Payohada@123' })
+const formClient = ref({ nom: '', prenom: '', email: '', password: '' })
+// Mot de passe généré par le serveur, affiché une seule fois après création.
+const motDePasseGenere = ref('')
 const clientSubmitting = ref(false)
 
 const allEtabsSelected = computed({
@@ -281,13 +283,20 @@ const handleCreateClient = async () => {
   }
   clientSubmitting.value = true
   try {
-    await post(`/dossiers/${dossierId}/comptes-clients`, formClient.value)
+    const payload = { ...formClient.value }
+    if (!payload.password) delete payload.password
+
+    const created = await post(`/dossiers/${dossierId}/comptes-clients`, payload)
+    motDePasseGenere.value = created?.mot_de_passe_initial || ''
     toast.add({
       title: 'Accès client créé avec succès',
-      description: `L'utilisateur ${formClient.value.nom} peut maintenant se connecter à l'espace Entreprise.`,
-      color: 'success'
+      description: motDePasseGenere.value
+        ? `Mot de passe provisoire généré pour ${formClient.value.nom} : ${motDePasseGenere.value}`
+        : `L'utilisateur ${formClient.value.nom} peut maintenant se connecter à l'espace Entreprise.`,
+      color: 'success',
+      duration: motDePasseGenere.value ? 15000 : undefined
     })
-    formClient.value = { nom: '', prenom: '', email: '', password: 'Payohada@123' }
+    formClient.value = { nom: '', prenom: '', email: '', password: '' }
     showClientForm.value = false
     await fetchComptesClients()
   } catch (e) {
@@ -807,14 +816,16 @@ onMounted(() => {
                 />
               </div>
               <div>
-                <label class="block text-xs font-semibold text-slate-600 uppercase">Mot de passe temporaire</label>
+                <label class="block text-xs font-semibold text-slate-600 uppercase">Mot de passe temporaire (facultatif)</label>
                 <input 
                   type="text" 
                   v-model="formClient.password" 
                   class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" 
-                  placeholder="Payohada@123" 
+                  placeholder="Laisser vide pour génération automatique" 
                 />
-                <span class="text-[11px] text-slate-400">Par défaut: Payohada@123</span>
+                <span class="text-[11px] text-slate-400">
+                  Si laissé vide, un mot de passe aléatoire est généré et affiché une seule fois.
+                </span>
               </div>
             </div>
 

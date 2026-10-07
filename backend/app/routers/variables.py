@@ -14,9 +14,11 @@ from app.schemas.variables import (
     PrimeCreate, PrimeOut,
     OptionCreate, OptionOut,
     VariableRepriseDossierCreate, VariableRepriseDossierOut,
-    PeriodePaieOut, PeriodePaieTransmettre, SalarieVariableRowOut
+    PeriodePaieOut, PeriodePaieTransmettre, SalarieVariableRowOut,
+    STATUTS_PERIODE
 )
 from app.services.security import get_current_user
+from app.services.permissions import require_staff
 from app.routers.contrats import check_contrat_ownership
 from app.routers.dossiers import check_dossier_ownership
 
@@ -378,6 +380,16 @@ def update_periode_statut(
 ):
     """Permet au cabinet de mettre à jour le statut de la période (ex: calculée, clôturée)."""
     check_dossier_ownership(dossier_id, current_user, db)
+    require_staff(current_user)
+
+    if nouveau_statut not in STATUTS_PERIODE:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,
+            detail=(
+                f"Statut invalide « {nouveau_statut} ». "
+                f"Valeurs autorisées : {', '.join(sorted(STATUTS_PERIODE))}."
+            ),
+        )
 
     periode = db.query(PeriodePaie).filter(
         PeriodePaie.dossier_id == dossier_id,
