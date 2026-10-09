@@ -436,9 +436,12 @@ Sage Saari**, généré côté serveur.
 
 - `app/services/bulletin_saari.py` construit le document : `construire_html_saari()`
   produit le HTML, `generer_pdf_saari()` le convertit en PDF.
+- `POST /bulletins/pdf-lot` réunit plusieurs bulletins dans **un seul PDF**, un
+  par page. Chaque bulletin est vérifié individuellement : la demande entière
+  est rejetée si l'un d'eux appartient à un autre cabinet, plutôt que de produire
+  un document partiel. Le nombre de bulletins est plafonné à 200.
 - `GET /bulletins/{id}/pdf` expose le même document en téléchargement
-  (`inline`, pour consultation et impression directes), et le bouton
-  « Bulletin PDF » du détail d'un bulletin l'utilise. **Le PDF téléchargé et
+  (`inline`, pour consultation et impression directes). **Le PDF téléchargé et
   celui envoyé par email sont le même document.**
 - `send_email()` accepte désormais des pièces jointes. Sans pièce jointe, la
   structure MIME reste `multipart/alternative` (comportement inchangé) ; avec,
@@ -476,8 +479,14 @@ Retenue` avec les charges patronales en regard, groupé en trois sections
 diverses) ; totaux (salaire brut, retenues, net imposable, net à payer) ;
 **cadre des cumuls** mensuel et annuel ; état des congés ; zones de signature.
 
-Accès : bouton « Format Saari » sur le détail d'un bulletin, qui ouvre la page
-d'impression dédiée au format A4 portrait.
+Accès : depuis le détail d'un bulletin, le bouton d'impression ouvre la page
+dédiée au format A4 portrait. La page d'impression groupée propose
+« Télécharger le PDF », qui réunit tous les bulletins sélectionnés en un seul
+fichier.
+
+Un exemple est fourni : `docs/exemples/bulletin_paie_saari_exemple.pdf`, généré
+avec un dossier réaliste. Le bulletin tient sur une page, cumuls, congés,
+totaux, signatures et mentions compris.
 
 #### Sursalaire : composante du salaire brut, jamais un ajout
 Le montant saisi dans « Salaire Mensuel Brut (FCFA) » **est** le salaire brut. Le sursalaire en est une composante : les formulaires de contrat le calculent comme `sursalaire = salaire saisi − salaire de la grille`. Le moteur de paie l'ajoutait pourtant au salaire de base, ce qui gonflait le brut du montant du sursalaire (et, par ricochet, les assiettes ITS et CNPS, les indemnités de congés payés et les indemnités de rupture).
