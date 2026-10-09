@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from datetime import datetime
@@ -15,6 +15,9 @@ from app.schemas.bulletin import (
 from app.services.security import get_current_user
 from app.services.permissions import get_dossier_or_403, require_staff
 from app.routers.contrats import check_contrat_ownership
+from app.services.bulletin_saari import (
+    construire_html_saari, generer_pdf_saari, nom_fichier_bulletin,
+)
 from app.services.payroll import calculate_payslip, resoudre_brut_et_sursalaire
 from app.services.email import send_email
 
@@ -540,6 +543,79 @@ def delete_bulletin(
     db.delete(bulletin)
     db.commit()
     return None
+
+
+def _piece_jointe_bulletin(
+    db: Session,
+    bulletin: BulletinPaie,
+    contrat: Contrat,
+    salarie: Salarie,
+) -> list:
+    """Bulletin au format Sage Saari, prêt à être joint à un email.
+
+    Retourne une liste vide si la génération échoue : l'email part alors sans
+    pièce jointe plutôt que d'échouer entièrement. L'incident est journalisé.
+    """
+    try:
+        cumuls = compute_bulletin_cumuls(db, bulletin)
+        pdf = generer_pdf_saari(
+            bulletin,
+            contrat=contrat,
+            salarie=salarie,
+            etablissement=getattr(contrat, "etablissement", None),
+            dossier=getattr(bulletin, "dossier", None),
+            cumuls=cumuls,
+        )
+        nom = nom_fichier_bulletin(salarie, bulletin)
+        logger.info("Bulletin PDF généré pour l'envoi : %s (%d octets)", nom, len(pdf))
+        return [(nom, pdf, "application/pdf")]
+    except Exception:
+        logger.exception(
+            "Génération du bulletin PDF impossible pour le bulletin %s : "
+            "l'email sera envoyé sans pièce jointe.",
+            getattr(bulletin, "id", "?"),
+        )
+        return []
+
+
+@router.get("/bulletins/{bulletin_id}/pdf")
+def telecharger_bulletin_pdf(
+    bulletin_id: int,
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user),
+):
+    """Télécharge le bulletin de paie au format Sage Saari (PDF)."""
+    bulletin = check_bulletin_ownership(bulletin_id, current_user.id, db)
+    contrat = bulletin.contrat
+    if not contrat:
+        raise HTTPException(status_code=404, detail="Contrat associé introuvable.")
+    salarie = contrat.salarie
+    if not salarie:
+        raise HTTPException(status_code=404, detail="Salarié associé introuvable.")
+
+    cumuls = compute_bulletin_cumuls(db, bulletin)
+    try:
+        pdf = generer_pdf_saari(
+            bulletin,
+            contrat=contrat,
+            salarie=salarie,
+            etablissement=getattr(contrat, "etablissement", None),
+            dossier=getattr(bulletin, "dossier", None),
+            cumuls=cumuls,
+        )
+    except Exception:
+        logger.exception("Génération du PDF impossible pour le bulletin %s", bulletin_id)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="La génération du bulletin au format PDF a échoué.",
+        )
+
+    nom = nom_fichier_bulletin(salarie, bulletin)
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'inline; filename="{nom}"'},
+    )
 
 
 def _simulate_bulletin_core(
@@ -1122,14 +1198,25 @@ def send_bulletin_to_employee(
     </html>
     """
     
-    success, message = send_email(email_dest, subject, html_content)
+    pieces_jointes = _piece_jointe_bulletin(db, bulletin, contrat, salarie)
+    success, message = send_email(
+        email_dest, subject, html_content, pieces_jointes=pieces_jointes
+    )
     if not success:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=message,
         )
-        
-    return {"status": "success", "message": f"Bulletin envoyé à l'employé {salarie.prenom} {salarie.nom} ({email_dest})"}
+
+    precision = (
+        f" avec le bulletin au format PDF ({pieces_jointes[0][0]})"
+        if pieces_jointes else " (sans pièce jointe : génération du PDF impossible)"
+    )
+    return {
+        "status": "success",
+        "message": f"Bulletin envoyé à l'employé {salarie.prenom} {salarie.nom} ({email_dest}){precision}",
+        "piece_jointe": pieces_jointes[0][0] if pieces_jointes else None,
+    }
 
 
 @router.post("/bulletins/{bulletin_id}/envoyer-gestionnaire")
@@ -1204,12 +1291,23 @@ def send_bulletin_to_manager(
     </html>
     """
     
-    success, message = send_email(email_dest, subject, html_content)
+    pieces_jointes = _piece_jointe_bulletin(db, bulletin, contrat, salarie)
+    success, message = send_email(
+        email_dest, subject, html_content, pieces_jointes=pieces_jointes
+    )
     if not success:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=message,
         )
-        
-    return {"status": "success", "message": f"Bulletin envoyé au gestionnaire du dossier {dossier.nom_dossier} ({email_dest})"}
+
+    precision = (
+        f" avec le bulletin au format PDF ({pieces_jointes[0][0]})"
+        if pieces_jointes else " (sans pièce jointe : génération du PDF impossible)"
+    )
+    return {
+        "status": "success",
+        "message": f"Bulletin envoyé au gestionnaire du dossier {dossier.nom_dossier} ({email_dest}){precision}",
+        "piece_jointe": pieces_jointes[0][0] if pieces_jointes else None,
+    }
 

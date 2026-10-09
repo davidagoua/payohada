@@ -2,18 +2,72 @@
 import logging
 import smtplib
 import ssl
+from email.mime.application import MIMEApplication
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formataddr
-from typing import Tuple
+from typing import Optional, Sequence, Tuple
 
 from app.config import settings
 
 logger = logging.getLogger(__name__)
 
+#: Pièce jointe : (nom du fichier, contenu binaire, type MIME).
+PieceJointe = Tuple[str, bytes, str]
 
-def send_email(to_email: str, subject: str, html_content: str) -> Tuple[bool, str]:
-    """Envoie un e-mail HTML avec les paramètres SMTP configurés.
+MIME_PAR_DEFAUT = "application/octet-stream"
+
+
+def _construire_message(
+    to_email: str,
+    subject: str,
+    html_content: str,
+    pieces_jointes: Sequence[PieceJointe],
+) -> MIMEMultipart:
+    """Assemble le message MIME.
+
+    Sans pièce jointe, la structure reste `multipart/alternative` (HTML seul).
+    Avec pièces jointes, on encapsule cette partie dans un `multipart/mixed` :
+    les clients affichent alors le HTML **et** proposent les fichiers, au lieu de
+    remplacer le corps du message par la première pièce jointe.
+    """
+    if not pieces_jointes:
+        message = MIMEMultipart("alternative")
+        corps = MIMEText(html_content, "html", "utf-8")
+    else:
+        message = MIMEMultipart("mixed")
+        alternative = MIMEMultipart("alternative")
+        alternative.attach(MIMEText(html_content, "html", "utf-8"))
+        message.attach(alternative)
+        corps = None
+
+    message["Subject"] = subject
+    # formataddr protège l'affichage des caractères non ASCII du nom d'expéditeur.
+    message["From"] = formataddr((settings.EMAIL_FROM_NAME, settings.EMAIL_FROM))
+    message["To"] = to_email
+
+    if corps is not None:
+        message.attach(corps)
+    else:
+        for nom, contenu, type_mime in pieces_jointes:
+            # Le nom de fichier peut contenir des accents (nom du salarié) : on
+            # laisse l'encodage RFC 2231 le prendre en charge.
+            partie = MIMEApplication(contenu, _subtype=type_mime.split("/")[-1])
+            partie.add_header(
+                "Content-Disposition", "attachment", filename=("utf-8", "", nom)
+            )
+            message.attach(partie)
+
+    return message
+
+
+def send_email(
+    to_email: str,
+    subject: str,
+    html_content: str,
+    pieces_jointes: Optional[Sequence[PieceJointe]] = None,
+) -> Tuple[bool, str]:
+    """Envoie un e-mail HTML, avec pièces jointes éventuelles.
 
     Retourne `(succès, message)`. Le message d'erreur est destiné à l'exploitant
     (journaux, réponse HTTP) : il ne contient jamais le mot de passe SMTP.
@@ -26,12 +80,15 @@ def send_email(to_email: str, subject: str, html_content: str) -> Tuple[bool, st
         logger.warning("SMTP_HOST non configuré : email non envoyé à %s", to_email)
         return False, "L'envoi d'emails n'est pas configuré sur ce serveur (SMTP_HOST absent)."
 
-    message = MIMEMultipart("alternative")
-    message["Subject"] = subject
-    # formataddr protège l'affichage des caractères non ASCII du nom d'expéditeur.
-    message["From"] = formataddr((settings.EMAIL_FROM_NAME, settings.EMAIL_FROM))
-    message["To"] = to_email
-    message.attach(MIMEText(html_content, "html", "utf-8"))
+    message = _construire_message(
+        to_email, subject, html_content, pieces_jointes or ()
+    )
+    if pieces_jointes:
+        logger.info(
+            "Envoi de %d pièce(s) jointe(s) à %s : %s",
+            len(pieces_jointes), to_email,
+            ", ".join(nom for nom, _, _ in pieces_jointes),
+        )
 
     server = None
     try:

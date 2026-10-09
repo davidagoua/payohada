@@ -429,6 +429,39 @@ l'est pas — les erreurs sont bien acceptées (HTTP 200 vérifié).
 au démarrage, si bien qu'aucune URL de collecteur n'est codée en dur. Vérifié :
 `new URL(dsn).origin` exclut la clé publique, la directive reste donc valide.
 
+#### Envoi du bulletin par email, en PDF au format Sage Saari
+Les deux endpoints d'envoi (`/bulletins/{id}/envoyer-employe` et
+`/bulletins/{id}/envoyer-gestionnaire`) joignent le bulletin **au format PDF
+Sage Saari**, généré côté serveur.
+
+- `app/services/bulletin_saari.py` construit le document : `construire_html_saari()`
+  produit le HTML, `generer_pdf_saari()` le convertit en PDF.
+- `GET /bulletins/{id}/pdf` expose le même document en téléchargement
+  (`inline`, pour consultation et impression directes), et le bouton
+  « Bulletin PDF » du détail d'un bulletin l'utilise. **Le PDF téléchargé et
+  celui envoyé par email sont le même document.**
+- `send_email()` accepte désormais des pièces jointes. Sans pièce jointe, la
+  structure MIME reste `multipart/alternative` (comportement inchangé) ; avec,
+  elle passe en `multipart/mixed` afin que le corps HTML et le fichier
+  cohabitent — sinon le client de messagerie afficherait la pièce jointe à la
+  place du message.
+- Si la génération échoue, **l'email part quand même**, sans pièce jointe, et
+  l'incident est journalisé : le salarié reçoit sa notification plutôt que rien.
+  La réponse HTTP l'indique explicitement (`piece_jointe: null`).
+
+**Choix technique du moteur PDF** : `xhtml2pdf` (reportlab), retenu parce qu'il
+est **entièrement en Python**. WeasyPrint produirait un meilleur rendu CSS mais
+exige pango, cairo, gobject et harfbuzz — vérifié absents de l'environnement, et
+coûteux à ajouter à l'image de déploiement. Contrainte en découlant : pas de
+boîtes flex ni de `border-collapse`, la mise en page n'utilise que des tableaux,
+comme un état imprimé classique.
+
+**Formatage des taux** : la colonne « Taux » n'affiche un pourcentage que pour
+les cotisations et retenues. Sur les lignes de rémunération, `taux_s` est un
+**taux horaire ou journalier en francs** ; le suffixe « % » y produisait
+« 1 730,8 % » au lieu de « 1 730,80 ». Corrigé des deux côtés, gabarit PDF et
+composant Vue.
+
 #### Bulletin de paie au format Sage Saari
 Le bulletin officiel destiné au salarié est imprimé via le composant
 `components/BulletinPaieSaari.vue`, utilisé par la page d'impression

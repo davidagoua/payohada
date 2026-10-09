@@ -509,6 +509,42 @@ const triggerPrint = () => {
   window.print()
 }
 
+/**
+ * Télécharge le bulletin au format Sage Saari, en PDF.
+ * C'est exactement le document joint lorsque le bulletin est envoyé par email.
+ */
+const telechargerPdf = async () => {
+  try {
+    const config = useRuntimeConfig()
+    const { token } = useSupabase()
+    const apiBase = config.public.apiBase || 'http://localhost:8000'
+    const reponse = await fetch(`${apiBase}/api/v1/bulletins/${bulletinId}/pdf`, {
+      headers: { Authorization: `Bearer ${token.value}` }
+    })
+    if (!reponse.ok) throw new Error(`HTTP ${reponse.status}`)
+
+    const blob = await reponse.blob()
+    const lien = document.createElement('a')
+    lien.href = URL.createObjectURL(blob)
+    lien.download = `bulletin_paie_${salarie.value?.matricule || bulletinId}_`
+      + `${String(bulletin.value?.mois || 0).padStart(2, '0')}-${bulletin.value?.annee || ''}.pdf`
+    lien.click()
+    URL.revokeObjectURL(lien.href)
+    toast.add({
+      title: 'Bulletin PDF téléchargé',
+      description: 'Document au format Sage Saari, identique à la pièce jointe envoyée par email.',
+      color: 'success'
+    })
+  } catch (e) {
+    console.error('Erreur de téléchargement du PDF :', e)
+    toast.add({
+      title: 'Téléchargement impossible',
+      description: 'La génération du bulletin PDF a échoué.',
+      color: 'danger'
+    })
+  }
+}
+
 // Formatting helpers
 const formatXOF = (value) => {
   if (value === null || value === undefined) return '-'
@@ -706,7 +742,9 @@ onMounted(() => {
           <UIcon name="i-lucide-x-circle" class="w-4 h-4" />
           Dé-valider
         </button>
+
         <button 
+          v-show="false"
           @click="triggerPrint"
           class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-none shadow-flat transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer shadow-flat-hover shadow-flat-active"
         >
@@ -719,7 +757,15 @@ onMounted(() => {
           class="px-4 py-2 border-2 border-slate-800 text-slate-800 hover:bg-slate-800 hover:text-white text-sm font-bold rounded-none transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer"
         >
           <UIcon name="i-lucide-file-text" class="w-4 h-4" />
-          Format Saari
+          Imprimer
+        </button>
+        <!-- PDF : exactement le document joint lorsque le bulletin est envoyé par email -->
+        <button
+          @click="telechargerPdf"
+          class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold rounded-none transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer"
+        >
+          <UIcon name="i-lucide-download" class="w-4 h-4" />
+          Bulletin PDF
         </button>
       </div>
     </div>

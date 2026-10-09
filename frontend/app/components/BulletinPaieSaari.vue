@@ -96,13 +96,21 @@ const formatNombre = (v) => {
   return n ? n.toLocaleString('fr-FR', { maximumFractionDigits: 2 }) : '-'
 }
 
-/** Les taux sont stockés en pourcentage (ex. 6.3) ou en fraction (0.063). */
-const formatTaux = (v) => {
+/**
+ * Met en forme la colonne « Taux ».
+ *
+ * La sémantique de `taux_s` dépend de la ligne : un pourcentage pour les
+ * cotisations et retenues (6,3 %), mais un taux horaire ou journalier **en
+ * francs** pour les lignes de rémunération (1 730,80 F/h). Sans cette
+ * distinction, le salaire de base s'affichait « 1 730,8 % ».
+ */
+const formatTaux = (v, estPourcentage = true) => {
   if (v === null || v === undefined || v === '') return '-'
   const n = Number(v)
   if (!n) return '-'
-  const pourcent = n > 0 && n < 1 ? n * 100 : n
-  return `${pourcentage(pourcent)} %`
+  if (!estPourcentage) return n.toLocaleString('fr-FR', { maximumFractionDigits: 2 })
+  const taux = n > 0 && n < 1 ? n * 100 : n
+  return `${pourcentage(taux)} %`
 }
 
 const pourcentage = (v) => Number(v).toLocaleString('fr-FR', { maximumFractionDigits: 3 })
@@ -256,11 +264,11 @@ const estExpatrie = computed(() => !!props.salarie?.expatrie)
           <td class="mono code">{{ ligne.code }}</td>
           <td>{{ ligne.libelle || ligne.code }}</td>
           <td class="mono">{{ formatNombre(ligne.base_s) }}</td>
-          <td class="mono">{{ formatTaux(ligne.taux_s) }}</td>
+          <td class="mono">{{ formatTaux(ligne.taux_s, estCotisation(ligne.code)) }}</td>
           <td class="mono num">{{ formatXOF(ligne.montant_pr) }}</td>
           <td class="mono num"></td>
           <td class="mono pat">{{ formatNombre(ligne.base_p) }}</td>
-          <td class="mono pat">{{ formatTaux(ligne.taux_p) }}</td>
+          <td class="mono pat">{{ formatTaux(ligne.taux_p, true) }}</td>
           <td class="mono pat num">{{ formatXOF(ligne.montant_cp) }}</td>
         </tr>
         <tr class="total">
@@ -279,11 +287,11 @@ const estExpatrie = computed(() => !!props.salarie?.expatrie)
           <td class="mono code">{{ ligne.code }}</td>
           <td>{{ ligne.libelle || ligne.code }}</td>
           <td class="mono">{{ formatNombre(ligne.base_s) }}</td>
-          <td class="mono">{{ formatTaux(ligne.taux_s) }}</td>
+          <td class="mono">{{ formatTaux(ligne.taux_s, estCotisation(ligne.code)) }}</td>
           <td class="mono num"></td>
           <td class="mono num">{{ formatXOF(ligne.montant_cs) }}</td>
           <td class="mono pat">{{ formatNombre(ligne.base_p) }}</td>
-          <td class="mono pat">{{ formatTaux(ligne.taux_p) }}</td>
+          <td class="mono pat">{{ formatTaux(ligne.taux_p, true) }}</td>
           <td class="mono pat num">{{ formatXOF(ligne.montant_cp) }}</td>
         </tr>
 
@@ -295,11 +303,11 @@ const estExpatrie = computed(() => !!props.salarie?.expatrie)
           <td class="mono code">{{ ligne.code }}</td>
           <td>{{ ligne.libelle || ligne.code }}</td>
           <td class="mono">{{ formatNombre(ligne.base_s) }}</td>
-          <td class="mono">{{ formatTaux(ligne.taux_s) }}</td>
+          <td class="mono">{{ formatTaux(ligne.taux_s, estCotisation(ligne.code)) }}</td>
           <td class="mono num">{{ formatXOF(ligne.montant_pr) }}</td>
           <td class="mono num">{{ formatXOF(ligne.montant_cs) }}</td>
           <td class="mono pat">{{ formatNombre(ligne.base_p) }}</td>
-          <td class="mono pat">{{ formatTaux(ligne.taux_p) }}</td>
+          <td class="mono pat">{{ formatTaux(ligne.taux_p, true) }}</td>
           <td class="mono pat num">{{ formatXOF(ligne.montant_cp) }}</td>
         </tr>
         <tr v-if="!retenuesDiverses.length" class="vide">
