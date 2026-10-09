@@ -90,7 +90,7 @@ onMounted(() => {
 <template>
   <div class="space-y-6">
     
-    <!-- SAP Header/Title section -->
+    <!-- En-tête de page -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b-2 border-slate-200 pb-4">
       <div>
         <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Tableau de bord des Dossiers</h1>
@@ -130,7 +130,7 @@ onMounted(() => {
       </button>
     </div>
 
-    <!-- Dossiers Grid: SAP Fiori Tiles style -->
+    <!-- Grille des dossiers -->
     <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       <NuxtLink 
         v-for="dossier in dossiers" 

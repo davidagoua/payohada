@@ -9,8 +9,12 @@ export default defineNuxtPlugin((nuxtApp) => {
     Sentry.init({
       app: nuxtApp.vueApp,
       dsn,
+      environment: config.public.bugsinkEnvironment || 'production',
       integrations: [],
-      tracesSampleRate: 1.0
+      // Bugsink ne collecte que les erreurs : il limite les transactions de
+      // performance (en-tête x-sentry-rate-limits) et celles-ci consomment le
+      // quota au détriment des erreurs. Désactivées.
+      tracesSampleRate: 0
     })
   }
 

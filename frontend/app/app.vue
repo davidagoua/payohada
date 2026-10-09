@@ -5,8 +5,8 @@ onMounted(() => {
   init()
 })
 
-const title = 'payohada — Logiciel de Paie SAP-Style'
-const description = 'Logiciel moderne de gestion de paie, dossiers entreprises, salariés et contrats. Inspiré du style SAP Fiori.'
+const title = 'payohada — Logiciel de Paie'
+const description = 'Logiciel moderne de gestion de paie : dossiers entreprises, salariés et contrats.'
 
 useSeoMeta({
   title,

@@ -403,6 +403,49 @@ logiciel_paie/
 #### Added
 - Suite de tests de non-régression (moteur de paie et API) : `python -m unittest discover -s tests -t . -v`.
 
+#### Journalisation des erreurs (Bugsink / Sentry)
+L'intégration est pilotée par l'environnement : aucun DSN n'est écrit dans le code.
+
+| Variable | Rôle |
+|---|---|
+| `BUGSINK_DSN` (backend) | Active la remontée d'erreurs FastAPI. Vide = désactivée. |
+| `NUXT_PUBLIC_BUGSINK_DSN` (frontend) | Active la remontée d'erreurs navigateur. Vide = désactivée. |
+| `BUGSINK_ENVIRONMENT` / `NUXT_PUBLIC_BUGSINK_ENVIRONMENT` | Étiquette d'environnement jointe aux événements. |
+| `BUGSINK_TRACES_SAMPLE_RATE` | Échantillonnage des traces, **0 par défaut**. |
+
+Côté backend, `sentry_sdk` est initialisé au démarrage et le gestionnaire global
+d'exceptions remonte toute erreur 500. Côté frontend, le plugin
+`plugins/sentry.client.ts` initialise le SDK et `useApi` capture les erreurs
+réseau et les réponses 5xx (jamais les 4xx, qui sont des erreurs d'usage).
+
+**Pourquoi les traces sont désactivées** : Bugsink est un collecteur d'erreurs.
+Il répond un en-tête `x-sentry-rate-limits: 86400:transaction;span` pour signaler
+qu'il n'accepte pas les transactions de performance. Le SDK les met alors en
+file d'attente inutilement et journalise un avertissement de quota. Les
+catégories `transaction` et `span` sont concernées ; la catégorie `error` ne
+l'est pas — les erreurs sont bien acceptées (HTTP 200 vérifié).
+
+**Origine autorisée automatiquement** : la CSP (`connect-src`) est dérivée du DSN
+au démarrage, si bien qu'aucune URL de collecteur n'est codée en dur. Vérifié :
+`new URL(dsn).origin` exclut la clé publique, la directive reste donc valide.
+
+#### Bulletin de paie au format Sage Saari
+Le bulletin officiel destiné au salarié est imprimé via le composant
+`components/BulletinPaieSaari.vue`, utilisé par la page d'impression
+`print-bulletins` (impression unitaire ou par lot).
+
+Structure reproduite : en-tête employeur (NIF/RCCM, n° employeur CNPS, code
+établissement) et identification du salarié (matricule, emploi, catégorie et
+échelon, ancienneté, situation familiale, enfants à charge, n° CNPS, régime) ;
+tableau des rubriques ventilé en `Code | Désignation | Base | Taux | Gain |
+Retenue` avec les charges patronales en regard, groupé en trois sections
+(éléments de salaire brut, cotisations et retenues, indemnités et retenues
+diverses) ; totaux (salaire brut, retenues, net imposable, net à payer) ;
+**cadre des cumuls** mensuel et annuel ; état des congés ; zones de signature.
+
+Accès : bouton « Format Saari » sur le détail d'un bulletin, qui ouvre la page
+d'impression dédiée au format A4 portrait.
+
 #### Sursalaire : composante du salaire brut, jamais un ajout
 Le montant saisi dans « Salaire Mensuel Brut (FCFA) » **est** le salaire brut. Le sursalaire en est une composante : les formulaires de contrat le calculent comme `sursalaire = salaire saisi − salaire de la grille`. Le moteur de paie l'ajoutait pourtant au salaire de base, ce qui gonflait le brut du montant du sursalaire (et, par ricochet, les assiettes ITS et CNPS, les indemnités de congés payés et les indemnités de rupture).
 

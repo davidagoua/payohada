@@ -334,7 +334,7 @@ onMounted(() => {
   <div v-else-if="dossier" class="space-y-6">
 
     
-    <!-- SAP Fiori Style Horizontal Tabs -->
+    <!-- Onglets horizontaux -->
     <div class="border-b-2 border-slate-200">
       <nav class="flex space-x-8" aria-label="Tabs">
         

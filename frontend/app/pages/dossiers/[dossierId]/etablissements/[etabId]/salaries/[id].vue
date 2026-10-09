@@ -675,7 +675,7 @@ onMounted(() => {
       </div>
     </div>
 
-    <!-- SAP Fiori Tabs -->
+    <!-- Onglets -->
     <div class="border-b border-slate-200">
       <nav class="flex space-x-6 overflow-x-auto whitespace-nowrap pb-1 scrollbar-thin" aria-label="Tabs">
         <button 

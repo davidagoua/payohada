@@ -37,7 +37,7 @@ definePageMeta({
         <div class="space-y-8 animate-fade-in-up">
           <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-green-50 border border-green-200 text-green-700 text-xs font-semibold">
             <span class="w-1.5 h-1.5 rounded-full bg-green-600 animate-ping"></span>
-            <span>Logiciel de Paie SAP-Style</span>
+            <span>Logiciel de Paie</span>
           </div>
 
           <h1 class="text-4xl sm:text-5xl font-extrabold text-slate-900 leading-tight">

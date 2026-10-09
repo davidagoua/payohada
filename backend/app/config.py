@@ -24,6 +24,14 @@ class Settings(BaseSettings):
 
     # Journalisation des erreurs (facultatif : aucun DSN en dur dans le code)
     BUGSINK_DSN: Optional[str] = None
+    #: Étiquette d'environnement jointe aux événements (production, staging…).
+    BUGSINK_ENVIRONMENT: str = "production"
+    #: Échantillonnage des traces de performance.
+    #: Bugsink ne collecte que les erreurs : il répond un en-tête
+    #: `x-sentry-rate-limits` pour les transactions et les écarte. Les laisser
+    #: activées consomme ce quota et retarde les erreurs, d'où la valeur par
+    #: défaut à 0. Ne l'augmenter que face à un Sentry complet.
+    BUGSINK_TRACES_SAMPLE_RATE: float = 0.0
 
     # CORS : origines séparées par des virgules. En production, renseigner
     # explicitement le domaine du frontend (jamais "*" avec credentials).

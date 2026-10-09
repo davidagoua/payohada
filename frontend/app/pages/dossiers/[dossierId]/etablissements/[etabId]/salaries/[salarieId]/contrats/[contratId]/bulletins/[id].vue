@@ -713,6 +713,14 @@ onMounted(() => {
           <UIcon name="i-lucide-printer" class="w-4 h-4" />
           Imprimer
         </button>
+        <!-- Bulletin officiel au format Sage Saari (document destiné au salarié) -->
+        <button
+          @click="router.push(`/dossiers/${dossierId}/etablissements/${etabId}/print-bulletins?ids=${bulletinId}`)"
+          class="px-4 py-2 border-2 border-slate-800 text-slate-800 hover:bg-slate-800 hover:text-white text-sm font-bold rounded-none transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer"
+        >
+          <UIcon name="i-lucide-file-text" class="w-4 h-4" />
+          Format Saari
+        </button>
       </div>
     </div>
 

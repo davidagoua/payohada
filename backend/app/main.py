@@ -25,7 +25,11 @@ if settings.BUGSINK_DSN:
     sentry_sdk.init(
         dsn=settings.BUGSINK_DSN,
         integrations=[FastApiIntegration()],
-        traces_sample_rate=0.2,
+        environment=settings.BUGSINK_ENVIRONMENT,
+        # Bugsink est un collecteur d'erreurs : les transactions de performance
+        # y sont limitées (en-tête x-sentry-rate-limits) et consomment le quota
+        # au détriment des erreurs. Désactivées par défaut.
+        traces_sample_rate=settings.BUGSINK_TRACES_SAMPLE_RATE,
     )
 
 # En mode développement avec SQLite, on initialise automatiquement les tables

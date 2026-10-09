@@ -149,10 +149,10 @@ const handleLogout = async () => {
 
 <template>
   <div class="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-800">
-    <!-- SAP Top Line Accent (Green) -->
+    <!-- Liseré supérieur d'accentuation -->
     <div class="h-1 bg-green-600 w-full" />
 
-    <!-- SAP Fiori Shell Bar -->
+    <!-- Barre de navigation principale -->
     <header class="bg-white border-b-2 border-slate-200 shadow-flat sticky top-0 z-50">
       <!-- Top Row: Logo & Profile -->
       <div class="border-b border-slate-150">

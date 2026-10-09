@@ -47,7 +47,7 @@ export default defineNuxtConfig({
   },
   app: {
     head: {
-      title: 'payohada — Logiciel de Paie SAP-Style',
+      title: 'payohada — Logiciel de Paie',
       link: [
         { rel: 'icon', type: 'image/png', href: '/payohada-icon.png' },
         { rel: 'apple-touch-icon', href: '/payohada-icon.png' }
@@ -63,6 +63,8 @@ export default defineNuxtConfig({
       supabaseAnonKey: process.env.NUXT_PUBLIC_SUPABASE_ANON_KEY || '',
       apiBase,
       bugsinkDsn,
+      //: Étiquette d'environnement jointe aux événements d'erreur.
+      bugsinkEnvironment: process.env.NUXT_PUBLIC_BUGSINK_ENVIRONMENT || 'production',
       n8nChatWebhook
     }
   },
