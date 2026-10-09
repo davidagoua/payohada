@@ -13,6 +13,9 @@ from app.schemas.contrat import (
 )
 from app.schemas.bulletin import SoldeToutCompteOut, SoldeToutCompteBase
 from app.services.security import get_current_user
+import logging
+
+logger = logging.getLogger(__name__)
 from app.routers.etablissements import check_etablissement_ownership
 from app.routers.salaries import check_salarie_ownership
 
@@ -309,15 +312,46 @@ def delete_depart_salarie(
     return None
 
 
+#: Composantes qui entrent dans le total du solde de tout compte.
+CHAMPS_SOLDE_TOUT_COMPTE = (
+    "indemnite_licenciement",
+    "indemnite_conges_payes",
+    "indemnite_preavis",
+    "indemnite_autre",
+    "indemnite_fin_cdd",
+    "indemnite_deces",
+    "frais_funeraires",
+    "gratification",
+)
+
+
+def total_solde_tout_compte(stc: SoldeToutCompte) -> float:
+    """Somme de toutes les composantes du solde de tout compte."""
+    return round(sum(getattr(stc, champ) or 0.0 for champ in CHAMPS_SOLDE_TOUT_COMPTE), 2)
+
+
+def serialiser_solde_tout_compte(stc: SoldeToutCompte) -> SoldeToutCompteOut:
+    """Ajoute le détail de calcul désérialisé à la réponse."""
+    out = SoldeToutCompteOut.model_validate(stc)
+    if stc.detail_calcul:
+        try:
+            import json
+            out.details = json.loads(stc.detail_calcul)
+        except (ValueError, TypeError):
+            logger.warning("Détail de calcul illisible pour le STC %s", stc.id)
+    return out
+
+
 @router.get("/contrats/{contrat_id}/solde-tout-compte", response_model=Optional[SoldeToutCompteOut])
 def get_solde_tout_compte(
     contrat_id: int,
     db: Session = Depends(get_db),
     current_user: Utilisateur = Depends(get_current_user)
 ):
-    """Récupère le Solde de Tout Compte (STC) lié au contrat."""
+    """Récupère le Solde de Tout Compte (STC) lié au contrat, avec son détail."""
     check_contrat_ownership(contrat_id, current_user.id, db)
-    return db.query(SoldeToutCompte).filter(SoldeToutCompte.contrat_id == contrat_id).first()
+    stc = db.query(SoldeToutCompte).filter(SoldeToutCompte.contrat_id == contrat_id).first()
+    return serialiser_solde_tout_compte(stc) if stc else None
 
 
 @router.put("/contrats/{contrat_id}/solde-tout-compte", response_model=SoldeToutCompteOut)
@@ -340,13 +374,10 @@ def update_solde_tout_compte(
     for field, value in stc_in.model_dump(exclude={"total"}, exclude_unset=True).items():
         setattr(stc, field, value)
 
-    # Recalculer le total
-    stc.total = (
-        (stc.indemnite_licenciement or 0.0) +
-        (stc.indemnite_conges_payes or 0.0) +
-        (stc.indemnite_preavis or 0.0) +
-        (stc.indemnite_autre or 0.0)
-    )
+    # Recalculer le total sur l'ensemble des composantes : les oublier ici
+    # ferait disparaître du solde les indemnités de fin de CDD, de décès, les
+    # frais funéraires et la gratification.
+    stc.total = total_solde_tout_compte(stc)
 
     db.commit()
     db.refresh(stc)

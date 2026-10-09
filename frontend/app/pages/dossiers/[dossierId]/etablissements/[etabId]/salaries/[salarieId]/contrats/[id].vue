@@ -379,7 +379,14 @@ onMounted(() => {
         </div>
       </div>
       
-      <div class="flex space-x-3">
+      <div class="flex flex-wrap gap-3">
+        <NuxtLink
+          :to="`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}/contrats/${contratId}/avantages-nature`"
+          class="px-4 py-2 border border-emerald-200 text-sm font-semibold rounded-lg hover:bg-emerald-50 text-emerald-700 transition-colors flex items-center gap-1.5"
+        >
+          <UIcon name="i-lucide-house-plus" class="w-4 h-4" />
+          Avantages en nature
+        </NuxtLink>
         <button 
           @click="handleDeleteContrat"
           class="px-4 py-2 border border-red-200 text-sm font-semibold rounded-lg hover:bg-red-50 text-red-600 transition-colors flex items-center gap-1.5"
@@ -672,13 +679,20 @@ onMounted(() => {
             <p class="text-xs text-slate-500 italic">
               Aucun départ n'a été enregistré pour ce salarié.
             </p>
-            <button 
+            <NuxtLink
+              :to="`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}/contrats/${contratId}/depart`"
+              class="w-full px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+            >
+              <UIcon name="i-lucide-calculator" class="w-4 h-4" />
+              Départ &amp; solde de tout compte (calcul réglementaire)
+            </NuxtLink>
+            <button
               type="button"
               @click="showDepartModal = true"
-              class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+              class="w-full px-4 py-2 border border-slate-300 hover:bg-slate-50 text-slate-600 font-semibold rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5"
             >
               <UIcon name="i-lucide-log-out" class="w-4 h-4" />
-              Déclarer la sortie du salarié
+              Déclaration rapide (sans calcul)
             </button>
           </div>
 
@@ -696,6 +710,23 @@ onMounted(() => {
                 <p v-if="departSalarie.dernier_jour_travaille"><strong>Dernier jour travaillé :</strong> {{ departSalarie.dernier_jour_travaille }}</p>
                 <p><strong>Maintien affiliation prévoyance :</strong> {{ departSalarie.maintien_affiliation ? 'Oui' : 'Non' }}</p>
               </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-2">
+              <NuxtLink
+                :to="`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}/contrats/${contratId}/depart`"
+                class="flex-1 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-xs text-center inline-flex items-center justify-center gap-1.5"
+              >
+                <UIcon name="i-lucide-calculator" class="w-3.5 h-3.5" />
+                Recalculer le solde de tout compte
+              </NuxtLink>
+              <NuxtLink
+                :to="`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}/contrats/${contratId}/depart/print-stc`"
+                class="flex-1 px-3 py-2 border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold rounded-lg text-xs text-center inline-flex items-center justify-center gap-1.5"
+              >
+                <UIcon name="i-lucide-receipt" class="w-3.5 h-3.5" />
+                Reçu détaillé
+              </NuxtLink>
             </div>
 
             <!-- STC Form -->

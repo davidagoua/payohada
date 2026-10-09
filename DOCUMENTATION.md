@@ -403,6 +403,13 @@ logiciel_paie/
 #### Added
 - Suite de tests de non-régression (moteur de paie et API) : `python -m unittest discover -s tests -t . -v`.
 
+#### Pages Nuxt des calculateurs
+- `contrats/[contratId]/depart/index.vue` — formulaire de départ complet : choix du motif (licenciement, retraite, décès, fin de CDD, démission, rupture), saisie ou reprise automatique des 12 salaires de référence, gratification, congés payés (les deux méthodes comparées) et éléments complémentaires. Chaque section alimente un **aperçu en direct** avec le détail du barème, avant enregistrement du solde.
+- `contrats/[contratId]/avantages-nature.vue` — écran de saisie mensuelle du barème DGI du 08/07/2024 : logement et charges, climatisation, piscine, domesticité, repas, véhicule. Évaluation fiscale à la volée (composantes détaillées, avantage imposable, brut imposable, assiette CNPS), enregistrement par période, liste et suppression des périodes, avantage récurrent.
+- `depart/print-stc.vue` — reçu pour solde de tout compte enrichi d'une **annexe détaillant le calcul** : salaire de référence, barème par tranche, droits à congés, comparaison des deux méthodes, minimum conventionnel de gratification, frais funéraires et assiette de l'indemnité de fin de CDD.
+- `layouts/blank.vue` — layout sans habillage, désormais présent : les pages d'impression qui déclaraient `layout: 'blank'` retombaient auparavant sur le layout avec navigation.
+- Accès depuis la fiche contrat : boutons « Avantages en nature » et « Départ & solde de tout compte », plus « Recalculer » et « Reçu détaillé » une fois le départ enregistré.
+
 #### Calculateurs réglementaires ivoiriens
 - Nouveaux services purs : `app/services/indemnites_rupture.py` (licenciement, retraite, décès, fin de CDD), `app/services/conges_gratification.py` (congés payés, gratification annuelle) et `app/services/avantages_nature.py` (barème logement, domesticité, repas, véhicule).
 - Table `avantages_en_nature` et nouvelles colonnes `contrats.smhc_mensuel`, `departs_salaries.motif_fin_contrat` / `sous_motif_fin_cdd` / `conditions_retraite_remplies`, `soldes_tout_compte.indemnite_fin_cdd` / `indemnite_deces` / `frais_funeraires` / `gratification` / `detail_calcul` — ajoutées en migration incrémentale dans `backend/schema.sql`.
@@ -410,6 +417,8 @@ logiciel_paie/
 - **Intégration au bulletin** : les avantages en nature alimentent le brut imposable (donc la base de l'ITS) via des lignes `AN_*`, sont neutralisés sur le net par une retenue compensatoire (ce sont des gains non décaissés), et utilisent la **valeur réelle** pour l'assiette CNPS, distincte de l'évaluation forfaitaire fiscale.
 - **Le calcul de l'indemnité de licenciement n'est plus figé à 0** : l'ancien code créait un solde de tout compte avec `indemnite_licenciement = 0.0`.
 - `docs/REFERENTIEL_CALCULS_CI.md` : référentiel des règles, formules, exemples chiffrés et sources.
+- Trois écrans Nuxt (départ, avantages en nature, reçu détaillé) et le layout `blank` manquant. Les payloads envoyés par les écrans sont verrouillés par des tests d'interface côté backend.
+- `GET /contrats/{id}/solde-tout-compte` expose désormais `details` (détail de calcul désérialisé) et les nouvelles composantes ; le recalcul du total au `PUT` intègre fin de CDD, décès, frais funéraires et gratification — il les ignorait auparavant.
 - 78 tests dédiés (calculateurs, API, intégration au bulletin) validés sur les montants exacts des classeurs fournis.
 
 #### Mot de passe oublié

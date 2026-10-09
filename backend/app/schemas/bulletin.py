@@ -139,6 +139,11 @@ class SoldeToutCompteBase(BaseModel):
     indemnite_conges_payes: Optional[float] = 0.0
     indemnite_preavis: Optional[float] = 0.0
     indemnite_autre: Optional[float] = 0.0
+    # Composantes issues des calculateurs réglementaires ivoiriens
+    indemnite_fin_cdd: Optional[float] = 0.0
+    indemnite_deces: Optional[float] = 0.0
+    frais_funeraires: Optional[float] = 0.0
+    gratification: Optional[float] = 0.0
     total: Optional[float] = 0.0
     statut: Optional[str] = "genere"
     commentaire: Optional[str] = None
@@ -154,6 +159,10 @@ class SoldeToutCompteOut(SoldeToutCompteBase):
     date_generation: datetime
     created_at: datetime
     updated_at: datetime
+    #: Détail JSON brut, conservé pour audit et réimpression.
+    detail_calcul: Optional[str] = None
+    #: Détail désérialisé, directement exploitable par le frontend.
+    details: Optional[dict] = None
 
     class Config:
         from_attributes = True

@@ -309,6 +309,125 @@ class CalculateursApiTests(unittest.TestCase):
         self.assertEqual(r.status_code, 422)
         self.assertIn("Motif de fin de contrat invalide", r.json()["detail"])
 
+    def test_get_stc_expose_le_detail_de_calcul(self):
+        """La réimpression du bulletin a besoin du détail, désérialisé."""
+        client.post(self._url("/solde-tout-compte/complet"), headers=self.entetes, json={
+            "motif_fin_contrat": "licenciement",
+            "date_sortie": "2025-12-31",
+            "anciennete_mois": 104,
+            "salaires_12_mois": [300_000.0] * 12,
+            "conges_mois_service": 12,
+        })
+        r = client.get(self._url("/solde-tout-compte"), headers=self.entetes)
+        self.assertEqual(r.status_code, 200, r.text)
+        corps = r.json()
+        self.assertIsNotNone(corps["detail_calcul"])
+        self.assertIsInstance(corps["details"], dict)
+        self.assertEqual(corps["details"]["motif"], "licenciement")
+        self.assertEqual(corps["details"]["anciennete_mois"], 104)
+        self.assertIn("conges", corps["details"])
+
+    def test_put_stc_conserve_les_nouvelles_composantes_dans_le_total(self):
+        """Régression : le recalcul du total ignorait fin de CDD, décès et gratification."""
+        client.post(self._url("/solde-tout-compte/complet"), headers=self.entetes, json={
+            "motif_fin_contrat": "fin_cdd",
+            "sous_motif_fin_cdd": "terme_normal_sans_cdi",
+            "date_sortie": "2025-12-31",
+        })
+        avant = client.get(self._url("/solde-tout-compte"), headers=self.entetes).json()
+        self.assertAlmostEqual(avant["indemnite_fin_cdd"], 108_000.0, places=2)
+
+        # Une modification manuelle du préavis ne doit pas effacer les autres
+        r = client.put(self._url("/solde-tout-compte"), headers=self.entetes,
+                       json={"indemnite_preavis": 50_000.0})
+        self.assertEqual(r.status_code, 200, r.text)
+        apres = r.json()
+        self.assertAlmostEqual(apres["indemnite_preavis"], 50_000.0, places=2)
+        self.assertAlmostEqual(apres["indemnite_fin_cdd"], 108_000.0, places=2)
+        self.assertAlmostEqual(
+            apres["total"],
+            (apres["indemnite_fin_cdd"] + apres["indemnite_conges_payes"]
+             + apres["indemnite_preavis"] + apres["indemnite_autre"]),
+            places=2,
+        )
+
+    # ── Contrats d'interface avec les pages Nuxt ──────────────────────
+    # Les payloads ci-dessous reproduisent exactement ceux que construisent
+    # les écrans (valeurs nulles incluses) : ils garantissent que le frontend
+    # et l'API restent compatibles.
+
+    def test_payload_ecran_avantages_nature(self):
+        payload = {
+            "mois": 6, "annee": "2025",
+            "logement_fourni": True, "mobilier_fourni": False,
+            "electricite_prise_en_charge": True, "eau_prise_en_charge": False,
+            "nombre_pieces": 3, "nombre_climatiseurs": 2.0, "piscine": False,
+            "nombre_gardiens": 0.0, "nombre_employes_maison": 0.0, "nombre_cuisiniers": 0.0,
+            "cout_mensuel_repas": 0.0, "exoneration_repas_applicable": False,
+            "autres_avantages_cout_reel": 0.0, "participation_salarie_hors_vehicule": 0.0,
+            "vehicule_type": None, "vehicule_carburant": 0.0, "vehicule_entretien": 0.0,
+            "vehicule_assurance": 0.0, "vehicule_vignette": 0.0, "vehicule_autres": 0.0,
+            "vehicule_nombre_beneficiaires": 1, "vehicule_forfait_mensuel": 0.0,
+            "vehicule_valeur_reelle": 0.0, "vehicule_participation": 0.0,
+            "vehicule_valeur_reelle_cnps": 0.0,
+            "valeur_reelle_hors_vehicule_cnps": None,
+            "est_persistant": True,
+        }
+        r = client.post(self._url("/avantages-nature"), headers=self.entetes, json=payload)
+        self.assertEqual(r.status_code, 200, r.text)
+        # 160 000 (logement 3 pièces) + 30 000 (électricité) + 40 000 (2 clim)
+        self.assertAlmostEqual(r.json()["total_avant_participation"], 230_000.0, places=2)
+
+    def test_payload_ecran_depart_licenciement(self):
+        payload = {
+            "motif_fin_contrat": "licenciement",
+            "sous_motif_fin_cdd": None,
+            "date_sortie": "2025-12-31",
+            "anciennete_mois": 104,
+            "faute_lourde": False,
+            "conditions_retraite_remplies": False,
+            "smhc_mensuel": 125_000.0,
+            "indemnite_preavis": 300_000.0,
+            "indemnite_autre": 0.0,
+            "conges_mois_service": 12,
+            "conges_jours_pris": 15,
+            "conges_jours_supplementaires": 0,
+            "conges_methode": "conventionnelle",
+            "salaires_12_mois": [300_000.0] * 11 + [None],
+            "gratification_annee": 2025,
+            "gratification_taux_entreprise": 0.0,
+            "gratification_jours_service": 360.0,
+        }
+        r = client.post(self._url("/solde-tout-compte/complet"), headers=self.entetes, json=payload)
+        self.assertEqual(r.status_code, 200, r.text)
+        corps = r.json()
+        self.assertAlmostEqual(corps["indemnite_licenciement"], 835_000.0, places=2)
+        self.assertAlmostEqual(corps["gratification"], 93_750.0, places=2)
+        # Congés : journalier 10 000 × 14,25 jours calendaires
+        self.assertAlmostEqual(corps["indemnite_conges_payes"], 142_500.0, places=2)
+        self.assertAlmostEqual(
+            corps["total"], 835_000.0 + 93_750.0 + 142_500.0 + 300_000.0, places=2
+        )
+
+    def test_payload_ecran_depart_avec_valeurs_vides(self):
+        """Champs facultatifs omis ou vides : l'API doit rester permissive."""
+        payload = {
+            "motif_fin_contrat": "demission",
+            "sous_motif_fin_cdd": None,
+            "date_sortie": "2025-12-31",
+            "anciennete_mois": None,
+            "smhc_mensuel": None,
+            "indemnite_preavis": 0.0,
+            "indemnite_autre": 0.0,
+            "conges_mois_service": 24.0,
+            "conges_jours_pris": 0.0,
+            "conges_jours_supplementaires": 0.0,
+            "conges_methode": "decret",
+        }
+        r = client.post(self._url("/solde-tout-compte/complet"), headers=self.entetes, json=payload)
+        self.assertEqual(r.status_code, 200, r.text)
+        self.assertAlmostEqual(r.json()["indemnite_licenciement"], 0.0, places=2)
+
     def test_stc_complet_respecte_le_cloisonnement(self):
         autre = make_tenant(self.db, "cabinet-autre-calculs")
         r = client.post(
