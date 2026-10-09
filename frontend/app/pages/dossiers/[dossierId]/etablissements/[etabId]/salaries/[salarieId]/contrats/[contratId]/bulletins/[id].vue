@@ -761,6 +761,7 @@ onMounted(() => {
         </button>
         <!-- PDF : exactement le document joint lorsque le bulletin est envoyé par email -->
         <button
+          v-show="false"
           @click="telechargerPdf"
           class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold rounded-none transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer"
         >
