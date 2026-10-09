@@ -7,7 +7,10 @@ jamais être interprété, ni dans le PDF, ni dans l'email.
 import unittest
 
 from tests import base
-from tests.base import API, SessionLocal, auth_headers, client, make_tenant, reset_database
+from tests.base import (
+    API, SessionLocal, auth_headers, client, make_contrat, make_salarie,
+    make_tenant, reset_database,
+)
 
 from app.models import models as M
 from app.services.bulletin_saari import (
@@ -409,6 +412,87 @@ class BulletinPdfApiTests(unittest.TestCase):
     def test_bulletin_inexistant(self):
         r = client.get(f"{API}/bulletins/999999/pdf", headers=self.entetes)
         self.assertEqual(r.status_code, 404)
+
+
+class BulletinPdfLotTests(unittest.TestCase):
+    """Édition groupée : plusieurs bulletins dans un seul PDF, un par page."""
+
+    def setUp(self):
+        reset_database()
+        self.db = SessionLocal()
+        self.t = make_tenant(self.db, "cabinet-saari-lot")
+        self.entetes = auth_headers(self.t["user"])
+        self.bulletins = []
+        # Trois salariés distincts du même cabinet
+        for index in range(3):
+            salarie = make_salarie(
+                self.db, self.t["etablissement"], matricule=f"LOT{index}",
+                nom=f"NOM{index}", prenom=f"Prenom{index}",
+            )
+            contrat = make_contrat(
+                self.db, self.t["dossier"], self.t["etablissement"], salarie,
+                numero=f"CLOT{index}", salaire_mensuel=200_000.0 + index * 50_000,
+            )
+            self.bulletins.append(calculate_payslip(self.db, contrat.id, 6, 2025))
+
+    def tearDown(self):
+        self.db.close()
+
+    def test_lot_de_trois_bulletins(self):
+        from io import BytesIO
+
+        r = client.post(
+            f"{API}/bulletins/pdf-lot", headers=self.entetes,
+            json={"bulletin_ids": [b.id for b in self.bulletins]},
+        )
+        self.assertEqual(r.status_code, 200, r.text[:300])
+        self.assertEqual(r.headers["content-type"], "application/pdf")
+        self.assertEqual(r.headers["x-nombre-bulletins"], "3")
+        self.assertTrue(r.content.startswith(b"%PDF-"))
+
+        try:
+            from pypdf import PdfReader
+        except ImportError:  # pragma: no cover
+            self.skipTest("pypdf indisponible")
+
+        lecteur = PdfReader(BytesIO(r.content))
+        self.assertGreaterEqual(len(lecteur.pages), 3, "un bulletin par page attendu")
+        texte = "".join(p.extract_text() for p in lecteur.pages)
+        for index in range(3):
+            with self.subTest(salarie=index):
+                self.assertIn(f"LOT{index}", texte)
+        # Chaque bulletin est numéroté sur le total du lot
+        self.assertIn("1 / 3", texte)
+        self.assertIn("3 / 3", texte)
+
+    def test_aucune_page_blanche_en_tete_du_lot(self):
+        from io import BytesIO
+
+        r = client.post(
+            f"{API}/bulletins/pdf-lot", headers=self.entetes,
+            json={"bulletin_ids": [b.id for b in self.bulletins]},
+        )
+        try:
+            from pypdf import PdfReader
+        except ImportError:  # pragma: no cover
+            self.skipTest("pypdf indisponible")
+        premiere = PdfReader(BytesIO(r.content)).pages[0].extract_text()
+        self.assertIn("BULLETIN DE PAIE", premiere)
+        self.assertGreater(len(premiere), 100)
+
+    def test_cloisonnement_entre_cabinets(self):
+        """Un bulletin étranger fait échouer tout le lot."""
+        autre = make_tenant(self.db, "cabinet-saari-lot-autre")
+        r = client.post(
+            f"{API}/bulletins/pdf-lot", headers=self.entetes,
+            json={"bulletin_ids": [self.bulletins[0].id, 999999]},
+        )
+        self.assertEqual(r.status_code, 404)
+
+    def test_liste_vide_refusee(self):
+        r = client.post(f"{API}/bulletins/pdf-lot", headers=self.entetes,
+                        json={"bulletin_ids": []})
+        self.assertEqual(r.status_code, 422)
 
 
 class EnvoiBulletinParEmailTests(unittest.TestCase):

@@ -58,6 +58,55 @@ const triggerPrint = () => {
   window.print()
 }
 
+const telechargementEnCours = ref(false)
+
+/**
+ * Télécharge l'ensemble des bulletins sélectionnés en un seul PDF, au format
+ * Sage Saari, un bulletin par page. Le document est produit par le serveur :
+ * c'est exactement celui qui est joint aux emails.
+ */
+const telechargerPdfLot = async () => {
+  const identifiants = bulletinsData.value.map(item => item.bulletin.id)
+  if (!identifiants.length) return
+
+  telechargementEnCours.value = true
+  try {
+    const config = useRuntimeConfig()
+    const { token } = useSupabase()
+    const apiBase = config.public.apiBase || 'http://localhost:8000'
+    const reponse = await fetch(`${apiBase}/api/v1/bulletins/pdf-lot`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token.value}`
+      },
+      body: JSON.stringify({ bulletin_ids: identifiants })
+    })
+    if (!reponse.ok) throw new Error(`HTTP ${reponse.status}`)
+
+    const blob = await reponse.blob()
+    const lien = document.createElement('a')
+    lien.href = URL.createObjectURL(blob)
+    lien.download = `bulletins_paie_${identifiants.length}_documents.pdf`
+    lien.click()
+    URL.revokeObjectURL(lien.href)
+    useToast().add({
+      title: 'PDF groupé téléchargé',
+      description: `${identifiants.length} bulletin(s), un par page, au format Sage Saari.`,
+      color: 'success'
+    })
+  } catch (e) {
+    console.error('Erreur de téléchargement du lot :', e)
+    useToast().add({
+      title: 'Téléchargement impossible',
+      description: 'La génération du PDF groupé a échoué.',
+      color: 'danger'
+    })
+  } finally {
+    telechargementEnCours.value = false
+  }
+}
+
 onMounted(() => {
   loadAllData()
 })
@@ -112,6 +161,15 @@ onMounted(() => {
         >
           <UIcon name="i-lucide-printer" class="w-4 h-4" />
           Lancer l'impression
+        </button>
+        <button
+          :disabled="telechargementEnCours"
+          @click="telechargerPdfLot"
+          class="ml-2 px-4 py-2 bg-slate-800 hover:bg-slate-900 disabled:bg-slate-400 text-white text-sm font-bold rounded-none transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer"
+        >
+          <UIcon :name="telechargementEnCours ? 'i-lucide-loader-2' : 'i-lucide-download'"
+                 class="w-4 h-4" :class="{ 'animate-spin': telechargementEnCours }" />
+          Télécharger le PDF
         </button>
       </div>
     </div>

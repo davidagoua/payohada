@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List
 from datetime import datetime
 
@@ -104,6 +104,11 @@ class BulletinPaieOut(BulletinPaieBase):
 
     class Config:
         from_attributes = True
+
+
+class LotPdfRequest(BaseModel):
+    """Demande d'édition PDF groupée."""
+    bulletin_ids: List[int] = Field(..., min_length=1, max_length=200)
 
 
 class ErreurCalculLot(BaseModel):

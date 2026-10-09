@@ -9,6 +9,7 @@ import re
 from app.database import get_db
 from app.models.models import BulletinPaie, Contrat, Dossier, Utilisateur, Constante, Salarie, VariableRepriseDossier, PretSalarie, SalarieAbsence, Etablissement, PeriodePaie
 from app.schemas.bulletin import (
+    LotPdfRequest,
     BulletinPaieOut, BulletinPaieCreate, SimulationInput, SimulationOut, 
     LigneSimulationOut, BulletinCumuls, BulletinCumulRow, LotCalculOut, ErreurCalculLot
 )
@@ -16,7 +17,8 @@ from app.services.security import get_current_user
 from app.services.permissions import get_dossier_or_403, require_staff
 from app.routers.contrats import check_contrat_ownership
 from app.services.bulletin_saari import (
-    construire_html_saari, generer_pdf_saari, nom_fichier_bulletin,
+    construire_html_saari, generer_pdf_lot_saari, generer_pdf_saari,
+    nom_fichier_bulletin,
 )
 from app.services.payroll import calculate_payslip, resoudre_brut_et_sursalaire
 from app.services.email import send_email
@@ -615,6 +617,59 @@ def telecharger_bulletin_pdf(
         content=pdf,
         media_type="application/pdf",
         headers={"Content-Disposition": f'inline; filename="{nom}"'},
+    )
+
+
+@router.post("/bulletins/pdf-lot")
+def telecharger_bulletins_pdf_lot(
+    demande: LotPdfRequest,
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user),
+):
+    """Réunit plusieurs bulletins dans un seul PDF, au format Sage Saari.
+
+    Un bulletin par page. Chaque bulletin est vérifié individuellement : la
+    demande est rejetée si l'un d'eux appartient à un autre cabinet.
+    """
+    elements = []
+    for index, bulletin_id in enumerate(demande.bulletin_ids):
+        # check_bulletin_ownership lève 403/404 : le lot entier est refusé
+        # plutôt que de produire un document partiel.
+        bulletin = check_bulletin_ownership(bulletin_id, current_user.id, db)
+        contrat = bulletin.contrat
+        if not contrat or not contrat.salarie:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Le bulletin {bulletin_id} n'a pas de contrat ou de salarié associé.",
+            )
+        elements.append({
+            "bulletin": bulletin,
+            "contrat": contrat,
+            "salarie": contrat.salarie,
+            "etablissement": getattr(contrat, "etablissement", None),
+            "dossier": getattr(bulletin, "dossier", None),
+            "cumuls": compute_bulletin_cumuls(db, bulletin),
+            "rang": index + 1,
+            "total": len(demande.bulletin_ids),
+        })
+
+    try:
+        pdf = generer_pdf_lot_saari(elements)
+    except Exception:
+        logger.exception("Génération du PDF groupé impossible (%d bulletins)", len(elements))
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="La génération du PDF groupé a échoué.",
+        )
+
+    logger.info("PDF groupé généré : %d bulletins, %d octets", len(elements), len(pdf))
+    return Response(
+        content=pdf,
+        media_type="application/pdf",
+        headers={
+            "Content-Disposition": 'inline; filename="bulletins_paie.pdf"',
+            "X-Nombre-Bulletins": str(len(elements)),
+        },
     )
 
 

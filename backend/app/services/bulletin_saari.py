@@ -253,7 +253,7 @@ def _lignes_tableau(lignes: Sequence[Any]) -> str:
     return "".join(morceaux)
 
 
-def construire_html_saari(
+def _corps_bulletin(
     bulletin: Any,
     contrat: Any = None,
     salarie: Any = None,
@@ -262,17 +262,14 @@ def construire_html_saari(
     cumuls: Any = None,
     rang: Optional[int] = None,
     total: Optional[int] = None,
-    saut_de_page: bool = False,
 ) -> str:
-    """Produit le HTML du bulletin, au format Sage Saari.
+    """Produit le contenu HTML du bulletin (sans l'habillage du document).
+
+    Séparé de `construire_html_saari` afin de pouvoir enchaîner plusieurs
+    bulletins dans un même document PDF.
 
     `cumuls` est fourni par l'appelant (`compute_bulletin_cumuls`) afin que ce
     module reste sans dépendance au routeur ni à la session de base de données.
-
-    `saut_de_page` force un saut avant le document. Il doit rester **désactivé**
-    pour un bulletin isolé : appliqué au premier élément, il laisse une page
-    blanche en tête. Il ne sert qu'à enchaîner plusieurs bulletins dans un même
-    fichier, à partir du deuxième.
     """
     lignes = list(getattr(bulletin, "lignes", None) or [])
 
@@ -509,14 +506,47 @@ def construire_html_saari(
       </div>
     </div>"""
 
-    classes = "bulletin saut" if saut_de_page else "bulletin"
+    return f"{entete}{bloc_salarie}{tableau}{cadre_cumuls}{pied}"
+
+
+def _document(corps: str) -> str:
+    """Embarque un ou plusieurs corps de bulletin dans un document A4."""
     return (
         '<html><head><meta charset="utf-8"/>'
-        f"<style>{_STYLES}</style></head><body>"
-        f'<div class="{classes}">'
-        f"{entete}{bloc_salarie}{tableau}{cadre_cumuls}{pied}"
-        "</div></body></html>"
+        f"<style>{_STYLES}</style></head><body>{corps}</body></html>"
     )
+
+
+def construire_html_saari(
+    bulletin: Any,
+    contrat: Any = None,
+    salarie: Any = None,
+    etablissement: Any = None,
+    dossier: Any = None,
+    cumuls: Any = None,
+    rang: Optional[int] = None,
+    total: Optional[int] = None,
+) -> str:
+    """Document HTML complet d'un bulletin, au format Sage Saari."""
+    return _document(_corps_bulletin(
+        bulletin, contrat, salarie, etablissement, dossier, cumuls, rang, total
+    ))
+
+
+def construire_html_lot_saari(elements: Sequence[dict]) -> str:
+    """Document HTML réunissant plusieurs bulletins, un par page.
+
+    `elements` : une suite de dictionnaires acceptés par `_corps_bulletin`
+    (`bulletin`, `contrat`, `salarie`, `etablissement`, `dossier`, `cumuls`,
+    `rang`, `total`). Le saut de page n'est appliqué qu'à partir du deuxième
+    bulletin : sur le premier, il laisserait une page blanche en tête.
+    """
+    corps = []
+    for index, element in enumerate(elements):
+        contenu = _corps_bulletin(**element)
+        classes = "bulletin saut" if index else "bulletin"
+        corps.append(f'<div class="{classes}">{contenu}</div>')
+    return _document("".join(corps))
 
 
 # ─────────────────────────────────────────────
@@ -553,6 +583,11 @@ def generer_pdf_saari(
         bulletin, contrat, salarie, etablissement, dossier, cumuls, rang, total
     )
     return html_vers_pdf(html)
+
+
+def generer_pdf_lot_saari(elements: Sequence[dict]) -> bytes:
+    """Plusieurs bulletins réunis dans un seul PDF, un par page."""
+    return html_vers_pdf(construire_html_lot_saari(elements))
 
 
 def nom_fichier_bulletin(salarie: Any, bulletin: Any, extension: str = "pdf") -> str:
