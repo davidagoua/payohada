@@ -468,6 +468,15 @@ class DepartSalarie(Base):
     bulletin_post_contrat_du = Column(String(20))
     bulletin_post_contrat_au = Column(String(20))
     motif_sortie = Column(Integer)          # Code motif de sortie
+    #: Motif normalisé utilisé par les calculateurs (licenciement, retraite,
+    #: deces, fin_cdd, demission, rupture) : pilote les règles d'éligibilité.
+    motif_fin_contrat = Column(String(40), nullable=True)
+    #: Sous-motif de fin de CDD (art. 15.8) : terme_normal_sans_cdi,
+    #: refus_cdi_equivalent, rupture_initiative_salarie, faute_lourde, cdi_conclu.
+    sous_motif_fin_cdd = Column(String(40), nullable=True)
+    #: Conditions de départ à la retraite remplies : ouvre le droit à
+    #: l'indemnité de décès sans condition d'ancienneté.
+    conditions_retraite_remplies = Column(Boolean, default=False)
     date_notification_rupture = Column(String(20))
     date_notification_signature = Column(String(20))
     date_engagement_procedure = Column(String(20))
@@ -562,6 +571,10 @@ class Contrat(TimestampMixin, Base):
     dotation_telephonique = Column(Float, default=0.0)
     mode_calcul = Column(String(10), default="brut")
     poste_salaire_id = Column(Integer, ForeignKey("postes_salaires.id", ondelete="SET NULL"), nullable=True)
+    #: Salaire minimum conventionnel mensuel de la catégorie. Sert de base à la
+    #: gratification annuelle (art. 53) et aux frais funéraires. Laisser à 0
+    #: pour utiliser la grille du poste de salaire rattaché.
+    smhc_mensuel = Column(Float, default=0.0)
 
     # Relations
     dossier = relationship("Dossier")
@@ -578,6 +591,7 @@ class Contrat(TimestampMixin, Base):
     options = relationship("Option", back_populates="contrat", cascade="all, delete-orphan")
     bulletins_paies = relationship("BulletinPaie", back_populates="contrat", cascade="all, delete-orphan")
     variables_reprise = relationship("VariableRepriseDossier", back_populates="contrat", cascade="all, delete-orphan")
+    avantages_nature = relationship("AvantageEnNature", back_populates="contrat", cascade="all, delete-orphan")
 
     __table_args__ = (
         UniqueConstraint("dossier_id", "numero_contrat", name="uq_contrat_dossier_numero"),
@@ -769,6 +783,16 @@ class SoldeToutCompte(TimestampMixin, Base):
     indemnite_conges_payes = Column(Float, default=0.0)
     indemnite_preavis = Column(Float, default=0.0)
     indemnite_autre = Column(Float, default=0.0)
+    #: Indemnité de fin de CDD, 3 % du brut du contrat (art. 15.8).
+    indemnite_fin_cdd = Column(Float, default=0.0)
+    #: Indemnité de décès versée aux ayants droit (décret n° 2017-210).
+    indemnite_deces = Column(Float, default=0.0)
+    #: Participation aux frais funéraires : 3, 4 ou 6 × le SMHC.
+    frais_funeraires = Column(Float, default=0.0)
+    #: Gratification annuelle (prime de fin d'année, art. 53).
+    gratification = Column(Float, default=0.0)
+    #: Détail du calcul (JSON) : conserve la traçabilité des montants.
+    detail_calcul = Column(Text, nullable=True)
     total = Column(Float, default=0.0)
     statut = Column(String(30), default="genere")   # genere | valide | envoye
     commentaire = Column(Text)
@@ -1035,3 +1059,70 @@ class PasswordResetToken(Base):
 
     # Relations
     utilisateur = relationship("Utilisateur")
+
+
+# ─────────────────────────────────────────────
+#  AVANTAGES EN NATURE (note de service DGI du 08/07/2024)
+# ─────────────────────────────────────────────
+
+class AvantageEnNature(TimestampMixin, Base):
+    """Avantages en nature d'un salarié pour un mois de paie.
+
+    Les saisies sont conservées telles quelles ; le calcul forfaitaire est
+    appliqué par `app/services/avantages_nature.py`, ce qui permet de rejouer
+    un bulletin avec un barème mis à jour sans ressaisir les données.
+    """
+    __tablename__ = "avantages_en_nature"
+
+    id = Column(Integer, primary_key=True, index=True)
+    contrat_id = Column(Integer, ForeignKey("contrats.id", ondelete="CASCADE"), nullable=False, index=True)
+    mois = Column(Integer, nullable=False)
+    annee = Column(String(4), nullable=False)
+
+    # Logement et charges
+    logement_fourni = Column(Boolean, default=False)
+    mobilier_fourni = Column(Boolean, default=False)
+    electricite_prise_en_charge = Column(Boolean, default=False)
+    eau_prise_en_charge = Column(Boolean, default=False)
+    nombre_pieces = Column(Integer, default=1)
+
+    # Équipements et domesticité
+    nombre_climatiseurs = Column(Float, default=0.0)
+    piscine = Column(Boolean, default=False)
+    nombre_gardiens = Column(Float, default=0.0)
+    nombre_employes_maison = Column(Float, default=0.0)
+    nombre_cuisiniers = Column(Float, default=0.0)
+
+    # Repas et autres avantages
+    cout_mensuel_repas = Column(Float, default=0.0)
+    exoneration_repas_applicable = Column(Boolean, default=False)
+    autres_avantages_cout_reel = Column(Float, default=0.0)
+
+    # Participations
+    participation_salarie_hors_vehicule = Column(Float, default=0.0)
+
+    # Véhicule
+    vehicule_type = Column(String(40), nullable=True)
+    vehicule_carburant = Column(Float, default=0.0)
+    vehicule_entretien = Column(Float, default=0.0)
+    vehicule_assurance = Column(Float, default=0.0)
+    vehicule_vignette = Column(Float, default=0.0)
+    vehicule_autres = Column(Float, default=0.0)
+    vehicule_nombre_beneficiaires = Column(Integer, default=1)
+    vehicule_forfait_mensuel = Column(Float, default=0.0)
+    vehicule_valeur_reelle = Column(Float, default=0.0)
+    vehicule_participation = Column(Float, default=0.0)
+    vehicule_valeur_reelle_cnps = Column(Float, default=0.0)
+
+    # Assiette sociale (valeur réelle) — distincte de l'assiette fiscale
+    valeur_reelle_hors_vehicule_cnps = Column(Float, nullable=True)
+
+    # Récurrence : un avantage persistant s'applique aux mois suivants
+    est_persistant = Column(Boolean, default=False)
+
+    contrat = relationship("Contrat", back_populates="avantages_nature")
+
+    __table_args__ = (
+        UniqueConstraint("contrat_id", "mois", "annee", name="uq_avantage_nature_contrat_periode"),
+        Index("ix_avantage_nature_contrat_periode", "contrat_id", "annee", "mois"),
+    )

@@ -290,6 +290,27 @@ Propriétés de sécurité :
 - `GET /api/v1/reclamations` : Liste des réclamations — les siennes pour un salarié, celles de son entreprise pour un compte client, celles de ses dossiers pour le cabinet.
 - `PUT /api/v1/reclamations/{id}` : Réponse et traitement de la réclamation (**cabinet uniquement** ; un compte client ne peut pas traiter une réclamation).
 
+### Calculateurs réglementaires CI (`/api/v1/contrats/{id}/...`)
+
+Les six calculateurs issus du référentiel ivoirien sont exposés par l'API. Le
+détail des règles et des sources est documenté dans
+[`docs/REFERENTIEL_CALCULS_CI.md`](docs/REFERENTIEL_CALCULS_CI.md).
+
+| Endpoint | Rôle |
+|---|---|
+| `POST /contrats/{id}/calculs/rupture` | Indemnité de licenciement ou de départ à la retraite (30/35/40 %, décret n° 2017-210) |
+| `POST /contrats/{id}/calculs/deces` | Indemnité de décès + frais funéraires (3/4/6 × SMHC) |
+| `POST /contrats/{id}/calculs/fin-cdd` | Indemnité de fin de CDD (3 %, art. 15.8) |
+| `GET /contrats/{id}/calculs/gratification` | Gratification annuelle (75 % du SMHC, prorata 360 jours) |
+| `GET /contrats/{id}/calculs/conges` | Droits à congés (2,2 j/mois) et indemnité, deux méthodes comparées |
+| `POST /contrats/{id}/calculs/avantages-nature` | Simulation du barème DGI du 08/07/2024 |
+| `GET/POST/DELETE /contrats/{id}/avantages-nature` | Saisie des avantages en nature d'un mois |
+| `POST /contrats/{id}/solde-tout-compte/complet` | **Calcule et enregistre** le solde de tout compte selon le motif de fin |
+
+Les endpoints `.../calculs/...` sont **sans effet de bord** : ils ne font que
+produire un résultat et servir de simulateur. Seul
+`solde-tout-compte/complet` écrit en base (départ + solde + détail du calcul).
+
 ### Autorisations
 La matrice complète des rôles et les règles de portée sont documentées dans
 [`SECURITY.md`](SECURITY.md#matrice-des-rôles). Ces contrôles sont appliqués
@@ -381,6 +402,15 @@ logiciel_paie/
 
 #### Added
 - Suite de tests de non-régression (moteur de paie et API) : `python -m unittest discover -s tests -t . -v`.
+
+#### Calculateurs réglementaires ivoiriens
+- Nouveaux services purs : `app/services/indemnites_rupture.py` (licenciement, retraite, décès, fin de CDD), `app/services/conges_gratification.py` (congés payés, gratification annuelle) et `app/services/avantages_nature.py` (barème logement, domesticité, repas, véhicule).
+- Table `avantages_en_nature` et nouvelles colonnes `contrats.smhc_mensuel`, `departs_salaries.motif_fin_contrat` / `sous_motif_fin_cdd` / `conditions_retraite_remplies`, `soldes_tout_compte.indemnite_fin_cdd` / `indemnite_deces` / `frais_funeraires` / `gratification` / `detail_calcul` — ajoutées en migration incrémentale dans `backend/schema.sql`.
+- 9 endpoints API dont un solde de tout compte complet qui sélectionne automatiquement les composantes dues selon le motif de fin de contrat.
+- **Intégration au bulletin** : les avantages en nature alimentent le brut imposable (donc la base de l'ITS) via des lignes `AN_*`, sont neutralisés sur le net par une retenue compensatoire (ce sont des gains non décaissés), et utilisent la **valeur réelle** pour l'assiette CNPS, distincte de l'évaluation forfaitaire fiscale.
+- **Le calcul de l'indemnité de licenciement n'est plus figé à 0** : l'ancien code créait un solde de tout compte avec `indemnite_licenciement = 0.0`.
+- `docs/REFERENTIEL_CALCULS_CI.md` : référentiel des règles, formules, exemples chiffrés et sources.
+- 78 tests dédiés (calculateurs, API, intégration au bulletin) validés sur les montants exacts des classeurs fournis.
 
 #### Mot de passe oublié
 - Nouveau parcours complet : pages `/forgot-password` et `/reset-password`, lien « Mot de passe oublié ? » sur l'écran de connexion, et trois endpoints API (`forgot-password`, `reset-password/valider`, `reset-password`).

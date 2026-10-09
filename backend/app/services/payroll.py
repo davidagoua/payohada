@@ -8,7 +8,10 @@ from datetime import datetime
 from app.models.models import (
     Contrat, BulletinPaie, LigneBulletinPaie, VariableBulletin,
     Absence, HeureSupplementaire, Prime, Option, CaisseCotisation, Etablissement, Constante, Salarie, PretSalarie,
-    SalarieAbsence, DepartSalarie, SoldeToutCompte
+    SalarieAbsence, DepartSalarie, SoldeToutCompte, AvantageEnNature
+)
+from app.services.avantages_nature import (
+    ResultatAvantagesNature, calculer_avantage_vehicule, calculer_avantages_nature,
 )
 
 from typing import Optional
@@ -199,7 +202,87 @@ def _get_payroll_inputs(db: Session, contrat_id: int, mois: int, annee: int):
         )
     ).all()
 
-    return contrat, etab, salarie, absences, heures_sup, primes, options
+    # Avantages en nature : même sémantique de récurrence que les primes.
+    avantage_nature = db.query(AvantageEnNature).filter(
+        AvantageEnNature.contrat_id == contrat_id
+    ).filter(
+        (
+            _is_false_or_null(AvantageEnNature.est_persistant) &
+            (AvantageEnNature.annee == str(annee)) &
+            (AvantageEnNature.mois == mois)
+        ) | (
+            (AvantageEnNature.est_persistant == True) &  # noqa: E712
+            (
+                (AvantageEnNature.annee < str(annee)) |
+                ((AvantageEnNature.annee == str(annee)) & (AvantageEnNature.mois <= mois))
+            )
+        )
+    ).order_by(AvantageEnNature.annee.desc(), AvantageEnNature.mois.desc()).first()
+
+    return contrat, etab, salarie, absences, heures_sup, primes, options, avantage_nature
+
+
+def _evaluer_avantages_nature(
+    avantage: Optional[AvantageEnNature],
+    salaire_imposable: float,
+) -> Optional[ResultatAvantagesNature]:
+    """Applique le barème DGI aux avantages en nature saisis pour la période."""
+    if avantage is None:
+        return None
+
+    vehicule = None
+    if avantage.vehicule_type:
+        vehicule = calculer_avantage_vehicule(
+            avantage.vehicule_type,
+            couts_mensuels={
+                "carburant": avantage.vehicule_carburant or 0.0,
+                "entretien": avantage.vehicule_entretien or 0.0,
+                "assurance": avantage.vehicule_assurance or 0.0,
+                "vignette": avantage.vehicule_vignette or 0.0,
+                "autres": avantage.vehicule_autres or 0.0,
+            },
+            nombre_beneficiaires=avantage.vehicule_nombre_beneficiaires or 1,
+            forfait_mensuel_par_salarie=avantage.vehicule_forfait_mensuel or 0.0,
+            valeur_reelle_mensuelle=avantage.vehicule_valeur_reelle or 0.0,
+            participation_salarie=avantage.vehicule_participation or 0.0,
+            valeur_reelle_cnps=avantage.vehicule_valeur_reelle_cnps or 0.0,
+        )
+
+    return calculer_avantages_nature(
+        salaire_et_primes_imposables=salaire_imposable,
+        logement_fourni=bool(avantage.logement_fourni),
+        mobilier_fourni=bool(avantage.mobilier_fourni),
+        electricite_prise_en_charge=bool(avantage.electricite_prise_en_charge),
+        eau_prise_en_charge=bool(avantage.eau_prise_en_charge),
+        nombre_pieces=avantage.nombre_pieces or 1,
+        nombre_climatiseurs=avantage.nombre_climatiseurs or 0.0,
+        piscine=bool(avantage.piscine),
+        nombre_gardiens=avantage.nombre_gardiens or 0.0,
+        nombre_employes_maison=avantage.nombre_employes_maison or 0.0,
+        nombre_cuisiniers=avantage.nombre_cuisiniers or 0.0,
+        cout_mensuel_repas=avantage.cout_mensuel_repas or 0.0,
+        exoneration_repas_applicable=bool(avantage.exoneration_repas_applicable),
+        autres_avantages_cout_reel=avantage.autres_avantages_cout_reel or 0.0,
+        participation_salarie_hors_vehicule=avantage.participation_salarie_hors_vehicule or 0.0,
+        vehicule=vehicule,
+        valeur_reelle_avantages_hors_vehicule_cnps=avantage.valeur_reelle_hors_vehicule_cnps,
+    )
+
+
+def _assiette_cnps(
+    salaire_brut: float,
+    avantages: Optional[ResultatAvantagesNature],
+) -> Optional[float]:
+    """Assiette des cotisations sociales, ajustée des avantages en nature.
+
+    Le fisc retient une évaluation forfaitaire, la CNPS la valeur réelle : on
+    remplace donc la part fiscale par la part réelle. Retourne `None` lorsque
+    aucune valeur réelle n'a été saisie, afin de conserver le comportement
+    historique (assiette = brut).
+    """
+    if avantages is None or avantages.base_cnps_indicative is None:
+        return None
+    return salaire_brut - avantages.avantage_imposable + avantages.valeur_reelle_avantages
 
 
 def _get_or_create_bulletin(db: Session, contrat_id: int, dossier_id: int, mois: int, annee: int) -> BulletinPaie:
@@ -251,7 +334,8 @@ def _calculate_gross_salary(
     heures_sup: list[HeureSupplementaire],
     primes: list[Prime],
     options: list[Option] = [],
-    override_salary_value: Optional[float] = None
+    override_salary_value: Optional[float] = None,
+    avantages_nature: Optional[ResultatAvantagesNature] = None,
 ) -> tuple[list[LigneBulletinPaie], float]:
     """Calcule le salaire de base, le sursalaire, applique les absences, heures supps, primes et calcule le Salaire Brut."""
     unite = contrat.unite_temps or "Heures"
@@ -415,6 +499,23 @@ def _calculate_gross_salary(
                 )
             )
 
+    # 7. Avantages en nature : ce sont des gains imposables non décaissés.
+    #    Ils entrent dans le brut (donc dans la base de l'ITS) mais pas dans le
+    #    net à payer, puisqu'ils ont déjà été fournis en nature.
+    if avantages_nature is not None:
+        for composante in avantages_nature.composantes:
+            if composante.montant == 0:
+                continue
+            lignes_bulletin.append(
+                LigneBulletinPaie(
+                    bulletin_id=bulletin_id,
+                    code=composante.code,
+                    libelle=composante.libelle,
+                    salaire_base=round(composante.montant, 2),
+                    montant_pr=round(composante.montant, 2),
+                )
+            )
+
     # To be extremely precise and match standard payroll, we sum all lines that make up the gross salary:
     salaire_brut = sum(line.montant_pr for line in lignes_bulletin)
     return lignes_bulletin, salaire_brut
@@ -454,7 +555,8 @@ def _calculate_cnps_cotisations(
     etab: Etablissement,
     contrat: Contrat,
     salarie: Salarie,
-    salaire_brut: float
+    salaire_brut: float,
+    assiette_cnps: Optional[float] = None,
 ) -> tuple[list[LigneBulletinPaie], float, float, float]:
     """Calcule les cotisations sociales, taxes et impôts (zone UEMOA).
 
@@ -508,8 +610,13 @@ def _calculate_cnps_cotisations(
 
     lignes_cotisations = []
 
+    # Assiette des cotisations sociales. Elle diffère de l'assiette fiscale
+    # lorsque des avantages en nature sont retenus pour leur valeur réelle :
+    # le fisc applique un barème forfaitaire, la CNPS la valeur réelle.
+    assiette_sociale = salaire_brut if assiette_cnps is None else assiette_cnps
+
     # 1. CNPS Retraite Salariale & Patronale (calculée en premier pour déduire du brut imposable)
-    base_retraite = min(salaire_brut, cnps_retraite_plafond) if salaire_brut > 0 else 0.0
+    base_retraite = min(assiette_sociale, cnps_retraite_plafond) if assiette_sociale > 0 else 0.0
     montant_retraite_s = base_retraite * (cnps_retraite_taux_s / 100.0)
     montant_retraite_p = base_retraite * (cnps_retraite_taux_p / 100.0)
     cotisations_salariales_totales += montant_retraite_s
@@ -656,7 +763,7 @@ def _calculate_cnps_cotisations(
     )
 
     # 8. CNPS PF (Prestations Familiales Patronale)
-    base_pf = min(salaire_brut, cnps_pf_plafond) if salaire_brut > 0 else 0.0
+    base_pf = min(assiette_sociale, cnps_pf_plafond) if assiette_sociale > 0 else 0.0
     montant_pf_p = base_pf * (cnps_pf_taux_p / 100.0)
     cotisations_patronales_totales += montant_pf_p
     lignes_cotisations.append(
@@ -671,7 +778,7 @@ def _calculate_cnps_cotisations(
     )
 
     # 9. CNPS AT (Accidents du Travail Patronale)
-    base_at = min(salaire_brut, cnps_at_plafond) if salaire_brut > 0 else 0.0
+    base_at = min(assiette_sociale, cnps_at_plafond) if assiette_sociale > 0 else 0.0
     montant_at_p = base_at * (taux_at_patronal / 100.0)
     cotisations_patronales_totales += montant_at_p
     lignes_cotisations.append(
@@ -686,7 +793,7 @@ def _calculate_cnps_cotisations(
     )
 
     # 10. CNPS Maternité Patronale
-    base_mat = min(salaire_brut, cnps_maternite_plafond) if salaire_brut > 0 else 0.0
+    base_mat = min(assiette_sociale, cnps_maternite_plafond) if assiette_sociale > 0 else 0.0
     montant_mat_p = base_mat * (cnps_maternite_taux_p / 100.0)
     cotisations_patronales_totales += montant_mat_p
     lignes_cotisations.append(
@@ -772,17 +879,26 @@ def _calculate_payslip_raw(
     primes: list[Prime],
     options: list[Option],
     acompte: float,
-    temp_salaire_value: float
+    temp_salaire_value: float,
+    avantage_nature: Optional[AvantageEnNature] = None,
 ) -> float:
     """Calcul du salaire net pour une valeur brute temporaire, sans affecter le model."""
     # Calcul temporaire des lignes de salaire brut
+    avantages = _evaluer_avantages_nature(
+        avantage_nature,
+        (contrat.salaire_mensuel or 0.0) + (contrat.sursalaire or 0.0),
+    )
     _, salaire_brut = _calculate_gross_salary(
         bulletin_id, contrat, absences, heures_sup, primes, options,
-        override_salary_value=temp_salaire_value
+        override_salary_value=temp_salaire_value,
+        avantages_nature=avantages,
     )
 
     # Calcul temporaire des cotisations sociales et taxes
-    _, cot_salariales, _, _ = _calculate_cnps_cotisations(db, bulletin_id, etab, contrat, salarie, salaire_brut)
+    _, cot_salariales, _, _ = _calculate_cnps_cotisations(
+        db, bulletin_id, etab, contrat, salarie, salaire_brut,
+        assiette_cnps=_assiette_cnps(salaire_brut, avantages),
+    )
 
     # Calcul temporaire des lignes complémentaires
     transport_montant = contrat.indemnite_transport or 0.0
@@ -817,7 +933,8 @@ def calculate_payslip(db: Session, contrat_id: int, mois: int, annee: int, acomp
     Si le bulletin existe déjà, il est recalculé et mis à jour.
     """
     # 1. Récupération des données d'entrée
-    contrat, etab, salarie, absences, heures_sup, primes, options = _get_payroll_inputs(db, contrat_id, mois, annee)
+    (contrat, etab, salarie, absences, heures_sup, primes, options,
+     avantage_nature) = _get_payroll_inputs(db, contrat_id, mois, annee)
 
     # 2. Récupération ou création du bulletin de paie
     bulletin = _get_or_create_bulletin(db, contrat_id, contrat.dossier_id, mois, annee)
@@ -883,7 +1000,8 @@ def calculate_payslip(db: Session, contrat_id: int, mois: int, annee: int, acomp
             mid = (low + high) / 2.0
             net = _calculate_payslip_raw(
                 db, bulletin.id, contrat, etab, salarie,
-                absences, heures_sup, primes, options, acompte, mid
+                absences, heures_sup, primes, options, acompte, mid,
+                avantage_nature=avantage_nature,
             )
             # Add conges payes to target comparison if it's there
             if stc_gross_conges > 0:
@@ -898,10 +1016,15 @@ def calculate_payslip(db: Session, contrat_id: int, mois: int, annee: int, acomp
         else:
             override_val = (low + high) / 2.0
 
-    # 3. Calcul des lignes de salaire brut
+    # 3. Calcul des lignes de salaire brut (avantages en nature inclus)
+    avantages = _evaluer_avantages_nature(
+        avantage_nature,
+        (contrat.salaire_mensuel or 0.0) + (contrat.sursalaire or 0.0),
+    )
     lignes_brut, salaire_brut = _calculate_gross_salary(
         bulletin.id, contrat, absences, heures_sup, primes, options,
-        override_salary_value=override_val
+        override_salary_value=override_val,
+        avantages_nature=avantages,
     )
     
     # Intégrer l'indemnité compensatrice de congés payés au brut (soumise à cotisations)
@@ -918,7 +1041,8 @@ def calculate_payslip(db: Session, contrat_id: int, mois: int, annee: int, acomp
 
     # 4. Calcul des cotisations sociales et taxes
     lignes_cotisations, cot_salariales, cot_patronales, net_imposable = _calculate_cnps_cotisations(
-        db, bulletin.id, etab, contrat, salarie, salaire_brut
+        db, bulletin.id, etab, contrat, salarie, salaire_brut,
+        assiette_cnps=_assiette_cnps(salaire_brut, avantages),
     )
 
     # 5. Calcul des lignes complémentaires (non-salary / allowances / post-tax deductions)
@@ -1020,6 +1144,21 @@ def calculate_payslip(db: Session, contrat_id: int, mois: int, annee: int, acomp
                     )
                 )
 
+    # 5.55 Avantages en nature : ce sont des gains imposables déjà fournis en
+    #      nature. Ils sont donc retirés du net à payer, sans quoi le salarié
+    #      serait payé une seconde fois.
+    avantages_imposables = avantages.avantage_imposable if avantages is not None else 0.0
+    if avantages_imposables > 0:
+        lignes_sup.append(
+            LigneBulletinPaie(
+                bulletin_id=bulletin.id,
+                code="RETENUE_AVANTAGES_NATURE",
+                libelle="Retenue avantages en nature (fournis en nature)",
+                base_s=round(avantages_imposables, 2),
+                montant_cs=round(avantages_imposables, 2),
+            )
+        )
+
     # 5.6 Ajouter les indemnités de rupture exonérées du STC
     lignes_sup.extend(stc_lines_to_add)
 
@@ -1038,6 +1177,7 @@ def calculate_payslip(db: Session, contrat_id: int, mois: int, annee: int, acomp
         + options_gains_net
         - options_deductions_net
         + stc_net_gains
+        - avantages_imposables
     )
     
     # 7. Sauvegarde et persistance

@@ -1187,6 +1187,116 @@ COMMENT ON COLUMN password_reset_tokens.token_hash
 COMMENT ON COLUMN password_reset_tokens.used_at
     IS 'Renseigné lors de la consommation : un jeton ne sert qu''une fois';
 
+
+-- 8. Calculateurs réglementaires : indemnités de rupture, gratification,
+--    congés payés et avantages en nature.
+--    Sources : décret n° 2017-210 (licenciement, retraite, décès),
+--    art. 15.8 du Code du travail (fin de CDD), art. 53 de la Convention
+--    collective interprofessionnelle (gratification), art. 25.1/25.2 et 71-72
+--    (congés payés), note de service DGI du 08/07/2024 (avantages en nature).
+
+-- 8.1 Salaire minimum conventionnel de la catégorie, base de la gratification
+--     annuelle et des frais funéraires. 0 = utiliser la grille du poste.
+ALTER TABLE contrats
+    ADD COLUMN IF NOT EXISTS smhc_mensuel DOUBLE PRECISION DEFAULT 0.0;
+
+COMMENT ON COLUMN contrats.smhc_mensuel
+    IS 'Salaire minimum conventionnel mensuel de la catégorie (gratification, frais funéraires)';
+
+-- 8.2 Motif de fin de contrat normalisé et conditions de retraite
+ALTER TABLE departs_salaries
+    ADD COLUMN IF NOT EXISTS motif_fin_contrat VARCHAR(40) DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS sous_motif_fin_cdd VARCHAR(40) DEFAULT NULL,
+    ADD COLUMN IF NOT EXISTS conditions_retraite_remplies BOOLEAN DEFAULT FALSE;
+
+COMMENT ON COLUMN departs_salaries.motif_fin_contrat
+    IS 'licenciement | retraite | deces | fin_cdd | demission | rupture';
+COMMENT ON COLUMN departs_salaries.sous_motif_fin_cdd
+    IS 'terme_normal_sans_cdi | refus_cdi_equivalent | rupture_initiative_salarie | faute_lourde | cdi_conclu';
+COMMENT ON COLUMN departs_salaries.conditions_retraite_remplies
+    IS 'Ouvre le droit à l''indemnité de décès sans condition d''ancienneté';
+
+-- 8.3 Nouvelles composantes du solde de tout compte
+ALTER TABLE soldes_tout_compte
+    ADD COLUMN IF NOT EXISTS indemnite_fin_cdd DOUBLE PRECISION DEFAULT 0.0,
+    ADD COLUMN IF NOT EXISTS indemnite_deces DOUBLE PRECISION DEFAULT 0.0,
+    ADD COLUMN IF NOT EXISTS frais_funeraires DOUBLE PRECISION DEFAULT 0.0,
+    ADD COLUMN IF NOT EXISTS gratification DOUBLE PRECISION DEFAULT 0.0,
+    ADD COLUMN IF NOT EXISTS detail_calcul TEXT DEFAULT NULL;
+
+COMMENT ON COLUMN soldes_tout_compte.indemnite_fin_cdd
+    IS 'Indemnité de fin de CDD : 3 % du brut du contrat (art. 15.8)';
+COMMENT ON COLUMN soldes_tout_compte.indemnite_deces
+    IS 'Indemnité de décès versée aux ayants droit (décret n° 2017-210)';
+COMMENT ON COLUMN soldes_tout_compte.frais_funeraires
+    IS 'Participation aux frais funéraires : 3, 4 ou 6 × le SMHC mensuel';
+COMMENT ON COLUMN soldes_tout_compte.gratification
+    IS 'Gratification annuelle / prime de fin d''année (art. 53)';
+COMMENT ON COLUMN soldes_tout_compte.detail_calcul
+    IS 'Détail JSON du calcul : traçabilité des montants et des paramètres';
+
+-- 8.4 Avantages en nature (barème DGI du 08/07/2024)
+CREATE TABLE IF NOT EXISTS avantages_en_nature (
+    id SERIAL PRIMARY KEY,
+    contrat_id INTEGER NOT NULL REFERENCES contrats(id) ON DELETE CASCADE,
+    mois INTEGER NOT NULL,
+    annee VARCHAR(4) NOT NULL,
+
+    -- Logement et charges
+    logement_fourni BOOLEAN DEFAULT FALSE,
+    mobilier_fourni BOOLEAN DEFAULT FALSE,
+    electricite_prise_en_charge BOOLEAN DEFAULT FALSE,
+    eau_prise_en_charge BOOLEAN DEFAULT FALSE,
+    nombre_pieces INTEGER DEFAULT 1,
+
+    -- Équipements et domesticité
+    nombre_climatiseurs DOUBLE PRECISION DEFAULT 0,
+    piscine BOOLEAN DEFAULT FALSE,
+    nombre_gardiens DOUBLE PRECISION DEFAULT 0,
+    nombre_employes_maison DOUBLE PRECISION DEFAULT 0,
+    nombre_cuisiniers DOUBLE PRECISION DEFAULT 0,
+
+    -- Repas et autres
+    cout_mensuel_repas DOUBLE PRECISION DEFAULT 0,
+    exoneration_repas_applicable BOOLEAN DEFAULT FALSE,
+    autres_avantages_cout_reel DOUBLE PRECISION DEFAULT 0,
+
+    -- Participations
+    participation_salarie_hors_vehicule DOUBLE PRECISION DEFAULT 0,
+
+    -- Véhicule
+    vehicule_type VARCHAR(40) DEFAULT NULL,
+    vehicule_carburant DOUBLE PRECISION DEFAULT 0,
+    vehicule_entretien DOUBLE PRECISION DEFAULT 0,
+    vehicule_assurance DOUBLE PRECISION DEFAULT 0,
+    vehicule_vignette DOUBLE PRECISION DEFAULT 0,
+    vehicule_autres DOUBLE PRECISION DEFAULT 0,
+    vehicule_nombre_beneficiaires INTEGER DEFAULT 1,
+    vehicule_forfait_mensuel DOUBLE PRECISION DEFAULT 0,
+    vehicule_valeur_reelle DOUBLE PRECISION DEFAULT 0,
+    vehicule_participation DOUBLE PRECISION DEFAULT 0,
+    vehicule_valeur_reelle_cnps DOUBLE PRECISION DEFAULT 0,
+
+    -- Assiette sociale (valeur réelle), distincte de l'assiette fiscale
+    valeur_reelle_hors_vehicule_cnps DOUBLE PRECISION DEFAULT NULL,
+
+    est_persistant BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT uq_avantage_nature_contrat_periode UNIQUE (contrat_id, mois, annee)
+);
+
+CREATE INDEX IF NOT EXISTS ix_avantage_nature_contrat_periode
+    ON avantages_en_nature (contrat_id, annee, mois);
+
+COMMENT ON TABLE avantages_en_nature
+    IS 'Avantages en nature par salarié et par mois (barème DGI du 08/07/2024)';
+COMMENT ON COLUMN avantages_en_nature.vehicule_type
+    IS 'fonction_service | transport_collectif_couts_reels | transport_collectif_forfait | autre_taxable';
+COMMENT ON COLUMN avantages_en_nature.valeur_reelle_hors_vehicule_cnps
+    IS 'Valeur réelle pour l''assiette CNPS, distincte de l''évaluation fiscale';
+
 -- 6. Contrôles post-migration (à exécuter manuellement) :
 --    -- Aucun compte sans mot de passe (sinon connexion impossible) :
 --    SELECT id, email, role FROM utilisateurs WHERE hashed_password IS NULL;
