@@ -17,6 +17,7 @@ from app.services.bulletin_saari import (
     nom_fichier_bulletin,
 )
 from app.services.email import _construire_message
+from app.routers.bulletins import compute_bulletin_cumuls
 from app.services.payroll import calculate_payslip
 
 
@@ -110,6 +111,7 @@ class BulletinSaariPdfTests(unittest.TestCase):
         self.contrat = self.t["contrat"]
         self.bulletin = calculate_payslip(self.db, self.contrat.id, 6, 2025)
         self.salarie = self.contrat.salarie
+        self.etablissement = self.contrat.etablissement
 
     def tearDown(self):
         self.db.close()
@@ -183,6 +185,51 @@ class BulletinSaariPdfTests(unittest.TestCase):
         # Les cotisations conservent bien leur pourcentage
         self.assertIn("6,3 %", html)
 
+    def test_adresse_etablissement_en_relation(self):
+        """Régression : `Etablissement.adresse` est une relation, pas un dict.
+
+        Les fixtures laissaient `adresse` à None, si bien que la lecture par
+        `dict.get()` ne plantait jamais en test… mais échouait en production.
+        """
+        from app.models import models as M
+        from app.services.bulletin_saari import construire_html_saari
+
+        self.db.add(M.AdresseEtablissement(
+            etablissement_id=self.etablissement.id,
+            adresse_postale="Boulevard Valéry Giscard d'Estaing",
+            adresse_postale2="Zone 4, Immeuble Alpha",
+            code_postal="01 BP 4521",
+            ville="Abidjan",
+            pays="Côte d'Ivoire",
+        ))
+        self.db.commit()
+        self.db.refresh(self.etablissement)
+
+        html = construire_html_saari(
+            self.bulletin, contrat=self.contrat, salarie=self.salarie,
+            etablissement=self.etablissement, dossier=self.t["dossier"],
+        )
+        self.assertIn("Boulevard Valéry Giscard d&#x27;Estaing", html)
+        self.assertIn("Zone 4, Immeuble Alpha", html)
+        self.assertIn("01 BP 4521 Abidjan", html)
+        self.assertIn("Côte d&#x27;Ivoire", html)
+
+        # Le PDF doit se générer sans erreur avec une adresse réelle
+        pdf = generer_pdf_saari(
+            self.bulletin, contrat=self.contrat, salarie=self.salarie,
+            etablissement=self.etablissement, dossier=self.t["dossier"],
+        )
+        self.assertTrue(pdf.startswith(b"%PDF-"))
+
+    def test_etablissement_sans_adresse_ne_casse_pas(self):
+        """Un établissement sans adresse enregistrée doit rester imprimable."""
+        self.assertIsNone(self.etablissement.adresse)
+        html = construire_html_saari(
+            self.bulletin, contrat=self.contrat, salarie=self.salarie,
+            etablissement=self.etablissement, dossier=self.t["dossier"],
+        )
+        self.assertIn("Bulletin de paie", html)
+
     def test_la_premiere_page_n_est_pas_blanche(self):
         """Régression : un saut de page appliqué au premier élément laissait une
         page blanche en tête, si bien que chaque bulletin envoyé par email
@@ -208,6 +255,45 @@ class BulletinSaariPdfTests(unittest.TestCase):
             "la première page est vide : un saut de page parasite a été appliqué",
         )
         self.assertIn("BULLETIN DE PAIE", premiere)
+
+    def test_un_mois_courant_tient_sur_une_page(self):
+        """Un bulletin mensuel ordinaire doit tenir sur une seule page.
+
+        Régression : le cadre des cumuls empilait ses quatorze lignes et
+        repoussait la mention légale sur une deuxième page presque vide.
+        """
+        from io import BytesIO
+
+        from app.models import models as M
+
+        # Un mois courant : une prime et quelques heures supplémentaires
+        self.db.add(M.Prime(contrat_id=self.contrat.id, code="PRIME_REND",
+                            libelle="Prime de rendement", montant=75_000.0,
+                            mois=6, annee="2025"))
+        for code, nombre in (("HS_15", 8.0), ("HS_50", 4.0)):
+            self.db.add(M.HeureSupplementaire(
+                contrat_id=self.contrat.id, code=code, nombre=nombre,
+                mois=6, annee="2025",
+            ))
+        self.db.commit()
+        bulletin = calculate_payslip(self.db, self.contrat.id, 6, 2025)
+
+        pdf = generer_pdf_saari(
+            bulletin, contrat=self.contrat, salarie=self.salarie,
+            etablissement=self.etablissement, dossier=self.t["dossier"],
+            cumuls=compute_bulletin_cumuls(self.db, bulletin),
+        )
+        try:
+            from pypdf import PdfReader
+        except ImportError:  # pragma: no cover
+            self.skipTest("pypdf indisponible")
+
+        lecteur = PdfReader(BytesIO(pdf))
+        self.assertEqual(len(lecteur.pages), 1, "le bulletin déborde sur une 2e page")
+        texte = lecteur.pages[0].extract_text()
+        for attendu in ("CUMULS", "NET À PAYER", "Le salarié", "limitation de durée"):
+            with self.subTest(attendu=attendu):
+                self.assertIn(attendu, texte)
 
     def test_bulletin_volumineux_ne_perd_aucune_ligne(self):
         """Un bulletin de plusieurs pages doit rester complet."""

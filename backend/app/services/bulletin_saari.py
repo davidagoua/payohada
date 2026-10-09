@@ -147,7 +147,22 @@ def _libelle_periode(bulletin: Any) -> str:
     return f"{MOIS_LABELS[mois - 1]} {annee}"
 
 
+def _champ(source: Any, cle: str) -> Any:
+    """Lit un attribut quel que soit le support : objet, dataclass ou dictionnaire.
+
+    `Etablissement.adresse` est une relation vers `AdresseEtablissement` (table
+    dédiée), donc un objet ; mais les mêmes données peuvent transiter sous forme
+    de dictionnaire selon l'appelant.
+    """
+    if source is None:
+        return None
+    if isinstance(source, dict):
+        return source.get(cle)
+    return getattr(source, cle, None)
+
+
 def _adresse_etablissement(etablissement: Any) -> list[str]:
+    """Lignes d'adresse de l'établissement, dans l'ordre d'impression."""
     if etablissement is None:
         return []
     brut = getattr(etablissement, "adresse", None)
@@ -155,14 +170,18 @@ def _adresse_etablissement(etablissement: Any) -> list[str]:
         return []
     if isinstance(brut, str):
         return [brut]
-    # L'adresse est stockée en JSON : on assemble les lignes non vides.
+
+    ville_ligne = " ".join(
+        filter(None, [_champ(brut, "code_postal"), _champ(brut, "ville")])
+    )
     morceaux = [
-        brut.get("adresse_postale"),
-        brut.get("adresse_postale2"),
-        " ".join(filter(None, [brut.get("code_postal"), brut.get("ville")])),
-        brut.get("pays"),
+        _champ(brut, "adresse_postale"),
+        _champ(brut, "adresse_postale2"),
+        _champ(brut, "complement_adresse"),
+        ville_ligne,
+        _champ(brut, "pays"),
     ]
-    return [m for m in morceaux if m]
+    return [str(m) for m in morceaux if m]
 
 
 # ─────────────────────────────────────────────
@@ -174,7 +193,7 @@ _STYLES = """
 body { font-family: Helvetica, Arial, sans-serif; font-size: 7.5pt;
        color: #000; line-height: 1.3; }
 table { width: 100%; }
-td, th { border: 0.4pt solid #8a8a8a; padding: 1.4pt 2.4pt; vertical-align: top; }
+td, th { border: 0.4pt solid #8a8a8a; padding: 1.1pt 2.2pt; vertical-align: top; }
 th { background-color: #ececec; font-weight: bold; }
 .groupe th { font-size: 7pt; text-align: center; text-transform: uppercase; }
 .pat { background-color: #f6f6f6; }
@@ -201,7 +220,7 @@ th { background-color: #ececec; font-weight: bold; }
                text-transform: uppercase; padding: 1.4pt 3pt;
                border-bottom: 0.8pt solid #000; }
 .mentions { font-size: 6.5pt; color: #333; text-align: justify; }
-.signature { text-align: center; padding-top: 16pt; }
+.signature { text-align: center; padding-top: 13pt; }
 .bloc-salarie th { background-color: #ececec; font-weight: normal; color: #333;
                    white-space: nowrap; width: 13%; }
 .saut { page-break-before: always; }
@@ -421,20 +440,38 @@ def construire_html_saari(
     </table>"""
 
     # ── Cadre des cumuls ─────────────────────────────────────────────
+    # Présenté en deux blocs côte à côte : empiler les quatorze lignes fait
+    # déborder le bulletin sur une seconde page, alors qu'un mois courant doit
+    # tenir sur une seule.
+    def cellules_cumul(entree) -> str:
+        if entree is None:
+            return '<td colspan="3" style="border:0"></td>'
+        libelle, cle = entree
+        return (
+            f"<td>{_echappe(libelle)}</td>"
+            f'<td class="num">{_nombre(_valeur(cumul_mensuel, cle))}</td>'
+            f'<td class="num">{_nombre(_valeur(cumul_annuel, cle))}</td>'
+        )
+
+    moitie = (len(LIGNES_CUMULS) + 1) // 2
     corps_cumuls = "".join(
         "<tr>"
-        f"<td>{_echappe(libelle)}</td>"
-        f'<td class="num">{_nombre(_valeur(cumul_mensuel, cle))}</td>'
-        f'<td class="num">{_nombre(_valeur(cumul_annuel, cle))}</td>'
-        "</tr>"
-        for libelle, cle in LIGNES_CUMULS
+        + cellules_cumul(LIGNES_CUMULS[i])
+        + cellules_cumul(LIGNES_CUMULS[i + moitie] if i + moitie < len(LIGNES_CUMULS) else None)
+        + "</tr>"
+        for i in range(moitie)
     )
     cadre_cumuls = f"""
     <div class="cadre">
       <div class="cadre-titre">Cumuls</div>
       <table>
         <thead>
-          <tr><th style="width:52%">Libellé</th><th>Mensuel</th><th>Annuel</th></tr>
+          <tr>
+            <th style="width:26%">Libellé</th><th style="width:11%">Mensuel</th>
+            <th style="width:13%">Annuel</th>
+            <th style="width:26%">Libellé</th><th style="width:11%">Mensuel</th>
+            <th style="width:13%">Annuel</th>
+          </tr>
         </thead>
         <tbody>{corps_cumuls}</tbody>
       </table>
