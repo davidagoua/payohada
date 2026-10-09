@@ -147,10 +147,23 @@ class BulletinSaariPdfTests(unittest.TestCase):
                 self.assertIn(attendu, texte)
         self.assertIn(self.salarie.matricule, texte)
 
-    def test_html_invalide_leve_une_exception_explicite(self):
-        """La conversion ne doit jamais retourner un PDF vide silencieusement."""
+    def test_html_minimal_produit_un_pdf(self):
+        """Un HTML très simple reste convertible (pas de dépendance au gabarit)."""
         pdf = html_vers_pdf("<html><body><p>ok</p></body></html>")
         self.assertTrue(pdf.startswith(b"%PDF-"))
+
+    def test_echec_de_conversion_leve_une_exception(self):
+        """Une erreur du moteur ne doit jamais produire un PDF vide en silence."""
+        from unittest import mock
+
+        from xhtml2pdf import pisa
+
+        faux_resultat = mock.Mock()
+        faux_resultat.err = 1  # le moteur signale au moins une erreur
+        with mock.patch.object(pisa, "CreatePDF", return_value=faux_resultat):
+            with self.assertRaises(RuntimeError) as contexte:
+                html_vers_pdf("<html><body>x</body></html>")
+        self.assertIn("PDF", str(contexte.exception))
 
     def test_le_taux_horaire_n_est_pas_affiche_en_pourcentage(self):
         """Régression : la ligne BASE affichait « 1 730,8 % » au lieu de « 1 730,80 ».
@@ -315,6 +328,12 @@ class EnvoiBulletinParEmailTests(unittest.TestCase):
         # La réponse annonce la pièce jointe
         self.assertEqual(r.json()["piece_jointe"], nom)
 
+        # Le corps du message annonce lui aussi le PDF joint, et ne renvoie plus
+        # le salarié vers son espace de gestion pour un document qu'il a sous
+        # les yeux.
+        self.assertIn("en pièce jointe", appel["html"])
+        self.assertNotIn("espace de gestion", appel["html"])
+
     def test_le_pdf_joint_porte_les_donnees_du_bulletin(self):
         """Le PDF envoyé n'est pas une coquille vide : il contient le bulletin."""
         client.post(
@@ -362,6 +381,9 @@ class EnvoiBulletinParEmailTests(unittest.TestCase):
         self.assertEqual(len(self.appels), 1, "l'email aurait dû partir quand même")
         self.assertEqual(self.appels[0]["pieces_jointes"], [])
         self.assertIn("sans pièce jointe", r.json()["message"])
+        # Le corps ne doit pas promettre une pièce jointe absente
+        self.assertNotIn("en pièce jointe", self.appels[0]["html"])
+        self.assertIn("espace de gestion", self.appels[0]["html"])
 
 
 if __name__ == "__main__":

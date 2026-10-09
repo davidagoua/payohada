@@ -1159,7 +1159,18 @@ def send_bulletin_to_employee(
     salarie_nom_echappe = html.escape(
         f"{salarie.civilite or ''} {salarie.prenom or ''} {salarie.nom or ''}".strip()
     )
-    
+
+    # Le PDF est préparé avant le corps du message afin que celui-ci puisse
+    # annoncer exactement ce qui est joint.
+    pieces_jointes = _piece_jointe_bulletin(db, bulletin, contrat, salarie)
+    mention_piece_jointe = (
+        "<p>Vous trouverez votre bulletin de paie <strong>au format PDF</strong> "
+        "en pièce jointe de ce message.</p>"
+        if pieces_jointes else
+        "<p>Vous pouvez consulter le détail de votre bulletin de paie depuis "
+        "votre espace de gestion.</p>"
+    )
+
     html_content = f"""
     <html>
     <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333333;">
@@ -1187,7 +1198,7 @@ def send_bulletin_to_employee(
                 </table>
                 
                 <p>Le règlement sera effectué par <strong>virement bancaire</strong>.</p>
-                <p>Vous pouvez consulter le détail de votre bulletin de paie depuis votre espace de gestion.</p>
+                {mention_piece_jointe}
                 <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
                 <p style="font-size: 11px; color: #64748b; font-style: italic; text-align: center;">
                     Ce message a été généré automatiquement par payohada. Conservez vos bulletins sans limite de durée.
@@ -1198,7 +1209,6 @@ def send_bulletin_to_employee(
     </html>
     """
     
-    pieces_jointes = _piece_jointe_bulletin(db, bulletin, contrat, salarie)
     success, message = send_email(
         email_dest, subject, html_content, pieces_jointes=pieces_jointes
     )
@@ -1252,6 +1262,14 @@ def send_bulletin_to_manager(
     periode_lbl = f"{months[bulletin.mois - 1]} {bulletin.annee}"
     salarie_name_brut = f"{salarie.prenom or ''} {salarie.nom.upper() if salarie.nom else ''}".strip()
     salarie_name = html.escape(salarie_name_brut)
+    pieces_jointes = _piece_jointe_bulletin(db, bulletin, contrat, salarie)
+    mention_piece_jointe = (
+        "<p>Le bulletin de paie est joint à ce message "
+        "<strong>au format PDF</strong>.</p>"
+        if pieces_jointes else
+        "<p>Ce bulletin est disponible dans l'onglet Bulletins de "
+        "l'établissement du dossier.</p>"
+    )
     subject = f"Bulletin de paie {periode_lbl} - {salarie_name_brut}"
     
     html_content = f"""
@@ -1280,7 +1298,7 @@ def send_bulletin_to_manager(
                     </tr>
                 </table>
                 
-                <p>Ce bulletin est disponible dans l'onglet Bulletins de l'établissement du dossier <strong>{dossier.nom_dossier}</strong>.</p>
+                {mention_piece_jointe}
                 <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
                 <p style="font-size: 11px; color: #64748b; font-style: italic; text-align: center;">
                     Ce message a été généré automatiquement par payohada.
@@ -1291,7 +1309,6 @@ def send_bulletin_to_manager(
     </html>
     """
     
-    pieces_jointes = _piece_jointe_bulletin(db, bulletin, contrat, salarie)
     success, message = send_email(
         email_dest, subject, html_content, pieces_jointes=pieces_jointes
     )
