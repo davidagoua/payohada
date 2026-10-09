@@ -327,6 +327,44 @@ def _get_or_create_bulletin(db: Session, contrat_id: int, dossier_id: int, mois:
     return bulletin
 
 
+def resoudre_brut_et_sursalaire(
+    *,
+    unite: str,
+    type_salaire: Optional[str],
+    base_standard: float,
+    montant_saisi: float,
+    sursalaire_contrat: float,
+) -> tuple[float, float, float]:
+    """Décompose le salaire brut porté au contrat.
+
+    Le montant saisi dans « Salaire Mensuel Brut » **est** le salaire brut : le
+    sursalaire, qui représente le complément par rapport à la grille
+    conventionnelle (le formulaire de contrat le calcule ainsi :
+    `sursalaire = salaire saisi − salaire de la grille`), en est une composante.
+    Il ne doit donc jamais être ajouté au brut.
+
+    Retourne `(brut_mensuel, salaire_de_base, sursalaire)`, où
+    `salaire_de_base + sursalaire == brut_mensuel`.
+
+    Sur un contrat horaire, le sursalaire saisi est un écart de taux horaire :
+    il est ramené au mois en le multipliant par la base horaire.
+    """
+    montant = max(0.0, float(montant_saisi or 0.0))
+    sursalaire_saisi = max(0.0, float(sursalaire_contrat or 0.0))
+
+    if unite == "Jours" or type_salaire == "Mensuel":
+        brut = montant
+        sursalaire = sursalaire_saisi
+    else:
+        brut = montant * base_standard
+        sursalaire = sursalaire_saisi * base_standard
+
+    # Un sursalaire supérieur au brut rendrait la base négative : on le plafonne
+    # pour que la somme reste égale au brut de référence.
+    sursalaire = min(sursalaire, brut)
+    return brut, max(0.0, brut - sursalaire), sursalaire
+
+
 def _calculate_gross_salary(
     bulletin_id: int,
     contrat: Contrat,
@@ -340,36 +378,45 @@ def _calculate_gross_salary(
     """Calcule le salaire de base, le sursalaire, applique les absences, heures supps, primes et calcule le Salaire Brut."""
     unite = contrat.unite_temps or "Heures"
     
-    # 1. Base Salary
+    # 1. Montant saisi au contrat, selon l'unité de temps et le type de salaire
     if unite == "Jours":
         base_standard = 30.0
-        salaire_base_brut = override_salary_value if override_salary_value is not None else (contrat.salaire_mensuel or 0.0)
-        taux_base = (salaire_base_brut / 30.0) if salaire_base_brut > 0 else 0.0
+        montant_saisi = override_salary_value if override_salary_value is not None else (contrat.salaire_mensuel or 0.0)
     else:
         base_standard = contrat.horaires.horaire_travail if (contrat.horaires and contrat.horaires.horaire_travail) else 173.33
         if contrat.type_salaire == "Mensuel":
-            salaire_base_brut = override_salary_value if override_salary_value is not None else (contrat.salaire_mensuel or 0.0)
-            taux_base = (salaire_base_brut / base_standard) if base_standard > 0 else 0.0
+            montant_saisi = override_salary_value if override_salary_value is not None else (contrat.salaire_mensuel or 0.0)
         else:
-            taux_base = override_salary_value if override_salary_value is not None else (contrat.salaire_horaire or 0.0)
-            salaire_base_brut = taux_base * base_standard
+            montant_saisi = override_salary_value if override_salary_value is not None else (contrat.salaire_horaire or 0.0)
+
+    # Le brut saisi comprend déjà le sursalaire : on le décompose, sans l'ajouter.
+    salaire_brut_reference, salaire_base_brut, sursalaire_brut = resoudre_brut_et_sursalaire(
+        unite=unite,
+        type_salaire=contrat.type_salaire,
+        base_standard=base_standard,
+        montant_saisi=montant_saisi,
+        sursalaire_contrat=contrat.sursalaire or 0.0,
+    )
+    # Taux plein : sert à valoriser les absences et les heures.
+    taux_base = (salaire_brut_reference / base_standard) if base_standard > 0 else 0.0
+    # Taux de la seule part « salaire de base », affiché sur la ligne.
+    taux_base_affiche = (salaire_base_brut / base_standard) if base_standard > 0 else 0.0
 
     lignes_bulletin = []
 
-    # Ligne 1 : Salaire de base
+    # Ligne 1 : Salaire de base (part relevant de la grille conventionnelle)
     ligne_base = LigneBulletinPaie(
         bulletin_id=bulletin_id,
         code="BASE",
         libelle="Salaire de base",
         salaire_base=round(salaire_base_brut, 2),
         base_s=base_standard,
-        taux_s=round(taux_base, 2),
+        taux_s=round(taux_base_affiche, 2),
         montant_pr=round(salaire_base_brut, 2)
     )
     lignes_bulletin.append(ligne_base)
 
-    # 2. Sursalaire
-    sursalaire_brut = contrat.sursalaire or 0.0
+    # 2. Sursalaire : complément déjà compris dans le brut ci-dessus
     if sursalaire_brut > 0:
         if unite == "Jours":
             base_sur = 30.0
@@ -377,7 +424,7 @@ def _calculate_gross_salary(
         else:
             base_sur = 0.0  # Empty base and rate for hourly sursalaire as in image
             taux_sur = 0.0
-            
+
         ligne_sur = LigneBulletinPaie(
             bulletin_id=bulletin_id,
             code="SURSALAIRE",
@@ -396,8 +443,9 @@ def _calculate_gross_salary(
         # Determine absence units and rate
         if unite == "Jours":
             heures_jours_abs = absence.nbr_jour_by_user if absence.nbr_jour_by_user > 0 else (absence.nbr_heure_by_user / daily_hours if absence.nbr_heure_by_user > 0 else 0.0)
-            # Daily contract rate includes sursalaire
-            taux_abs = (salaire_base_brut + sursalaire_brut) / 30.0
+            # Le taux journalier est celui du brut contractuel, qui comprend
+            # déjà le sursalaire.
+            taux_abs = salaire_brut_reference / 30.0 if base_standard else 0.0
         else:
             heures_jours_abs = absence.nbr_heure_by_user if absence.nbr_heure_by_user > 0 else (absence.nbr_jour_by_user * daily_hours if absence.nbr_jour_by_user > 0 else 0.0)
             taux_abs = taux_base
@@ -886,7 +934,7 @@ def _calculate_payslip_raw(
     # Calcul temporaire des lignes de salaire brut
     avantages = _evaluer_avantages_nature(
         avantage_nature,
-        (contrat.salaire_mensuel or 0.0) + (contrat.sursalaire or 0.0),
+        contrat.salaire_mensuel or 0.0,
     )
     _, salaire_brut = _calculate_gross_salary(
         bulletin_id, contrat, absences, heures_sup, primes, options,
@@ -1019,7 +1067,7 @@ def calculate_payslip(db: Session, contrat_id: int, mois: int, annee: int, acomp
     # 3. Calcul des lignes de salaire brut (avantages en nature inclus)
     avantages = _evaluer_avantages_nature(
         avantage_nature,
-        (contrat.salaire_mensuel or 0.0) + (contrat.sursalaire or 0.0),
+        contrat.salaire_mensuel or 0.0,
     )
     lignes_brut, salaire_brut = _calculate_gross_salary(
         bulletin.id, contrat, absences, heures_sup, primes, options,

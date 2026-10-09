@@ -15,7 +15,7 @@ from app.schemas.bulletin import (
 from app.services.security import get_current_user
 from app.services.permissions import get_dossier_or_403, require_staff
 from app.routers.contrats import check_contrat_ownership
-from app.services.payroll import calculate_payslip
+from app.services.payroll import calculate_payslip, resoudre_brut_et_sursalaire
 from app.services.email import send_email
 
 logger = logging.getLogger(__name__)
@@ -548,20 +548,23 @@ def _simulate_bulletin_core(
     db: Session
 ) -> tuple:
     unite = sim_in.unite_temps or "Heures"
-    
-    # 1. Base Salary
+
+    # 1. Montant saisi, puis décomposition du brut : le montant porté au contrat
+    #    est déjà le salaire brut, le sursalaire en est une composante.
     if unite == "Jours":
         base_standard = 30.0
-        salaire_base_brut = base_val
-        taux_base = (salaire_base_brut / 30.0) if salaire_base_brut > 0 else 0.0
     else:
         base_standard = sim_in.horaire_mensuel_standard or 173.33
-        if sim_in.type_salaire == "Mensuel":
-            salaire_base_brut = base_val
-            taux_base = (salaire_base_brut / base_standard) if base_standard > 0 else 0.0
-        else:
-            taux_base = base_val
-            salaire_base_brut = taux_base * base_standard
+
+    salaire_brut_reference, salaire_base_brut, sursalaire_brut = resoudre_brut_et_sursalaire(
+        unite=unite,
+        type_salaire=sim_in.type_salaire,
+        base_standard=base_standard,
+        montant_saisi=base_val,
+        sursalaire_contrat=sim_in.sursalaire or 0.0,
+    )
+    taux_base = (salaire_brut_reference / base_standard) if base_standard > 0 else 0.0
+    taux_base_affiche = (salaire_base_brut / base_standard) if base_standard > 0 else 0.0
 
     lignes = []
 
@@ -572,13 +575,12 @@ def _simulate_bulletin_core(
             libelle="Salaire de base",
             salaire_base=round(salaire_base_brut, 2),
             base_s=base_standard,
-            taux_s=round(taux_base, 2),
+            taux_s=round(taux_base_affiche, 2),
             montant_pr=round(salaire_base_brut, 2)
         )
     )
 
-    # 2. Sursalaire
-    sursalaire_brut = sim_in.sursalaire or 0.0
+    # 2. Sursalaire : complément déjà compris dans le brut ci-dessus
     if sursalaire_brut > 0:
         if unite == "Jours":
             base_sur = 30.0
@@ -603,7 +605,8 @@ def _simulate_bulletin_core(
     for absence in sim_in.absences:
         if unite == "Jours":
             heures_jours_abs = absence.nbr_jours if absence.nbr_jours > 0 else (absence.nbr_heures / 7.0 if absence.nbr_heures > 0 else 0.0)
-            taux_abs = (salaire_base_brut + sursalaire_brut) / 30.0
+            # Le taux journalier est celui du brut contractuel, sursalaire inclus.
+            taux_abs = salaire_brut_reference / 30.0 if base_standard else 0.0
         else:
             heures_jours_abs = absence.nbr_heures if absence.nbr_heures > 0 else (absence.nbr_jours * 8.0 if absence.nbr_jours > 0 else 0.0)
             taux_abs = taux_base

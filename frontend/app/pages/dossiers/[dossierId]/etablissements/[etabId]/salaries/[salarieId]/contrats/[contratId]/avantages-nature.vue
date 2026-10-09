@@ -72,9 +72,8 @@ const periodes = ref([])
 const calculEnCours = ref(false)
 const enregistrement = ref(false)
 
-const salaireBase = computed(() =>
-  (contrat.value?.salaire_mensuel || 0) + (contrat.value?.sursalaire || 0)
-)
+// Le salaire mensuel du contrat est déjà le brut : le sursalaire y est compris.
+const salaireBase = computed(() => contrat.value?.salaire_mensuel || 0)
 
 // Un champ numérique vidé par l'utilisateur vaut `''` avec `v-model.number` :
 // on le ramène à `null` pour ne pas envoyer une chaîne vide à l'API.

@@ -340,6 +340,9 @@ onMounted(() => {
               ]"
             />
             <p v-if="fieldErrors.sursalaire" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.sursalaire }}</p>
+                <p class="mt-1 text-[10px] text-slate-400">
+                  Complément par rapport à la grille. Il est <strong>déjà compris</strong> dans le salaire mensuel brut.
+                </p>
           </div>
         </div>
 

@@ -146,11 +146,12 @@ def _resultat_avantage(
 
 
 def _salaire_imposable_du_contrat(contrat: Contrat) -> float:
-    """Salaire et primes imposables du contrat, hors avantages en nature."""
-    return float(
-        (contrat.salaire_mensuel or 0.0)
-        + (contrat.sursalaire or 0.0)
-    )
+    """Salaire et primes imposables du contrat, hors avantages en nature.
+
+    `salaire_mensuel` est le salaire brut contractuel : le sursalaire en est une
+    composante et ne s'y ajoute pas.
+    """
+    return float(contrat.salaire_mensuel or 0.0)
 
 
 # ─────────────────────────────────────────────

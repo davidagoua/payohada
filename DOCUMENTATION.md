@@ -403,6 +403,14 @@ logiciel_paie/
 #### Added
 - Suite de tests de non-régression (moteur de paie et API) : `python -m unittest discover -s tests -t . -v`.
 
+#### Sursalaire : composante du salaire brut, jamais un ajout
+Le montant saisi dans « Salaire Mensuel Brut (FCFA) » **est** le salaire brut. Le sursalaire en est une composante : les formulaires de contrat le calculent comme `sursalaire = salaire saisi − salaire de la grille`. Le moteur de paie l'ajoutait pourtant au salaire de base, ce qui gonflait le brut du montant du sursalaire (et, par ricochet, les assiettes ITS et CNPS, les indemnités de congés payés et les indemnités de rupture).
+
+- `resoudre_brut_et_sursalaire()` centralise désormais la règle et garantit `salaire de base + sursalaire == salaire brut`. Le bulletin présente la décomposition : « Salaire de base » (part de la grille conventionnelle) + « Sursalaire » (complément), dont la somme égale le brut contractuel.
+- Sur un contrat horaire, le sursalaire saisi est un écart de taux horaire : il est ramené au mois en le multipliant par la base horaire.
+- Un sursalaire supérieur au brut est plafonné, pour que la base ne devienne jamais négative.
+- Corrigé dans les quatre endroits qui recomposaient le brut : calcul du bulletin, simulateur de bulletin, taux journalier de l'indemnité de congés payés du départ, et salaire imposable des calculateurs. Le taux de déduction des absences reste le taux plein, sursalaire compris.
+
 #### Pages Nuxt des calculateurs
 - `contrats/[contratId]/depart/index.vue` — formulaire de départ complet : choix du motif (licenciement, retraite, décès, fin de CDD, démission, rupture), saisie ou reprise automatique des 12 salaires de référence, gratification, congés payés (les deux méthodes comparées) et éléments complémentaires. Chaque section alimente un **aperçu en direct** avec le détail du barème, avant enregistrement du solde.
 - `contrats/[contratId]/avantages-nature.vue` — écran de saisie mensuelle du barème DGI du 08/07/2024 : logement et charges, climatisation, piscine, domesticité, repas, véhicule. Évaluation fiscale à la volée (composantes détaillées, avantage imposable, brut imposable, assiette CNPS), enregistrement par période, liste et suppression des périodes, avantage récurrent.

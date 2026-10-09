@@ -261,7 +261,9 @@ def create_depart_salarie(
         y, m = datetime.now().year, datetime.now().month
 
     conges_solde = calculate_estimated_conges_solde(db, contrat, y, m)
-    daily_rate = (contrat.salaire_mensuel + (contrat.sursalaire or 0.0)) / 30.0
+    # Le salaire mensuel du contrat est déjà le brut : le sursalaire y est
+    # compris et ne doit pas être ajouté une seconde fois.
+    daily_rate = (contrat.salaire_mensuel or 0.0) / 30.0
     icp_val = max(0.0, conges_solde) * daily_rate
 
     # 4. Créer l'enregistrement SoldeToutCompte

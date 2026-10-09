@@ -286,6 +286,9 @@ onMounted(() => {
                 type="number" 
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-none text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" 
               />
+              <p class="mt-1 text-[10px] text-slate-400">
+                Composante du salaire brut, pas un montant à ajouter.
+              </p>
             </div>
           </div>
 
