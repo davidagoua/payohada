@@ -243,12 +243,17 @@ def construire_html_saari(
     cumuls: Any = None,
     rang: Optional[int] = None,
     total: Optional[int] = None,
-    saut_de_page: bool = True,
+    saut_de_page: bool = False,
 ) -> str:
     """Produit le HTML du bulletin, au format Sage Saari.
 
     `cumuls` est fourni par l'appelant (`compute_bulletin_cumuls`) afin que ce
     module reste sans dépendance au routeur ni à la session de base de données.
+
+    `saut_de_page` force un saut avant le document. Il doit rester **désactivé**
+    pour un bulletin isolé : appliqué au premier élément, il laisse une page
+    blanche en tête. Il ne sert qu'à enchaîner plusieurs bulletins dans un même
+    fichier, à partir du deuxième.
     """
     lignes = list(getattr(bulletin, "lignes", None) or [])
 
@@ -467,11 +472,11 @@ def construire_html_saari(
       </div>
     </div>"""
 
-    classe_saut = " saut" if saut_de_page else ""
+    classes = "bulletin saut" if saut_de_page else "bulletin"
     return (
         '<html><head><meta charset="utf-8"/>'
         f"<style>{_STYLES}</style></head><body>"
-        f'<div class="{classe_saut.strip()}">'
+        f'<div class="{classes}">'
         f"{entete}{bloc_salarie}{tableau}{cadre_cumuls}{pied}"
         "</div></body></html>"
     )

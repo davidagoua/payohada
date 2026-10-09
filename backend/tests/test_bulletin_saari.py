@@ -183,6 +183,64 @@ class BulletinSaariPdfTests(unittest.TestCase):
         # Les cotisations conservent bien leur pourcentage
         self.assertIn("6,3 %", html)
 
+    def test_la_premiere_page_n_est_pas_blanche(self):
+        """Régression : un saut de page appliqué au premier élément laissait une
+        page blanche en tête, si bien que chaque bulletin envoyé par email
+        commençait par une page vide.
+
+        L'ancien test se contentait de chercher le contenu « quelque part » dans
+        le document, ce qui masquait le défaut.
+        """
+        from io import BytesIO
+
+        pdf = generer_pdf_saari(
+            self.bulletin, contrat=self.contrat, salarie=self.salarie,
+            etablissement=self.contrat.etablissement, dossier=self.t["dossier"],
+        )
+        try:
+            from pypdf import PdfReader
+        except ImportError:  # pragma: no cover
+            self.skipTest("pypdf indisponible")
+
+        premiere = PdfReader(BytesIO(pdf)).pages[0].extract_text()
+        self.assertGreater(
+            len(premiere), 100,
+            "la première page est vide : un saut de page parasite a été appliqué",
+        )
+        self.assertIn("BULLETIN DE PAIE", premiere)
+
+    def test_bulletin_volumineux_ne_perd_aucune_ligne(self):
+        """Un bulletin de plusieurs pages doit rester complet."""
+        from io import BytesIO
+
+        from app.models import models as M
+
+        for i in range(12):
+            self.db.add(M.Prime(
+                contrat_id=self.contrat.id, code=f"PRIME_{i:02d}",
+                libelle=f"Prime {i+1}", montant=15_000.0, mois=6, annee="2025",
+            ))
+        self.db.commit()
+        bulletin = calculate_payslip(self.db, self.contrat.id, 6, 2025)
+
+        pdf = generer_pdf_saari(
+            bulletin, contrat=self.contrat, salarie=self.salarie,
+            etablissement=self.contrat.etablissement, dossier=self.t["dossier"],
+        )
+        try:
+            from pypdf import PdfReader
+        except ImportError:  # pragma: no cover
+            self.skipTest("pypdf indisponible")
+
+        lecteur = PdfReader(BytesIO(pdf))
+        texte = "".join(p.extract_text() for p in lecteur.pages)
+        for i in range(12):
+            with self.subTest(prime=i):
+                self.assertIn(f"PRIME_{i:02d}", texte)
+        self.assertIn("NET À PAYER", texte)
+        self.assertIn("CUMULS", texte)
+        self.assertIn("Le salarié", texte)
+
     def test_nom_de_fichier(self):
         nom = nom_fichier_bulletin(self.salarie, self.bulletin)
         self.assertTrue(nom.startswith("bulletin_paie_"))
