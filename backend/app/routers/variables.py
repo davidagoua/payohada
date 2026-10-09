@@ -49,6 +49,7 @@ def create_absence(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """Saisit une absence pour un contrat."""
+    require_staff(current_user)
     check_contrat_ownership(contrat_id, current_user.id, db)
 
     absence = Absence(**absence_in.model_dump(), contrat_id=contrat_id)
@@ -81,6 +82,7 @@ def create_heure_supplementaire(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """Saisit des heures supplémentaires pour un contrat."""
+    require_staff(current_user)
     check_contrat_ownership(contrat_id, current_user.id, db)
 
     hs = HeureSupplementaire(**hs_in.model_dump(), contrat_id=contrat_id)
@@ -113,6 +115,7 @@ def create_prime(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """Saisit une prime pour un contrat."""
+    require_staff(current_user)
     check_contrat_ownership(contrat_id, current_user.id, db)
 
     prime = Prime(**prime_in.model_dump(), contrat_id=contrat_id)
@@ -145,6 +148,7 @@ def create_option(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """Saisit une option de bulletin pour un contrat."""
+    require_staff(current_user)
     check_contrat_ownership(contrat_id, current_user.id, db)
 
     option = Option(**option_in.model_dump(), contrat_id=contrat_id)
@@ -177,6 +181,7 @@ def create_reprise(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """Saisit une variable de reprise historique pour un contrat."""
+    require_staff(current_user)
     check_contrat_ownership(contrat_id, current_user.id, db)
 
     reprise = VariableRepriseDossier(**reprise_in.model_dump(), contrat_id=contrat_id)
@@ -200,6 +205,7 @@ def delete_absence(
     absence = db.query(Absence).filter(Absence.id == absence_id).first()
     if not absence:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Absence introuvable.")
+    require_staff(current_user)
     check_contrat_ownership(absence.contrat_id, current_user.id, db)
     db.delete(absence)
     db.commit()
@@ -216,6 +222,7 @@ def delete_heure_supplementaire(
     hs = db.query(HeureSupplementaire).filter(HeureSupplementaire.id == hs_id).first()
     if not hs:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Heure supplémentaire introuvable.")
+    require_staff(current_user)
     check_contrat_ownership(hs.contrat_id, current_user.id, db)
     db.delete(hs)
     db.commit()
@@ -232,6 +239,7 @@ def delete_prime(
     prime = db.query(Prime).filter(Prime.id == prime_id).first()
     if not prime:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Prime introuvable.")
+    require_staff(current_user)
     check_contrat_ownership(prime.contrat_id, current_user.id, db)
     db.delete(prime)
     db.commit()
@@ -248,6 +256,7 @@ def delete_option(
     option = db.query(Option).filter(Option.id == option_id).first()
     if not option:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Option introuvable.")
+    require_staff(current_user)
     check_contrat_ownership(option.contrat_id, current_user.id, db)
     db.delete(option)
     db.commit()
@@ -265,6 +274,7 @@ def update_prime(
     prime = db.query(Prime).filter(Prime.id == prime_id).first()
     if not prime:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Prime introuvable.")
+    require_staff(current_user)
     check_contrat_ownership(prime.contrat_id, current_user.id, db)
 
     for field, value in prime_in.model_dump().items():

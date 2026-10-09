@@ -552,6 +552,32 @@ class DocumentsTests(unittest.TestCase):
         )
         self.assertEqual(r.status_code, 413)
 
+    def test_import_excel_trop_volumineux_refuse(self):
+        """L'import Excel lisait le fichier entier sans aucune borne de taille."""
+        import io as _io
+
+        r = client.post(
+            f"{API}/dossiers/{self.a['dossier'].id}/import-variables-excel",
+            headers=auth_headers(self.a["user"]),
+            params={"mois": 6, "annee": 2025},
+            files={"fichier": ("gros.xlsx", _io.BytesIO(b"x" * 5000),
+                               "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")},
+        )
+        self.assertEqual(r.status_code, 413, r.text[:200])
+
+    def test_import_excel_format_refuse(self):
+        import io as _io
+
+        r = client.post(
+            f"{API}/dossiers/{self.a['dossier'].id}/import-variables-excel",
+            headers=auth_headers(self.a["user"]),
+            params={"mois": 6, "annee": 2025},
+            files={"fichier": ("donnees.txt", _io.BytesIO(b"contenu"),
+                               "text/plain")},
+        )
+        self.assertEqual(r.status_code, 400, r.text[:200])
+        self.assertIn(".xlsx", r.json()["detail"])
+
     def test_upload_puis_telechargement_controle(self):
         r = client.post(
             f"{API}/salaries/{self.a['salarie'].id}/upload-document",

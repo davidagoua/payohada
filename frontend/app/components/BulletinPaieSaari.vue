@@ -77,6 +77,11 @@ const LIGNES_CUMULS = [
   { libelle: 'Solde de congés', cle: 'conges_solde' }
 ]
 
+//: Les lignes de cumuls sont réparties sur deux colonnes, comme dans le PDF.
+const moitieCumuls = computed(() => Math.ceil(LIGNES_CUMULS.length / 2))
+const lignesCumulsGauche = computed(() => LIGNES_CUMULS.slice(0, moitieCumuls.value))
+const lignesCumulsDroite = computed(() => LIGNES_CUMULS.slice(moitieCumuls.value))
+
 const montantCumul = (source, cle) => {
   const v = source?.[cle]
   return v === null || v === undefined || v === '' ? null : Number(v)
@@ -335,6 +340,12 @@ const estExpatrie = computed(() => !!props.salarie?.expatrie)
     </table>
 
     <!-- ═══════════ CADRE DES CUMULS ═══════════ -->
+    <!--
+      Cumuls présentés en deux blocs côte à côte : empiler les quatorze lignes
+      fait déborder le bulletin sur une seconde page, alors qu'un mois courant
+      doit tenir sur une seule. Le gabarit PDF suit la même disposition, les
+      deux rendus devant rester identiques.
+    -->
     <section class="cadre-cumuls">
       <div class="titre-cadre">Cumuls</div>
       <table>
@@ -343,13 +354,26 @@ const estExpatrie = computed(() => !!props.salarie?.expatrie)
             <th class="col-libelle">Libellé</th>
             <th>Mensuel</th>
             <th>Annuel</th>
+            <th class="col-libelle">Libellé</th>
+            <th>Mensuel</th>
+            <th>Annuel</th>
           </tr>
         </thead>
         <tbody>
-          <tr v-for="ligne in LIGNES_CUMULS" :key="ligne.cle">
+          <tr v-for="(ligne, index) in lignesCumulsGauche" :key="ligne.cle">
             <td>{{ ligne.libelle }}</td>
             <td class="mono">{{ formatNombre(montantCumul(cumulMensuel, ligne.cle)) }}</td>
             <td class="mono">{{ formatNombre(montantCumul(cumulAnnuel, ligne.cle)) }}</td>
+            <template v-if="lignesCumulsDroite[index]">
+              <td>{{ lignesCumulsDroite[index].libelle }}</td>
+              <td class="mono">
+                {{ formatNombre(montantCumul(cumulMensuel, lignesCumulsDroite[index].cle)) }}
+              </td>
+              <td class="mono">
+                {{ formatNombre(montantCumul(cumulAnnuel, lignesCumulsDroite[index].cle)) }}
+              </td>
+            </template>
+            <td v-else colspan="3" class="cumul-vide"></td>
           </tr>
         </tbody>
       </table>
@@ -522,6 +546,8 @@ const estExpatrie = computed(() => !!props.salarie?.expatrie)
 .cadre-cumuls thead th { background: #f0f0f0; text-align: center; }
 .cadre-cumuls td:not(:first-child) { text-align: right; width: 32mm; }
 .cadre-cumuls .col-libelle { text-align: left; }
+/* Cellule de remplissage lorsque la colonne de droite n'a plus de ligne. */
+.cadre-cumuls .cumul-vide { border: 0; background: transparent; }
 
 /* ── Pied ────────────────────────────────────────────── */
 .pied { border: 1px solid #000; padding: 2mm; }

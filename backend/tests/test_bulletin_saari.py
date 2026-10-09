@@ -233,6 +233,31 @@ class BulletinSaariPdfTests(unittest.TestCase):
         )
         self.assertIn("Bulletin de paie", html)
 
+    def test_les_cumuls_sont_repartis_en_deux_blocs_sans_perte(self):
+        """Les quatorze cumuls tiennent sur sept lignes à deux colonnes.
+
+        Régression : empilés, ils repoussaient la mention légale sur une seconde
+        page. La répartition ne doit perdre aucune ligne au passage.
+        """
+        from app.services.bulletin_saari import LIGNES_CUMULS, construire_html_saari
+
+        html = construire_html_saari(
+            self.bulletin, contrat=self.contrat, salarie=self.salarie,
+            etablissement=self.etablissement, dossier=self.t["dossier"],
+        )
+        # Chaque libellé reste présent, une seule fois (les apostrophes sont
+        # échappées en entités HTML par le gabarit)
+        import html as _html
+
+        for libelle, _ in LIGNES_CUMULS:
+            with self.subTest(libelle=libelle):
+                self.assertEqual(html.count(f"<td>{_html.escape(libelle)}</td>"), 1)
+
+        # Six en-têtes : deux blocs de Libellé / Mensuel / Annuel
+        entete = html.split('<div class="cadre-titre">Cumuls</div>')[1].split("</thead>")[0]
+        self.assertEqual(entete.count("<th "), 6)
+        self.assertEqual(len(LIGNES_CUMULS), 14)
+
     def test_la_premiere_page_n_est_pas_blanche(self):
         """Régression : un saut de page appliqué au premier élément laissait une
         page blanche en tête, si bien que chaque bulletin envoyé par email

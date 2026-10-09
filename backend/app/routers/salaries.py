@@ -7,8 +7,14 @@ from app.config import settings
 from app.database import get_db
 from app.models.models import Salarie, Etablissement, Dossier, Utilisateur
 from app.schemas.salarie import SalarieCreate, SalarieUpdate, SalarieOut
-from app.services.security import get_current_user
+from app.services.security import (
+    generate_password,
+    get_current_user,
+    get_password_hash,
+)
 from app.routers.etablissements import check_etablissement_ownership
+
+from app.services.permissions import require_staff
 
 router = APIRouter(tags=["Salariés"])
 
@@ -87,21 +93,32 @@ def sync_salarie_user(salarie: Salarie, db: Session):
             db.commit()
             return
             
+        # Un mot de passe aléatoire est généré par salarié : auparavant, tous
+        # les comptes salariés étaient créés avec le mot de passe public
+        # « Payohada@123 », connu de quiconque lit le dépôt. Le compte local
+        # était en outre créé sans empreinte, donc définitivement inutilisable
+        # puisque la connexion refuse les comptes sans mot de passe.
+        mot_de_passe = generate_password()
+
         # Tentative d'enregistrement dans Supabase Auth
-        supabase_uid = register_user_in_supabase(salarie.email, "Payohada@123")
+        supabase_uid = register_user_in_supabase(salarie.email, mot_de_passe)
         if not supabase_uid:
             import uuid
             supabase_uid = f"local-salarie-{uuid.uuid4()}"
-            
+
         user = Utilisateur(
             email=salarie.email,
             nom=salarie.nom,
             prenom=salarie.prenom,
+            hashed_password=get_password_hash(mot_de_passe),
             supabase_uid=supabase_uid,
             salarie_id=salarie.id,
             role="salarie",
             is_active=True,
-            is_admin=False
+            is_admin=False,
+            # Le salarié doit définir son propre mot de passe à la première
+            # connexion : celui-ci n'est communiqué par aucun canal durable.
+            must_change_password=True,
         )
         db.add(user)
     else:
@@ -164,6 +181,7 @@ def update_salarie(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """Met à jour les informations d'un salarié."""
+    require_staff(current_user)
     salarie = check_salarie_ownership(salarie_id, current_user.id, db)
 
     for field, value in salarie_in.model_dump(exclude_unset=True).items():
@@ -185,6 +203,7 @@ def delete_salarie(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """Supprime un salarié de la base."""
+    require_staff(current_user)
     salarie = check_salarie_ownership(salarie_id, current_user.id, db)
     db.delete(salarie)
     db.commit()

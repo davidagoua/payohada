@@ -65,12 +65,13 @@ def create_dossier(
     db: Session = Depends(get_db),
     current_user: Utilisateur = Depends(get_current_user)
 ):
-    """Crée un nouveau dossier d'entreprise (réservé au cabinet)."""
-    if current_user.role == "client":
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Seul le cabinet peut créer des dossiers d'entreprises."
-        )
+    """Crée un nouveau dossier d'entreprise (réservé au cabinet).
+
+    Le contrôle ne visait auparavant que le rôle « client » : un salarié
+    authentifié pouvait donc créer des dossiers. `require_staff` n'autorise que
+    le cabinet et l'administrateur.
+    """
+    require_staff(current_user)
 
     # Vérifier si le code existe déjà
     existing = db.query(Dossier).filter(Dossier.code == dossier_in.code).first()

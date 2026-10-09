@@ -19,6 +19,8 @@ logger = logging.getLogger(__name__)
 from app.routers.etablissements import check_etablissement_ownership
 from app.routers.salaries import check_salarie_ownership
 
+from app.services.permissions import require_staff
+
 router = APIRouter(tags=["Contrats"])
 
 
@@ -57,6 +59,7 @@ def create_contrat(
 ):
     """Crée un contrat de travail."""
     # Validation du salarié et de l'établissement
+    require_staff(current_user)
     salarie = check_salarie_ownership(contrat_in.salarie_id, current_user.id, db)
     etab = check_etablissement_ownership(contrat_in.etablissement_id, current_user.id, db)
 
@@ -144,6 +147,7 @@ def update_contrat(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """Met à jour un contrat."""
+    require_staff(current_user)
     contrat = check_contrat_ownership(contrat_id, current_user.id, db)
 
     for field, value in contrat_in.model_dump(exclude_unset=True).items():
@@ -161,6 +165,7 @@ def delete_contrat(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """Supprime un contrat."""
+    require_staff(current_user)
     contrat = check_contrat_ownership(contrat_id, current_user.id, db)
     db.delete(contrat)
     db.commit()
@@ -230,6 +235,7 @@ def create_depart_salarie(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """Enregistre le départ du salarié, met à jour le statut du contrat et initialise le STC."""
+    require_staff(current_user)
     contrat = check_contrat_ownership(contrat_id, current_user.id, db)
     
     # Check if departure already declared
@@ -291,6 +297,7 @@ def delete_depart_salarie(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """Annule le départ du salarié en réactivant le contrat et supprimant le STC."""
+    require_staff(current_user)
     contrat = check_contrat_ownership(contrat_id, current_user.id, db)
     
     depart = db.query(DepartSalarie).filter(DepartSalarie.contrat_id == contrat_id).first()
@@ -364,6 +371,7 @@ def update_solde_tout_compte(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """Met à jour les montants du Solde de Tout Compte (STC) et recalcule le total."""
+    require_staff(current_user)
     contrat = check_contrat_ownership(contrat_id, current_user.id, db)
     stc = db.query(SoldeToutCompte).filter(SoldeToutCompte.contrat_id == contrat_id).first()
     if not stc:

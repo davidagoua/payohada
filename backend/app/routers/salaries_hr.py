@@ -32,6 +32,8 @@ from app.services.payroll import calculate_payslip
 logger = logging.getLogger(__name__)
 
 
+from app.services.permissions import require_staff
+
 router = APIRouter(prefix="/salaries", tags=["Salariés RH"])
 
 UPLOAD_DIR = "uploads"
@@ -99,6 +101,7 @@ async def upload_document(
     Le nom de fichier est généré côté serveur (`<salarie_id>_<uuid><ext>`) :
     le nom fourni par le client n'est jamais utilisé pour construire le chemin.
     """
+    require_staff(current_user)
     check_salarie_ownership(salarie_id, current_user.id, db)
     ext = _validate_upload(file)
     unique_filename = f"{salarie_id}_{uuid.uuid4().hex}{ext}"
@@ -165,6 +168,7 @@ def create_entretien(
     db: Session = Depends(get_db),
     current_user: Utilisateur = Depends(get_current_user)
 ):
+    require_staff(current_user)
     check_salarie_ownership(salarie_id, current_user.id, db)
     db_item = EntretienEvaluation(**entretien_in.model_dump(), salarie_id=salarie_id)
     db.add(db_item)
@@ -183,6 +187,7 @@ def update_entretien(
     db_item = db.query(EntretienEvaluation).filter(EntretienEvaluation.id == id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="Entretien introuvable.")
+    require_staff(current_user)
     check_salarie_ownership(db_item.salarie_id, current_user.id, db)
     for field, value in entretien_in.model_dump(exclude_unset=True).items():
         setattr(db_item, field, value)
@@ -200,6 +205,7 @@ def delete_entretien(
     db_item = db.query(EntretienEvaluation).filter(EntretienEvaluation.id == id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="Entretien introuvable.")
+    require_staff(current_user)
     check_salarie_ownership(db_item.salarie_id, current_user.id, db)
     db.delete(db_item)
     db.commit()
@@ -227,6 +233,7 @@ def create_visite(
     db: Session = Depends(get_db),
     current_user: Utilisateur = Depends(get_current_user)
 ):
+    require_staff(current_user)
     check_salarie_ownership(salarie_id, current_user.id, db)
     db_item = VisiteMedicale(**visite_in.model_dump(), salarie_id=salarie_id)
     db.add(db_item)
@@ -245,6 +252,7 @@ def update_visite(
     db_item = db.query(VisiteMedicale).filter(VisiteMedicale.id == id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="Visite médicale introuvable.")
+    require_staff(current_user)
     check_salarie_ownership(db_item.salarie_id, current_user.id, db)
     for field, value in visite_in.model_dump(exclude_unset=True).items():
         setattr(db_item, field, value)
@@ -262,6 +270,7 @@ def delete_visite(
     db_item = db.query(VisiteMedicale).filter(VisiteMedicale.id == id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="Visite médicale introuvable.")
+    require_staff(current_user)
     check_salarie_ownership(db_item.salarie_id, current_user.id, db)
     db.delete(db_item)
     db.commit()
@@ -289,6 +298,7 @@ def create_formation(
     db: Session = Depends(get_db),
     current_user: Utilisateur = Depends(get_current_user)
 ):
+    require_staff(current_user)
     check_salarie_ownership(salarie_id, current_user.id, db)
     db_item = SuiviFormation(**formation_in.model_dump(), salarie_id=salarie_id)
     db.add(db_item)
@@ -307,6 +317,7 @@ def update_formation(
     db_item = db.query(SuiviFormation).filter(SuiviFormation.id == id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="Formation introuvable.")
+    require_staff(current_user)
     check_salarie_ownership(db_item.salarie_id, current_user.id, db)
     for field, value in formation_in.model_dump(exclude_unset=True).items():
         setattr(db_item, field, value)
@@ -324,6 +335,7 @@ def delete_formation(
     db_item = db.query(SuiviFormation).filter(SuiviFormation.id == id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="Formation introuvable.")
+    require_staff(current_user)
     check_salarie_ownership(db_item.salarie_id, current_user.id, db)
     db.delete(db_item)
     db.commit()
@@ -390,6 +402,7 @@ def create_absence_hr(
     db: Session = Depends(get_db),
     current_user: Utilisateur = Depends(get_current_user)
 ):
+    require_staff(current_user)
     check_salarie_ownership(salarie_id, current_user.id, db)
     db_item = SalarieAbsence(**absence_in.model_dump(), salarie_id=salarie_id)
     db.add(db_item)
@@ -409,6 +422,7 @@ def update_absence_hr(
     db_item = db.query(SalarieAbsence).filter(SalarieAbsence.id == id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="Absence introuvable.")
+    require_staff(current_user)
     check_salarie_ownership(db_item.salarie_id, current_user.id, db)
     
     old_start = db_item.date_debut_absence
@@ -435,6 +449,7 @@ def delete_absence_hr(
     db_item = db.query(SalarieAbsence).filter(SalarieAbsence.id == id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="Absence introuvable.")
+    require_staff(current_user)
     check_salarie_ownership(db_item.salarie_id, current_user.id, db)
     
     salarie_id = db_item.salarie_id
@@ -469,6 +484,7 @@ def create_pret(
     db: Session = Depends(get_db),
     current_user: Utilisateur = Depends(get_current_user)
 ):
+    require_staff(current_user)
     check_salarie_ownership(salarie_id, current_user.id, db)
     db_item = PretSalarie(**pret_in.model_dump(), salarie_id=salarie_id)
     db.add(db_item)
@@ -487,6 +503,7 @@ def update_pret(
     db_item = db.query(PretSalarie).filter(PretSalarie.id == id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="Prêt introuvable.")
+    require_staff(current_user)
     check_salarie_ownership(db_item.salarie_id, current_user.id, db)
     for field, value in pret_in.model_dump(exclude_unset=True).items():
         setattr(db_item, field, value)
@@ -504,6 +521,7 @@ def delete_pret(
     db_item = db.query(PretSalarie).filter(PretSalarie.id == id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="Prêt introuvable.")
+    require_staff(current_user)
     check_salarie_ownership(db_item.salarie_id, current_user.id, db)
     db.delete(db_item)
     db.commit()
@@ -531,6 +549,7 @@ def create_contrat_info(
     db: Session = Depends(get_db),
     current_user: Utilisateur = Depends(get_current_user)
 ):
+    require_staff(current_user)
     check_salarie_ownership(salarie_id, current_user.id, db)
     db_item = SalarieContratInfo(**contrat_in.model_dump(), salarie_id=salarie_id)
     db.add(db_item)
@@ -549,6 +568,7 @@ def update_contrat_info(
     db_item = db.query(SalarieContratInfo).filter(SalarieContratInfo.id == id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="Informations de contrat introuvables.")
+    require_staff(current_user)
     check_salarie_ownership(db_item.salarie_id, current_user.id, db)
     for field, value in contrat_in.model_dump(exclude_unset=True).items():
         setattr(db_item, field, value)
@@ -566,6 +586,7 @@ def delete_contrat_info(
     db_item = db.query(SalarieContratInfo).filter(SalarieContratInfo.id == id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="Informations de contrat introuvables.")
+    require_staff(current_user)
     check_salarie_ownership(db_item.salarie_id, current_user.id, db)
     db.delete(db_item)
     db.commit()
@@ -593,6 +614,7 @@ def create_service(
     db: Session = Depends(get_db),
     current_user: Utilisateur = Depends(get_current_user)
 ):
+    require_staff(current_user)
     check_salarie_ownership(salarie_id, current_user.id, db)
     db_item = SalarieService(**service_in.model_dump(), salarie_id=salarie_id)
     db.add(db_item)
@@ -611,6 +633,7 @@ def update_service(
     db_item = db.query(SalarieService).filter(SalarieService.id == id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="Informations de service introuvables.")
+    require_staff(current_user)
     check_salarie_ownership(db_item.salarie_id, current_user.id, db)
     for field, value in service_in.model_dump(exclude_unset=True).items():
         setattr(db_item, field, value)
@@ -628,6 +651,7 @@ def delete_service(
     db_item = db.query(SalarieService).filter(SalarieService.id == id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="Informations de service introuvables.")
+    require_staff(current_user)
     check_salarie_ownership(db_item.salarie_id, current_user.id, db)
     db.delete(db_item)
     db.commit()
@@ -655,6 +679,7 @@ def create_archivage(
     db: Session = Depends(get_db),
     current_user: Utilisateur = Depends(get_current_user)
 ):
+    require_staff(current_user)
     check_salarie_ownership(salarie_id, current_user.id, db)
     db_item = ArchivageDocument(**archivage_in.model_dump(), salarie_id=salarie_id)
     db.add(db_item)
@@ -673,6 +698,7 @@ def update_archivage(
     db_item = db.query(ArchivageDocument).filter(ArchivageDocument.id == id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="Document archivé introuvable.")
+    require_staff(current_user)
     check_salarie_ownership(db_item.salarie_id, current_user.id, db)
     for field, value in archivage_in.model_dump(exclude_unset=True).items():
         setattr(db_item, field, value)
@@ -690,6 +716,7 @@ def delete_archivage(
     db_item = db.query(ArchivageDocument).filter(ArchivageDocument.id == id).first()
     if not db_item:
         raise HTTPException(status_code=404, detail="Document archivé introuvable.")
+    require_staff(current_user)
     check_salarie_ownership(db_item.salarie_id, current_user.id, db)
     # Optional: Delete actual file from disk if we want to clean up
     if db_item.fichier_joint:

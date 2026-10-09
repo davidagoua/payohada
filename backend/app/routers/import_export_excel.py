@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import io
 import math
+import os
 from datetime import date, datetime, timezone
 from typing import Optional, List
 
@@ -23,6 +24,8 @@ from openpyxl.styles import (
 from openpyxl.utils import get_column_letter
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+
+from app.config import settings
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from sqlalchemy.orm import Session, joinedload
@@ -482,11 +485,39 @@ async def import_variables_excel(
     """
     _check_dossier(dossier_id, current_user.id, db)
 
-    file_bytes = await fichier.read()
+    # Lecture bornée : sans plafond, un fichier volumineux est chargé
+    # intégralement en mémoire puis confié à openpyxl, ce qui permet
+    # d'épuiser la mémoire du serveur. Le contrôle est appliqué **avant** de
+    # tout conserver, comme le fait le téléversement de documents RH.
+    max_size = settings.MAX_UPLOAD_SIZE_BYTES
+    morceaux: list[bytes] = []
+    total = 0
+    while True:
+        bloc = await fichier.read(1024 * 1024)
+        if not bloc:
+            break
+        total += len(bloc)
+        if total > max_size:
+            raise HTTPException(
+                status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+                detail=(
+                    "Fichier trop volumineux "
+                    f"(maximum {max_size // (1024 * 1024)} Mo)."
+                ),
+            )
+        morceaux.append(bloc)
+
+    file_bytes = b"".join(morceaux)
     if not file_bytes:
         raise HTTPException(status_code=400, detail="Le fichier est vide.")
 
     filename = fichier.filename or "upload.xlsx"
+    extension = os.path.splitext(filename)[1].lower()
+    if extension not in (".xlsx", ".xls", ".csv"):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Format attendu : .xlsx, .xls ou .csv.",
+        )
     try:
         wb_info = _load_workbook_any(file_bytes, filename)
     except Exception as e:

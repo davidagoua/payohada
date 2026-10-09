@@ -42,6 +42,8 @@ from app.services.indemnites_rupture import (
 
 logger = logging.getLogger(__name__)
 
+from app.services.permissions import require_staff
+
 router = APIRouter(tags=["Calculateurs réglementaires CI"])
 
 MOIS_PAR_AN = 12
@@ -405,6 +407,7 @@ def enregistrer_avantages_nature(
     Le calcul est renvoyé pour affichage immédiat ; les valeurs saisies sont
     conservées afin de pouvoir recalculer un bulletin avec un barème à jour.
     """
+    require_staff(current_user)
     contrat = check_contrat_ownership(contrat_id, current_user.id, db)
 
     ligne = db.query(AvantageEnNature).filter(
