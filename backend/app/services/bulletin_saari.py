@@ -45,9 +45,11 @@ LIGNES_CUMULS = (
     ("RICF", "ricf"),
     ("CMU", "cmu"),
     ("Retraite CNPS", "cot_retraite"),
-    ("Congés acquis", "conges_acquis"),
-    ("Congés pris", "conges_pris"),
-    ("Solde de congés", "conges_solde"),
+    # Le « mensuel » est l'acquisition du mois, l'« annuel » le cumul depuis
+    # l'embauche : les libellés le disent, faute de quoi on lisait un 2,5 figé.
+    ("Congés acquis (mois / cumul)", "conges_acquis"),
+    ("Congés pris (mois / cumul)", "conges_pris"),
+    ("Solde de congés disponible", "conges_solde"),
 )
 
 LIBELLES_TYPE_CONTRAT = {
@@ -480,11 +482,11 @@ def _corps_bulletin(
       <div class="cadre-titre">Congés payés</div>
       <table>
         <tr>
-          <th style="width:16%">Acquis</th>
-          <td class="num" style="width:17%">{_nombre(_valeur(cumul_mensuel, 'conges_acquis'))} j</td>
-          <th style="width:16%">Pris</th>
-          <td class="num" style="width:17%">{_nombre(_valeur(cumul_mensuel, 'conges_pris'))} j</td>
-          <th style="width:16%">Solde</th>
+          <th style="width:22%">Droits acquis (cumul)</th>
+          <td class="num" style="width:16%">{_nombre(_valeur(cumul_annuel, 'conges_acquis'))} j</td>
+          <th style="width:18%">Pris ce mois</th>
+          <td class="num" style="width:14%">{_nombre(_valeur(cumul_mensuel, 'conges_pris'))} j</td>
+          <th style="width:16%">Solde disponible</th>
           <td class="num fort">{_nombre(_valeur(cumul_mensuel, 'conges_solde'))} j</td>
         </tr>
       </table>

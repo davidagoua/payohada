@@ -355,6 +355,37 @@ class BulletinSaariPdfTests(unittest.TestCase):
         self.assertIn("CUMULS", texte)
         self.assertIn("Le salarié", texte)
 
+    def test_le_bulletin_affiche_le_cumul_des_conges(self):
+        """Régression : le bulletin affichait 2,5 j figés au lieu du cumul.
+
+        Le gabarit lisait `mensuel.conges_acquis`, qui est l'acquisition du
+        mois, au lieu de `annuel.conges_acquis`, qui est le cumul depuis
+        l'embauche.
+        """
+        from app.routers.bulletins import compute_bulletin_cumuls
+        from app.services.bulletin_saari import construire_html_saari
+
+        self.contrat.date_debut_contrat = "2025-01-01"
+        self.db.commit()
+
+        affichages = []
+        for mois in (1, 6):
+            bulletin = calculate_payslip(self.db, self.contrat.id, mois, 2025)
+            cumuls = compute_bulletin_cumuls(self.db, bulletin)
+            html = construire_html_saari(
+                bulletin, contrat=self.contrat, salarie=self.salarie,
+                etablissement=self.etablissement, dossier=self.t["dossier"],
+                cumuls=cumuls,
+            )
+            self.assertIn("Droits acquis (cumul)", html)
+            affichages.append((mois, cumuls.annuel.conges_acquis, html))
+
+        # Mois 1 : 2,5 j — mois 6 : 15 j. Les deux valeurs doivent apparaître.
+        self.assertIn("2,50 j", affichages[0][2])
+        self.assertIn("15 j", affichages[1][2])
+        self.assertEqual(affichages[0][1], 2.5)
+        self.assertEqual(affichages[1][1], 15.0)
+
     def test_nom_de_fichier(self):
         nom = nom_fichier_bulletin(self.salarie, self.bulletin)
         self.assertTrue(nom.startswith("bulletin_paie_"))

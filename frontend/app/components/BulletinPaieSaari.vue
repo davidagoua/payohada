@@ -72,9 +72,11 @@ const LIGNES_CUMULS = [
   { libelle: 'RICF', cle: 'ricf' },
   { libelle: 'CMU', cle: 'cmu' },
   { libelle: 'Retraite CNPS', cle: 'cot_retraite' },
-  { libelle: 'Congés acquis', cle: 'conges_acquis' },
-  { libelle: 'Congés pris', cle: 'conges_pris' },
-  { libelle: 'Solde de congés', cle: 'conges_solde' }
+  // Le « mensuel » est l'acquisition du mois, l'« annuel » le cumul depuis
+  // l'embauche : les libellés le disent, faute de quoi on lisait un 2,5 figé.
+  { libelle: 'Congés acquis (mois / cumul)', cle: 'conges_acquis' },
+  { libelle: 'Congés pris (mois / cumul)', cle: 'conges_pris' },
+  { libelle: 'Solde de congés disponible', cle: 'conges_solde' }
 ]
 
 //: Les lignes de cumuls sont réparties sur deux colonnes, comme dans le PDF.
@@ -386,11 +388,11 @@ const estExpatrie = computed(() => !!props.salarie?.expatrie)
         <table>
           <tbody>
             <tr>
-              <th>Acquis</th>
-              <td class="mono">{{ formatNombre(cumulMensuel?.conges_acquis) }} j</td>
-              <th>Pris</th>
+              <th>Droits acquis (cumul)</th>
+              <td class="mono">{{ formatNombre(cumulAnnuel?.conges_acquis) }} j</td>
+              <th>Pris ce mois</th>
               <td class="mono">{{ formatNombre(cumulMensuel?.conges_pris) }} j</td>
-              <th>Solde</th>
+              <th>Solde disponible</th>
               <td class="mono fort">{{ formatNombre(cumulMensuel?.conges_solde) }} j</td>
             </tr>
           </tbody>

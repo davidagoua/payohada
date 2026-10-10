@@ -391,6 +391,67 @@ class SourceUniqueTauxCongesTests(unittest.TestCase):
         db.close()
 
 
+class AccumulationDesCongesTests(unittest.TestCase):
+    """Les droits acquis doivent s'incrémenter d'un mois sur l'autre.
+
+    Le solde était correct, mais le champ « acquis » publié valait le taux
+    mensuel (2,5) quel que soit le mois : le bulletin affichait donc un chiffre
+    figé, sans rapport avec l'ancienneté.
+    """
+
+    def setUp(self):
+        reset_database()
+        self.db = SessionLocal()
+        self.t = make_tenant(self.db, "cabinet-cumul-conges")
+        self.contrat = self.t["contrat"]
+        self.contrat.date_debut_contrat = "2025-01-01"
+        self.db.commit()
+
+    def tearDown(self):
+        self.db.close()
+
+    def test_le_cumul_augmente_chaque_mois(self):
+        cumuls = []
+        for mois in range(1, 7):
+            bulletin = calculate_payslip(self.db, self.contrat.id, mois, 2025)
+            cumuls.append(compute_bulletin_cumuls(self.db, bulletin))
+
+        acquis = [c.annuel.conges_acquis for c in cumuls]
+        self.assertEqual(
+            acquis,
+            [round(mois * JOURS_CONGES_PAR_MOIS, 2) for mois in range(1, 7)],
+            "le cumul des droits acquis doit croître de 2,5 jour par mois",
+        )
+        # Strictement croissant
+        self.assertEqual(acquis, sorted(acquis))
+        self.assertEqual(len(set(acquis)), len(acquis))
+
+    def test_le_solde_et_le_cumul_concordent(self):
+        """Acquis cumulé − pris cumulé = solde, sur chaque mois."""
+        for mois in range(1, 5):
+            bulletin = calculate_payslip(self.db, self.contrat.id, mois, 2025)
+            cumul = compute_bulletin_cumuls(self.db, bulletin)
+            self.assertAlmostEqual(
+                cumul.annuel.conges_acquis - cumul.annuel.conges_pris,
+                cumul.annuel.conges_solde,
+                places=2,
+            )
+
+    def test_le_champ_mensuel_reste_l_acquisition_du_mois(self):
+        """`mensuel.conges_acquis` est l'acquisition du mois, pas le cumul.
+
+        C'est ce champ que le gabarit du bulletin lisait par erreur.
+        """
+        bulletin = calculate_payslip(self.db, self.contrat.id, 6, 2025)
+        cumul = compute_bulletin_cumuls(self.db, bulletin)
+        self.assertAlmostEqual(cumul.mensuel.conges_acquis, JOURS_CONGES_PAR_MOIS, places=2)
+        self.assertAlmostEqual(cumul.annuel.conges_acquis, 15.0, places=2)
+        self.assertNotAlmostEqual(
+            cumul.mensuel.conges_acquis, cumul.annuel.conges_acquis,
+            msg="le cumul ne doit pas être confondu avec l'acquisition du mois",
+        )
+
+
 class GratificationTests(unittest.TestCase):
     def test_exemple_du_classeur(self):
         """SMHC 125 000, 270 jours de service → 70 312,50 F."""
