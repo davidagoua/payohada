@@ -176,8 +176,13 @@ def get_comptes_clients(
     db: Session = Depends(get_db),
     current_user: Utilisateur = Depends(get_current_user)
 ):
-    """Liste les comptes d'accès pour un dossier d'entreprise."""
+    """Liste les comptes d'accès pour un dossier d'entreprise.
+
+    Réservé au cabinet : la réponse contient les adresses email des comptes,
+    qui n'ont pas à être exposées au rôle client.
+    """
     check_dossier_ownership(dossier_id, current_user, db)
+    require_staff(current_user)
     return db.query(Utilisateur).filter(
         Utilisateur.dossier_id == dossier_id,
         Utilisateur.role == "client"

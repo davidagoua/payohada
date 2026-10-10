@@ -11,6 +11,8 @@ from app.schemas.etablissement import (
 )
 from app.services.security import get_current_user
 
+from app.services.permissions import require_staff
+
 router = APIRouter(tags=["Etablissements"])
 
 
@@ -57,6 +59,7 @@ def get_etablissements(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """Liste tous les établissements d'un dossier."""
+    require_staff(current_user)
     check_dossier_ownership(dossier_id, current_user.id, db)
     return db.query(Etablissement).filter(Etablissement.dossier_id == dossier_id).all()
 
@@ -68,6 +71,7 @@ def get_next_etablissement_code(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """Calcule le prochain code d'établissement disponible."""
+    require_staff(current_user)
     check_dossier_ownership(dossier_id, current_user.id, db)
     from sqlalchemy import func
     max_id = db.query(func.max(Etablissement.id)).scalar()
@@ -84,6 +88,7 @@ def create_etablissement(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """Crée un établissement pour un dossier."""
+    require_staff(current_user)
     check_dossier_ownership(dossier_id, current_user.id, db)
 
     # Création établissement avec code temporaire unique (max 15 caractères)
@@ -136,6 +141,7 @@ def update_etablissement(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """Met à jour un établissement."""
+    require_staff(current_user)
     etab = check_etablissement_ownership(etablissement_id, current_user.id, db)
 
     # Mettre à jour les champs principaux de l'établissement
@@ -173,6 +179,7 @@ def delete_etablissement(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """Supprime un établissement."""
+    require_staff(current_user)
     etab = check_etablissement_ownership(etablissement_id, current_user.id, db)
     db.delete(etab)
     db.commit()
@@ -190,6 +197,7 @@ def get_caisses(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """Liste les caisses de cotisation d'un établissement."""
+    require_staff(current_user)
     check_etablissement_ownership(etablissement_id, current_user.id, db)
     return db.query(CaisseCotisation).filter(CaisseCotisation.etablissement_id == etablissement_id).all()
 
@@ -202,6 +210,7 @@ def create_caisse(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """Ajoute une caisse de cotisation à l'établissement."""
+    require_staff(current_user)
     check_etablissement_ownership(etablissement_id, current_user.id, db)
 
     caisse = CaisseCotisation(**caisse_in.model_dump(), etablissement_id=etablissement_id)

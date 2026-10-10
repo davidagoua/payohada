@@ -1,5 +1,27 @@
-from pydantic_settings import BaseSettings
+"""Configuration de l'application.
+
+Les valeurs sensibles proviennent exclusivement de l'environnement : aucun
+secret n'est écrit dans le code. Une validation refuse les valeurs publiques
+connues, afin qu'un déploiement ne puisse pas partir avec une clé de signature
+que tout le monde peut lire.
+"""
 from typing import List, Optional
+
+from pydantic import field_validator
+from pydantic_settings import BaseSettings
+
+#: Valeurs de démonstration publiées dans des documentations ou des dépôts.
+#: Les utiliser comme clé de signature HS256 permet à quiconque de forger un
+#: jeton pour n'importe quel compte, administrateur compris.
+SECRETS_PUBLICS = frozenset({
+    "your-super-secret-jwt-token-with-at-least-32-characters-long",
+    "super-secret-jwt-token-with-at-least-32-characters-long",
+    "your-anon-key",
+    "changeme",
+    "change-me",
+    "secret",
+    "test",
+})
 
 
 class Settings(BaseSettings):
@@ -63,6 +85,24 @@ class Settings(BaseSettings):
     SMTP_TIMEOUT: int = 20
     EMAIL_FROM: str = "noreply@payohada.com"
     EMAIL_FROM_NAME: str = "payohada Paie"
+
+    @field_validator("SUPABASE_JWT_SECRET", "SECRET_KEY")
+    @classmethod
+    def _refuser_secret_public(cls, valeur: Optional[str], info) -> Optional[str]:
+        """Refuse une clé de signature publique ou triviale.
+
+        Le contrôle porte sur la valeur exacte : il ne rejette pas les secrets
+        courts utilisés par les tests, mais interdit ceux qui sont publiés dans
+        la documentation Supabase ou dans des dépôts d'exemple.
+        """
+        if valeur and valeur.strip().lower() in SECRETS_PUBLICS:
+            raise ValueError(
+                f"{info.field_name} contient une valeur publique connue. "
+                "Elle permet à n'importe qui de forger un jeton valide pour "
+                "n'importe quel compte. Renseignez le secret réel (Supabase : "
+                "Project Settings → API → JWT Secret)."
+            )
+        return valeur
 
     @property
     def cors_origins(self) -> List[str]:

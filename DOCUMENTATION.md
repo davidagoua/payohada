@@ -403,6 +403,34 @@ logiciel_paie/
 #### Added
 - Suite de tests de non-régression (moteur de paie et API) : `python -m unittest discover -s tests -t . -v`.
 
+#### Autorisations en écriture
+Les gardes de propriété (`check_contrat_ownership`, `check_salarie_ownership`,
+`check_dossier_ownership`, `check_etablissement_ownership`…) autorisent
+volontairement les rôles « client » et « salarié » : c'est légitime en
+**lecture**. Elles ne doivent **jamais** servir de protection unique sur une
+écriture.
+
+Toute route d'écriture appelle donc explicitement `require_staff` (cabinet ou
+administrateur). Un **invariant structurel** le vérifie
+(`tests/test_autorisations_ecriture.py`) en balayant tous les routeurs : toute
+route non-GET protégée par une garde de propriété doit porter `require_staff`,
+`require_admin` ou un contrôle `is_admin`.
+
+Seules cinq routes en sont dispensées, car elles ne modifient pas la base :
+`/bulletins/pdf-lot` et les quatre simulateurs `/calculs/...`. Elles restent
+accessibles à qui a accès à la donnée.
+
+#### Clé de signature des jetons
+`SUPABASE_JWT_SECRET` est la clé HS256 qui signe et vérifie tous les jetons.
+Sa fuite permet de forger un jeton pour n'importe quel compte, administrateur
+compris.
+
+Le démarrage est **refusé** si cette valeur est vide ou correspond à une valeur
+publique connue (notamment le placeholder de la documentation Supabase
+`your-super-secret-jwt-token-with-at-least-32-characters-long`). La valeur réelle
+se trouve dans Supabase : *Project Settings → API → JWT Secret*. Elle ne doit
+figurer que dans l'environnement, jamais dans le dépôt.
+
 #### Journalisation des erreurs (Bugsink / Sentry)
 L'intégration est pilotée par l'environnement : aucun DSN n'est écrit dans le code.
 

@@ -136,6 +136,7 @@ def create_salarie(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """Crée un salarié pour un établissement."""
+    require_staff(current_user)
     check_etablissement_ownership(etablissement_id, current_user.id, db)
 
     # Génération dynamique et unique du matricule

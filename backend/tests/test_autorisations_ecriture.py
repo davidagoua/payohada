@@ -192,6 +192,58 @@ class AutorisationsEcritureTests(unittest.TestCase):
         )
         self.assertIn(r.status_code, (401, 403), r.text[:150])
 
+    # ── Structure du dossier (établissements, départements) ───────────
+
+    def test_creation_d_etablissement_refusee_au_client(self):
+        """Le rôle client pouvait créer un établissement dans son dossier."""
+        r = client.post(
+            f"{API}/dossiers/{self.dossier.id}/etablissements",
+            headers=self.entetes_client,
+            json={"code": "ETAB01", "raison_sociale": "Établissement client"},
+        )
+        self.assertEqual(r.status_code, 403, r.text[:200])
+
+    def test_modification_d_etablissement_refusee_au_client(self):
+        r = client.put(
+            f"{API}/etablissements/{self.etab.id}", headers=self.entetes_client,
+            json={"raison_sociale": "Détourné"},
+        )
+        self.assertEqual(r.status_code, 403)
+
+    def test_suppression_d_etablissement_refusee_au_client(self):
+        r = client.delete(f"{API}/etablissements/{self.etab.id}",
+                          headers=self.entetes_client)
+        self.assertEqual(r.status_code, 403)
+        self.assertIsNotNone(
+            self.db.query(M.Etablissement).filter(
+                M.Etablissement.id == self.etab.id
+            ).first()
+        )
+
+    def test_creation_de_departement_refusee_au_client(self):
+        r = client.post(
+            f"{API}/dossiers/{self.dossier.id}/departements",
+            headers=self.entetes_client, json={"nom": "Département client"},
+        )
+        self.assertEqual(r.status_code, 403)
+
+    def test_creation_de_salarie_refusee_au_client(self):
+        r = client.post(
+            f"{API}/etablissements/{self.etab.id}/salaries",
+            headers=self.entetes_client,
+            json={"nom": "Intrus", "prenom": "Faux", "matricule": "FRAUDE1"},
+        )
+        self.assertEqual(r.status_code, 403)
+        self.assertEqual(
+            self.db.query(M.Salarie).filter(M.Salarie.matricule == "FRAUDE1").count(), 0
+        )
+
+    def test_liste_des_comptes_refusee_au_client(self):
+        """La liste expose les adresses email des comptes du dossier."""
+        r = client.get(f"{API}/dossiers/{self.dossier.id}/comptes-clients",
+                       headers=self.entetes_client)
+        self.assertEqual(r.status_code, 403, r.text[:200])
+
     # ── Dossiers ──────────────────────────────────────────────────────
 
     def test_creation_de_dossier_refusee_au_salarie(self):
@@ -255,11 +307,9 @@ class InvariantAutorisationsTests(unittest.TestCase):
         ("bulletins.py", "/bulletins/pdf-lot"),
     }
 
-    GARDES = (
-        "check_contrat_ownership",
-        "check_salarie_ownership",
-        "check_bulletin_ownership",
-    )
+    #: Motif générique : une liste fermée de gardes avait laissé passer
+    #: `check_dossier_ownership` et `check_etablissement_ownership`.
+    MOTIF_GARDE = r"check_\w*ownership"
 
     def test_toute_route_d_ecriture_est_reservee_au_staff(self):
         import pathlib
@@ -282,11 +332,14 @@ class InvariantAutorisationsTests(unittest.TestCase):
                     continue
                 # Seules les routes protégées par une garde de propriété sont
                 # concernées : les autres ont leur propre contrôle.
-                if not any(g in bloc for g in self.GARDES):
+                if not re.search(self.MOTIF_GARDE, bloc):
                     continue
                 if (fichier.name, chemin) in self.LECTURE_SEULE:
                     continue
-                if "require_staff" not in bloc:
+                if not any(
+                    garde in bloc
+                    for garde in ("require_staff", "require_admin", "is_admin")
+                ):
                     fautives.append(f"{fichier.name} {methode} {chemin}")
 
         self.assertEqual(

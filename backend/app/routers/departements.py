@@ -7,6 +7,8 @@ from app.models.models import Dossier, Departement, Utilisateur
 from app.schemas.departement import DepartementCreate, DepartementUpdate, DepartementOut
 from app.services.security import get_current_user
 
+from app.services.permissions import require_staff
+
 router = APIRouter(tags=["Départements"])
 
 
@@ -42,6 +44,7 @@ def create_departement(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """Crée un nouveau département pour un dossier client."""
+    require_staff(current_user)
     check_dossier_ownership(dossier_id, current_user.id, db)
     db_item = Departement(**departement_in.model_dump(), dossier_id=dossier_id)
     db.add(db_item)
@@ -64,6 +67,7 @@ def update_departement(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Département introuvable."
         )
+    require_staff(current_user)
     check_dossier_ownership(db_item.dossier_id, current_user.id, db)
     for field, value in departement_in.model_dump(exclude_unset=True).items():
         setattr(db_item, field, value)
@@ -85,6 +89,7 @@ def delete_departement(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Département introuvable."
         )
+    require_staff(current_user)
     check_dossier_ownership(db_item.dossier_id, current_user.id, db)
     db.delete(db_item)
     db.commit()
