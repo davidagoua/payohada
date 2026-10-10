@@ -403,6 +403,33 @@ logiciel_paie/
 #### Added
 - Suite de tests de non-régression (moteur de paie et API) : `python -m unittest discover -s tests -t . -v`.
 
+#### Interface : style Carbon (IBM), charte graphique conservée
+Le vocabulaire visuel suit l'**IBM Carbon Design System** ; le vert de la marque
+reste la couleur primaire et les rayons restent nuls. Tout est défini dans
+`frontend/app/assets/css/main.css`, sans modification des gabarits.
+
+| Élément | Choix Carbon |
+|---|---|
+| Typographie | **IBM Plex Sans**, auto-hébergée dans `public/fonts` (licence SIL OFL). Aucune requête externe, donc aucune origine à ajouter à la CSP. |
+| Corps de texte | 14 px / 18 px (Carbon *body-compact-01*), au lieu du 16 px par défaut. |
+| Échelle de gris | Les gris Carbon (gray-10 → gray-100) remplacent l'échelle « slate ». L'application employant ces classes plus de deux mille fois, les redéfinir suffit à basculer toute l'interface. |
+| Champs de formulaire | Style *text input* : fond gray-10, **aucune bordure sauf un filet inférieur** gray-50, hauteur 40 px, survol gray-20. |
+| Libellés | 12 px, **casse de phrase** — Carbon proscrit les capitales, contrairement à l'ancien style qui les employait partout. |
+| Tableaux | Style *data table* : aucune bordure verticale, filet sous l'en-tête uniquement, hauteur de ligne 40 px, survol gray-20. |
+| Focus | Contour de 2 px dans la couleur d'action, à l'intérieur de l'élément — défini une seule fois, globalement. |
+| Relief | L'ombre décalée d'origine est remplacée par un relief plat. Carbon sépare par des filets, non par des ombres. |
+| Composants Nuxt UI | Les jetons sémantiques (`--ui-bg`, `--ui-text`, `--ui-border`…) sont alignés sur Carbon, ce qui habille `UButton`, `UInput`, `UCard` et `UModal` sans les toucher. Les surcharges sont limitées au mode clair (`:root:not(.dark)`) pour préserver la palette sombre. |
+
+Classes maison ajoutées pour les nouveaux écrans : `.carbon-tile`, `.carbon-label`,
+`.carbon-helper`, `.carbon-error`, `.carbon-tag`, `.carbon-notification`,
+`.carbon-divider`, `.carbon-heading-03/04`.
+
+**Défaut corrigé au passage** : le code employait `slate-350`, `slate-450`,
+`slate-550` et `slate-650` — 229 occurrences — alors que ces nuances n'existaient
+pas dans le thème. Tailwind n'émettait donc aucune règle et les bordures et
+textes concernés retombaient silencieusement sur la couleur héritée. Les quatre
+nuances sont désormais définies.
+
 #### Autorisations en écriture
 Les gardes de propriété (`check_contrat_ownership`, `check_salarie_ownership`,
 `check_dossier_ownership`, `check_etablissement_ownership`…) autorisent

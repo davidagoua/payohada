@@ -1,9 +1,59 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 
-@theme static {
-  --font-sans: 'Public Sans', sans-serif;
+/* ═══════════════════════════════════════════════════════════════════
+   THÈME CARBON (IBM Carbon Design System)
+   La charte graphique est conservée : le vert de la marque reste la
+   couleur primaire, les rayons restent nuls. Le vocabulaire visuel
+   (typographie, gris, formes, densité) suit Carbon.
+   ═══════════════════════════════════════════════════════════════════ */
 
+/* ── Typographie : IBM Plex Sans, auto-hébergée (aucune requête externe,
+      donc aucune origine supplémentaire à autoriser dans la CSP).
+      IBM Plex Sans est distribué sous licence SIL Open Font License. ── */
+@font-face {
+  font-family: 'IBM Plex Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/ibm-plex-sans-latin-400-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'IBM Plex Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/ibm-plex-sans-latin-ext-400-normal.woff2') format('woff2');
+  unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF,
+    U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'IBM Plex Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/ibm-plex-sans-latin-600-normal.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+    U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+2074, U+20AC, U+2122, U+2191,
+    U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'IBM Plex Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/ibm-plex-sans-latin-ext-600-normal.woff2') format('woff2');
+  unicode-range: U+0100-02AF, U+0304, U+0308, U+0329, U+1E00-1E9F, U+1EF2-1EFF,
+    U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@theme static {
+  --font-sans: 'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif;
+
+  /* ── Charte graphique conservée : le vert de la marque ─────────── */
   --color-green-50: #eefcf1;
   --color-green-100: #d9f7e0;
   --color-green-200: #b4eec2;
@@ -16,7 +66,43 @@
   --color-green-900: #0d4019;
   --color-green-950: #08260f;
 
-  /* Force all border radius to be square (corporate style) */
+  /* ── Échelle neutre alignée sur les gris Carbon ────────────────────
+     Ces valeurs remplacent l'échelle « slate » d'origine. L'application
+     utilise ces classes plus de deux mille fois : les redéfinir ici suffit
+     à faire passer toute l'interface aux gris Carbon, sans toucher aux
+     gabarits.
+
+     Les nuances intermédiaires 350, 450, 550 et 650 étaient utilisées par
+     le code (229 occurrences) sans exister dans le thème : les bordures et
+     textes concernés retombaient silencieusement sur la couleur héritée.
+     Elles sont désormais définies. */
+  --color-slate-50: #f4f4f4;   /* gray-10  — couche, fond de champ      */
+  --color-slate-100: #e8e8e8;  /* entre gray-10 et gray-20 — survol      */
+  --color-slate-200: #e0e0e0;  /* gray-20  — bordure discrète            */
+  --color-slate-300: #c6c6c6;  /* gray-30  — bordure, texte désactivé    */
+  --color-slate-350: #a8a8a8;  /* gray-40  — bordure moyenne             */
+  --color-slate-400: #a8a8a8;  /* gray-40  — texte indicatif             */
+  --color-slate-450: #8d8d8d;  /* gray-50  — bordure forte               */
+  --color-slate-500: #6f6f6f;  /* gray-60  — texte secondaire            */
+  --color-slate-550: #6f6f6f;  /* gray-60                                */
+  --color-slate-600: #525252;  /* gray-70  — texte secondaire appuyé     */
+  --color-slate-650: #525252;  /* gray-70                                */
+  --color-slate-700: #393939;  /* gray-80  — texte principal appuyé      */
+  --color-slate-800: #262626;  /* gray-90                                */
+  --color-slate-900: #161616;  /* gray-100 — texte principal             */
+  --color-slate-950: #161616;  /* gray-100                               */
+
+  /* ── Jetons Carbon exposés comme couleurs utilitaires ──────────── */
+  --color-carbon-layer: #f4f4f4;
+  --color-carbon-border-subtle: #e0e0e0;
+  --color-carbon-border-strong: #8d8d8d;
+  --color-carbon-text: #161616;
+  --color-carbon-text-secondary: #525252;
+  --color-carbon-text-helper: #6f6f6f;
+  --color-carbon-text-placeholder: #a8a8a8;
+  --color-carbon-inverse: #393939;
+
+  /* ── Raysons nuls : Carbon n'utilise aucun coin arrondi ────────── */
   --radius-none: 0px;
   --radius-xs: 0px;
   --radius-sm: 0px;
@@ -29,45 +115,326 @@
 }
 
 :root {
-  /* Set Nuxt UI components to have square corners */
   --ui-radius: 0px !important;
+
+  /* Jetons Carbon, réutilisables dans les composants maison */
+  --carbon-primary: var(--color-green-600);
+  --carbon-primary-hover: var(--color-green-700);
+  --carbon-layer: #f4f4f4;
+  --carbon-layer-hover: #e8e8e8;
+  --carbon-border-subtle: #e0e0e0;
+  --carbon-border-strong: #8d8d8d;
+  --carbon-text: #161616;
+  --carbon-text-secondary: #525252;
+  --carbon-text-helper: #6f6f6f;
+  --carbon-text-placeholder: #a8a8a8;
+  --carbon-danger: #da1e28;
+  --carbon-danger-hover: #a2191f;
+  --carbon-warning: #f1c21b;
+  --carbon-success: var(--color-green-600);
+  --carbon-tile-padding: 16px;
 }
 
-/* Ensure all buttons, fields, select options, and modals are strictly square */
+/* ═══════════════════════════════════════════════════════════════════
+   BASE
+   ═══════════════════════════════════════════════════════════════════ */
+
+html {
+  /* Carbon : corps de texte à 14 px, interligne 20 px (body-01) */
+  font-size: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 0.875rem;   /* 14px */
+  line-height: 1.29;     /* ≈18px, body-compact-01 de Carbon */
+  color: var(--carbon-text);
+  background-color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Carbon place l'indicateur de focus en contour de 2 px, à l'intérieur de
+   l'élément, dans la couleur d'action. Un seul endroit suffit : plus aucun
+   composant n'a besoin de le redéfinir. */
+:focus-visible {
+  outline: 2px solid var(--carbon-primary);
+  outline-offset: -2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   ÉLÉMENTS DE FORMULAIRE — style « text input » de Carbon
+   Fond gris clair, aucune bordure sauf un filet inférieur, hauteur 40 px,
+   libellé au-dessus en 12 px. Les sélecteurs emploient :not() pour passer
+   devant les classes utilitaires des gabarits existants.
+   ═══════════════════════════════════════════════════════════════════ */
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]),
+select,
+textarea {
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  line-height: 1.29;
+  min-height: 40px;
+  padding: 0 16px;
+  background-color: var(--carbon-layer);
+  border: none;
+  border-bottom: 1px solid var(--carbon-border-strong);
+  color: var(--carbon-text) !important;
+  transition: background-color 70ms cubic-bezier(0, 0, 0.38, 0.9),
+              outline 70ms cubic-bezier(0, 0, 0.38, 0.9);
+}
+
+textarea {
+  padding: 11px 16px;
+  min-height: 80px;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):hover,
+select:hover,
+textarea:hover {
+  background-color: var(--carbon-layer-hover);
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):focus,
+select:focus,
+textarea:focus {
+  outline: 2px solid var(--carbon-primary);
+  outline-offset: -2px;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--carbon-text-placeholder);
+}
+
+/* Lecture seule et désactivé : Carbon atténue le texte et retire le filet */
+input:disabled,
+select:disabled,
+textarea:disabled,
+input[readonly],
+textarea[readonly] {
+  color: var(--carbon-text-placeholder) !important;
+  border-bottom-color: transparent;
+  cursor: not-allowed;
+}
+
+/* Error state : filet inférieur rouge */
+input[aria-invalid="true"],
+select[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+  outline: 2px solid var(--carbon-danger);
+  outline-offset: -2px;
+}
+
+/* Libellés de champ : Carbon les écrit en 12 px, casse de phrase, gris
+   secondaire — jamais en capitales. Le sélecteur cible les libellés dotés
+   d'une classe afin de passer devant les utilitaires « uppercase ». */
+label[class] {
+  display: block;
+  font-size: 0.75rem;          /* 12px, label-01 */
+  line-height: 1rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--carbon-text-secondary);
+  margin-bottom: 4px;
+}
+
+/* Case à cocher et bouton radio : carrés, vert de la marque */
+input[type="checkbox"],
+input[type="radio"] {
+  accent-color: var(--carbon-primary);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TABLEAUX — style « data table » de Carbon
+   Aucune bordure verticale, filet sous l'en-tête, survol de ligne.
+   Les styles « scoped » des composants restent prioritaires : les
+   sélecteurs d'élément ci-dessous ne les écrasent jamais.
+   ═══════════════════════════════════════════════════════════════════ */
+
+table {
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+thead th {
+  font-weight: 600;
+  color: var(--carbon-text);
+  background-color: transparent;
+  border-bottom: 1px solid var(--carbon-border-strong);
+  border-top: none;
+  border-left: none;
+  border-right: none;
+  text-align: left;
+  vertical-align: middle;
+  padding: 8px 16px;
+  height: 40px;
+}
+
+tbody td {
+  border: none;
+  border-bottom: 1px solid var(--carbon-border-subtle);
+  color: var(--carbon-text);
+  padding: 8px 16px;
+  vertical-align: middle;
+}
+
+tbody tr:hover {
+  background-color: var(--carbon-layer-hover);
+}
+
+tbody tr:last-child td {
+  border-bottom-color: var(--carbon-border-subtle);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   COMPOSANTS CARBON RÉUTILISABLES
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Tuile : filet 1 px, aucun relief. La brique de base de Carbon. */
+.carbon-tile {
+  background-color: #ffffff;
+  border: 1px solid var(--carbon-border-subtle);
+  padding: var(--carbon-tile-padding);
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.carbon-tile--clickable {
+  cursor: pointer;
+  transition: background-color 70ms cubic-bezier(0, 0, 0.38, 0.9);
+}
+
+.carbon-tile--clickable:hover {
+  background-color: var(--carbon-layer);
+}
+
+/* Libellé et texte d'aide, aux normes Carbon */
+.carbon-label {
+  display: block;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: var(--carbon-text-secondary);
+  margin-bottom: 4px;
+}
+
+.carbon-helper {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: var(--carbon-text-helper);
+}
+
+.carbon-error {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: var(--carbon-danger);
+}
+
+/* Titres : Carbon les compose en graisse normale, jamais en gras */
+.carbon-heading-03 { font-size: 1.25rem; line-height: 1.75rem; font-weight: 400; }
+.carbon-heading-04 { font-size: 1.75rem; line-height: 2.25rem; font-weight: 400; }
+
+/* Étiquette : seule forme arrondie de Carbon */
+.carbon-tag {
+  display: inline-flex;
+  align-items: center;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 24px !important;
+  font-size: 0.75rem;
+  line-height: 1;
+  background-color: var(--carbon-layer);
+  color: var(--carbon-text-secondary);
+}
+
+/* Notification : filet gauche de 3 px, sans coins arrondis */
+.carbon-notification {
+  border-left: 3px solid var(--carbon-primary);
+  background-color: var(--carbon-layer);
+  padding: 12px 16px;
+}
+
+.carbon-notification--error { border-left-color: var(--carbon-danger); }
+.carbon-notification--warning { border-left-color: var(--carbon-warning); }
+.carbon-notification--success { border-left-color: var(--carbon-success); }
+
+/* Filet de séparation, à la place des ombres */
+.carbon-divider {
+  border: none;
+  border-top: 1px solid var(--carbon-border-subtle);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   COMPOSANTS NUXT UI (UButton, UInput, UCard, UModal…)
+   Nuxt UI expose un jeu de jetons sémantiques : les redéfinir suffit à
+   aligner ses composants sur Carbon, sans toucher au moindre gabarit.
+   Les surcharges sont limitées au mode clair (`:root:not(.dark)`) afin de
+   laisser intacte la palette sombre fournie par Nuxt UI.
+   ═══════════════════════════════════════════════════════════════════ */
+
+:root:not(.dark) {
+  /* Surfaces */
+  --ui-bg: #ffffff;
+  --ui-bg-muted: var(--carbon-layer);            /* gray-10 */
+  --ui-bg-elevated: #ffffff;
+  --ui-bg-accented: var(--carbon-layer-hover);   /* gray-20 */
+  --ui-bg-inverted: var(--carbon-inverse);       /* gray-80 */
+
+  /* Texte */
+  --ui-text: var(--carbon-text);                 /* gray-100 */
+  --ui-text-highlighted: var(--carbon-text);
+  --ui-text-toned: var(--carbon-text-secondary); /* gray-70 */
+  --ui-text-muted: var(--carbon-text-helper);    /* gray-60 */
+  --ui-text-dimmed: var(--carbon-text-placeholder); /* gray-40 */
+  --ui-text-inverted: #ffffff;
+
+  /* Bordures : Carbon distingue la bordure discrète de la bordure forte */
+  --ui-border: var(--carbon-border-strong);      /* gray-50 */
+  --ui-border-muted: var(--carbon-border-subtle);/* gray-20 */
+  --ui-border-accented: #c6c6c6;                 /* gray-30 */
+  --ui-border-inverted: var(--carbon-text);      /* gray-100 */
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   COMPATIBILITÉ AVEC LES GABARITS EXISTANTS
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Le relief décalé d'origine est remplacé par un relief plat, seul admis
+   par Carbon. Les gabarits continuent d'employer la même classe. */
+.shadow-flat {
+  box-shadow: 0 1px 2px rgba(22, 22, 22, 0.1);
+}
+
+.shadow-flat-hover {
+  transition: background-color 70ms cubic-bezier(0, 0, 0.38, 0.9),
+              box-shadow 70ms cubic-bezier(0, 0, 0.38, 0.9);
+}
+
+.shadow-flat-hover:hover {
+  box-shadow: 0 2px 6px rgba(22, 22, 22, 0.14);
+  transform: none;
+}
+
+.shadow-flat-active:active {
+  box-shadow: 0 1px 2px rgba(22, 22, 22, 0.1);
+  transform: none;
+}
+
+/* Aucun coin arrondi, y compris sur les composants tiers. Les étiquettes
+   font exception : Carbon les dessine en gélule. */
 input, select, textarea, button, [class*="rounded"] {
   border-radius: 0px !important;
 }
 
-/* Corporate styling utilities */
-.shadow-flat {
-  box-shadow: 2px 2px 0px 0px rgba(0, 0, 0, 0.08);
+.carbon-tag,
+[class*="rounded-full"] {
+  border-radius: 9999px !important;
 }
 
-.shadow-flat-hover {
-  transition: all 0.15s ease;
-}
-
-.shadow-flat-hover:hover {
-  box-shadow: 4px 4px 0px 0px rgba(0, 0, 0, 0.12);
-  transform: translate(-1px, -1px);
-}
-
-.shadow-flat-active:active {
-  box-shadow: 1px 1px 0px 0px rgba(0, 0, 0, 0.08);
-  transform: translate(1px, 1px);
-}
-
-/* Force dark text for all form fields (inputs, selects, textareas) to prevent invisible text on light backgrounds in dark mode */
-input:not([type="checkbox"]):not([type="radio"]),
-select,
-textarea {
-  color: #0f172a !important;
-}
-
-/* Fix dropdown options in select elements in dark mode */
+/* Menus déroulants natifs */
 select option {
   background-color: #ffffff !important;
-  color: #0f172a !important;
+  color: var(--carbon-text) !important;
 }
-
-
