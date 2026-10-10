@@ -222,9 +222,9 @@ class IndemniteCongesSursalaireTests(unittest.TestCase):
         corps = r.json()
         # 5 ans × 30 % × 500 000 = 750 000 (et non 900 000 sur 600 000)
         self.assertAlmostEqual(corps["indemnite_licenciement"], 750_000.0, places=2)
-        # Congés : journalier 500 000/30 = 16 666,67 × 33 jours calendaires
-        # (12 mois × 2,2 = 26,4 jours ouvrables × 1,25)
-        self.assertAlmostEqual(corps["indemnite_conges_payes"], 550_000.0, places=2)
+        # Congés : journalier 500 000/30 = 16 666,67 × 37,5 jours calendaires
+        # (12 mois × 2,5 = 30 jours ouvrables × 1,25)
+        self.assertAlmostEqual(corps["indemnite_conges_payes"], 625_000.0, places=2)
 
 
 if __name__ == "__main__":

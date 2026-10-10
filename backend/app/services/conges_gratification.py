@@ -27,8 +27,18 @@ from app.services.indemnites_rupture import _en_date, jours_service_360
 #  CONSTANTES
 # ─────────────────────────────────────────────
 
-#: Jours ouvrables acquis par mois de service effectif (art. 25.1).
-JOURS_CONGES_PAR_MOIS = 2.2
+#: Jours ouvrables acquis par mois de service effectif.
+#:
+#: Le minimum légal est de 2,2 jours (Code du travail, art. 25.1). La
+#: convention collective applicable en accorde 2,5 : une disposition plus
+#: favorable au salarié, qui prévaut sur le minimum légal. C'est cette valeur
+#: qui fait foi dans toute l'application ; elle est importée par le calcul du
+#: bulletin et par l'estimation du solde de congés au départ, afin qu'une
+#: modification ne puisse pas en laisser une copie divergente ailleurs.
+JOURS_CONGES_PAR_MOIS = 2.5
+
+#: Minimum légal, conservé pour référence et pour les contrôles.
+JOURS_CONGES_PAR_MOIS_LEGAL = 2.2
 
 #: Diviseur du salaire mensuel pour obtenir le salaire journalier (art. 71).
 DIVISEUR_SALAIRE_JOURNALIER = 30

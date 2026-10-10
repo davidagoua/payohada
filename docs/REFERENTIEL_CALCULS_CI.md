@@ -105,8 +105,17 @@ et 72 ; décret n° 98-39 du 28 janvier 1998, art. 12, 14 et 16.
 
 | Élément | Règle |
 |---|---|
-| Acquisition | **2,2 jours ouvrables** par mois de service effectif |
+| Acquisition | **2,5 jours ouvrables** par mois de service effectif |
 | Majorations d'ancienneté | < 5 ans : 0 · 5 à < 10 : 1 j · 10 à < 15 : 2 j · 15 à < 20 : 3 j · 20 à < 25 : 5 j · 25 à < 30 : 7 j · ≥ 30 : **8 j** |
+
+> **Taux d'acquisition retenu : 2,5 jours par mois.**
+> Le minimum légal est de 2,2 jours (Code du travail, art. 25.1). La convention
+> collective applicable en accorde 2,5 : une disposition plus favorable au
+> salarié, qui prévaut sur le minimum. Le taux n'existe qu'à un seul endroit du
+> code (`JOURS_CONGES_PAR_MOIS`, dans `app/services/conges_gratification.py`) et
+> est importé par le calcul du bulletin comme par l'estimation du solde au
+> départ. Le minimum légal est conservé sous `JOURS_CONGES_PAR_MOIS_LEGAL`, et
+> un test vérifie que le taux retenu ne lui est jamais inférieur.
 | Salaire journalier | Salaire mensuel moyen **/ 30** (art. 71) |
 | Conversion ouvrables → calendaires | Coefficient **1,25** (24 j ouvrables = 30 j calendaires) |
 
@@ -119,8 +128,8 @@ Les deux montants sont calculés et comparés ; la méthode retenue est
 paramétrable. Un montant validé par le gestionnaire peut être saisi directement.
 
 **Exemple** — 12 mois à 350 000 F, 12 mois de service, 15 jours pris :
-droits `12 × 2,2 = 26,4 j` ; solde `11,4 j ouvrables = 14,25 j calendaires` ;
-conventionnelle `11 666,67 × 14,25 =` **166 250 F** ; décret `(350 000/26,4) × 11,4 ≈ 151 136 F`.
+droits `12 × 2,5 = 30 j` ; solde `15 j ouvrables = 18,75 j calendaires` ;
+conventionnelle `11 666,67 × 18,75 =` **218 750 F** ; décret `(350 000/30) × 15 = 175 000 F`.
 
 Module : `app/services/conges_gratification.py`
 Fonctions : `calculer_conges_payes()`, `droits_conges_acquis()`, `majoration_anciennete()`

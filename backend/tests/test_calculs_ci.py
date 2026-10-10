@@ -7,6 +7,7 @@ import unittest
 from datetime import date
 
 from tests import base  # noqa: F401  (configure l'environnement avant les imports app)
+from tests.base import SessionLocal, make_tenant, reset_database
 
 from app.services.avantages_nature import (
     MONTANT_CLIMATISEUR,
@@ -22,6 +23,7 @@ from app.services.avantages_nature import (
 from app.services.conges_gratification import (
     COEFFICIENT_OUVRABLES_CALENDAIRES,
     JOURS_CONGES_PAR_MOIS,
+    JOURS_CONGES_PAR_MOIS_LEGAL,
     METHODE_CONVENTIONNELLE,
     METHODE_DECRET,
     calculer_conges_payes,
@@ -30,6 +32,8 @@ from app.services.conges_gratification import (
     jours_service_annuels,
     majoration_anciennete,
 )
+from app.routers.bulletins import compute_bulletin_cumuls
+from app.services.payroll import calculate_payslip
 from app.services.indemnites_rupture import (
     TAUX_FIN_CDD,
     anciennete_en_mois,
@@ -251,33 +255,47 @@ class CongesPayesTests(unittest.TestCase):
         self.assertEqual(r.nombre_mois_remuneres, 12)
         self.assertAlmostEqual(r.salaire_mensuel_moyen, 350_000.0, places=2)
         self.assertAlmostEqual(r.salaire_journalier, 11_666.67, places=2)
-        self.assertAlmostEqual(r.jours_principaux_acquis, 26.4, places=2)
-        self.assertAlmostEqual(r.solde_jours_ouvrables, 11.4, places=2)
-        self.assertAlmostEqual(r.solde_jours_calendaires, 14.25, places=2)
-        self.assertAlmostEqual(r.montant_conventionnel, 166_250.0, places=2)
+        # 12 mois × 2,5 jours (disposition conventionnelle plus favorable)
+        self.assertAlmostEqual(r.jours_principaux_acquis, 30.0, places=2)
+        self.assertAlmostEqual(r.solde_jours_ouvrables, 15.0, places=2)
+        self.assertAlmostEqual(r.solde_jours_calendaires, 18.75, places=2)
+        self.assertAlmostEqual(r.montant_conventionnel, 218_750.0, places=2)
         self.assertAlmostEqual(r.allocation_principale, 350_000.0, places=2)  # 1/12
-        self.assertAlmostEqual(r.montant_decret, 151_136.36, places=2)
+        self.assertAlmostEqual(r.montant_decret, 175_000.0, places=2)
         self.assertIn("conventionnelle supérieure", r.comparaison)
 
     def test_methode_retenue_par_defaut(self):
         self.assertEqual(self.resultat.methode_retenue, METHODE_CONVENTIONNELLE)
-        self.assertAlmostEqual(self.resultat.montant_retenu, 166_250.0, places=2)
+        self.assertAlmostEqual(self.resultat.montant_retenu, 218_750.0, places=2)
 
     def test_bascule_sur_la_methode_du_decret(self):
         r = calculer_conges_payes(
             self.remunerations, 12, jours_pris=15, methode=METHODE_DECRET
         )
-        self.assertAlmostEqual(r.montant_retenu, 151_136.36, places=2)
+        self.assertAlmostEqual(r.montant_retenu, 175_000.0, places=2)
 
     def test_montant_manuel_prioritaire(self):
         r = calculer_conges_payes(self.remunerations, 12, montant_manuel=200_000.0)
         self.assertAlmostEqual(r.montant_retenu, 200_000.0, places=2)
 
-    def test_acquisition_de_2_2_jours_par_mois(self):
-        """Le document de référence donne 8 mois → 8 × 2,2 = 17,6 jours."""
+    def test_acquisition_mensuelle_des_conges(self):
+        """8 mois de service → 8 × le taux mensuel de jours ouvrables.
+
+        Le minimum légal est de 2,2 jours par mois (art. 25.1). La convention
+        collective applicable en accorde 2,5, une disposition plus favorable qui
+        prévaut : c'est ce taux que l'application retient partout.
+        """
         droits = droits_conges_acquis(8)
-        self.assertAlmostEqual(droits["jours_principaux_acquis"], 17.6, places=2)
-        self.assertAlmostEqual(JOURS_CONGES_PAR_MOIS, 2.2, places=6)
+        self.assertAlmostEqual(
+            droits["jours_principaux_acquis"], 8 * JOURS_CONGES_PAR_MOIS, places=2
+        )
+        self.assertAlmostEqual(droits["jours_principaux_acquis"], 20.0, places=2)
+        self.assertAlmostEqual(JOURS_CONGES_PAR_MOIS, 2.5, places=6)
+        self.assertAlmostEqual(JOURS_CONGES_PAR_MOIS_LEGAL, 2.2, places=6)
+        self.assertGreater(
+            JOURS_CONGES_PAR_MOIS, JOURS_CONGES_PAR_MOIS_LEGAL,
+            "le taux conventionnel doit rester au moins égal au minimum légal",
+        )
 
     def test_coefficient_jours_ouvrables_calendaires(self):
         """24 jours ouvrables correspondent à 30 jours calendaires."""
@@ -293,7 +311,9 @@ class CongesPayesTests(unittest.TestCase):
         r = calculer_conges_payes(
             self.remunerations, 12, jours_supplementaires=3, jours_pris=0
         )
-        self.assertAlmostEqual(r.total_jours_acquis, 29.4, places=2)
+        self.assertAlmostEqual(
+            r.total_jours_acquis, 12 * JOURS_CONGES_PAR_MOIS + 3, places=2
+        )
 
     def test_alertes_sur_donnees_manquantes(self):
         r = calculer_conges_payes([], 0)
@@ -312,6 +332,64 @@ class CongesPayesTests(unittest.TestCase):
 # ═══════════════════════════════════════════════════════════════════
 #  GRATIFICATION ANNUELLE
 # ═══════════════════════════════════════════════════════════════════
+
+class SourceUniqueTauxCongesTests(unittest.TestCase):
+    """Le taux d'acquisition des congés ne doit exister qu'à un seul endroit.
+
+    Il était auparavant écrit en dur dans le calcul du bulletin (2,5) et dans
+    l'estimation du solde au départ, tandis que le référentiel des calculateurs
+    annonçait 2,2 : deux valeurs contradictoires pour la même règle. Ce test
+    empêche la réapparition d'une copie divergente.
+    """
+
+    def test_aucun_taux_en_dur_dans_les_routeurs(self):
+        import pathlib as _pathlib
+        import re
+
+        routeurs = _pathlib.Path(__file__).resolve().parent.parent / "app" / "routers"
+        # Toute multiplication d'une ancienneté en mois par un littéral
+        motif = re.compile(r"months_seniority\s*\*\s*[\d.]+")
+        fautives = []
+        for fichier in sorted(routeurs.glob("*.py")):
+            for numero, ligne in enumerate(
+                fichier.read_text(encoding="utf-8").splitlines(), 1
+            ):
+                if motif.search(ligne):
+                    fautives.append(f"{fichier.name}:{numero} → {ligne.strip()}")
+        self.assertEqual(
+            fautives, [],
+            "Taux d'acquisition des congés écrit en dur : utilisez "
+            "JOURS_CONGES_PAR_MOIS du service conges_gratification.\n"
+            + "\n".join(f"  - {f}" for f in fautives),
+        )
+
+    def test_le_bulletin_et_l_estimation_du_depart_concordent(self):
+        """Le calcul du bulletin et l'estimation au départ doivent donner le
+        même solde de congés pour la même situation."""
+        reset_database()
+        db = SessionLocal()
+        t = make_tenant(db, "cabinet-concordance-conges")
+        contrat = t["contrat"]
+        contrat.date_debut_contrat = "2025-01-01"
+        db.commit()
+
+        # 6 mois de service, aucune absence
+        bulletin = calculate_payslip(db, contrat.id, 6, 2025)
+        cumuls = compute_bulletin_cumuls(db, bulletin).mensuel
+
+        # Le bulletin expose le taux mensuel et le solde cumulé
+        self.assertAlmostEqual(cumuls.conges_acquis, JOURS_CONGES_PAR_MOIS, places=2)
+        acquise_par_le_bulletin = 6 * JOURS_CONGES_PAR_MOIS
+        self.assertAlmostEqual(cumuls.conges_solde, acquise_par_le_bulletin, places=2)
+
+        # L'estimation faite au moment du départ doit donner le même solde
+        from app.routers.contrats import calculate_estimated_conges_solde
+
+        solde_estime = calculate_estimated_conges_solde(db, contrat, 2025, 6)
+        self.assertAlmostEqual(solde_estime, acquise_par_le_bulletin, places=2)
+        self.assertAlmostEqual(solde_estime, cumuls.conges_solde, places=2)
+        db.close()
+
 
 class GratificationTests(unittest.TestCase):
     def test_exemple_du_classeur(self):

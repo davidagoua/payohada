@@ -12,6 +12,7 @@ from app.schemas.contrat import (
     DepartSalarieCreate, DepartSalarieOut
 )
 from app.schemas.bulletin import SoldeToutCompteOut, SoldeToutCompteBase
+from app.services.conges_gratification import JOURS_CONGES_PAR_MOIS
 from app.services.security import get_current_user
 import logging
 
@@ -189,7 +190,7 @@ def calculate_estimated_conges_solde(db: Session, contrat: Contrat, year: int, m
         
     months_seniority = (year - start_date.year) * 12 + (month - start_date.month) + 1
     months_seniority = max(1, months_seniority)
-    conges_acquis_cumules = round(months_seniority * 2.5, 2)
+    conges_acquis_cumules = round(months_seniority * JOURS_CONGES_PAR_MOIS, 2)
     
     absences_cp = db.query(SalarieAbsence).filter(
         SalarieAbsence.salarie_id == contrat.salarie_id,

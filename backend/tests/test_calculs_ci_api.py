@@ -166,12 +166,12 @@ class CalculateursApiTests(unittest.TestCase):
                                "anciennete_annees": 2})
         self.assertEqual(r.status_code, 200, r.text)
         corps = r.json()
-        self.assertAlmostEqual(corps["jours_principaux_acquis"], 26.4, places=2)
-        self.assertAlmostEqual(corps["solde_jours_ouvrables"], 11.4, places=2)
-        self.assertAlmostEqual(corps["solde_jours_calendaires"], 14.25, places=2)
+        self.assertAlmostEqual(corps["jours_principaux_acquis"], 30.0, places=2)
+        self.assertAlmostEqual(corps["solde_jours_ouvrables"], 15.0, places=2)
+        self.assertAlmostEqual(corps["solde_jours_calendaires"], 18.75, places=2)
         # Base reprise des bulletins : 12 × 300 000 → journalier 10 000
         self.assertAlmostEqual(corps["salaire_mensuel_moyen"], 300_000.0, places=2)
-        self.assertAlmostEqual(corps["montant_conventionnel"], 142_500.0, places=2)
+        self.assertAlmostEqual(corps["montant_conventionnel"], 187_500.0, places=2)
         self.assertIn("conventionnelle supérieure", corps["comparaison"])
 
     # ── Avantages en nature ───────────────────────────────────────────
@@ -243,14 +243,14 @@ class CalculateursApiTests(unittest.TestCase):
         self.assertEqual(r.status_code, 200, r.text)
         corps = r.json()
         self.assertAlmostEqual(corps["indemnite_licenciement"], 0.0, places=2)
-        self.assertAlmostEqual(corps["indemnite_conges_payes"], 142_500.0, places=2)
+        self.assertAlmostEqual(corps["indemnite_conges_payes"], 187_500.0, places=2)
         self.assertIn("conges", corps["details"])
 
         stc = self.db.query(M.SoldeToutCompte).filter(
             M.SoldeToutCompte.contrat_id == self.contrat.id
         ).first()
         self.assertIsNotNone(stc)
-        self.assertAlmostEqual(stc.indemnite_conges_payes, 142_500.0, places=2)
+        self.assertAlmostEqual(stc.indemnite_conges_payes, 187_500.0, places=2)
         self.assertAlmostEqual(stc.indemnite_preavis, 300_000.0, places=2)
         self.assertEqual(stc.statut, "genere")
         self.assertIsNotNone(stc.detail_calcul)
@@ -403,10 +403,10 @@ class CalculateursApiTests(unittest.TestCase):
         corps = r.json()
         self.assertAlmostEqual(corps["indemnite_licenciement"], 835_000.0, places=2)
         self.assertAlmostEqual(corps["gratification"], 93_750.0, places=2)
-        # Congés : journalier 10 000 × 14,25 jours calendaires
-        self.assertAlmostEqual(corps["indemnite_conges_payes"], 142_500.0, places=2)
+        # Congés : journalier 10 000 × 18,75 jours calendaires (12 mois × 2,5)
+        self.assertAlmostEqual(corps["indemnite_conges_payes"], 187_500.0, places=2)
         self.assertAlmostEqual(
-            corps["total"], 835_000.0 + 93_750.0 + 142_500.0 + 300_000.0, places=2
+            corps["total"], 835_000.0 + 93_750.0 + 187_500.0 + 300_000.0, places=2
         )
 
     def test_payload_ecran_depart_avec_valeurs_vides(self):

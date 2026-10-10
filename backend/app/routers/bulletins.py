@@ -16,6 +16,7 @@ from app.schemas.bulletin import (
 from app.services.security import get_current_user
 from app.services.permissions import get_dossier_or_403, require_staff
 from app.routers.contrats import check_contrat_ownership
+from app.services.conges_gratification import JOURS_CONGES_PAR_MOIS
 from app.services.bulletin_saari import (
     construire_html_saari, generer_pdf_lot_saari, generer_pdf_saari,
     nom_fichier_bulletin,
@@ -127,7 +128,7 @@ def compute_bulletin_cumuls(db: Session, bulletin: BulletinPaie) -> BulletinCumu
         
     months_seniority = (bulletin.annee - start_date.year) * 12 + (bulletin.mois - start_date.month) + 1
     months_seniority = max(1, months_seniority)
-    conges_acquis_cumules = round(months_seniority * 2.5, 2)
+    conges_acquis_cumules = round(months_seniority * JOURS_CONGES_PAR_MOIS, 2)
     
     absences_cp = db.query(SalarieAbsence).filter(
         SalarieAbsence.salarie_id == contrat.salarie_id,
@@ -169,7 +170,7 @@ def compute_bulletin_cumuls(db: Session, bulletin: BulletinPaie) -> BulletinCumu
     conges_pris_ce_mois = round(conges_pris_ce_mois, 2)
     conges_pris_cumules = round(conges_pris_cumules, 2)
     
-    mensuel_data["conges_acquis"] = 2.5
+    mensuel_data["conges_acquis"] = JOURS_CONGES_PAR_MOIS
     mensuel_data["conges_pris"] = conges_pris_ce_mois
     mensuel_data["conges_solde"] = conges_solde
     
