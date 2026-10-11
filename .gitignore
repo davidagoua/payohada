@@ -19,6 +19,8 @@ __pycache__/
 *.sqlite3
 *.sqlite
 backend/tests/_test_payohada.sqlite3
+paie.db
+QPXL1501.xls
 
 # Documents téléversés
 backend/uploads/
