@@ -304,24 +304,23 @@ onMounted(async () => {
         <template v-else>
           <section v-for="famille in familles" :key="famille.famille" class="space-y-2">
             <h2 class="carbon-label">{{ famille.famille }}</h2>
+            <!-- La carte ne porte que le libellé : la description, trop longue
+                 pour une liste, s'affiche en infobulle native au survol. -->
             <button
               v-for="edition in famille.editions"
               :key="edition.code"
+              :title="edition.description"
               class="carbon-tile carbon-tile--clickable w-full text-left"
               :class="codeSelectionne === edition.code ? 'border-slate-900 border-2' : ''"
               @click="choisir(edition.code)"
             >
-              <div class="flex items-start justify-between gap-2">
+              <div class="flex items-center justify-between gap-2">
                 <span class="font-semibold text-slate-900">{{ edition.libelle }}</span>
                 <UIcon
                   v-if="codeSelectionne === edition.code"
                   name="i-lucide-check"
-                  class="w-4 h-4 text-green-600 shrink-0 mt-0.5"
+                  class="w-4 h-4 text-green-600 shrink-0"
                 />
-              </div>
-              <p class="carbon-helper mt-1">{{ edition.description }}</p>
-              <div class="flex gap-1 mt-2">
-                <span v-for="f in edition.formats" :key="f" class="carbon-tag">{{ f }}</span>
               </div>
             </button>
           </section>
