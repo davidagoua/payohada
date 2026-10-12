@@ -1177,6 +1177,23 @@ onMounted(() => {
               <span>Solde disponible :</span>
               <span class="font-bold text-green-700 text-sm">{{ bulletin.cumuls?.mensuel?.conges_solde?.toFixed(2) }} jours</span>
             </div>
+            <!-- Base du calcul : sans elle, un droit nul ne s'explique pas. -->
+            <div
+              v-if="bulletin.cumuls?.mois_anciennete !== null && bulletin.cumuls?.mois_anciennete !== undefined"
+              class="text-slate-500 pt-1 border-t border-slate-100"
+            >
+              Ancienneté retenue : {{ bulletin.cumuls.mois_anciennete }} mois
+              <span v-if="bulletin.cumuls?.debut_anciennete">
+                (depuis le {{ new Date(bulletin.cumuls.debut_anciennete).toLocaleDateString('fr-FR') }})
+              </span>
+            </div>
+            <p
+              v-if="bulletin.cumuls?.periode_avant_contrat"
+              class="bg-amber-50 border-l-2 border-amber-400 text-amber-800 px-2 py-1.5 mt-1"
+            >
+              Ce bulletin couvre une période antérieure au début du contrat :
+              aucun droit à congés n'est encore acquis.
+            </p>
           </div>
         </div>
 

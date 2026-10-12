@@ -91,6 +91,12 @@ class BulletinCumulRow(BaseModel):
 class BulletinCumuls(BaseModel):
     mensuel: BulletinCumulRow
     annuel: BulletinCumulRow
+    #: Base retenue pour l'acquisition des congés. Exposée pour que l'écran
+    #: puisse expliquer un montant, notamment lorsque la période du bulletin
+    #: précède le début du contrat et que le droit acquis est donc nul.
+    mois_anciennete: Optional[int] = None
+    debut_anciennete: Optional[str] = None
+    periode_avant_contrat: bool = False
 
 class BulletinPaieOut(BulletinPaieBase):
     id: int

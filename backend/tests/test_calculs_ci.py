@@ -451,6 +451,11 @@ class AccumulationDesCongesTests(unittest.TestCase):
         cumul_avant = compute_bulletin_cumuls(self.db, avant)
         self.assertEqual(cumul_avant.annuel.conges_acquis, 0.0)
         self.assertEqual(cumul_avant.annuel.conges_solde, 0.0)
+        # La base du calcul est exposée : un droit nul doit pouvoir s'expliquer
+        # à l'écran, sans quoi il passe pour une erreur.
+        self.assertTrue(cumul_avant.periode_avant_contrat)
+        self.assertEqual(cumul_avant.mois_anciennete, 0)
+        self.assertEqual(cumul_avant.debut_anciennete, "2025-07-01")
 
         # Juillet 2025 est le premier mois de service : 2,5 jour
         premier = calculate_payslip(self.db, self.contrat.id, 7, 2025)
@@ -458,6 +463,8 @@ class AccumulationDesCongesTests(unittest.TestCase):
         self.assertAlmostEqual(
             cumul_premier.annuel.conges_acquis, JOURS_CONGES_PAR_MOIS, places=2
         )
+        self.assertFalse(cumul_premier.periode_avant_contrat)
+        self.assertEqual(cumul_premier.mois_anciennete, 1)
 
     def test_le_champ_mensuel_reste_l_acquisition_du_mois(self):
         """`mensuel.conges_acquis` est l'acquisition du mois, pas le cumul.

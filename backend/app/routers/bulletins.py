@@ -132,6 +132,10 @@ def compute_bulletin_cumuls(db: Session, bulletin: BulletinPaie) -> BulletinCumu
     # s'il s'agissait du premier mois de service.
     months_seniority = max(0, months_seniority)
     conges_acquis_cumules = round(months_seniority * JOURS_CONGES_PAR_MOIS, 2)
+    # Un bulletin antérieur au contrat ouvre un droit nul : on le signale, car
+    # un zéro sans explication est difficile à interpréter à l'écran.
+    periode_avant_contrat = months_seniority <= 0
+    debut_anciennete = start_date.isoformat()
     
     absences_cp = db.query(SalarieAbsence).filter(
         SalarieAbsence.salarie_id == contrat.salarie_id,
@@ -240,7 +244,10 @@ def compute_bulletin_cumuls(db: Session, bulletin: BulletinPaie) -> BulletinCumu
         
     return BulletinCumuls(
         mensuel=BulletinCumulRow(**mensuel_data),
-        annuel=BulletinCumulRow(**annuel_totals)
+        annuel=BulletinCumulRow(**annuel_totals),
+        mois_anciennete=months_seniority,
+        debut_anciennete=debut_anciennete,
+        periode_avant_contrat=periode_avant_contrat,
     )
 
 
