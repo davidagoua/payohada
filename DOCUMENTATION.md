@@ -403,6 +403,28 @@ logiciel_paie/
 #### Added
 - Suite de tests de non-régression (moteur de paie et API) : `python -m unittest discover -s tests -t . -v`.
 
+#### Appliquer les migrations
+`backend/schema.sql` est la source de vérité du schéma. Sa **section
+incrémentale**, à la fin du fichier, regroupe toutes les évolutions ajoutées
+depuis (colonnes, tables, index). Elle est **idempotente** : uniquement des
+`ADD COLUMN IF NOT EXISTS`, `CREATE TABLE IF NOT EXISTS` et `CREATE INDEX IF NOT
+EXISTS`, donc rejouable sans effet de bord.
+
+```bash
+cd backend
+python apply_migrations.py --dry-run    # affiche l'état, n'écrit rien
+python apply_migrations.py              # applique sur DATABASE_URL
+python apply_migrations.py --url postgresql://…   # applique sur une autre base
+```
+
+Le script lit la section depuis `schema.sql`, compare l'état réel de la base aux
+tables et colonnes que l'application attend, applique le tout **dans une
+transaction** (annulée en cas d'erreur, la base restant inchangée) puis vérifie
+le résultat. Il masque le mot de passe dans ses affichages.
+
+À lancer après chaque mise à jour du code, sur la base locale comme sur
+Supabase.
+
 #### Module Éditions (états de paie)
 Inspiré du menu Éditions des logiciels de paie : un **catalogue d'états**, une
 **période**, un **aperçu dans l'application**, puis un **export** ou un **envoi
