@@ -57,6 +57,8 @@ const totalStc = computed(() => {
 const currentEtab = ref(null)
 const postes = ref([])
 const editPosteSalaireId = ref(null)
+const editDateDebutContrat = ref('')
+const editDateAnciennete = ref('')
 
 const fetchPostes = async () => {
   try {
@@ -137,6 +139,8 @@ const fetchContratDetails = async () => {
     editPosteSalaireId.value = data.poste_salaire_id || null
     editStatut.value = data.statut || 'actif'
     editUniteTemps.value = data.unite_temps || 'Heures'
+    editDateDebutContrat.value = data.date_debut_contrat || ''
+    editDateAnciennete.value = data.date_anciennete || ''
     editSursalaire.value = data.sursalaire || 0.0
     editIndemniteTransport.value = data.indemnite_transport || 0.0
     editDotationTelephonique.value = data.dotation_telephonique || 0.0
@@ -171,7 +175,9 @@ const handleUpdateContrat = async () => {
       unite_temps: editUniteTemps.value,
       sursalaire: Number(editSursalaire.value) || 0.0,
       indemnite_transport: Number(editIndemniteTransport.value) || 0.0,
-      dotation_telephonique: Number(editDotationTelephonique.value) || 0.0
+      dotation_telephonique: Number(editDotationTelephonique.value) || 0.0,
+      date_debut_contrat: editDateDebutContrat.value || null,
+      date_anciennete: editDateAnciennete.value || null
     }
 
     const res = await put(`/contrats/${contratId}`, payload)
@@ -439,6 +445,32 @@ onMounted(() => {
                   <option value="suspendu">Suspendu (ex: congé sabbatique)</option>
                   <option value="termine">Terminé (sortie de grille)</option>
                 </select>
+              </div>
+            </div>
+
+            <!-- Dates de référence : elles déterminent l'ancienneté, donc
+                 l'acquisition des congés payés. -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-slate-100 pt-4">
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Date d'embauche</label>
+                <input
+                  v-model="editDateDebutContrat"
+                  type="date"
+                  class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                />
+                <p class="mt-1 text-xs text-slate-500">Début du contrat de travail.</p>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Date d'ancienneté</label>
+                <input
+                  v-model="editDateAnciennete"
+                  type="date"
+                  class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                />
+                <p class="mt-1 text-xs text-slate-500">
+                  Facultative. Si elle est renseignée, elle prime sur la date
+                  d'embauche pour le calcul des congés payés.
+                </p>
               </div>
             </div>
 

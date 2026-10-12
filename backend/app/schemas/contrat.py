@@ -182,6 +182,10 @@ class ContratUpdate(BaseModel):
     indemnite_transport: Optional[float] = None
     dotation_telephonique: Optional[float] = None
     mode_calcul: Optional[str] = None
+    #: Dates modifiables après coup : une date d'embauche saisie de travers
+    #: fausse l'ancienneté, donc l'acquisition des congés.
+    date_debut_contrat: Optional[str] = None
+    date_anciennete: Optional[str] = None
 
 
 class ContratOut(ContratBase):

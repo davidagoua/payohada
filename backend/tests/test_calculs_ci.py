@@ -466,6 +466,45 @@ class AccumulationDesCongesTests(unittest.TestCase):
         self.assertFalse(cumul_premier.periode_avant_contrat)
         self.assertEqual(cumul_premier.mois_anciennete, 1)
 
+    def test_la_date_d_anciennete_prime_sur_la_date_d_embauche(self):
+        """La fiche contrat affiche la date d'ancienneté comme référence.
+
+        Lorsqu'elle est renseignée, c'est donc elle qui doit servir au calcul
+        des congés — une reprise d'ancienneté ne doit pas être ignorée.
+        """
+        self.contrat.date_debut_contrat = "2025-01-01"
+        self.contrat.date_anciennete = "2024-01-01"   # un an de reprise
+        self.db.commit()
+
+        bulletin = calculate_payslip(self.db, self.contrat.id, 6, 2025)
+        cumul = compute_bulletin_cumuls(self.db, bulletin)
+        # Depuis janvier 2024 jusqu'à juin 2025 : 18 mois
+        self.assertEqual(cumul.mois_anciennete, 18)
+        self.assertEqual(cumul.debut_anciennete, "2024-01-01")
+
+    def test_sans_date_d_anciennete_la_date_d_embauche_sert_de_reference(self):
+        self.contrat.date_debut_contrat = "2025-01-01"
+        self.contrat.date_anciennete = None
+        self.db.commit()
+
+        bulletin = calculate_payslip(self.db, self.contrat.id, 6, 2025)
+        cumul = compute_bulletin_cumuls(self.db, bulletin)
+        self.assertEqual(cumul.mois_anciennete, 6)
+        self.assertEqual(cumul.debut_anciennete, "2025-01-01")
+
+    def test_changer_la_date_d_embauche_recalcule_le_cumul(self):
+        """Le cumul n'est jamais figé : il suit la date de référence."""
+        self.contrat.date_debut_contrat = "2025-01-01"
+        self.contrat.date_anciennete = None
+        self.db.commit()
+        bulletin = calculate_payslip(self.db, self.contrat.id, 6, 2025)
+        self.assertEqual(compute_bulletin_cumuls(self.db, bulletin).mois_anciennete, 6)
+
+        # La date d'embauche est corrigée après coup
+        self.contrat.date_debut_contrat = "2025-04-01"
+        self.db.commit()
+        self.assertEqual(compute_bulletin_cumuls(self.db, bulletin).mois_anciennete, 3)
+
     def test_le_champ_mensuel_reste_l_acquisition_du_mois(self):
         """`mensuel.conges_acquis` est l'acquisition du mois, pas le cumul.
 

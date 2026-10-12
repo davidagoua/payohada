@@ -117,10 +117,14 @@ def compute_bulletin_cumuls(db: Session, bulletin: BulletinPaie) -> BulletinCumu
     import calendar
     from datetime import date, datetime
     
+    # La date d'ancienneté prime sur la date de début de contrat lorsqu'elle est
+    # renseignée : c'est elle que la fiche contrat affiche comme référence, et
+    # elle peut différer (reprise d'ancienneté, réembauche).
+    date_reference = contrat.date_anciennete or contrat.date_debut_contrat
     start_date = None
-    if contrat.date_debut_contrat:
+    if date_reference:
         try:
-            start_date = datetime.strptime(contrat.date_debut_contrat[:10], "%Y-%m-%d").date()
+            start_date = datetime.strptime(str(date_reference)[:10], "%Y-%m-%d").date()
         except Exception:
             pass
     if not start_date:

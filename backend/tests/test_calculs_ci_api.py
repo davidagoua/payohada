@@ -8,6 +8,7 @@ from tests import base
 from tests.base import API, SessionLocal, auth_headers, client, make_tenant, reset_database
 
 from app.models import models as M
+from app.services.payroll import calculate_payslip
 
 
 class CalculateursApiTests(unittest.TestCase):
@@ -436,6 +437,83 @@ class CalculateursApiTests(unittest.TestCase):
         )
         self.assertEqual(r.status_code, 403)
 
+
+
+class DatesDeReferenceContratApiTests(unittest.TestCase):
+    """Les dates de référence du contrat sont modifiables après coup.
+
+    Une date d'embauche saisie de travers fausse l'ancienneté, donc
+    l'acquisition des congés : elle doit pouvoir être corrigée depuis la fiche
+    contrat.
+    """
+
+    def setUp(self):
+        reset_database()
+        self.db = SessionLocal()
+        self.t = make_tenant(self.db, "cabinet-dates-contrat")
+        self.entetes = auth_headers(self.t["user"])
+        self.contrat_id = self.t["contrat"].id
+
+    def tearDown(self):
+        self.db.close()
+
+    def _maj(self, **champs):
+        return client.put(
+            f"{API}/contrats/{self.contrat_id}", headers=self.entetes, json=champs
+        )
+
+    def test_modifier_la_date_d_embauche(self):
+        reponse = self._maj(date_debut_contrat="2024-03-15")
+        self.assertEqual(reponse.status_code, 200, reponse.text[:300])
+        self.assertEqual(reponse.json()["date_debut_contrat"], "2024-03-15")
+
+        # La valeur est bien persistée
+        self.db.expire_all()
+        contrat = self.db.query(M.Contrat).filter(M.Contrat.id == self.contrat_id).first()
+        self.assertEqual(contrat.date_debut_contrat, "2024-03-15")
+
+    def test_modifier_la_date_d_anciennete(self):
+        reponse = self._maj(date_anciennete="2023-01-01")
+        self.assertEqual(reponse.status_code, 200, reponse.text[:300])
+        self.assertEqual(reponse.json()["date_anciennete"], "2023-01-01")
+
+    def test_les_deux_dates_ensemble(self):
+        reponse = self._maj(
+            date_debut_contrat="2024-03-15", date_anciennete="2023-06-01"
+        )
+        self.assertEqual(reponse.status_code, 200, reponse.text[:300])
+        corps = reponse.json()
+        self.assertEqual(corps["date_debut_contrat"], "2024-03-15")
+        self.assertEqual(corps["date_anciennete"], "2023-06-01")
+
+    def test_la_modification_change_le_cumul_de_conges(self):
+        """Bout en bout : la date corrigée se répercute sur le bulletin."""
+        from app.routers.bulletins import compute_bulletin_cumuls
+
+        self._maj(date_debut_contrat="2025-01-01", date_anciennete=None)
+        bulletin = calculate_payslip(self.db, self.contrat_id, 6, 2025)
+        self.assertEqual(compute_bulletin_cumuls(self.db, bulletin).mois_anciennete, 6)
+
+        self._maj(date_debut_contrat="2025-04-01")
+        self.db.expire_all()
+        self.assertEqual(compute_bulletin_cumuls(self.db, bulletin).mois_anciennete, 3)
+
+    def test_effacer_une_date(self):
+        self._maj(date_anciennete="2023-01-01")
+        reponse = self._maj(date_anciennete=None)
+        self.assertEqual(reponse.status_code, 200, reponse.text[:300])
+        self.assertIsNone(reponse.json()["date_anciennete"])
+
+    def test_date_invalide_refusee_ou_acceptee_en_l_etat(self):
+        """Une date non exploitable ne doit pas casser le calcul des congés."""
+        from app.routers.bulletins import compute_bulletin_cumuls
+
+        reponse = self._maj(date_debut_contrat="pas-une-date")
+        if reponse.status_code == 200:
+            bulletin = calculate_payslip(self.db, self.contrat_id, 6, 2025)
+            # Le calcul retombe sur le 1er janvier de l'année du bulletin
+            cumul = compute_bulletin_cumuls(self.db, bulletin)
+            self.assertEqual(cumul.debut_anciennete, "2025-01-01")
 
 if __name__ == "__main__":
     unittest.main()

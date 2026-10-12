@@ -180,9 +180,12 @@ def calculate_estimated_conges_solde(db: Session, contrat: Contrat, year: int, m
     from app.models.models import SalarieAbsence
     
     start_date = None
-    if contrat.date_debut_contrat:
+    # Même référence que pour le bulletin : la date d'ancienneté prime sur la
+    # date de début de contrat lorsqu'elle est renseignée.
+    date_reference = contrat.date_anciennete or contrat.date_debut_contrat
+    if date_reference:
         try:
-            start_date = datetime.strptime(contrat.date_debut_contrat[:10], "%Y-%m-%d").date()
+            start_date = datetime.strptime(str(date_reference)[:10], "%Y-%m-%d").date()
         except Exception:
             pass
     if not start_date:
