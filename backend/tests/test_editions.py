@@ -12,8 +12,8 @@ from io import BytesIO
 
 from tests import base
 from tests.base import (
-    API, SessionLocal, auth_headers, client, make_contrat, make_salarie,
-    make_tenant, make_user, reset_database,
+    API, SessionLocal, auth_headers, client, make_contrat, make_etablissement,
+    make_salarie, make_tenant, make_user, reset_database,
 )
 
 from app.models import models as M
@@ -79,7 +79,7 @@ class GenerationEditionsTests(unittest.TestCase):
         self.t = make_tenant(self.db, "cabinet-editions")
         _preparer_paie(self.db, self.t)
         self.contexte = service.ContexteEdition(
-            dossier_id=self.t["dossier"].id,
+            etablissement_id=self.t["etablissement"].id,
             mois_debut=5, annee_debut=2025, mois_fin=6, annee_fin=2025,
         )
 
@@ -184,21 +184,52 @@ class GenerationEditionsTests(unittest.TestCase):
 
     def test_periode_sans_donnees_produit_un_etat_vide_explicite(self):
         contexte = service.ContexteEdition(
-            dossier_id=self.t["dossier"].id,
+            etablissement_id=self.t["etablissement"].id,
             mois_debut=1, annee_debut=2030, mois_fin=1, annee_fin=2030,
         )
         journal = service.generer_edition(self.db, "JOURNAL_PAIE", contexte)
         self.assertEqual(journal.nombre_lignes, 0)
         self.assertTrue(journal.notes, "une période vide doit être signalée")
 
-    def test_filtre_par_etablissement(self):
+    def test_isolement_entre_etablissements_du_meme_dossier(self):
+        """Un état ne couvre que son établissement, pas le dossier entier.
+
+        C'est la propriété centrale du périmètre : deux établissements d'un même
+        dossier ont chacun leurs salariés et leurs bulletins.
+        """
+        autre_etab = make_etablissement(self.db, self.t["dossier"], code="ETAB2")
+        salarie = make_salarie(self.db, autre_etab, matricule="AUTRE1",
+                               nom="AUTRE", prenom="Salarie")
+        contrat = make_contrat(self.db, self.t["dossier"], autre_etab, salarie,
+                               numero="CAUTRE", salaire_mensuel=900_000.0)
+        self.db.commit()
+        bulletin = calculate_payslip(self.db, contrat.id, 6, 2025)
+        bulletin.statut = "calcule"
+        self.db.commit()
+
+        # L'établissement d'origine ne voit pas ce salarié
+        journal = self._etat("JOURNAL_PAIE")
+        self.assertEqual(journal.nombre_lignes, 6)
+        self.assertNotIn("AUTRE1", {ligne["matricule"] for ligne in journal.lignes})
+
+        # Le second établissement ne voit que le sien, et son propre brut
+        contexte_autre = service.ContexteEdition(
+            etablissement_id=autre_etab.id,
+            mois_debut=6, annee_debut=2025, mois_fin=6, annee_fin=2025,
+        )
+        journal_autre = service.generer_edition(self.db, "JOURNAL_PAIE", contexte_autre)
+        self.assertEqual(journal_autre.nombre_lignes, 1)
+        self.assertEqual(journal_autre.lignes[0]["matricule"], "AUTRE1")
+        self.assertAlmostEqual(journal_autre.totaux["brut"], 900_000.0, places=2)
+
+    def test_l_en_tete_nomme_l_etablissement(self):
         contexte = service.ContexteEdition(
-            dossier_id=self.t["dossier"].id,
-            mois_debut=5, annee_debut=2025, mois_fin=6, annee_fin=2025,
             etablissement_id=self.t["etablissement"].id,
+            mois_debut=6, annee_debut=2025, mois_fin=6, annee_fin=2025,
         )
         journal = service.generer_edition(self.db, "JOURNAL_PAIE", contexte)
-        self.assertEqual(journal.nombre_lignes, 6)
+        self.assertTrue(journal.contexte["etablissement"])
+        self.assertIn("societe", journal.contexte)
 
 
 class RendusEditionsTests(unittest.TestCase):
@@ -210,7 +241,7 @@ class RendusEditionsTests(unittest.TestCase):
         self.t = make_tenant(self.db, "cabinet-editions-rendus")
         _preparer_paie(self.db, self.t, nombre_salaries=2, mois=(6,))
         self.contexte = service.ContexteEdition(
-            dossier_id=self.t["dossier"].id,
+            etablissement_id=self.t["etablissement"].id,
             mois_debut=6, annee_debut=2025, mois_fin=6, annee_fin=2025,
         )
 
@@ -278,7 +309,7 @@ class RendusEditionsTests(unittest.TestCase):
 class PeriodeEditionTests(unittest.TestCase):
     def test_periodes_enumerees_dans_l_ordre(self):
         contexte = service.ContexteEdition(
-            dossier_id=1, mois_debut=11, annee_debut=2024, mois_fin=2, annee_fin=2025,
+            etablissement_id=1, mois_debut=11, annee_debut=2024, mois_fin=2, annee_fin=2025,
         )
         self.assertEqual(
             contexte.periodes,
@@ -287,20 +318,20 @@ class PeriodeEditionTests(unittest.TestCase):
 
     def test_libelle_simplifie_si_un_seul_mois(self):
         contexte = service.ContexteEdition(
-            dossier_id=1, mois_debut=6, annee_debut=2025, mois_fin=6, annee_fin=2025,
+            etablissement_id=1, mois_debut=6, annee_debut=2025, mois_fin=6, annee_fin=2025,
         )
         self.assertEqual(contexte.libelle_periode, "Juin 2025")
 
     def test_libelle_etendue_si_plusieurs_mois(self):
         contexte = service.ContexteEdition(
-            dossier_id=1, mois_debut=1, annee_debut=2025, mois_fin=3, annee_fin=2025,
+            etablissement_id=1, mois_debut=1, annee_debut=2025, mois_fin=3, annee_fin=2025,
         )
         self.assertEqual(contexte.libelle_periode, "Janvier 2025 – Mars 2025")
 
     def test_mois_invalide_refuse(self):
         with self.assertRaises(ValueError):
             service.ContexteEdition(
-                dossier_id=1, mois_debut=13, annee_debut=2025, mois_fin=1, annee_fin=2025,
+                etablissement_id=1, mois_debut=13, annee_debut=2025, mois_fin=1, annee_fin=2025,
             )
 
 
@@ -312,7 +343,7 @@ class EditionsApiTests(unittest.TestCase):
         _preparer_paie(self.db, self.t, nombre_salaries=2, mois=(6,))
         self.entetes = auth_headers(self.t["user"])
         self.demande = {
-            "dossier_id": self.t["dossier"].id,
+            "etablissement_id": self.t["etablissement"].id,
             "mois_debut": 6, "annee_debut": 2025,
             "mois_fin": 6, "annee_fin": 2025,
         }

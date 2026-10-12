@@ -24,7 +24,8 @@ from app.services import editions as service
 # L'import enregistre les états du catalogue : sans lui, le module serait vide.
 import app.services.editions_paie  # noqa: F401  (effet de bord : enregistrement)
 from app.services.email import send_email
-from app.services.permissions import get_dossier_or_403, require_staff
+from app.routers.etablissements import check_etablissement_ownership
+from app.services.permissions import require_staff
 from app.services.security import get_current_user
 
 logger = logging.getLogger(__name__)
@@ -34,12 +35,11 @@ router = APIRouter(tags=["Éditions"])
 def _contexte(demande: PeriodeEdition) -> service.ContexteEdition:
     try:
         return service.ContexteEdition(
-            dossier_id=demande.dossier_id,
+            etablissement_id=demande.etablissement_id,
             mois_debut=demande.mois_debut,
             annee_debut=demande.annee_debut,
             mois_fin=demande.mois_fin,
             annee_fin=demande.annee_fin,
-            etablissement_id=demande.etablissement_id,
         )
     except ValueError as erreur:
         raise HTTPException(
@@ -47,11 +47,17 @@ def _contexte(demande: PeriodeEdition) -> service.ContexteEdition:
         )
 
 
-#: Les états collectifs exposent l'ensemble des rémunérations d'un dossier :
-#: ils sont réservés au cabinet, comme les autres traitements de paie.
-def _verifier_acces(demande: PeriodeEdition, utilisateur: Utilisateur, db: Session) -> None:
+def _verifier_acces(
+    demande: PeriodeEdition, utilisateur: Utilisateur, db: Session
+) -> None:
+    """Réserve les états collectifs au cabinet, sur son propre établissement.
+
+    Un état expose l'ensemble des rémunérations de l'établissement : il est
+    réservé au cabinet, comme les autres traitements de paie, et
+    `check_etablissement_ownership` vérifie qu'il lui appartient bien.
+    """
     require_staff(utilisateur)
-    get_dossier_or_403(demande.dossier_id, utilisateur, db)
+    check_etablissement_ownership(demande.etablissement_id, utilisateur.id, db)
 
 
 def _definition_ou_404(code: str) -> service.DefinitionEdition:

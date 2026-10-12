@@ -22,7 +22,7 @@ from typing import Optional
 
 from sqlalchemy.orm import Session
 
-from app.models.models import BulletinPaie, Contrat, Salarie
+from app.models.models import BulletinPaie, Contrat, Etablissement, Salarie
 from app.services.editions import (
     FAMILLE_PAIE,
     TYPE_MONTANT,
@@ -58,19 +58,18 @@ _PARTS_RE = re.compile(r"\((\d+(?:[.,]\d+)?)\s*parts?\)", re.IGNORECASE)
 # ─────────────────────────────────────────────
 
 def _bulletins(db: Session, contexte: ContexteEdition) -> list[BulletinPaie]:
-    """Bulletins calculés ou validés du périmètre, triés par période puis nom.
+    """Bulletins calculés ou validés de l'établissement, triés par période.
 
-    Les brouillons sont écartés : un état de paie ne doit refléter que des
+    Le périmètre est l'établissement : c'est à ce niveau que la paie est tenue.
+    Les brouillons sont écartés, un état de paie ne devant refléter que des
     bulletins arrêtés.
     """
     requete = (
         db.query(BulletinPaie)
         .join(Contrat, BulletinPaie.contrat_id == Contrat.id)
-        .filter(BulletinPaie.dossier_id == contexte.dossier_id)
+        .filter(Contrat.etablissement_id == contexte.etablissement_id)
         .filter(BulletinPaie.statut.in_(["calcule", "valide"]))
     )
-    if contexte.etablissement_id:
-        requete = requete.filter(Contrat.etablissement_id == contexte.etablissement_id)
 
     periodes = set(contexte.periodes)
     bulletins = [b for b in requete.all() if (b.annee, b.mois) in periodes]
@@ -134,22 +133,17 @@ def _identite(bulletin: BulletinPaie) -> tuple[str, str, str]:
 
 
 def _contexte_etat(db: Session, contexte: ContexteEdition, titre: str) -> dict:
-    """Bandeau d'identification de l'état."""
-    from app.models.models import Dossier, Etablissement
-
-    dossier = db.query(Dossier).filter(Dossier.id == contexte.dossier_id).first()
-    societe = dossier.nom_dossier if dossier else "Dossier inconnu"
-    if contexte.etablissement_id:
-        etab = (
-            db.query(Etablissement)
-            .filter(Etablissement.id == contexte.etablissement_id)
-            .first()
-        )
-        if etab:
-            societe = f"{societe} — {etab.raison_sociale}"
+    """Bandeau d'identification de l'état : établissement, dossier, période."""
+    etab = (
+        db.query(Etablissement)
+        .filter(Etablissement.id == contexte.etablissement_id)
+        .first()
+    )
+    dossier = etab.dossier if etab else None
 
     return {
-        "societe": societe,
+        "etablissement": etab.raison_sociale if etab else "Établissement inconnu",
+        "societe": dossier.nom_dossier if dossier else "",
         "periode": contexte.libelle_periode,
         "genere_le": datetime.now().strftime("%d/%m/%Y à %H:%M"),
     }

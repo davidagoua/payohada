@@ -419,7 +419,7 @@ moteur de paie, ce qui interdit toute divergence entre un bulletin et un état.
 | `app/services/editions.py` | Socle : catalogue, modèle tabulaire, périodes, rendus PDF/Excel/CSV |
 | `app/services/editions_paie.py` | Les cinq états collectifs |
 | `app/routers/editions.py` | `GET /editions`, `POST /editions/{code}/generer`, `/export`, `/envoyer` |
-| `frontend/app/pages/dossiers/[dossierId]/editions.vue` | Catalogue, aperçu, exports et envoi |
+| `frontend/app/pages/dossiers/[dossierId]/etablissements/[etabId]/editions.vue` | Catalogue, aperçu, exports et envoi |
 
 **États livrés** — journal de paie (synthèse par salarié et par mois), livre de
 paie (détail de toutes les rubriques, ligne à ligne), état des cotisations CNPS
@@ -434,12 +434,21 @@ paysage pour les états larges), Excel (openpyxl, en-tête figé et filtres) et 
 comptables francophones).
 
 **Autorisations** : les états collectifs exposent l'ensemble des rémunérations
-d'un dossier. Ils sont réservés au cabinet (`require_staff`) et vérifient
-l'appartenance du dossier ; un client ou un salarié reçoit 403.
+de l'établissement. Ils sont réservés au cabinet (`require_staff`) et
+`check_etablissement_ownership` vérifie que l'établissement lui appartient ; un
+client ou un salarié reçoit 403.
 
-**Périmètre** : période mois/année de début et de fin, et filtre facultatif par
-établissement. Les bulletins en brouillon sont exclus — un état de paie ne
+**Périmètre : l'établissement.** C'est le niveau auquel la paie est tenue dans
+l'application, et celui attendu par les utilisateurs. Une édition ne couvre donc
+jamais qu'un seul établissement, même lorsque plusieurs appartiennent au même
+dossier — un test vérifie cet isolement. La période se choisit par mois et année
+de début et de fin. Les bulletins en brouillon sont exclus : un état de paie ne
 reflète que des bulletins arrêtés.
+
+**Accès** : onglet « Éditions » de la barre d'onglets de l'établissement, à côté
+de Salariés, Contrats, Bulletins de Salaire et Information Générale. Le module
+ayant été déplacé du dossier vers l'établissement, le raccourci qui existait sur
+la page dossier a été retiré : il n'avait plus de cible.
 
 **Limite connue** : le nombre de parts de l'impôt n'est pas persisté en base ; il
 est extrait du libellé de la ligne RICF. Le jour où il sera stocké, seule

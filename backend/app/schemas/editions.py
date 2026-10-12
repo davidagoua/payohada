@@ -5,8 +5,12 @@ from pydantic import BaseModel, Field, field_validator
 
 
 class PeriodeEdition(BaseModel):
-    """Périmètre temporel et organisationnel d'une édition."""
-    dossier_id: int
+    """Périmètre d'une édition : un établissement et une période.
+
+    L'établissement est le niveau auquel la paie est tenue dans l'application ;
+    c'est donc lui qui délimite un état, et non le dossier.
+    """
+    etablissement_id: int
     mois_debut: int = Field(..., ge=1, le=12)
     annee_debut: int = Field(..., ge=2000, le=2100)
     mois_fin: int = Field(..., ge=1, le=12)

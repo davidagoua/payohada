@@ -124,13 +124,17 @@ def catalogue_par_famille() -> dict[str, list[DefinitionEdition]]:
 
 @dataclass
 class ContexteEdition:
-    """Paramètres d'exécution d'une édition."""
-    dossier_id: int
+    """Paramètres d'exécution d'une édition.
+
+    Le périmètre est l'**établissement** : c'est le niveau auquel la paie est
+    tenue dans l'application, et celui attendu par les utilisateurs. Le dossier
+    est déduit de l'établissement pour l'en-tête de l'état.
+    """
+    etablissement_id: int
     mois_debut: int
     annee_debut: int
     mois_fin: int
     annee_fin: int
-    etablissement_id: Optional[int] = None
 
     def __post_init__(self):
         for mois in (self.mois_debut, self.mois_fin):

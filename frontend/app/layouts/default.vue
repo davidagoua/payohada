@@ -397,11 +397,11 @@ const handleLogout = async () => {
               >
                 Information Générale
               </NuxtLink>
-              <!-- Les états de paie portent sur le dossier entier : le lien
-                   quitte les onglets de l'établissement, d'où l'état actif
-                   calculé sur le chemin et non sur le paramètre « tab ». -->
+              <!-- Les états portent sur l'établissement : l'onglet suit le
+                   même schéma que ses voisins, mais l'état actif se calcule sur
+                   le chemin et non sur le paramètre « tab ». -->
               <NuxtLink
-                :to="`/dossiers/${routeInfo.dossierId}/editions`"
+                :to="`/dossiers/${routeInfo.dossierId}/etablissements/${routeInfo.etabId}/editions`"
                 class="px-4 py-3.5 border-b-2 text-xs font-bold uppercase tracking-wider transition-all"
                 :class="[
                   route.path.endsWith('/editions')

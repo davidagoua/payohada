@@ -1,10 +1,14 @@
 <script setup>
 /**
- * Module « Éditions » — états de paie collectifs.
+ * Module « Éditions » — états de paie de l'établissement.
  *
  * Principe repris du menu Éditions des logiciels de paie : on choisit un état
  * dans un catalogue, on précise une période, on visualise le résultat dans
  * l'application, puis on l'exporte (PDF, Excel, CSV) ou on l'envoie par email.
+ *
+ * Le périmètre est l'**établissement** : la page est atteinte depuis les
+ * onglets de l'établissement, et l'identifiant vient de l'URL — il n'y a donc
+ * pas de sélecteur d'établissement.
  *
  * L'aperçu affiché est le modèle tabulaire renvoyé par le serveur : le fichier
  * exporté contient exactement les mêmes lignes et les mêmes totaux.
@@ -17,7 +21,7 @@ const { get, post } = useApi()
 const toast = useToast()
 
 const dossierId = route.params.dossierId
-const currentDossier = useState('current-dossier')
+const etabId = route.params.etabId
 
 const MOIS = [
   'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
@@ -33,13 +37,12 @@ const periode = ref({
   mois_debut: maintenant.getMonth() + 1,
   annee_debut: anneeCourante,
   mois_fin: maintenant.getMonth() + 1,
-  annee_fin: anneeCourante,
-  etablissement_id: null
+  annee_fin: anneeCourante
 })
 
 // ── État de l'écran ──────────────────────────────────────────────────
+const etablissement = ref(null)
 const familles = ref([])
-const etablissements = ref([])
 const codeSelectionne = ref(null)
 const apercu = ref(null)
 const chargementCatalogue = ref(true)
@@ -49,26 +52,22 @@ const envoiEnCours = ref(false)
 
 const envoi = ref({ ouvert: false, destinataire: '', copie: '', objet: '', message: '' })
 
-const editionsDisponibles = computed(() =>
-  familles.value.flatMap(f => f.editions)
-)
+const editionsDisponibles = computed(() => familles.value.flatMap(f => f.editions))
 
 const editionSelectionnee = computed(() =>
   editionsDisponibles.value.find(e => e.code === codeSelectionne.value) || null
 )
 
 const corpsRequete = computed(() => ({
-  dossier_id: Number(dossierId),
-  ...periode.value,
-  etablissement_id: periode.value.etablissement_id || null
-}));
+  etablissement_id: Number(etabId),
+  ...periode.value
+}))
 
 // ── Chargement ───────────────────────────────────────────────────────
 const chargerCatalogue = async () => {
   chargementCatalogue.value = true
   try {
     familles.value = (await get('/editions')) || []
-    // Première édition sélectionnée par défaut
     if (!codeSelectionne.value && editionsDisponibles.value.length) {
       codeSelectionne.value = editionsDisponibles.value[0].code
     }
@@ -80,11 +79,11 @@ const chargerCatalogue = async () => {
   }
 }
 
-const chargerEtablissements = async () => {
+const chargerEtablissement = async () => {
   try {
-    etablissements.value = (await get(`/dossiers/${dossierId}/etablissements`)) || []
+    etablissement.value = await get(`/etablissements/${etabId}`)
   } catch (e) {
-    console.error('Chargement des établissements impossible :', e)
+    console.error('Chargement de l\'établissement impossible :', e)
   }
 }
 
@@ -152,11 +151,7 @@ const telecharger = async (format) => {
     lien.click()
     URL.revokeObjectURL(lien.href)
 
-    toast.add({
-      title: 'Export réussi',
-      description: `${nom} téléchargé.`,
-      color: 'success'
-    })
+    toast.add({ title: 'Export réussi', description: `${nom} téléchargé.`, color: 'success' })
   } catch (e) {
     console.error('Export impossible :', e)
     toast.add({
@@ -236,33 +231,33 @@ const periodeLibelle = computed(() => {
 })
 
 onMounted(async () => {
-  await Promise.all([chargerCatalogue(), chargerEtablissements()])
+  await Promise.all([chargerCatalogue(), chargerEtablissement()])
 })
 </script>
 
 <template>
-  <div class="p-4 sm:p-6 max-w-[1600px] mx-auto space-y-6">
+  <div class="space-y-6">
     <!-- En-tête -->
     <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
       <div>
         <button
           class="carbon-helper hover:underline inline-flex items-center gap-1.5 mb-1"
-          @click="router.push(`/dossiers/${dossierId}`)"
+          @click="router.push(`/dossiers/${dossierId}/etablissements/${etabId}?tab=infos`)"
         >
           <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
-          Retour au dossier
+          Retour à l'établissement
         </button>
         <h1 class="carbon-heading-03">Éditions</h1>
         <p class="carbon-helper mt-0.5">
-          {{ currentDossier?.nom_dossier || 'Dossier' }} — états de paie, exports et envois
+          {{ etablissement?.raison_sociale || 'Établissement' }} — états de paie, exports et envois
         </p>
       </div>
     </div>
 
     <!-- Paramètres de période -->
     <section class="carbon-tile">
-      <h2 class="carbon-label">Période et périmètre</h2>
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
+      <h2 class="carbon-label">Période</h2>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 items-end">
         <div>
           <label class="carbon-label">Mois de début</label>
           <select v-model.number="periode.mois_debut" class="w-full">
@@ -291,18 +286,10 @@ onMounted(async () => {
             <option v-for="a in annees" :key="a" :value="a">{{ a }}</option>
           </select>
         </div>
-        <div class="lg:col-span-2">
-          <label class="carbon-label">Établissement (facultatif)</label>
-          <select v-model="periode.etablissement_id" class="w-full">
-            <option :value="null">Tous les établissements</option>
-            <option v-for="e in etablissements" :key="e.id" :value="e.id">
-              {{ e.code }} — {{ e.raison_sociale }}
-            </option>
-          </select>
-        </div>
       </div>
       <p class="carbon-helper mt-3">
-        Période retenue : <strong>{{ periodeLibelle }}</strong>
+        Périmètre : <strong>{{ etablissement?.raison_sociale || 'cet établissement' }}</strong>
+        · Période : <strong>{{ periodeLibelle }}</strong>
       </p>
     </section>
 
@@ -391,7 +378,7 @@ onMounted(async () => {
                 {{ apercu.titre }}
               </h2>
               <p class="carbon-helper">
-                {{ apercu.contexte.societe }} — {{ apercu.contexte.periode }}
+                {{ apercu.contexte.etablissement }} — {{ apercu.contexte.periode }}
               </p>
             </div>
             <span class="carbon-tag">{{ apercu.nombre_lignes }} ligne(s)</span>
