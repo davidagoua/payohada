@@ -437,6 +437,28 @@ class AccumulationDesCongesTests(unittest.TestCase):
                 places=2,
             )
 
+    def test_bulletin_anterieur_au_contrat_n_ouvre_aucun_droit(self):
+        """Régression : l'ancienneté négative était ramenée à 1 mois.
+
+        Un bulletin daté avant le début du contrat affichait donc 2,5 jour
+        acquis, comme s'il s'agissait du premier mois de service.
+        """
+        self.contrat.date_debut_contrat = "2025-07-01"
+        self.db.commit()
+
+        # Juin 2025 précède le contrat : aucun droit acquis
+        avant = calculate_payslip(self.db, self.contrat.id, 6, 2025)
+        cumul_avant = compute_bulletin_cumuls(self.db, avant)
+        self.assertEqual(cumul_avant.annuel.conges_acquis, 0.0)
+        self.assertEqual(cumul_avant.annuel.conges_solde, 0.0)
+
+        # Juillet 2025 est le premier mois de service : 2,5 jour
+        premier = calculate_payslip(self.db, self.contrat.id, 7, 2025)
+        cumul_premier = compute_bulletin_cumuls(self.db, premier)
+        self.assertAlmostEqual(
+            cumul_premier.annuel.conges_acquis, JOURS_CONGES_PAR_MOIS, places=2
+        )
+
     def test_le_champ_mensuel_reste_l_acquisition_du_mois(self):
         """`mensuel.conges_acquis` est l'acquisition du mois, pas le cumul.
 

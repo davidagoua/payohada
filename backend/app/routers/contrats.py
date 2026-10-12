@@ -189,7 +189,10 @@ def calculate_estimated_conges_solde(db: Session, contrat: Contrat, year: int, m
         start_date = date(year, 1, 1)
         
     months_seniority = (year - start_date.year) * 12 + (month - start_date.month) + 1
-    months_seniority = max(1, months_seniority)
+    # Un bulletin antérieur au début du contrat ne doit ouvrir aucun
+    # droit : plafonner à 1 mois lui faisait afficher 2,5 jour, comme
+    # s'il s'agissait du premier mois de service.
+    months_seniority = max(0, months_seniority)
     conges_acquis_cumules = round(months_seniority * JOURS_CONGES_PAR_MOIS, 2)
     
     absences_cp = db.query(SalarieAbsence).filter(

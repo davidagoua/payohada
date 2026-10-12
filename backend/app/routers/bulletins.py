@@ -127,7 +127,10 @@ def compute_bulletin_cumuls(db: Session, bulletin: BulletinPaie) -> BulletinCumu
         start_date = date(bulletin.annee, 1, 1)
         
     months_seniority = (bulletin.annee - start_date.year) * 12 + (bulletin.mois - start_date.month) + 1
-    months_seniority = max(1, months_seniority)
+    # Un bulletin antérieur au début du contrat ne doit ouvrir aucun
+    # droit : plafonner à 1 mois lui faisait afficher 2,5 jour, comme
+    # s'il s'agissait du premier mois de service.
+    months_seniority = max(0, months_seniority)
     conges_acquis_cumules = round(months_seniority * JOURS_CONGES_PAR_MOIS, 2)
     
     absences_cp = db.query(SalarieAbsence).filter(
