@@ -403,6 +403,48 @@ logiciel_paie/
 #### Added
 - Suite de tests de non-régression (moteur de paie et API) : `python -m unittest discover -s tests -t . -v`.
 
+#### Module Éditions (états de paie)
+Inspiré du menu Éditions des logiciels de paie : un **catalogue d'états**, une
+**période**, un **aperçu dans l'application**, puis un **export** ou un **envoi
+par email**.
+
+Principe structurant : chaque état ne décrit que ses colonnes et ses lignes.
+Un pipeline unique produit ensuite toutes les sorties depuis ce **même modèle
+tabulaire** — ce que l'aperçu affiche est exactement ce que le fichier contient.
+Les états **ne recalculent rien** : ils agrégent les lignes déjà produites par le
+moteur de paie, ce qui interdit toute divergence entre un bulletin et un état.
+
+| Fichier | Rôle |
+|---|---|
+| `app/services/editions.py` | Socle : catalogue, modèle tabulaire, périodes, rendus PDF/Excel/CSV |
+| `app/services/editions_paie.py` | Les cinq états collectifs |
+| `app/routers/editions.py` | `GET /editions`, `POST /editions/{code}/generer`, `/export`, `/envoyer` |
+| `frontend/app/pages/dossiers/[dossierId]/editions.vue` | Catalogue, aperçu, exports et envoi |
+
+**États livrés** — journal de paie (synthèse par salarié et par mois), livre de
+paie (détail de toutes les rubriques, ligne à ligne), état des cotisations CNPS
+(bases et parts salariale et patronale par branche), état de l'ITS (brut
+imposable, parts, impôt brut, RICF, impôt net) et récapitulatif des charges
+patronales (CNPS, CMU, contribution nationale, taxe d'apprentissage, formation
+continue).
+
+**Sorties** : PDF (moteur xhtml2pdf déjà utilisé pour le bulletin, orientation
+paysage pour les états larges), Excel (openpyxl, en-tête figé et filtres) et CSV
+(séparateur point-virgule et BOM UTF-8, attendus par Excel et les logiciels
+comptables francophones).
+
+**Autorisations** : les états collectifs exposent l'ensemble des rémunérations
+d'un dossier. Ils sont réservés au cabinet (`require_staff`) et vérifient
+l'appartenance du dossier ; un client ou un salarié reçoit 403.
+
+**Périmètre** : période mois/année de début et de fin, et filtre facultatif par
+établissement. Les bulletins en brouillon sont exclus — un état de paie ne
+reflète que des bulletins arrêtés.
+
+**Limite connue** : le nombre de parts de l'impôt n'est pas persisté en base ; il
+est extrait du libellé de la ligne RICF. Le jour où il sera stocké, seule
+l'extraction sera à remplacer.
+
 #### Interface : style Carbon (IBM), charte graphique conservée
 Le vocabulaire visuel suit l'**IBM Carbon Design System** ; le vert de la marque
 reste la couleur primaire et les rayons restent nuls. Tout est défini dans

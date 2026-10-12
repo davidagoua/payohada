@@ -333,7 +333,24 @@ onMounted(() => {
 
   <div v-else-if="dossier" class="space-y-6">
 
-    
+    <!-- En-tête du dossier et accès aux états de paie -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div>
+        <h1 class="carbon-heading-03">{{ dossier.nom_dossier }}</h1>
+        <p class="carbon-helper">
+          Dossier {{ dossier.code }}
+          <span v-if="etablissements.length"> · {{ etablissements.length }} établissement(s)</span>
+        </p>
+      </div>
+      <NuxtLink
+        :to="`/dossiers/${dossierId}/editions`"
+        class="px-4 h-10 bg-green-600 hover:bg-green-700 text-white font-semibold inline-flex items-center gap-2 self-start sm:self-auto"
+      >
+        <UIcon name="i-lucide-table-2" class="w-4 h-4" />
+        Éditions
+      </NuxtLink>
+    </div>
+
     <!-- Onglets horizontaux -->
     <div class="border-b-2 border-slate-200">
       <nav class="flex space-x-8" aria-label="Tabs">

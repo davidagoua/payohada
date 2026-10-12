@@ -10,7 +10,7 @@ from app.config import settings
 from app.routers import (
     auth, dossiers, etablissements, salaries, contrats, variables, bulletins,
     constantes, plan_paie, reclamations, secteurs, salaries_hr, departements,
-    import_export_excel, calculs_ci,
+    import_export_excel, calculs_ci, editions,
 )
 from app.database import Base, engine, SessionLocal
 from app.database_seeder import seed_database
@@ -113,6 +113,7 @@ api_router.include_router(salaries_hr.router)
 api_router.include_router(departements.router)
 api_router.include_router(import_export_excel.router)
 api_router.include_router(calculs_ci.router)
+api_router.include_router(editions.router)
 
 app.include_router(api_router)
 
