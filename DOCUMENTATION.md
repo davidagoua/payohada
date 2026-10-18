@@ -453,7 +453,19 @@ continue).
 **Sorties** : PDF (moteur xhtml2pdf déjà utilisé pour le bulletin, orientation
 paysage pour les états larges), Excel (openpyxl, en-tête figé et filtres) et CSV
 (séparateur point-virgule et BOM UTF-8, attendus par Excel et les logiciels
-comptables francophones).
+comptables francophones). Le CSV contient des **nombres**, pas la présentation de
+l'aperçu : les montants y sont arrondis et écrits sans séparateur de milliers,
+pour qu'un tableur puisse les additionner sans les reconvertir. La ligne de pied
+porte le libellé « TOTAUX » dans l'aperçu comme dans les trois fichiers, sur la
+première colonne non totalisée. L'écran n'affiche que les formats que l'état
+déclare (`formats`) : un document disponible en PDF seul ne propose donc pas un
+export Excel que le serveur refuserait.
+
+**Exemples** : les cinq états sont versionnés en PDF dans `docs/exemples`
+(dossier SID DISTRIBUTION, trois salariés, juin 2025), produits par le rendu réel
+du module. Les chiffres se recoupent d'un état à l'autre — 1 050 000 de gains,
+135 944 de retenues, 124 875 de charges patronales — ce qui en fait une
+référence visuelle et un contrôle de cohérence.
 
 **Autorisations** : les états collectifs exposent l'ensemble des rémunérations
 de l'établissement. Ils sont réservés au cabinet (`require_staff`) et
@@ -475,6 +487,36 @@ la page dossier a été retiré : il n'avait plus de cible.
 **Limite connue** : le nombre de parts de l'impôt n'est pas persisté en base ; il
 est extrait du libellé de la ligne RICF. Le jour où il sera stocké, seule
 l'extraction sera à remplacer.
+
+#### Module Éditions : finitions des sorties
+- **CSV** : les montants sortaient en flottants Python (`1234567.0`) alors que les
+  colonnes de nombres utilisaient déjà la virgule française (`2,50`) — deux
+  conventions décimales dans le même fichier. `format_csv()` les écrit désormais
+  comme des nombres arrondis, sans séparateur de milliers (`1234567`), ce
+  qu'attendent Excel et les logiciels comptables.
+- **Ligne de totaux** : le pied d'état sortait un montant sans libellé en PDF et
+  en Excel, alors que l'aperçu affichait « TOTAUX ». Le mot est maintenant écrit
+  dans les trois formats, sur la première colonne non totalisée
+  (`LIBELLE_TOTAUX`, `index_libelle_totaux()`, `ligne_totaux()`).
+- **Bandeau** : la société apparaissait deux fois de suite dans l'en-tête, en
+  titre puis en tête du bandeau. `bandeau_etat()` la retire du bandeau, qui cite
+  désormais l'établissement, la période et l'horodatage.
+- **Formats déclarés** : l'écran affichait systématiquement PDF, Excel et CSV ; il
+  suit maintenant `formats` de l'état, et `telecharger()` refuse un format non
+  déclaré au lieu de laisser le serveur répondre 400.
+- **Schéma** : `PeriodeEdition.etablissement_id` était déclaré deux fois, la
+  seconde en `Optional[int] = None`. Le champ, obligatoire par conception,
+  passait donc la validation : une requête sans établissement recevait un 404
+  trompeur (« Établissement introuvable ou accès refusé ») au lieu d'un 422. La
+  déclaration dupliquée est supprimée.
+- **Exemples** : les PDF de `docs/exemples` dataient d'avant le recentrage sur
+  l'établissement. Les cinq états sont régénérés avec le code courant — dont le
+  **livre de paie**, qui manquait — sur le même dossier d'exemple, et leurs
+  chiffres se recoupent (gains 1 050 000, retenues 135 944, charges patronales
+  124 875).
+- **Tests** : 11 tests ajoutés (CSV relisible par un tableur, libellé des totaux
+  dans les trois formats, bandeau sans doublon, établissement obligatoire,
+  formatage des montants), soit 43 tests pour le module.
 
 #### Interface : style Carbon (IBM), charte graphique conservée
 Le vocabulaire visuel suit l'**IBM Carbon Design System** ; le vert de la marque

@@ -58,6 +58,17 @@ const editionSelectionnee = computed(() =>
   editionsDisponibles.value.find(e => e.code === codeSelectionne.value) || null
 )
 
+// L'état déclare les formats qu'il sait produire : on n'affiche que ceux-là.
+// Sans ce filtre, un document disponible en PDF seul proposerait un export
+// Excel que le serveur refuserait.
+const formatsDisponibles = computed(() => editionSelectionnee.value?.formats || [])
+
+// La ligne de totaux porte son libellé sur la première colonne non totalisée,
+// comme dans les fichiers PDF, Excel et CSV.
+const positionLibelleTotaux = computed(() =>
+  apercu.value ? apercu.value.colonnes.findIndex(colonne => !colonne.total) : -1
+)
+
 const corpsRequete = computed(() => ({
   etablissement_id: Number(etabId),
   ...periode.value
@@ -121,6 +132,7 @@ const choisir = (code) => {
 // ── Export ───────────────────────────────────────────────────────────
 const telecharger = async (format) => {
   if (!codeSelectionne.value) return
+  if (!formatsDisponibles.value.includes(format)) return
   exportEnCours.value = format
   try {
     const config = useRuntimeConfig()
@@ -348,7 +360,7 @@ onMounted(async () => {
               Visualiser
             </button>
             <button
-              v-for="format in ['pdf', 'excel', 'csv']"
+              v-for="format in formatsDisponibles"
               :key="format"
               :disabled="!codeSelectionne || exportEnCours === format"
               class="px-3 h-10 border border-slate-400 hover:bg-slate-100 disabled:opacity-40 font-semibold inline-flex items-center gap-1.5 uppercase text-xs"
@@ -408,11 +420,11 @@ onMounted(async () => {
               </tbody>
               <tfoot v-if="Object.keys(apercu.totaux).length">
                 <tr class="bg-slate-100 font-bold">
-                  <td v-for="colonne in apercu.colonnes" :key="colonne.cle"
+                  <td v-for="(colonne, index) in apercu.colonnes" :key="colonne.cle"
                       :class="classeColonne(colonne)">
                     {{ colonne.total
                       ? formatValeur(apercu.totaux[colonne.cle], colonne)
-                      : (colonne === apercu.colonnes[0] ? 'TOTAUX' : '') }}
+                      : (index === positionLibelleTotaux ? 'TOTAUX' : '') }}
                   </td>
                 </tr>
               </tfoot>

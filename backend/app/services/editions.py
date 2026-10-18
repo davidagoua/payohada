@@ -230,6 +230,73 @@ def calculer_totaux(colonnes: Sequence[Colonne], lignes: Iterable[dict]) -> dict
     return totaux
 
 
+#: Libellé de la ligne de pied d'état, identique dans l'aperçu et les fichiers.
+LIBELLE_TOTAUX = "TOTAUX"
+
+
+def index_libelle_totaux(colonnes: Sequence[Colonne]) -> Optional[int]:
+    """Position de la cellule qui porte le mot « TOTAUX ».
+
+    La première colonne non totalisée : une colonne de montant porte un
+    résultat, elle ne peut donc pas servir de libellé.
+    """
+    for position, colonne in enumerate(colonnes):
+        if not colonne.total:
+            return position
+    return None
+
+
+def ligne_totaux(
+    resultat: ResultatEdition, formater: Callable[[Any, Colonne], str]
+) -> list[str]:
+    """Ligne de pied d'état, libellée comme dans l'aperçu."""
+    valeurs = [
+        formater(resultat.totaux.get(colonne.cle), colonne)
+        for colonne in resultat.colonnes
+    ]
+    position = index_libelle_totaux(resultat.colonnes)
+    if position is not None:
+        valeurs[position] = LIBELLE_TOTAUX
+    return valeurs
+
+
+def format_csv(valeur: Any, colonne: Colonne) -> str:
+    """Valeur d'une cellule CSV, telle qu'un tableur doit la relire.
+
+    Un CSV n'est pas une page imprimée : Excel et les logiciels comptables y
+    attendent des **nombres**, pas la présentation de l'aperçu. Les montants
+    sortent donc sans séparateur de milliers — le franc CFA n'a pas de
+    centimes — et les nombres décimaux gardent la virgule française, comme
+    partout ailleurs dans l'application.
+    """
+    if valeur is None or valeur == "":
+        return ""
+    if colonne.type == TYPE_MONTANT:
+        try:
+            nombre = round(float(valeur), 2)
+        except (TypeError, ValueError):
+            return str(valeur)
+        if abs(nombre - round(nombre)) < 1e-9:
+            return str(int(round(nombre)))
+        return f"{nombre:.2f}".replace(".", ",")
+    return format_valeur(valeur, colonne)
+
+
+def bandeau_etat(resultat: ResultatEdition) -> str:
+    """Bandeau d'identification, sans répéter la société déjà mise en titre.
+
+    Le titre de la page reprend la société (le dossier) ; sans cette
+    exclusion, elle apparaissait une seconde fois dans le bandeau juste
+    en dessous.
+    """
+    societe = resultat.contexte.get("societe")
+    return " — ".join(
+        str(valeur)
+        for cle, valeur in resultat.contexte.items()
+        if valeur and cle != ("societe" if societe else "")
+    )
+
+
 # ─────────────────────────────────────────────
 #  GÉNÉRATION
 # ─────────────────────────────────────────────
@@ -285,16 +352,21 @@ def rendre_pdf(resultat: ResultatEdition, paysage: bool = False) -> bytes:
         for colonne in resultat.colonnes
     )
 
-    def cellules(ligne: dict, balise: str = "td") -> str:
+    def cellules(
+        ligne: dict, balise: str = "td", surcharges: Optional[dict] = None
+    ) -> str:
         morceaux = []
-        for colonne in resultat.colonnes:
+        remplacements = surcharges or {}
+        for position, colonne in enumerate(resultat.colonnes):
             classes = []
             if colonne.type in (TYPE_MONTANT, TYPE_NOMBRE):
                 classes.append("num")
             if colonne.type == TYPE_MONTANT:
                 classes.append("mono")
             attribut = f' class="{" ".join(classes)}"' if classes else ""
-            valeur = format_valeur(ligne.get(colonne.cle), colonne)
+            valeur = remplacements.get(
+                position, format_valeur(ligne.get(colonne.cle), colonne)
+            )
             morceaux.append(f"<{balise}{attribut}>{_echapper(valeur)}</{balise}>")
         return "".join(morceaux)
 
@@ -302,11 +374,11 @@ def rendre_pdf(resultat: ResultatEdition, paysage: bool = False) -> bytes:
 
     pied = ""
     if resultat.totaux:
-        pied = f'<tfoot><tr>{cellules(resultat.totaux)}</tr></tfoot>'
+        position = index_libelle_totaux(resultat.colonnes)
+        surcharges = {position: LIBELLE_TOTAUX} if position is not None else {}
+        pied = f'<tfoot><tr>{cellules(resultat.totaux, surcharges=surcharges)}</tr></tfoot>'
 
-    contexte = " — ".join(
-        str(v) for v in resultat.contexte.values() if v
-    )
+    contexte = bandeau_etat(resultat)
     notes = "".join(f"<div>{_echapper(n)}</div>" for n in resultat.notes)
 
     html = f"""<html><head><meta charset="utf-8"/>
@@ -351,7 +423,7 @@ def rendre_excel(resultat: ResultatEdition) -> bytes:
     # Bandeau d'identification, sur trois lignes au-dessus du tableau
     feuille.append([resultat.contexte.get("societe") or ""])
     feuille.append([resultat.titre])
-    feuille.append([" — ".join(str(v) for v in resultat.contexte.values() if v)])
+    feuille.append([bandeau_etat(resultat)])
     ligne_entete = 4
 
     feuille.append([colonne.libelle for colonne in resultat.colonnes])
@@ -369,7 +441,11 @@ def rendre_excel(resultat: ResultatEdition) -> bytes:
         feuille.append([ligne.get(colonne.cle) for colonne in resultat.colonnes])
 
     if resultat.totaux:
-        feuille.append([resultat.totaux.get(colonne.cle) for colonne in resultat.colonnes])
+        valeurs = [resultat.totaux.get(colonne.cle) for colonne in resultat.colonnes]
+        position = index_libelle_totaux(resultat.colonnes)
+        if position is not None:
+            valeurs[position] = LIBELLE_TOTAUX
+        feuille.append(valeurs)
         for index in range(1, len(resultat.colonnes) + 1):
             feuille.cell(row=feuille.max_row, column=index).font = Font(bold=True)
 
@@ -404,7 +480,9 @@ def rendre_csv(resultat: ResultatEdition) -> bytes:
     """Rendu CSV, séparateur point-virgule et encodage UTF-8 avec BOM.
 
     Le BOM et le point-virgule sont ce qu'attendent Excel et les logiciels
-    comptables francophones à l'ouverture d'un CSV.
+    comptables francophones à l'ouverture d'un CSV. Les montants y sont écrits
+    comme des nombres (`format_csv`), pas comme la présentation de l'aperçu :
+    un tableur doit pouvoir les additionner sans les reconvertir.
     """
     import csv
     import io
@@ -414,14 +492,11 @@ def rendre_csv(resultat: ResultatEdition) -> bytes:
     ecrivain.writerow([colonne.libelle for colonne in resultat.colonnes])
     for ligne in resultat.lignes:
         ecrivain.writerow([
-            format_valeur(ligne.get(colonne.cle), colonne) if colonne.type != TYPE_MONTANT
-            else (ligne.get(colonne.cle) if ligne.get(colonne.cle) is not None else "")
+            format_csv(ligne.get(colonne.cle), colonne)
             for colonne in resultat.colonnes
         ])
     if resultat.totaux:
-        ecrivain.writerow([
-            resultat.totaux.get(colonne.cle, "") for colonne in resultat.colonnes
-        ])
+        ecrivain.writerow(ligne_totaux(resultat, format_csv))
     return b"\xef\xbb\xbf" + tampon.getvalue().encode("utf-8")
 
 

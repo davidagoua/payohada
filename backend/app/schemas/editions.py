@@ -15,7 +15,6 @@ class PeriodeEdition(BaseModel):
     annee_debut: int = Field(..., ge=2000, le=2100)
     mois_fin: int = Field(..., ge=1, le=12)
     annee_fin: int = Field(..., ge=2000, le=2100)
-    etablissement_id: Optional[int] = None
 
     @field_validator("annee_fin")
     @classmethod

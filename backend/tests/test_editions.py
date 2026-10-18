@@ -305,6 +305,68 @@ class RendusEditionsTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             service.rendre(resultat, "docx")
 
+    def test_le_csv_est_relisible_par_un_tableur(self):
+        """Les montants sortent en nombres, jamais en flottants de Python."""
+        import csv as module_csv
+        import io
+
+        resultat = service.generer_edition(self.db, "JOURNAL_PAIE", self.contexte)
+        contenu = service.rendre(resultat, "csv").decode("utf-8-sig")
+        lignes = list(module_csv.reader(io.StringIO(contenu), delimiter=";"))
+        entetes, corps, totaux = lignes[0], lignes[1:-1], lignes[-1]
+        self.assertEqual(entetes[0], resultat.colonnes[0].libelle)
+        self.assertEqual(len(corps), resultat.nombre_lignes)
+
+        positions = {c.cle: index for index, c in enumerate(resultat.colonnes)}
+        montants = [c for c in resultat.colonnes if c.type == service.TYPE_MONTANT]
+        self.assertTrue(montants)
+        for ligne, modele in zip(corps, resultat.lignes):
+            for colonne in montants:
+                cellule = ligne[positions[colonne.cle]]
+                self.assertNotIn(".", cellule, f"{colonne.cle} sort en flottant : {cellule}")
+                self.assertEqual(int(cellule), round(modele[colonne.cle]))
+
+        # Le pied d'état est libellé et ses montants restent des nombres
+        self.assertEqual(totaux[0], service.LIBELLE_TOTAUX)
+        self.assertEqual(
+            int(totaux[positions["brut"]]), round(resultat.totaux["brut"])
+        )
+
+    def test_la_ligne_de_totaux_est_libellee_dans_tous_les_formats(self):
+        """L'aperçu et les fichiers nomment la ligne de totaux de la même façon."""
+        from openpyxl import load_workbook
+        from pypdf import PdfReader
+
+        resultat = service.generer_edition(self.db, "JOURNAL_PAIE", self.contexte)
+        self.assertTrue(resultat.totaux)
+        attendu = service.LIBELLE_TOTAUX
+
+        pdf = service.rendre(resultat, "pdf", paysage=True)
+        texte = "".join(p.extract_text() for p in PdfReader(BytesIO(pdf)).pages)
+        self.assertIn(attendu, texte)
+
+        feuille = load_workbook(BytesIO(service.rendre(resultat, "excel"))).active
+        valeurs = [
+            cellule.value
+            for ligne in feuille.iter_rows() for cellule in ligne
+            if cellule.value is not None
+        ]
+        self.assertIn(attendu, valeurs)
+
+        csv = service.rendre(resultat, "csv").decode("utf-8-sig")
+        self.assertIn(attendu, csv.splitlines()[-1])
+
+    def test_le_bandeau_ne_repete_pas_la_societe(self):
+        """Le titre est déjà la société : elle ne doit pas suivre en dessous."""
+        from pypdf import PdfReader
+
+        resultat = service.generer_edition(self.db, "JOURNAL_PAIE", self.contexte)
+        societe = resultat.contexte["societe"]
+        pdf = service.rendre(resultat, "pdf", paysage=True)
+        texte = "".join(p.extract_text() for p in PdfReader(BytesIO(pdf)).pages)
+        # Le titre est composé en capitales par la feuille de style.
+        self.assertEqual(texte.lower().count(societe.lower()), 1)
+
 
 class PeriodeEditionTests(unittest.TestCase):
     def test_periodes_enumerees_dans_l_ordre(self):
@@ -333,6 +395,46 @@ class PeriodeEditionTests(unittest.TestCase):
             service.ContexteEdition(
                 etablissement_id=1, mois_debut=13, annee_debut=2025, mois_fin=1, annee_fin=2025,
             )
+
+
+class FormatCsvTests(unittest.TestCase):
+    """Le CSV est relu par un tableur, pas par un lecteur d'écran."""
+
+    colonne_montant = service.Colonne("brut", "Brut", service.TYPE_MONTANT)
+    colonne_nombre = service.Colonne("parts", "Parts", service.TYPE_NOMBRE)
+
+    def test_montant_entier_sans_separateur_de_milliers(self):
+        self.assertEqual(service.format_csv(1234567.0, self.colonne_montant), "1234567")
+
+    def test_montant_decimal_a_la_virgule(self):
+        self.assertEqual(service.format_csv(250000.5, self.colonne_montant), "250000,50")
+
+    def test_montant_absent_reste_vide(self):
+        self.assertEqual(service.format_csv(None, self.colonne_montant), "")
+
+    def test_nombre_decimal_a_la_virgule(self):
+        """Les nombres gardent la présentation française du reste de l'application."""
+        self.assertEqual(service.format_csv(2.5, self.colonne_nombre), "2,50")
+
+    def test_residu_de_flottant_est_arrondi(self):
+        """Un montant calculé ne doit pas traîner ses décimales binaires."""
+        self.assertEqual(
+            service.format_csv(250000.49999999999, self.colonne_montant), "250000,50"
+        )
+        self.assertEqual(
+            service.format_csv(1166.3999999999999, self.colonne_montant), "1166,40"
+        )
+
+    def test_libelle_des_totaux_porte_sur_la_premiere_colonne_de_texte(self):
+        colonnes = [
+            service.Colonne("matricule", "Matricule", service.TYPE_TEXTE),
+            service.Colonne("brut", "Brut", service.TYPE_MONTANT, total=True),
+        ]
+        self.assertEqual(service.index_libelle_totaux(colonnes), 0)
+
+    def test_libelle_des_totaux_absent_si_tout_est_totalise(self):
+        colonnes = [service.Colonne("brut", "Brut", service.TYPE_MONTANT, total=True)]
+        self.assertIsNone(service.index_libelle_totaux(colonnes))
 
 
 class EditionsApiTests(unittest.TestCase):
@@ -434,6 +536,17 @@ class EditionsApiTests(unittest.TestCase):
             json={**self.demande, "mois_debut": 13},
         )
         self.assertEqual(r.status_code, 422)
+
+    def test_etablissement_obligatoire(self):
+        """Un état est toujours rattaché à un établissement : le champ l'exige."""
+        demande = {
+            cle: valeur for cle, valeur in self.demande.items()
+            if cle != "etablissement_id"
+        }
+        r = client.post(
+            f"{API}/editions/JOURNAL_PAIE/generer", headers=self.entetes, json=demande,
+        )
+        self.assertEqual(r.status_code, 422, r.text[:200])
 
     def test_acces_reserve_au_cabinet(self):
         """Un état collectif expose toutes les rémunérations du dossier."""
