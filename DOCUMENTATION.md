@@ -205,12 +205,14 @@ Le système est cloisonné en trois espaces dédiés avec contrôles d'accès st
 
 ####  Plateforme Employé (Salarié)
 - **Rôle** : `salarie` (rattaché à sa fiche salarié via `salarie_id`).
-- **Accès** : `/salaries/bulletins`.
+- **Accès** : `/salaries/bulletins`, `/salaries/conges`, `/salaries/acomptes`.
 - **Fonctionnalités** :
   - Consultation chronologique de tous ses bulletins de paie.
   - Visualisation détaillée conforme (Salaire de base, sursalaire, primes, cotisations CNPS/CMU, impôts IBS/RICF, net à payer).
   - Impression et téléchargement individuel.
   - Suivi des compteurs de congés acquis, pris et restants.
+  - **Demande de congés** : dates et motif, solde affiché (calculé par le serveur, le même que celui du bulletin), puis suivi de la décision de l'entreprise.
+  - **Demande d'acompte** : montant et mois de paie ; une fois validée, l'avance est retenue sur le bulletin de ce mois.
   - **Dépôt de réclamations** : Formulaire pour contester une anomalie sur un bulletin ou un congé avec suivi en direct de la réponse du gestionnaire.
   - Modification sécurisée du mot de passe personnel.
 
@@ -295,6 +297,7 @@ Un circuit court : le salarié dépose, l'**entreprise** décide, la paie appliq
 
 - `POST /api/v1/demandes/conges` : le salarié connecté dépose des congés (`date_debut`, `date_fin`, `motif`). 409 si une demande en attente ou validée couvre déjà ces dates.
 - `GET /api/v1/demandes/conges` : les siennes pour un salarié, celles de son entreprise pour un compte client, celles de ses dossiers pour le cabinet.
+- `GET /api/v1/demandes/conges/solde` : solde de congés du salarié connecté (acquis, pris, solde, ancienneté retenue). **Même calcul que le bulletin** : `app/services/conges.py`.
 - `POST /api/v1/demandes/conges/{id}/valider` : **gestionnaire entreprise uniquement**. Crée l'absence « Congés payés » de `salaries_absences` (celle que consomme le moteur) et la référence dans `absence_id`. 409 si un bulletin de la période est déjà validé.
 - `POST /api/v1/demandes/conges/{id}/refuser` : idem, avec un motif facultatif (`commentaire`) ; aucune absence n'est créée.
 - `POST /api/v1/demandes/acomptes` : le salarié demande un acompte (`montant`, `mois`, `annee`, `motif`).
@@ -611,8 +614,19 @@ son motif, son auteur et la date de décision.
   absence créée, net inchangé pour un congé, retenue effective pour un acompte,
   acompte d'un autre mois ignoré, refus motivé, verrou du bulletin, autorisations.
 
-Reste à faire pour ce lot : les écrans salarié (déposer, suivre) et entreprise
-(file de validation), et le contrôle du solde de congés au moment de la demande.
+#### Espace salarié : congés et acomptes
+- Deux écrans : `/salaries/conges` (solde, demande, historique) et
+  `/salaries/acomptes` (montant, mois de paie, historique), ajoutés à la barre
+  d'onglets de l'espace Salarié.
+- `GET /demandes/conges/solde` expose le solde au salarié.
+- **Le calcul du solde était fait deux fois** — dans le bulletin et dans
+  l'estimation du départ, avec un test qui vérifiait qu'ils tombaient d'accord.
+  Il vit désormais dans `app/services/conges.py` (`solde_conges()`) et sert les
+  trois appelants ; le test d'équivalence existant passe sans modification.
+- 4 tests : solde du mois en cours, égalité avec le solde du bulletin,
+  réduction après validation d'un congé, accès réservé au salarié.
+
+Reste à faire pour ce lot : la file de validation côté entreprise.
 
 #### Interface : style Carbon (IBM), charte graphique conservée
 Le vocabulaire visuel suit l'**IBM Carbon Design System** ; le vert de la marque

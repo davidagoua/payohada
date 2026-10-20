@@ -112,78 +112,15 @@ def compute_bulletin_cumuls(db: Session, bulletin: BulletinPaie) -> BulletinCumu
         }
 
     mensuel_data = get_row_values(bulletin)
-    
-    # Dynamic paid vacation calculations
-    import calendar
-    from datetime import date, datetime
-    
-    # La date d'ancienneté prime sur la date de début de contrat lorsqu'elle est
-    # renseignée : c'est elle que la fiche contrat affiche comme référence, et
-    # elle peut différer (reprise d'ancienneté, réembauche).
-    date_reference = contrat.date_anciennete or contrat.date_debut_contrat
-    start_date = None
-    if date_reference:
-        try:
-            start_date = datetime.strptime(str(date_reference)[:10], "%Y-%m-%d").date()
-        except Exception:
-            pass
-    if not start_date:
-        start_date = date(bulletin.annee, 1, 1)
-        
-    months_seniority = (bulletin.annee - start_date.year) * 12 + (bulletin.mois - start_date.month) + 1
-    # Un bulletin antérieur au début du contrat ne doit ouvrir aucun
-    # droit : plafonner à 1 mois lui faisait afficher 2,5 jour, comme
-    # s'il s'agissait du premier mois de service.
-    months_seniority = max(0, months_seniority)
-    conges_acquis_cumules = round(months_seniority * JOURS_CONGES_PAR_MOIS, 2)
-    # Un bulletin antérieur au contrat ouvre un droit nul : on le signale, car
-    # un zéro sans explication est difficile à interpréter à l'écran.
-    periode_avant_contrat = months_seniority <= 0
-    debut_anciennete = start_date.isoformat()
-    
-    absences_cp = db.query(SalarieAbsence).filter(
-        SalarieAbsence.salarie_id == contrat.salarie_id,
-        SalarieAbsence.type_absence == "Congés payés"
-    ).all()
-    
-    month_start = date(bulletin.annee, bulletin.mois, 1)
-    _, last_day = calendar.monthrange(bulletin.annee, bulletin.mois)
-    month_end = date(bulletin.annee, bulletin.mois, last_day)
-    
-    conges_pris_ce_mois = 0.0
-    for a in absences_cp:
-        a_start = a.date_debut_absence
-        a_end = a.date_fin_absence
-        if isinstance(a_start, datetime):
-            a_start = a_start.date()
-        if isinstance(a_end, datetime):
-            a_end = a_end.date()
-            
-        overlap_start = max(a_start, month_start)
-        overlap_end = min(a_end, month_end)
-        if overlap_start <= overlap_end:
-            conges_pris_ce_mois += (overlap_end - overlap_start).days + 1
-            
-    conges_pris_cumules = 0.0
-    for a in absences_cp:
-        a_start = a.date_debut_absence
-        a_end = a.date_fin_absence
-        if isinstance(a_start, datetime):
-            a_start = a_start.date()
-        if isinstance(a_end, datetime):
-            a_end = a_end.date()
-            
-        if a_start <= month_end:
-            actual_end = min(a_end, month_end)
-            conges_pris_cumules += (actual_end - a_start).days + 1
-            
-    conges_solde = round(conges_acquis_cumules - conges_pris_cumules, 2)
-    conges_pris_ce_mois = round(conges_pris_ce_mois, 2)
-    conges_pris_cumules = round(conges_pris_cumules, 2)
-    
-    mensuel_data["conges_acquis"] = JOURS_CONGES_PAR_MOIS
-    mensuel_data["conges_pris"] = conges_pris_ce_mois
-    mensuel_data["conges_solde"] = conges_solde
+
+    # Congés payés : le calcul vit dans `services.conges`, partagé avec
+    # l'estimation du départ et l'espace salarié.
+    from app.services.conges import solde_conges
+
+    conges = solde_conges(db, contrat, bulletin.annee, bulletin.mois)
+    months_seniority = conges.mois_anciennete
+    periode_avant_contrat = conges.periode_avant_contrat
+    debut_anciennete = conges.debut_anciennete.isoformat()
     
     # Récupérer tous les bulletins calculés ou validés de la même année jusqu'au mois en cours
     prior_bulletins = db.query(BulletinPaie).filter(
@@ -242,9 +179,13 @@ def compute_bulletin_cumuls(db: Session, bulletin: BulletinPaie) -> BulletinCumu
     for k in annuel_totals.keys():
         annuel_totals[k] = round(annuel_totals[k], 2)
         
-    annuel_totals["conges_acquis"] = conges_acquis_cumules
-    annuel_totals["conges_pris"] = conges_pris_cumules
-    annuel_totals["conges_solde"] = conges_solde
+    annuel_totals["conges_acquis"] = conges.acquis
+    annuel_totals["conges_pris"] = conges.pris
+    annuel_totals["conges_solde"] = conges.solde
+
+    mensuel_data["conges_acquis"] = JOURS_CONGES_PAR_MOIS
+    mensuel_data["conges_pris"] = conges.pris_ce_mois
+    mensuel_data["conges_solde"] = conges.solde
         
     return BulletinCumuls(
         mensuel=BulletinCumulRow(**mensuel_data),

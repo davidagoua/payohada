@@ -70,3 +70,17 @@ class DemandeAcompteOut(BaseModel):
 class DecisionDemande(BaseModel):
     """Décision du gestionnaire entreprise : validation ou refus motivé."""
     commentaire: Optional[str] = Field(default=None, max_length=1000)
+
+
+class SoldeCongesOut(BaseModel):
+    """Solde de congés payés du salarié connecté, à un mois donné."""
+    annee: int
+    mois: int
+    acquis: float
+    pris: float
+    pris_ce_mois: float
+    solde: float
+    mois_anciennete: int
+    debut_anciennete: date
+    #: Vrai lorsque le mois demandé précède le début du contrat.
+    periode_avant_contrat: bool

@@ -277,6 +277,20 @@ const handleLogout = async () => {
               >
                 Mes Bulletins
               </NuxtLink>
+              <NuxtLink
+                to="/salaries/conges"
+                class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
+                active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
+              >
+                Mes Congés
+              </NuxtLink>
+              <NuxtLink
+                to="/salaries/acomptes"
+                class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
+                active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
+              >
+                Mes Acomptes
+              </NuxtLink>
             </template>
 
             <!-- 2. ESPACE CLIENT (ENTREPRISE) -->

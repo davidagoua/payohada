@@ -8,7 +8,7 @@ Deux exigences :
   est retenu sur le bulletin, sans ressaisie.
 """
 import unittest
-from datetime import date
+from datetime import date, timedelta
 
 from tests.base import (
     API, SessionLocal, auth_headers, client, make_user, make_tenant, reset_database,
@@ -128,6 +128,53 @@ class DepotDemandeTests(DemandesBase):
         r = client.get(f"{API}/demandes/conges", headers=self.entetes_salarie)
         self.assertEqual(r.status_code, 200)
         self.assertEqual([d["salarie_id"] for d in r.json()], [self.t["salarie"].id])
+
+
+class SoldeCongesTests(DemandesBase):
+    def _solde(self):
+        r = client.get(f"{API}/demandes/conges/solde", headers=self.entetes_salarie)
+        self.assertEqual(r.status_code, 200, r.text[:300])
+        return r.json()
+
+    def test_le_solde_est_calcule_pour_le_mois_en_cours(self):
+        corps = self._solde()
+        self.assertEqual(corps["annee"], date.today().year)
+        self.assertEqual(corps["mois"], date.today().month)
+        self.assertAlmostEqual(
+            corps["acquis"], round(corps["mois_anciennete"] * 2.5, 2), places=2
+        )
+        self.assertAlmostEqual(
+            corps["solde"], round(corps["acquis"] - corps["pris"], 2), places=2
+        )
+
+    def test_le_solde_de_l_api_est_celui_du_bulletin(self):
+        """L'espace salarié et la paie doivent afficher le même solde."""
+        from app.routers.bulletins import compute_bulletin_cumuls
+
+        aujourdhui = date.today()
+        bulletin = calculate_payslip(
+            self.db, self.t["contrat"].id, aujourdhui.month, aujourdhui.year
+        )
+        cumuls = compute_bulletin_cumuls(self.db, bulletin)
+        self.assertAlmostEqual(
+            self._solde()["solde"], cumuls.annuel.conges_solde, places=2
+        )
+
+    def test_une_demande_validee_reduit_le_solde(self):
+        avant = self._solde()["solde"]
+
+        debut = date.today().replace(day=1)
+        fin = debut + timedelta(days=2)  # 3 jours
+        demande = self._deposer_conge(debut=debut, fin=fin).json()
+        self.assertEqual(self._valider("conges", demande["id"]).status_code, 200)
+
+        apres = self._solde()
+        self.assertAlmostEqual(apres["pris"] - 3.0, 0.0, places=2)
+        self.assertAlmostEqual(apres["solde"], round(avant - 3.0, 2), places=2)
+
+    def test_le_solde_est_reserve_au_salarie(self):
+        r = client.get(f"{API}/demandes/conges/solde", headers=self.entetes_entreprise)
+        self.assertEqual(r.status_code, 403)
 
 
 class ValidationCongeTests(DemandesBase):

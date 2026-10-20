@@ -24,8 +24,9 @@ from app.models.models import (
 )
 from app.schemas.demande import (
     DecisionDemande, DemandeAcompteCreate, DemandeAcompteOut, DemandeCongeCreate,
-    DemandeCongeOut,
+    DemandeCongeOut, SoldeCongesOut,
 )
+from app.services.conges import solde_conges
 from app.services.security import get_current_user
 
 router = APIRouter(prefix="/demandes", tags=["Demandes"])
@@ -211,6 +212,44 @@ def creer_demande_conge(
     db.commit()
     db.refresh(demande)
     return _conge_out(demande)
+
+
+@router.get("/conges/solde", response_model=SoldeCongesOut)
+def solde_conges_salarie(
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user),
+):
+    """Solde de congés payés du salarié connecté, au mois en cours.
+
+    Même calcul que le bulletin : ce que le salarié voit ici est ce que la paie
+    appliquera. Le contrat retenu est le plus récent.
+    """
+    salarie_id = _salarie_du_compte(current_user)
+    contrat = (
+        db.query(Contrat)
+        .filter(Contrat.salarie_id == salarie_id)
+        .order_by(Contrat.date_debut_contrat.desc())
+        .first()
+    )
+    if not contrat:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Aucun contrat rattaché à ce salarié.",
+        )
+
+    aujourdhui = date.today()
+    solde = solde_conges(db, contrat, aujourdhui.year, aujourdhui.month)
+    return SoldeCongesOut(
+        annee=solde.annee,
+        mois=solde.mois,
+        acquis=solde.acquis,
+        pris=solde.pris,
+        pris_ce_mois=solde.pris_ce_mois,
+        solde=solde.solde,
+        mois_anciennete=solde.mois_anciennete,
+        debut_anciennete=solde.debut_anciennete,
+        periode_avant_contrat=solde.periode_avant_contrat,
+    )
 
 
 @router.get("/conges", response_model=list[DemandeCongeOut])

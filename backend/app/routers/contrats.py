@@ -175,52 +175,15 @@ def delete_contrat(
 
 # Helper to calculate conges solde at exit date
 def calculate_estimated_conges_solde(db: Session, contrat: Contrat, year: int, month: int) -> float:
-    from datetime import date, datetime
-    import calendar
-    from app.models.models import SalarieAbsence
-    
-    start_date = None
-    # Même référence que pour le bulletin : la date d'ancienneté prime sur la
-    # date de début de contrat lorsqu'elle est renseignée.
-    date_reference = contrat.date_anciennete or contrat.date_debut_contrat
-    if date_reference:
-        try:
-            start_date = datetime.strptime(str(date_reference)[:10], "%Y-%m-%d").date()
-        except Exception:
-            pass
-    if not start_date:
-        start_date = date(year, 1, 1)
-        
-    months_seniority = (year - start_date.year) * 12 + (month - start_date.month) + 1
-    # Un bulletin antérieur au début du contrat ne doit ouvrir aucun
-    # droit : plafonner à 1 mois lui faisait afficher 2,5 jour, comme
-    # s'il s'agissait du premier mois de service.
-    months_seniority = max(0, months_seniority)
-    conges_acquis_cumules = round(months_seniority * JOURS_CONGES_PAR_MOIS, 2)
-    
-    absences_cp = db.query(SalarieAbsence).filter(
-        SalarieAbsence.salarie_id == contrat.salarie_id,
-        SalarieAbsence.type_absence == "Congés payés"
-    ).all()
-    
-    month_start = date(year, month, 1)
-    _, last_day = calendar.monthrange(year, month)
-    month_end = date(year, month, last_day)
-    
-    conges_pris_cumules = 0.0
-    for a in absences_cp:
-        a_start = a.date_debut_absence
-        a_end = a.date_fin_absence
-        if isinstance(a_start, datetime):
-            a_start = a_start.date()
-        if isinstance(a_end, datetime):
-            a_end = a_end.date()
-            
-        if a_start <= month_end:
-            actual_end = min(a_end, month_end)
-            conges_pris_cumules += (actual_end - a_start).days + 1
-            
-    return round(conges_acquis_cumules - conges_pris_cumules, 2)
+    """Solde de congés à la fin du mois, calculé par `services.conges`.
+
+    Le bulletin utilise le même calcul : l'estimation du départ ne peut donc
+    pas afficher un solde différent de celui du bulletin.
+    """
+    from app.services.conges import solde_conges
+
+    return solde_conges(db, contrat, year, month).solde
+
 
 
 @router.get("/contrats/{contrat_id}/depart", response_model=Optional[DepartSalarieOut])
