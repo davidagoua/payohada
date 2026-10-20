@@ -73,7 +73,8 @@ const currentDossier = useState('current-dossier')
 
 // Edit Dossier Form
 const editNom = ref('')
-const editSiret = ref('')
+const editRccm = ref('')
+const editJourVirement = ref(null)
 const editEmail = ref('')
 const editPhone = ref('')
 const editContact = ref('')
@@ -98,7 +99,8 @@ const fetchDossierDetails = async () => {
     
     // Pre-populate Edit Form
     editNom.value = data.nom_dossier || ''
-    editSiret.value = data.siret || ''
+    editRccm.value = data.rccm || ''
+    editJourVirement.value = data.jour_virement ?? null
     editEmail.value = data.adresse_email || ''
     editPhone.value = data.telephone || ''
     editContact.value = data.nom_contact || ''
@@ -141,7 +143,8 @@ const handleUpdateDossier = async () => {
   try {
     const payload = {
       nom_dossier: editNom.value,
-      siret: editSiret.value || null,
+      rccm: editRccm.value || null,
+      jour_virement: editJourVirement.value || null,
       adresse_email: editEmail.value || null,
       telephone: editPhone.value || null,
       nom_contact: editContact.value || null,
@@ -461,16 +464,28 @@ onMounted(() => {
             <p v-if="fieldErrors.nom_dossier" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.nom_dossier }}</p>
           </div>
           <div>
-            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">SIRET Principal</label>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">RCCM Principal</label>
             <input 
-              v-model="editSiret" 
+              v-model="editRccm" 
               type="text" 
+              placeholder="Ex : CI-ABJ-03-2024-B12-01234"
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono transition-colors',
-                fieldErrors.siret ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                fieldErrors.rccm ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
               ]"
             />
-            <p v-if="fieldErrors.siret" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.siret }}</p>
+            <p v-if="fieldErrors.rccm" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.rccm }}</p>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Jour de virement (chaque mois)</label>
+            <select
+              v-model.number="editJourVirement"
+              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+            >
+              <option :value="null">-- Non précisé --</option>
+              <option v-for="jour in 31" :key="jour" :value="jour">{{ jour }}</option>
+            </select>
+            <p class="mt-1 text-[11px] text-slate-400">Date de paiement des salaires, récurrente.</p>
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Pays de Référence</label>

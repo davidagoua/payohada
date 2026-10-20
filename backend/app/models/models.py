@@ -161,6 +161,8 @@ class Dossier(TimestampMixin, Base):
     #: Identifiant ivoirien de la société, saisi à la création (le SIRET reste
     #: en base pour les dossiers anciens, mais n'est plus proposé à la saisie).
     rccm = Column(String(100))
+    #: Jour du mois où les salaires sont virés (1-31), récurrent.
+    jour_virement = Column(Integer)
     nom_dossier = Column(String(50), nullable=False)
     adresse_email = Column(String(150))
     telephone = Column(String(15))

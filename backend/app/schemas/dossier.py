@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional
 from datetime import datetime
 
@@ -38,6 +38,8 @@ class DossierBase(BaseModel):
     #: Identifiant ivoirien de la société (remplace le SIRET français).
     rccm: Optional[str] = None
     siret: Optional[str] = None
+    #: Jour du mois où les salaires sont virés (1-31), récurrent.
+    jour_virement: Optional[int] = Field(default=None, ge=1, le=31)
     nom_dossier: str
     adresse_email: Optional[str] = None
     telephone: Optional[str] = None
@@ -54,6 +56,7 @@ class DossierCreate(DossierBase):
 class DossierUpdate(BaseModel):
     rccm: Optional[str] = None
     siret: Optional[str] = None
+    jour_virement: Optional[int] = Field(default=None, ge=1, le=31)
     nom_dossier: Optional[str] = None
     adresse_email: Optional[str] = None
     telephone: Optional[str] = None

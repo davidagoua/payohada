@@ -1357,7 +1357,13 @@ UPDATE dossiers SET rccm = siret WHERE rccm IS NULL AND siret IS NOT NULL;
 COMMENT ON COLUMN dossiers.rccm
     IS 'Numéro RCCM de la société (identifiant ivoirien, remplace le SIRET)';
 
--- 8. Contrôles post-migration (à exécuter manuellement) :
+-- 8. Jour de virement des salaires, récurrent sur le mois.
+ALTER TABLE dossiers ADD COLUMN IF NOT EXISTS jour_virement INTEGER;
+
+COMMENT ON COLUMN dossiers.jour_virement
+    IS 'Jour du mois (1-31) où les salaires sont virés, récurrent';
+
+-- 9. Contrôles post-migration (à exécuter manuellement) :
 --    -- Aucun compte sans mot de passe (sinon connexion impossible) :
 --    SELECT id, email, role FROM utilisateurs WHERE hashed_password IS NULL;
 --    -- La colonne et ses valeurs par défaut :

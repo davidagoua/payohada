@@ -45,6 +45,7 @@ ATTENDUS_TABLES = (
 ATTENDUS_COLONNES = (
     ("utilisateurs", "must_change_password"),
     ("dossiers", "rccm"),
+    ("dossiers", "jour_virement"),
     ("contrats", "smhc_mensuel"),
     ("departs_salaries", "motif_fin_contrat"),
     ("departs_salaries", "sous_motif_fin_cdd"),

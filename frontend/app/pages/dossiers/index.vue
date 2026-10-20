@@ -11,6 +11,7 @@ const modalOpen = ref(false)
 const code = ref('')
 const nomDossier = ref('')
 const rccm = ref('')
+const jourVirement = ref(null)
 const pays = ref("Côte d'Ivoire")
 const email = ref('')
 const telephone = ref('')
@@ -45,6 +46,7 @@ const handleCreateDossier = async () => {
       code: code.value,
       nom_dossier: nomDossier.value,
       rccm: rccm.value || null,
+      jour_virement: jourVirement.value || null,
       adresse_email: email.value || null,
       telephone: telephone.value || null,
       nom_contact: nomContact.value || null,
@@ -65,6 +67,7 @@ const handleCreateDossier = async () => {
       code.value = ''
       nomDossier.value = ''
       rccm.value = ''
+      jourVirement.value = null
       email.value = ''
       telephone.value = ''
       nomContact.value = ''
@@ -222,6 +225,17 @@ onMounted(() => {
                 placeholder="Ex : CI-ABJ-03-2024-B12-01234" 
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
               />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Jour de virement</label>
+              <select
+                v-model.number="jourVirement"
+                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              >
+                <option :value="null">-- Non précisé --</option>
+                <option v-for="jour in 31" :key="jour" :value="jour">{{ jour }}</option>
+              </select>
+              <p class="mt-1 text-[11px] text-slate-400">Paiement des salaires, chaque mois.</p>
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Pays de Référence</label>
