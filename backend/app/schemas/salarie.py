@@ -65,6 +65,13 @@ class SalarieOut(SalarieBase):
     etablissement_id: int
     created_at: datetime
     updated_at: datetime
+    #: Résultat de l'envoi des identifiants d'accès par email (création d'un
+    #: compte, renvoi). `None` lorsqu'aucun compte n'a été créé à cette occasion.
+    acces_email_envoye: Optional[bool] = None
+    acces_email_message: Optional[str] = None
+    #: Mot de passe provisoire, renvoyé UNE SEULE FOIS à la création du compte
+    #: (utile si l'email n'a pas pu partir).
+    mot_de_passe_initial: Optional[str] = None
 
     class Config:
         from_attributes = True

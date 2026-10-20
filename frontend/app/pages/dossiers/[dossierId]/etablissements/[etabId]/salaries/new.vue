@@ -71,11 +71,23 @@ const handleCreateSalarie = async () => {
 
     const res = await post(`/etablissements/${etabId}/salaries`, payload)
     if (res) {
+      // Un email sur la fiche crée le compte d'accès : on dit s'il a été envoyé.
+      const envoi = res.acces_email_envoye
       toast.add({
         title: 'Salarié créé',
-        description: `Le salarié ${res.prenom} ${res.nom} a été créé. Veuillez maintenant définir son contrat de travail.`,
+        description: envoi
+          ? `Le salarié ${res.prenom} ${res.nom} a été créé et ses identifiants de connexion lui ont été envoyés. Veuillez maintenant définir son contrat de travail.`
+          : `Le salarié ${res.prenom} ${res.nom} a été créé. Veuillez maintenant définir son contrat de travail.`,
         color: 'success'
       })
+      if (envoi === false) {
+        toast.add({
+          title: 'Identifiants non envoyés',
+          description: `L'email n'a pas pu partir${res.acces_email_message ? ` (${res.acces_email_message})` : ''}. Mot de passe provisoire : ${res.mot_de_passe_initial} — transmettez-le au salarié.`,
+          color: 'warning',
+          duration: 20000
+        })
+      }
       router.push(`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${res.id}/contrats/new`)
     }
   } catch (e) {

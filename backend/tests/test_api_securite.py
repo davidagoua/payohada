@@ -222,6 +222,295 @@ class ComptesClientsTests(unittest.TestCase):
         )
         self.assertEqual(r.status_code, 403)
 
+    # ─────────────────────────────────────────
+    #  Envoi des identifiants par email
+    # ─────────────────────────────────────────
+
+    def _capturer_emails(self) -> list:
+        """Espionne l'envoi d'emails du routeur, sans toucher au SMTP."""
+        import app.routers.dossiers as routeur
+
+        appels: list = []
+        originel = routeur.send_email
+
+        def faux_envoi(to_email, subject, html, pieces_jointes=None):
+            appels.append({"to": to_email, "sujet": subject, "html": html})
+            return True, "ok"
+
+        routeur.send_email = faux_envoi
+        self.addCleanup(setattr, routeur, "send_email", originel)
+        return appels
+
+    def _creer_compte(self, **extra) -> dict:
+        r = client.post(
+            f"{API}/dossiers/{self.t['dossier'].id}/comptes-clients",
+            headers=auth_headers(self.t["user"]),
+            json={"email": "rh@client.ci", "nom": "Diallo", "prenom": "Fatou", **extra},
+        )
+        self.assertEqual(r.status_code, 200, r.text[:300])
+        return r.json()
+
+    def test_les_identifiants_sont_envoyes_par_email_a_la_creation(self):
+        """Le client reçoit son accès : sinon, il n'a aucun moyen de le connaître."""
+        appels = self._capturer_emails()
+        corps = self._creer_compte()
+
+        self.assertTrue(corps["email_envoye"])
+        self.assertIsNone(corps["email_message"])
+        self.assertEqual(len(appels), 1)
+        envoi = appels[0]
+        self.assertEqual(envoi["to"], "rh@client.ci")
+        self.assertIn(self.t["dossier"].nom_dossier, envoi["sujet"])
+        # Le message porte l'identifiant, le mot de passe et le lien de connexion
+        self.assertIn("rh@client.ci", envoi["html"])
+        self.assertIn(corps["mot_de_passe_initial"], envoi["html"])
+        self.assertIn("/login", envoi["html"])
+
+    def test_creation_avec_mot_de_passe_du_cabinet_envoie_aussi(self):
+        """Le mot de passe choisi par le cabinet part aussi, sans être renvoyé."""
+        appels = self._capturer_emails()
+        corps = self._creer_compte(password="MotDePasse!2024")
+
+        self.assertTrue(corps["email_envoye"])
+        self.assertIsNone(corps["mot_de_passe_initial"])
+        self.assertFalse(corps["is_default_password"])
+        self.assertIn("MotDePasse!2024", appels[0]["html"])
+
+    def test_un_smtp_indisponible_ne_bloque_pas_la_creation(self):
+        """Le mot de passe reste affiché au cabinet, qui peut le transmettre."""
+        import app.routers.dossiers as routeur
+
+        originel = routeur.send_email
+        routeur.send_email = lambda *args, **kwargs: (False, "SMTP non configuré")
+        self.addCleanup(setattr, routeur, "send_email", originel)
+
+        corps = self._creer_compte()
+        self.assertFalse(corps["email_envoye"])
+        self.assertIn("SMTP", corps["email_message"])
+        self.assertTrue(corps["mot_de_passe_initial"])
+
+        # Le compte est utilisable malgré l'échec d'envoi
+        r = client.post(f"{API}/auth/login", json={
+            "email": "rh@client.ci", "password": corps["mot_de_passe_initial"],
+        })
+        self.assertEqual(r.status_code, 200, r.text)
+
+    def test_renvoi_des_identifiants_regenere_le_mot_de_passe(self):
+        """Le mot de passe n'étant stocké que haché, un renvoi en crée un nouveau."""
+        appels = self._capturer_emails()
+        corps = self._creer_compte()
+        ancien = corps["mot_de_passe_initial"]
+
+        r = client.post(
+            f"{API}/dossiers/{self.t['dossier'].id}/comptes-clients/{corps['id']}/envoyer-acces",
+            headers=auth_headers(self.t["user"]),
+        )
+        self.assertEqual(r.status_code, 200, r.text[:300])
+        renvoi = r.json()
+        self.assertTrue(renvoi["email_envoye"])
+        nouveau = renvoi["mot_de_passe_provisoire"]
+        self.assertNotEqual(nouveau, ancien)
+
+        self.assertEqual(len(appels), 2)
+        self.assertIn(nouveau, appels[1]["html"])
+        self.assertEqual(appels[1]["to"], "rh@client.ci")
+
+        # L'ancien mot de passe est invalidé, le nouveau ouvre la session
+        r = client.post(f"{API}/auth/login", json={"email": "rh@client.ci", "password": ancien})
+        self.assertEqual(r.status_code, 401)
+        r = client.post(f"{API}/auth/login", json={"email": "rh@client.ci", "password": nouveau})
+        self.assertEqual(r.status_code, 200, r.text)
+
+    def test_renvoi_reserve_au_cabinet_proprietaire(self):
+        appels = self._capturer_emails()
+        corps = self._creer_compte()
+        url = f"{API}/dossiers/{self.t['dossier'].id}/comptes-clients/{corps['id']}/envoyer-acces"
+
+        compte_client = make_user(
+            self.db, "client-renvoi@exemple.ci", role="client",
+            dossier_id=self.t["dossier"].id,
+        )
+        self.db.commit()
+        self.assertEqual(client.post(url, headers=auth_headers(compte_client)).status_code, 403)
+
+        autre = make_tenant(self.db, "cabinet-autre-renvoi")
+        self.assertIn(
+            client.post(url, headers=auth_headers(autre["user"])).status_code, (403, 404),
+        )
+
+        r = client.post(
+            f"{API}/dossiers/{self.t['dossier'].id}/comptes-clients/999999/envoyer-acces",
+            headers=auth_headers(self.t["user"]),
+        )
+        self.assertEqual(r.status_code, 404)
+
+        # Aucun envoi hors de la création
+        self.assertEqual(len(appels), 1)
+
+    def test_le_nom_du_dossier_est_echappe_dans_l_email(self):
+        """Le nom du dossier vient de la base : il ne doit pas être interprété."""
+        appels = self._capturer_emails()
+        self.t["dossier"].nom_dossier = "Dupont & Fils <script>alert(1)</script>"
+        self.db.commit()
+
+        self._creer_compte()
+        self.assertNotIn("<script>", appels[0]["html"])
+        self.assertIn("&amp;", appels[0]["html"])
+
+
+class AccesSalarieTests(unittest.TestCase):
+    """Le salarié reçoit son accès par email, comme le client."""
+
+    def setUp(self):
+        reset_database()
+        self.db = SessionLocal()
+        self.t = make_tenant(self.db, "cabinet-acces-salarie")
+        self.url = f"{API}/etablissements/{self.t['etablissement'].id}/salaries"
+        self.entetes = auth_headers(self.t["user"])
+
+    def tearDown(self):
+        self.db.close()
+
+    def _capturer_emails(self) -> list:
+        import app.routers.salaries as routeur
+
+        appels: list = []
+        originel = routeur.send_email
+
+        def faux_envoi(to_email, subject, html, pieces_jointes=None):
+            appels.append({"to": to_email, "sujet": subject, "html": html})
+            return True, "ok"
+
+        routeur.send_email = faux_envoi
+        self.addCleanup(setattr, routeur, "send_email", originel)
+        return appels
+
+    def _creer_salarie(self, **extra) -> dict:
+        r = client.post(
+            self.url, headers=self.entetes,
+            json={
+                "nom": "N'Guessan", "prenom": "Koffi",
+                "email": "k.nguessan@exemple.ci",
+                "situation_matrimoniale": "Marié", "enfants_charge": 2,
+                **extra,
+            },
+        )
+        self.assertEqual(r.status_code, 200, r.text[:300])
+        return r.json()
+
+    def test_le_compte_est_cree_et_les_identifiants_envoyes(self):
+        appels = self._capturer_emails()
+        salarie = self._creer_salarie()
+
+        self.assertTrue(salarie["acces_email_envoye"])
+        self.assertIsNone(salarie["acces_email_message"])
+        mot_de_passe = salarie["mot_de_passe_initial"]
+        self.assertTrue(mot_de_passe)
+
+        self.assertEqual(len(appels), 1)
+        envoi = appels[0]
+        self.assertEqual(envoi["to"], "k.nguessan@exemple.ci")
+        self.assertIn(mot_de_passe, envoi["html"])
+        self.assertIn("Espace Salarié", envoi["html"])
+        self.assertIn("/login", envoi["html"])
+
+        # Le mot de passe envoyé ouvre bien l'espace salarié
+        r = client.post(f"{API}/auth/login", json={
+            "email": "k.nguessan@exemple.ci", "password": mot_de_passe,
+        })
+        self.assertEqual(r.status_code, 200, r.text)
+        self.assertEqual(r.json()["user"]["role"], "salarie")
+
+    def test_sans_email_aucun_compte_n_est_cree(self):
+        appels = self._capturer_emails()
+        salarie = self._creer_salarie(email=None)
+
+        self.assertIsNone(salarie["acces_email_envoye"])
+        self.assertIsNone(salarie["mot_de_passe_initial"])
+        self.assertEqual(appels, [])
+        self.assertIsNone(
+            self.db.query(M.Utilisateur)
+            .filter(M.Utilisateur.salarie_id == salarie["id"]).first()
+        )
+
+    def test_un_email_ajoute_plus_tard_cree_le_compte(self):
+        """Le compte naît à la première adresse connue, pas seulement à la création."""
+        appels = self._capturer_emails()
+        salarie = self._creer_salarie(email=None)
+
+        r = client.put(
+            f"{API}/salaries/{salarie['id']}", headers=self.entetes,
+            json={"email": "tardif@exemple.ci"},
+        )
+        self.assertEqual(r.status_code, 200, r.text[:300])
+        corps = r.json()
+        self.assertTrue(corps["acces_email_envoye"])
+        self.assertTrue(corps["mot_de_passe_initial"])
+        self.assertEqual(appels[0]["to"], "tardif@exemple.ci")
+
+        r = client.post(f"{API}/auth/login", json={
+            "email": "tardif@exemple.ci", "password": corps["mot_de_passe_initial"],
+        })
+        self.assertEqual(r.status_code, 200, r.text)
+
+    def test_un_smtp_indisponible_ne_bloque_pas_la_creation(self):
+        import app.routers.salaries as routeur
+
+        originel = routeur.send_email
+        routeur.send_email = lambda *args, **kwargs: (False, "SMTP non configuré")
+        self.addCleanup(setattr, routeur, "send_email", originel)
+
+        salarie = self._creer_salarie()
+        self.assertFalse(salarie["acces_email_envoye"])
+        self.assertIn("SMTP", salarie["acces_email_message"])
+        self.assertTrue(salarie["mot_de_passe_initial"])
+
+    def test_renvoi_genere_un_nouveau_mot_de_passe(self):
+        appels = self._capturer_emails()
+        salarie = self._creer_salarie()
+        ancien = salarie["mot_de_passe_initial"]
+
+        r = client.post(
+            f"{API}/salaries/{salarie['id']}/envoyer-acces", headers=self.entetes,
+        )
+        self.assertEqual(r.status_code, 200, r.text[:300])
+        renvoi = r.json()
+        self.assertTrue(renvoi["email_envoye"])
+        nouveau = renvoi["mot_de_passe_provisoire"]
+        self.assertNotEqual(nouveau, ancien)
+        self.assertEqual(len(appels), 2)
+        self.assertIn(nouveau, appels[1]["html"])
+
+        r = client.post(f"{API}/auth/login", json={"email": "k.nguessan@exemple.ci", "password": ancien})
+        self.assertEqual(r.status_code, 401)
+        r = client.post(f"{API}/auth/login", json={"email": "k.nguessan@exemple.ci", "password": nouveau})
+        self.assertEqual(r.status_code, 200, r.text)
+
+    def test_renvoi_refuse_sans_email(self):
+        self._capturer_emails()
+        salarie = self._creer_salarie(email=None)
+        r = client.post(
+            f"{API}/salaries/{salarie['id']}/envoyer-acces", headers=self.entetes,
+        )
+        self.assertEqual(r.status_code, 400)
+        self.assertIn("email", r.json()["detail"].lower())
+
+    def test_renvoi_reserve_au_cabinet(self):
+        appels = self._capturer_emails()
+        salarie = self._creer_salarie()
+        url = f"{API}/salaries/{salarie['id']}/envoyer-acces"
+
+        compte_client = make_user(
+            self.db, "client-acces-salarie@exemple.ci", role="client",
+            dossier_id=self.t["dossier"].id,
+        )
+        self.db.commit()
+        self.assertEqual(client.post(url, headers=auth_headers(compte_client)).status_code, 403)
+
+        autre = make_tenant(self.db, "cabinet-autre-acces-salarie")
+        self.assertEqual(client.post(url, headers=auth_headers(autre["user"])).status_code, 403)
+        self.assertEqual(len(appels), 1)
+
 
 class ControleAccesTests(unittest.TestCase):
     def setUp(self):

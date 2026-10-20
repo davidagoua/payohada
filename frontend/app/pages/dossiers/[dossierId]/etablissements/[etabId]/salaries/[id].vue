@@ -245,6 +245,45 @@ const handleUpdateSalarie = async () => {
   }
 }
 
+/**
+ * Envoie au salarié ses identifiants d'accès à l'espace Salarié.
+ *
+ * Le mot de passe n'étant stocké que haché, l'envoi en génère un nouveau : le
+ * précédent cesse immédiatement de fonctionner, ce que le message rappelle.
+ */
+const envoiIdentifiantsEnCours = ref(false)
+
+const envoyerIdentifiants = async () => {
+  envoiIdentifiantsEnCours.value = true
+  try {
+    const resultat = await post(`/salaries/${salarieId}/envoyer-acces`)
+    const provisoire = resultat?.mot_de_passe_provisoire || ''
+    if (resultat?.email_envoye) {
+      toast.add({
+        title: 'Identifiants envoyés',
+        description: `Un nouveau mot de passe provisoire a été envoyé à ${salEmail.value}. L'ancien n'est plus valable.`,
+        color: 'success'
+      })
+    } else {
+      toast.add({
+        title: 'Envoi impossible',
+        description: `Mot de passe provisoire : ${provisoire} — transmettez-le au salarié${resultat?.email_message ? ` (${resultat.email_message})` : ''}.`,
+        color: 'warning',
+        duration: 20000
+      })
+    }
+  } catch (e) {
+    console.error('Envoi des identifiants impossible :', e)
+    toast.add({
+      title: 'Envoi impossible',
+      description: e.data?.detail || 'Une erreur est survenue.',
+      color: 'danger'
+    })
+  } finally {
+    envoiIdentifiantsEnCours.value = false
+  }
+}
+
 
 const handleDeleteSalarie = async () => {
   if (!confirm('Supprimer définitivement ce salarié et tous ses contrats associés ?')) return
@@ -828,6 +867,23 @@ onMounted(() => {
                 ]"
               />
               <p v-if="fieldErrors.email" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.email }}</p>
+              <button
+                type="button"
+                title="Génère un nouveau mot de passe provisoire et l'envoie par email au salarié"
+                :disabled="envoiIdentifiantsEnCours || !salEmail"
+                class="mt-2 text-xs font-semibold text-green-700 hover:text-green-900 disabled:text-slate-400 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
+                @click="envoyerIdentifiants"
+              >
+                <UIcon
+                  :name="envoiIdentifiantsEnCours ? 'i-lucide-loader-2' : 'i-lucide-mail'"
+                  class="w-3.5 h-3.5"
+                  :class="{ 'animate-spin': envoiIdentifiantsEnCours }"
+                />
+                Envoyer les identifiants de connexion
+              </button>
+              <p class="mt-1 text-[11px] text-slate-400">
+                L'envoi remplace le mot de passe actuel du salarié.
+              </p>
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Téléphone</label>

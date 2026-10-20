@@ -25,6 +25,8 @@ const formClient = ref({ nom: '', prenom: '', email: '', password: '' })
 // Mot de passe généré par le serveur, affiché une seule fois après création.
 const motDePasseGenere = ref('')
 const clientSubmitting = ref(false)
+// Identifiant du compte dont les identifiants sont en cours d'envoi, ou null.
+const envoiAccesEnCours = ref(null)
 
 const allEtabsSelected = computed({
   get: () => etablissements.value.length > 0 && selectedEtabs.value.length === etablissements.value.length,
@@ -288,13 +290,16 @@ const handleCreateClient = async () => {
 
     const created = await post(`/dossiers/${dossierId}/comptes-clients`, payload)
     motDePasseGenere.value = created?.mot_de_passe_initial || ''
+    // Les identifiants partent par email : on le dit, et on ne signale le mot
+    // de passe à l'écran que si l'envoi a échoué (SMTP indisponible).
+    const envoye = created?.email_envoye
     toast.add({
-      title: 'Accès client créé avec succès',
-      description: motDePasseGenere.value
-        ? `Mot de passe provisoire généré pour ${formClient.value.nom} : ${motDePasseGenere.value}`
-        : `L'utilisateur ${formClient.value.nom} peut maintenant se connecter à l'espace Entreprise.`,
-      color: 'success',
-      duration: motDePasseGenere.value ? 15000 : undefined
+      title: envoye ? 'Accès client créé et envoyé' : 'Accès client créé — email non envoyé',
+      description: envoye
+        ? `Les identifiants de connexion ont été envoyés à ${formClient.value.email}.`
+        : `L'email n'a pas pu être envoyé${created?.email_message ? ` (${created.email_message})` : ''}. Mot de passe provisoire : ${motDePasseGenere.value} — transmettez-le au client.`,
+      color: envoye ? 'success' : 'warning',
+      duration: envoye ? undefined : 20000
     })
     formClient.value = { nom: '', prenom: '', email: '', password: '' }
     showClientForm.value = false
@@ -308,6 +313,44 @@ const handleCreateClient = async () => {
     })
   } finally {
     clientSubmitting.value = false
+  }
+}
+
+/**
+ * Renvoie les identifiants d'un compte client.
+ *
+ * Le mot de passe n'étant stocké que haché, l'envoi en génère un nouveau : le
+ * précédent cesse immédiatement de fonctionner, ce que le message rappelle.
+ */
+const envoyerIdentifiants = async (user) => {
+  envoiAccesEnCours.value = user.id
+  try {
+    const resultat = await post(`/dossiers/${dossierId}/comptes-clients/${user.id}/envoyer-acces`)
+    const provisoire = resultat?.mot_de_passe_provisoire || ''
+    if (resultat?.email_envoye) {
+      toast.add({
+        title: 'Identifiants envoyés',
+        description: `Un nouveau mot de passe provisoire a été envoyé à ${user.email}. L'ancien n'est plus valable.`,
+        color: 'success'
+      })
+    } else {
+      motDePasseGenere.value = provisoire
+      toast.add({
+        title: 'Envoi impossible',
+        description: `Mot de passe provisoire : ${provisoire} — transmettez-le au client${resultat?.email_message ? ` (${resultat.email_message})` : ''}.`,
+        color: 'warning',
+        duration: 20000
+      })
+    }
+  } catch (e) {
+    console.error('Envoi des identifiants impossible :', e)
+    toast.add({
+      title: 'Envoi impossible',
+      description: e.data?.detail || 'Une erreur est survenue.',
+      color: 'danger'
+    })
+  } finally {
+    envoiAccesEnCours.value = null
   }
 }
 
@@ -916,6 +959,19 @@ onMounted(() => {
                   >
                     <UIcon name="i-lucide-copy" class="w-3.5 h-3.5" />
                     Copier email
+                  </button>
+                  <button
+                    title="Génère un nouveau mot de passe provisoire et l'envoie par email au client"
+                    :disabled="envoiAccesEnCours === user.id"
+                    class="text-xs font-semibold text-slate-600 hover:text-slate-900 disabled:opacity-40 inline-flex items-center gap-1"
+                    @click="envoyerIdentifiants(user)"
+                  >
+                    <UIcon
+                      :name="envoiAccesEnCours === user.id ? 'i-lucide-loader-2' : 'i-lucide-mail'"
+                      class="w-3.5 h-3.5"
+                      :class="{ 'animate-spin': envoiAccesEnCours === user.id }"
+                    />
+                    Envoyer les identifiants
                   </button>
                 </td>
               </tr>

@@ -7,6 +7,8 @@ from app.database import get_db
 from app.models.models import Dossier, Etablissement, NetEntreprise, Salarie, Utilisateur
 from app.schemas.dossier import DossierCreate, DossierUpdate, DossierOut, NetEntrepriseCreate, NetEntrepriseOut
 from app.schemas.utilisateur import CompteClientCreate, UtilisateurOut
+from app.services.email import send_email
+from app.services.email_templates import email_acces_cree, lien_connexion
 from app.services.security import (
     get_current_user, get_password_hash, generate_password, validate_password_strength,
 )
@@ -189,6 +191,30 @@ def get_comptes_clients(
     ).all()
 
 
+def _envoyer_identifiants(
+    compte: Utilisateur,
+    dossier: Dossier | None,
+    mot_de_passe: str,
+    changement_requis: bool,
+) -> tuple[bool, str]:
+    """Envoie les identifiants d'un compte client par email.
+
+    L'échec n'est jamais bloquant : le mot de passe reste renvoyé au cabinet
+    dans la réponse, qui peut le transmettre par un autre canal. On retourne
+    donc `(envoyé, motif)` pour que l'écran puisse le signaler.
+    """
+    sujet, contenu = email_acces_cree(
+        compte.prenom,
+        compte.nom,
+        compte.email,
+        mot_de_passe,
+        dossier.nom_dossier if dossier else None,
+        lien_connexion(),
+        changement_requis=changement_requis,
+    )
+    return send_email(compte.email, sujet, contenu)
+
+
 @router.post("/{dossier_id}/comptes-clients", response_model=UtilisateurOut)
 def create_compte_client(
     dossier_id: int,
@@ -196,13 +222,14 @@ def create_compte_client(
     db: Session = Depends(get_db),
     current_user: Utilisateur = Depends(get_current_user)
 ):
-    """Permet au cabinet de créer un compte d'accès pour son entreprise cliente.
+    """Crée un compte d'accès pour l'entreprise cliente et lui envoie ses identifiants.
 
-    Si aucun mot de passe n'est fourni, un mot de passe aléatoire est généré et
-    renvoyé une seule fois (`mot_de_passe_initial`) ; l'utilisateur devra le
-    remplacer à sa première connexion.
+    Le cabinet ne peut pas communiquer un mot de passe qu'il n'a pas vu : les
+    identifiants partent donc par email dès la création. Le mot de passe reste
+    aussi renvoyé une seule fois (`mot_de_passe_initial`), pour le cas où
+    l'envoi échoue (SMTP indisponible) : le cabinet peut alors le transmettre.
     """
-    check_dossier_ownership(dossier_id, current_user, db)
+    dossier = check_dossier_ownership(dossier_id, current_user, db)
     if not current_user.is_admin and current_user.role != "cabinet":
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -247,11 +274,71 @@ def create_compte_client(
     db.commit()
     db.refresh(new_user)
 
+    envoye, motif = _envoyer_identifiants(new_user, dossier, pwd, must_change)
+
     out = UtilisateurOut.model_validate(new_user)
-    dossier = db.query(Dossier).filter(Dossier.id == dossier_id).first()
-    if dossier:
-        out.nom_dossier = dossier.nom_dossier
+    out.nom_dossier = dossier.nom_dossier if dossier else None
     out.is_default_password = bool(new_user.must_change_password)
     out.mot_de_passe_initial = password_genere
+    out.email_envoye = envoye
+    out.email_message = None if envoye else motif
     return out
+
+
+@router.post("/{dossier_id}/comptes-clients/{user_id}/envoyer-acces")
+def envoyer_acces_client(
+    dossier_id: int,
+    user_id: int,
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user)
+):
+    """Renvoie les identifiants d'un compte client, par email.
+
+    Le mot de passe précédent n'est pas récupérable — il n'est stocké que
+    haché : un mot de passe provisoire est donc régénéré, puis envoyé. Il est
+    également renvoyé au cabinet dans la réponse, qui peut le transmettre si
+    l'email n'est pas parti.
+    """
+    dossier = _get_owned_dossier_for_write(dossier_id, current_user, db)
+
+    compte = (
+        db.query(Utilisateur)
+        .filter(
+            Utilisateur.id == user_id,
+            Utilisateur.dossier_id == dossier_id,
+            Utilisateur.role == "client",
+        )
+        .first()
+    )
+    if not compte:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Aucun compte client de ce dossier ne porte cet identifiant.",
+        )
+    if not compte.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Ce compte est désactivé : réactivez-le avant d'envoyer les identifiants.",
+        )
+
+    mot_de_passe = generate_password()
+    compte.hashed_password = get_password_hash(mot_de_passe)
+    # Le mot de passe envoyé par email est provisoire : il doit être remplacé.
+    compte.must_change_password = True
+    db.commit()
+    db.refresh(compte)
+
+    envoye, motif = _envoyer_identifiants(compte, dossier, mot_de_passe, True)
+
+    return {
+        "status": "success" if envoye else "warning",
+        "message": (
+            f"Identifiants envoyés à {compte.email}."
+            if envoye
+            else f"Envoi impossible ({motif}). Transmettez le mot de passe provisoire au client."
+        ),
+        "email_envoye": envoye,
+        "email_message": None if envoye else motif,
+        "mot_de_passe_provisoire": mot_de_passe,
+    }
 

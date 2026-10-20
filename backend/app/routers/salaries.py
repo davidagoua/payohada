@@ -7,6 +7,8 @@ from app.config import settings
 from app.database import get_db
 from app.models.models import Salarie, Etablissement, Dossier, Utilisateur
 from app.schemas.salarie import SalarieCreate, SalarieUpdate, SalarieOut
+from app.services.email import send_email
+from app.services.email_templates import email_acces_cree, lien_connexion
 from app.services.security import (
     generate_password,
     get_current_user,
@@ -77,10 +79,15 @@ def register_user_in_supabase(email: str, password: str) -> Optional[str]:
     return None
 
 
-def sync_salarie_user(salarie: Salarie, db: Session):
+def sync_salarie_user(salarie: Salarie, db: Session) -> Optional[str]:
+    """Crée ou met à jour le compte d'accès du salarié.
+
+    Retourne le mot de passe provisoire **uniquement** lorsqu'un compte vient
+    d'être créé (c'est ce mot de passe qui part par email), sinon `None`.
+    """
     if not salarie.email:
-        return
-    
+        return None
+
     # Check if a user already exists for this salarie
     user = db.query(Utilisateur).filter(Utilisateur.salarie_id == salarie.id).first()
     if not user:
@@ -91,8 +98,8 @@ def sync_salarie_user(salarie: Salarie, db: Session):
             existing_user.nom = salarie.nom
             existing_user.prenom = salarie.prenom
             db.commit()
-            return
-            
+            return None
+
         # Un mot de passe aléatoire est généré par salarié : auparavant, tous
         # les comptes salariés étaient créés avec le mot de passe public
         # « Payohada@123 », connu de quiconque lit le dépôt. Le compte local
@@ -121,11 +128,60 @@ def sync_salarie_user(salarie: Salarie, db: Session):
             must_change_password=True,
         )
         db.add(user)
-    else:
-        user.email = salarie.email
-        user.nom = salarie.nom
-        user.prenom = salarie.prenom
+        db.commit()
+        return mot_de_passe
+
+    user.email = salarie.email
+    user.nom = salarie.nom
+    user.prenom = salarie.prenom
     db.commit()
+    return None
+
+
+def _envoyer_identifiants_salarie(salarie: Salarie, mot_de_passe: str) -> tuple[bool, str]:
+    """Envoie au salarié ses identifiants d'accès à l'espace Salarié."""
+    dossier = salarie.etablissement.dossier if salarie.etablissement else None
+    sujet, contenu = email_acces_cree(
+        salarie.prenom,
+        salarie.nom,
+        salarie.email,
+        mot_de_passe,
+        dossier.nom_dossier if dossier else None,
+        lien_connexion(),
+        changement_requis=True,
+        espace_libelle="Espace Salarié",
+        espace_usage="consulter vos bulletins de paie et suivre vos réclamations",
+    )
+    return send_email(salarie.email, sujet, contenu)
+
+
+def _creer_acces_salarie(
+    salarie: Salarie, db: Session
+) -> tuple[Optional[bool], Optional[str], Optional[str]]:
+    """Crée le compte du salarié s'il n'existe pas encore, et envoie ses identifiants.
+
+    Retourne `(envoyé, motif, mot_de_passe)` ; les trois valent `None` lorsqu'il
+    n'y a rien à envoyer (salarié sans email, ou compte déjà existant).
+    """
+    mot_de_passe = sync_salarie_user(salarie, db)
+    if not mot_de_passe:
+        return None, None, None
+    envoye, motif = _envoyer_identifiants_salarie(salarie, mot_de_passe)
+    return envoye, (None if envoye else motif), mot_de_passe
+
+
+def _sortie_salarie(
+    salarie: Salarie,
+    envoye: Optional[bool] = None,
+    motif: Optional[str] = None,
+    mot_de_passe: Optional[str] = None,
+) -> SalarieOut:
+    """Fiche salarié enrichie du résultat de l'envoi des identifiants."""
+    out = SalarieOut.model_validate(salarie)
+    out.acces_email_envoye = envoye
+    out.acces_email_message = motif
+    out.mot_de_passe_initial = mot_de_passe
+    return out
 
 
 @router.post("/etablissements/{etablissement_id}/salaries", response_model=SalarieOut)
@@ -158,10 +214,10 @@ def create_salarie(
     db.commit()
     db.refresh(salarie)
     
-    # Synchroniser l'utilisateur local
-    sync_salarie_user(salarie, db)
-    
-    return salarie
+    # Créer le compte d'accès et lui envoyer ses identifiants
+    envoye, motif, mot_de_passe = _creer_acces_salarie(salarie, db)
+
+    return _sortie_salarie(salarie, envoye, motif, mot_de_passe)
 
 
 @router.get("/salaries/{salarie_id}", response_model=SalarieOut)
@@ -191,10 +247,71 @@ def update_salarie(
     db.commit()
     db.refresh(salarie)
     
-    # Synchroniser l'utilisateur local
-    sync_salarie_user(salarie, db)
-    
-    return salarie
+    # Un email saisi plus tard crée le compte : ses identifiants partent alors.
+    envoye, motif, mot_de_passe = _creer_acces_salarie(salarie, db)
+
+    return _sortie_salarie(salarie, envoye, motif, mot_de_passe)
+
+
+@router.post("/salaries/{salarie_id}/envoyer-acces")
+def envoyer_acces_salarie(
+    salarie_id: int,
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user)
+):
+    """Renvoie au salarié ses identifiants d'accès, par email.
+
+    Le mot de passe précédent n'est pas récupérable — seul son hachage est
+    stocké : un mot de passe provisoire est régénéré, puis envoyé. Il est
+    également renvoyé au cabinet dans la réponse, qui peut le transmettre si
+    l'email n'est pas parti.
+    """
+    salarie = check_salarie_ownership(salarie_id, current_user.id, db)
+    require_staff(current_user)
+
+    if not salarie.email:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Renseignez d'abord l'email personnel du salarié.",
+        )
+
+    compte = db.query(Utilisateur).filter(Utilisateur.salarie_id == salarie.id).first()
+    if compte is None:
+        # Salarié créé sans email, complété plus tard : le compte reste à créer.
+        mot_de_passe = sync_salarie_user(salarie, db)
+        if not mot_de_passe:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=(
+                    "Aucun compte n'a pu être créé pour ce salarié : cette "
+                    "adresse email est peut-être déjà utilisée par un autre compte."
+                ),
+            )
+    else:
+        if not compte.is_active:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Ce compte est désactivé : réactivez-le avant d'envoyer les identifiants.",
+            )
+        mot_de_passe = generate_password()
+        compte.hashed_password = get_password_hash(mot_de_passe)
+        compte.must_change_password = True
+        db.commit()
+        db.refresh(compte)
+
+    envoye, motif = _envoyer_identifiants_salarie(salarie, mot_de_passe)
+
+    return {
+        "status": "success" if envoye else "warning",
+        "message": (
+            f"Identifiants envoyés à {salarie.email}."
+            if envoye
+            else f"Envoi impossible ({motif}). Transmettez le mot de passe provisoire au salarié."
+        ),
+        "email_envoye": envoye,
+        "email_message": None if envoye else motif,
+        "mot_de_passe_provisoire": mot_de_passe,
+    }
 
 
 @router.delete("/salaries/{salarie_id}", status_code=status.HTTP_204_NO_CONTENT)

@@ -31,6 +31,11 @@ class UtilisateurOut(UtilisateurBase):
     is_default_password: Optional[bool] = False
     #: Mot de passe généré, renvoyé UNE SEULE FOIS à la création du compte.
     mot_de_passe_initial: Optional[str] = None
+    #: Résultat de l'envoi des identifiants par email (création, renvoi).
+    #: `False` lorsque le SMTP est indisponible : l'écran doit alors le dire,
+    #: le mot de passe restant affiché pour être transmis autrement.
+    email_envoye: Optional[bool] = None
+    email_message: Optional[str] = None
 
     class Config:
         from_attributes = True

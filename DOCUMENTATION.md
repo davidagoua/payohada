@@ -258,7 +258,8 @@ Propriétés de sécurité :
 - `GET /api/v1/dossiers` : Liste les dossiers (filtrés par propriétaire pour le cabinet, ou restreint au dossier assigné pour le client).
 - `POST /api/v1/dossiers` : Création d'un dossier client (réservé au cabinet).
 - `GET /api/v1/dossiers/{id}/comptes-clients` : Liste les utilisateurs clients attachés à un dossier.
-- `POST /api/v1/dossiers/{id}/comptes-clients` : Création par le cabinet d'un compte client d'accès à l'entreprise.
+- `POST /api/v1/dossiers/{id}/comptes-clients` : Création par le cabinet d'un compte client d'accès à l'entreprise. Les identifiants (identifiant, mot de passe provisoire, lien de connexion) sont **envoyés par email** au client ; la réponse porte `email_envoye` / `email_message`, et `mot_de_passe_initial` quand un mot de passe a été généré, pour le cas où l'envoi échoue.
+- `POST /api/v1/dossiers/{id}/comptes-clients/{user_id}/envoyer-acces` : Renvoie les identifiants d'un compte client (**cabinet propriétaire uniquement**). Le mot de passe n'étant stocké que haché, un nouveau mot de passe provisoire est généré — l'ancien cesse de fonctionner — puis envoyé ; il est aussi renvoyé dans la réponse (`mot_de_passe_provisoire`) au cas où le SMTP serait indisponible.
 
 ### Variables Collectives & Périodes (`/api/v1/dossiers/{id}`)
 - `GET /api/v1/dossiers/{id}/periodes/{annee}/{mois}/statut` : État de la période (`saisie_en_cours`, `transmis`, `calcule`, `valide`).
@@ -284,6 +285,10 @@ Propriétés de sécurité :
 ### Pièces jointes RH
 - `POST /api/v1/salaries/{id}/upload-document` : Téléversement (extensions en liste blanche, 10 Mo maximum, nom de fichier généré côté serveur).
 - `GET /api/v1/salaries/documents/{fichier}` : Téléchargement **authentifié et contrôlé** (le dossier `/uploads` n'est plus exposé publiquement).
+
+### Accès des salariés (`/api/v1/salaries/{id}`)
+- `POST /api/v1/etablissements/{id}/salaries` et `PUT /api/v1/salaries/{id}` : la fiche porte l'email personnel. Dès qu'un compte d'accès est créé (création de la fiche avec email, ou email ajouté plus tard), ses identifiants partent par email. La réponse expose `acces_email_envoye` / `acces_email_message` et, à la création du compte seulement, `mot_de_passe_initial` — pour le cas où l'envoi échoue.
+- `POST /api/v1/salaries/{id}/envoyer-acces` : Renvoie les identifiants (**cabinet uniquement**). Un nouveau mot de passe provisoire est généré — l'ancien cesse de fonctionner — puis envoyé ; il est aussi renvoyé dans la réponse (`mot_de_passe_provisoire`). 400 si la fiche n'a pas d'email ou si le compte est désactivé.
 
 ### Réclamations (`/api/v1/reclamations`)
 - `POST /api/v1/reclamations` : Création d'une réclamation par un salarié sur l'un de ses bulletins.
@@ -517,6 +522,55 @@ l'extraction sera à remplacer.
 - **Tests** : 11 tests ajoutés (CSV relisible par un tableur, libellé des totaux
   dans les trois formats, bandeau sans doublon, établissement obligatoire,
   formatage des montants), soit 43 tests pour le module.
+
+#### Identifiants du compte client envoyés par email
+Le cabinet créait l'accès du client, mais aucun canal ne transmettait le mot de
+passe : il n'apparaissait que dans une notification à l'écran, que personne ne
+communiquait. Le client n'avait donc aucun moyen de connaître son accès, et
+devait passer par « mot de passe oublié » pour sa première connexion.
+
+- Nouveau gabarit `email_acces_cree()` (`app/services/email_templates.py`) :
+  espace, identifiant, mot de passe provisoire, bouton « Me connecter » et
+  consigne de remplacement. Le nom du dossier et l'état civil sont échappés.
+- `POST /dossiers/{id}/comptes-clients` envoie les identifiants dès la création,
+  que le mot de passe soit généré ou choisi par le cabinet. La réponse expose
+  `email_envoye` / `email_message` ; un échec d'envoi ne bloque pas la création,
+  le mot de passe restant renvoyé au cabinet (`mot_de_passe_initial`).
+- `POST /dossiers/{id}/comptes-clients/{user_id}/envoyer-acces` (nouveau) :
+  régénère un mot de passe provisoire puis l'envoie. Réservé au cabinet
+  propriétaire du dossier — 404 pour un compte d'un autre dossier, 400 pour un
+  compte désactivé, 403 pour un rôle non habilité.
+- Écran « Accès Client (Entreprise) » : bouton « Envoyer les identifiants » par
+  compte, et notification de création qui distingue l'envoi réussi de l'échec
+  (le mot de passe est alors affiché pour être transmis autrement).
+- 6 tests : envoi à la création, mot de passe choisi par le cabinet, SMTP
+  indisponible, renvoi avec invalidation de l'ancien mot de passe,
+  autorisations, échappement du nom du dossier.
+
+#### Identifiants du salarié envoyés par email
+Même trou que pour le client, en pire : le compte du salarié était créé
+automatiquement avec un mot de passe aléatoire que **rien** ne transmettait, et
+aucune interface ne permettait même de le renvoyer. Le salarié était donc
+condamné au parcours « mot de passe oublié » pour sa première connexion.
+
+- `sync_salarie_user()` retourne désormais le mot de passe provisoire quand il
+  crée le compte, et `None` sinon : l'envoi a lieu exactement à la naissance du
+  compte, jamais sur une simple mise à jour de fiche.
+- L'email part à la création de la fiche, et aussi lorsqu'un email est ajouté
+  plus tard — c'est ce qui crée le compte à ce moment-là.
+- `POST /salaries/{id}/envoyer-acces` (nouveau) : régénère un mot de passe
+  provisoire et l'envoie. Cabinet uniquement, 400 si la fiche n'a pas d'email ou
+  si le compte est désactivé.
+- `email_acces_cree()` sert les deux plateformes : `espace_libelle` et
+  `espace_usage` adaptent le message (« Espace Salarié » / bulletins et
+  réclamations, « Espace Entreprise » / variables de paie et bulletins). Le lien
+  de connexion vient de `lien_connexion()`, partagé avec les comptes clients.
+- Écrans : bouton « Envoyer les identifiants de connexion » sous l'email de la
+  fiche salarié, et notification de création qui signale l'envoi (ou affiche le
+  mot de passe si l'email n'est pas parti).
+- 7 tests : création avec email, absence d'email, email ajouté plus tard, SMTP
+  indisponible, renvoi avec invalidation de l'ancien mot de passe, renvoi sans
+  email, autorisations.
 
 #### Interface : style Carbon (IBM), charte graphique conservée
 Le vocabulaire visuel suit l'**IBM Carbon Design System** ; le vert de la marque
