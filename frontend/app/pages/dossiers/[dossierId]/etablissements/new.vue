@@ -58,6 +58,23 @@ const dgiCentreImpots = ref('')
 const dgiPeriodiciteDeclaration = ref('Mensuelle')
 const dgiRegimeFiscal = ref('Régime général')
 
+// DFE — Document Fiscal d'Entreprise (liasse DGI)
+const dfeCodeCdi = ref('')
+const dfeCodeActivite = ref('')
+const dfeRegimeImposition = ref('')
+const dfeEstEmployeur = ref(false)
+const dfeObligations = ref([])
+
+/** Obligations fiscales cochables sur le DFE. */
+const OBLIGATIONS_FISCALES = [
+  { code: 'PATENTE', libelle: 'Patente' },
+  { code: 'BIC_BA', libelle: 'Impôt BIC/BA' },
+  { code: 'BNC', libelle: 'Impôt BNC' },
+  { code: 'TVA', libelle: 'TVA' },
+  { code: 'TOB', libelle: 'TOB' },
+  { code: 'BOIS_GRUMES', libelle: 'Taxe sur les ventes de bois en grumes' }
+]
+
 // Identification supplémentaire
 const etabSigle = ref('')
 const etabNumeroRccm = ref('')
@@ -145,6 +162,11 @@ const handleCreateEtablissement = async () => {
       dgi_centre_impots: dgiCentreImpots.value || null,
       dgi_periodicite_declaration: dgiPeriodiciteDeclaration.value || null,
       dgi_regime_fiscal: dgiRegimeFiscal.value || null,
+      dfe_code_cdi: dfeCodeCdi.value || null,
+      dfe_code_activite: dfeCodeActivite.value || null,
+      dfe_regime_imposition: dfeRegimeImposition.value || null,
+      dfe_est_employeur: dfeEstEmployeur.value,
+      dfe_obligations_fiscales: dfeObligations.value.length ? dfeObligations.value.join(',') : null,
       sigle: etabSigle.value || null,
       numero_rccm: etabNumeroRccm.value || null,
       date_creation: etabDateCreation.value || null,
@@ -658,6 +680,70 @@ onMounted(async () => {
                 <option value="Régime simplifié">Régime simplifié</option>
                 <option value="Impôt synthétique">Impôt synthétique</option>
               </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- DFE : Document Fiscal d'Entreprise -->
+        <div class="space-y-4 pt-4 border-t border-slate-100">
+          <h3 class="text-md font-bold text-slate-900 border-b border-slate-100 pb-2">DFE — Document Fiscal d'Entreprise</h3>
+          <p class="text-xs text-slate-500">
+            Repris de la liasse DGI. Le n° de compte contribuable se saisit plus haut, dans les informations DGI.
+          </p>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Code CDI</label>
+              <input
+                v-model="dfeCodeCdi"
+                type="text"
+                maxlength="10"
+                placeholder="Ex : 611"
+                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Code activité (DFE)</label>
+              <input
+                v-model="dfeCodeActivite"
+                type="text"
+                maxlength="20"
+                placeholder="Ex : CCE0802"
+                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              />
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Régime d'imposition</label>
+              <select
+                v-model="dfeRegimeImposition"
+                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              >
+                <option value="">-- Non précisé --</option>
+                <option value="RNI">RNI</option>
+                <option value="RSI">RSI</option>
+                <option value="IM">IM</option>
+                <option value="TEE">TEE</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="flex items-center space-x-2">
+            <input id="dfe-employeur" v-model="dfeEstEmployeur" type="checkbox" class="rounded border-slate-300 text-green-600 focus:ring-green-500 h-4 w-4" />
+            <label for="dfe-employeur" class="text-sm font-semibold text-slate-700 uppercase tracking-wider">Employeur</label>
+          </div>
+
+          <div>
+            <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Obligations fiscales</label>
+            <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              <label v-for="obligation in OBLIGATIONS_FISCALES" :key="obligation.code" class="flex items-center gap-2 text-sm text-slate-700">
+                <input
+                  v-model="dfeObligations"
+                  type="checkbox"
+                  :value="obligation.code"
+                  class="rounded border-slate-300 text-green-600 focus:ring-green-500 h-4 w-4"
+                />
+                {{ obligation.libelle }}
+              </label>
             </div>
           </div>
         </div>

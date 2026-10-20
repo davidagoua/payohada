@@ -117,6 +117,13 @@ class EtablissementBase(BaseModel):
     dgi_periodicite_declaration: Optional[str] = None
     dgi_regime_fiscal: Optional[str] = None
 
+    # DFE (Document Fiscal d'Entreprise, liasse DGI)
+    dfe_code_cdi: Optional[str] = None
+    dfe_code_activite: Optional[str] = None
+    dfe_regime_imposition: Optional[str] = None
+    dfe_est_employeur: Optional[bool] = False
+    dfe_obligations_fiscales: Optional[str] = None
+
     # Nouveaux champs d'identification et d'adresse
     sigle: Optional[str] = None
     numero_rccm: Optional[str] = None
@@ -187,6 +194,13 @@ class EtablissementUpdate(BaseModel):
     dgi_centre_impots: Optional[str] = None
     dgi_periodicite_declaration: Optional[str] = None
     dgi_regime_fiscal: Optional[str] = None
+
+    # DFE (Document Fiscal d'Entreprise, liasse DGI)
+    dfe_code_cdi: Optional[str] = None
+    dfe_code_activite: Optional[str] = None
+    dfe_regime_imposition: Optional[str] = None
+    dfe_est_employeur: Optional[bool] = False
+    dfe_obligations_fiscales: Optional[str] = None
     
     # Nouveaux champs d'identification et d'adresse
     sigle: Optional[str] = None

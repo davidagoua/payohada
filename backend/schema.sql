@@ -1363,7 +1363,19 @@ ALTER TABLE dossiers ADD COLUMN IF NOT EXISTS jour_virement INTEGER;
 COMMENT ON COLUMN dossiers.jour_virement
     IS 'Jour du mois (1-31) où les salaires sont virés, récurrent';
 
--- 9. Contrôles post-migration (à exécuter manuellement) :
+-- 9. DFE (Document Fiscal d'Entreprise) sur l'établissement.
+ALTER TABLE etablissements ADD COLUMN IF NOT EXISTS dfe_code_cdi VARCHAR(10);
+ALTER TABLE etablissements ADD COLUMN IF NOT EXISTS dfe_code_activite VARCHAR(20);
+ALTER TABLE etablissements ADD COLUMN IF NOT EXISTS dfe_regime_imposition VARCHAR(20);
+ALTER TABLE etablissements ADD COLUMN IF NOT EXISTS dfe_est_employeur BOOLEAN DEFAULT FALSE;
+ALTER TABLE etablissements ADD COLUMN IF NOT EXISTS dfe_obligations_fiscales TEXT;
+
+COMMENT ON COLUMN etablissements.dfe_regime_imposition
+    IS 'RNI | RSI | IM | TEE (régime d''imposition porté par le DFE)';
+COMMENT ON COLUMN etablissements.dfe_obligations_fiscales
+    IS 'Obligations fiscales cochées sur le DFE, séparées par des virgules';
+
+-- 10. Contrôles post-migration (à exécuter manuellement) :
 --    -- Aucun compte sans mot de passe (sinon connexion impossible) :
 --    SELECT id, email, role FROM utilisateurs WHERE hashed_password IS NULL;
 --    -- La colonne et ses valeurs par défaut :

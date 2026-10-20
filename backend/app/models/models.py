@@ -298,6 +298,15 @@ class Etablissement(TimestampMixin, Base):
     dgi_centre_impots = Column(String(150))
     dgi_periodicite_declaration = Column(String(50))
     dgi_regime_fiscal = Column(String(150))
+
+    # Champs DFE (Document Fiscal d'Entreprise, liasse DGI)
+    dfe_code_cdi = Column(String(10))
+    dfe_code_activite = Column(String(20))
+    dfe_regime_imposition = Column(String(20))       # RNI | RSI | IM | TEE
+    dfe_est_employeur = Column(Boolean, default=False)
+    #: Obligations fiscales cochées, séparées par des virgules (comme `tags`).
+    dfe_obligations_fiscales = Column(Text)
+
     secteur_id = Column(Integer, ForeignKey("secteurs.id", ondelete="SET NULL"), nullable=True)
 
     # Nouveaux champs d'identification et d'adresse
