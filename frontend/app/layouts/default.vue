@@ -324,6 +324,13 @@ const handleLogout = async () => {
                 Personnel
               </NuxtLink>
               <NuxtLink
+                to="/client/demandes"
+                class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
+                active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
+              >
+                Demandes
+              </NuxtLink>
+              <NuxtLink
                 to="/client/reclamations"
                 class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
                 active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"

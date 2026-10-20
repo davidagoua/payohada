@@ -186,7 +186,7 @@ Le système est cloisonné en trois espaces dédiés avec contrôles d'accès st
 
 ####  Plateforme Client (Entreprise / Dossier)
 - **Rôle** : `client` (rattaché à son entreprise via `dossier_id`).
-- **Accès** : `/client`, `/client/variables`, `/client/bulletins`, `/client/salaries`, `/client/reclamations`.
+- **Accès** : `/client`, `/client/variables`, `/client/bulletins`, `/client/salaries`, `/client/demandes`, `/client/reclamations`.
 - **Fonctionnalités** :
   - **Tableau de bord Entreprise** : Indicateurs de la période active (Mois / Année), effectif, statut d'avancement du cycle de paie.
   - **Saisie des Variables de Paie du Mois** :
@@ -200,6 +200,11 @@ Le système est cloisonné en trois espaces dédiés avec contrôles d'accès st
   - **Consultation des Bulletins de Paie Entreprise** :
     - Vue globale de la masse salariale brute, du total net à verser et des cotisations patronales.
     - Consultation détaillée et impression/téléchargement des bulletins calculés par le cabinet.
+  - **Validation des demandes du personnel** (`/client/demandes`) : file unique pour les
+    congés et les acomptes, filtrable par statut et par salarié. Valider un congé crée
+    l'absence correspondante ; valider un acompte le fait retenir sur le bulletin du mois.
+    Un refus est motivé et le salarié voit la réponse. C'est la seule autorité de décision :
+    ni le cabinet ni le salarié ne peuvent trancher à sa place.
   - **Gestion de l'Effectif** : Annuaire des salariés de l'entreprise et détails des contrats.
   - **Suivi des Réclamations Salariés** : Vue sur toutes les demandes des salariés de l'entreprise et les retours du cabinet (lecture seule : le traitement est réservé au cabinet).
 
@@ -626,7 +631,18 @@ son motif, son auteur et la date de décision.
 - 4 tests : solde du mois en cours, égalité avec le solde du bulletin,
   réduction après validation d'un congé, accès réservé au salarié.
 
-Reste à faire pour ce lot : la file de validation côté entreprise.
+#### Validation des demandes côté entreprise
+- Écran `/client/demandes` : une seule file pour les congés et les acomptes, triée
+  « en attente d'abord », filtrable par statut (à traiter / traitées / toutes) et par
+  salarié, avec le détail propre à chaque type (période et jours, ou montant et mois).
+- Valider applique la demande (absence créée, acompte retenu) ; refuser ouvre une
+  modale de motif, que le salarié retrouve dans son espace. Après décision, la file se
+  recharge et la notification rappelle l'effet en paie.
+- Les erreurs du serveur sont remontées telles quelles : notamment le 409 « bulletin
+  déjà validé », qui invite à rouvrir le bulletin plutôt qu'à forcer.
+- Onglet « Demandes » ajouté entre « Personnel » et « Réclamations ».
+
+Reste à faire pour ce lot : le contrôle du solde de congés à la validation.
 
 #### Interface : style Carbon (IBM), charte graphique conservée
 Le vocabulaire visuel suit l'**IBM Carbon Design System** ; le vert de la marque
