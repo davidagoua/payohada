@@ -64,6 +64,28 @@ def get_etablissements(
     return db.query(Etablissement).filter(Etablissement.dossier_id == dossier_id).all()
 
 
+
+def _prochain_code_etablissement(db: Session, dossier_id: int) -> str:
+    """Prochain code d'établissement, numéroté **par société**.
+
+    La séquence repart à 1 pour chaque dossier (ETAB0001, ETAB0002…) : deux
+    sociétés distinctes ont donc chacune leur ETAB0001. Un code saisi à la main
+    ou hérité d'une ancienne numérotation est simplement ignoré.
+    """
+    codes = [
+        code
+        for (code,) in db.query(Etablissement.code).filter(
+            Etablissement.dossier_id == dossier_id
+        )
+    ]
+    numeros = [
+        int(code[4:])
+        for code in codes
+        if code and code.startswith("ETAB") and code[4:].isdigit()
+    ]
+    return f"ETAB{max(numeros, default=0) + 1:04d}"
+
+
 @router.get("/dossiers/{dossier_id}/etablissements/next-code")
 def get_next_etablissement_code(
     dossier_id: int,
@@ -73,11 +95,7 @@ def get_next_etablissement_code(
     """Calcule le prochain code d'établissement disponible."""
     require_staff(current_user)
     check_dossier_ownership(dossier_id, current_user.id, db)
-    from sqlalchemy import func
-    max_id = db.query(func.max(Etablissement.id)).scalar()
-    next_id = (max_id or 0) + 1
-    next_code = f"ETAB{next_id:08d}"
-    return {"code": next_code}
+    return {"code": _prochain_code_etablissement(db, dossier_id)}
 
 
 @router.post("/dossiers/{dossier_id}/etablissements", response_model=EtablissementOut)
@@ -100,8 +118,8 @@ def create_etablissement(
     db.add(etab)
     db.flush()
 
-    # Génération du code final : ETAB + ID sur 8 chiffres (total 12 caractères)
-    etab.code = f"ETAB{etab.id:08d}"
+    # Numérotation propre à la société, et non à la base entière.
+    etab.code = _prochain_code_etablissement(db, dossier_id)
 
     # Création adresse
     if etab_in.adresse:

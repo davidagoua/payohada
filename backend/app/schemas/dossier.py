@@ -35,6 +35,8 @@ class NetEntrepriseOut(NetEntrepriseBase):
 
 class DossierBase(BaseModel):
     code: str
+    #: Identifiant ivoirien de la société (remplace le SIRET français).
+    rccm: Optional[str] = None
     siret: Optional[str] = None
     nom_dossier: str
     adresse_email: Optional[str] = None
@@ -50,6 +52,7 @@ class DossierCreate(DossierBase):
 
 
 class DossierUpdate(BaseModel):
+    rccm: Optional[str] = None
     siret: Optional[str] = None
     nom_dossier: Optional[str] = None
     adresse_email: Optional[str] = None

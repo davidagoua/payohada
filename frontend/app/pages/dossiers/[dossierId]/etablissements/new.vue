@@ -13,6 +13,17 @@ const fieldErrors = ref({})
 
 const secteurs = ref([])
 const etabSecteurId = ref(null)
+const secteurRecherche = ref('')
+
+// Le report des congés est porté par `gestion_conges.report_automatique`.
+const etabReportConges = ref(true)
+
+/** Activités filtrées par la recherche (le référentiel dépasse la vingtaine). */
+const secteursFiltres = computed(() => {
+  const terme = secteurRecherche.value.trim().toLowerCase()
+  if (!terme) return secteurs.value
+  return secteurs.value.filter(s => (s.nom || '').toLowerCase().includes(terme))
+})
 
 const fetchSecteurs = async () => {
   try {
@@ -92,6 +103,10 @@ const fetchDossierContext = async () => {
       const data = await get(`/dossiers/${dossierId}`)
       currentDossier.value = data
     }
+    // Le RCCM de l'établissement reprend celui de la société par défaut.
+    if (!etabNumeroRccm.value && currentDossier.value?.rccm) {
+      etabNumeroRccm.value = currentDossier.value.rccm
+    }
   } catch (e) {
     console.error(e)
     router.push('/dossiers')
@@ -149,6 +164,10 @@ const handleCreateEtablissement = async () => {
       mode_decompte_anciennete: etabModeDecompteAnciennete.value || null,
       conges_periode_reference_mois: etabCongesPeriodeReferenceMois.value !== null ? Number(etabCongesPeriodeReferenceMois.value) : 12,
       conges_mode_gestion_solde: etabCongesModeGestionSolde.value || null,
+      gestion_conges: {
+        report_automatique: etabReportConges.value,
+        mois_cloture_droits_cp: etabCongesPeriodeReferenceMois.value !== null ? Number(etabCongesPeriodeReferenceMois.value) : 5
+      },
       matricule_generation_auto: etabMatriculeGenerationAuto.value,
       matricule_prefixe: etabMatriculePrefixe.value || null,
       matricule_suffixe: etabMatriculeSuffixe.value || null,
@@ -265,13 +284,22 @@ onMounted(async () => {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Secteur d'activité</label>
+              <input
+                v-model="secteurRecherche"
+                type="search"
+                placeholder="Rechercher une activité…"
+                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              />
               <select 
                 v-model="etabSecteurId" 
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 w-full"
+                class="mt-2 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 w-full"
               >
                 <option :value="null">-- Aucun secteur sélectionné --</option>
-                <option v-for="s in secteurs" :key="s.id" :value="s.id">{{ s.nom }}</option>
+                <option v-for="s in secteursFiltres" :key="s.id" :value="s.id">{{ s.nom }}</option>
               </select>
+              <p v-if="!secteursFiltres.length" class="mt-1 text-xs text-slate-500">
+                Aucune activité ne correspond à « {{ secteurRecherche }} ».
+              </p>
             </div>
           </div>
         </div>
@@ -441,6 +469,17 @@ onMounted(async () => {
                 <option value="Jours ouvrables">Jours ouvrables</option>
                 <option value="Jours ouvrés">Jours ouvrés</option>
               </select>
+            </div>
+          </div>
+
+          <div class="flex items-start space-x-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <input id="new-report-conges" v-model="etabReportConges" type="checkbox" class="mt-0.5 rounded border-slate-300 text-green-600 focus:ring-green-500 h-4 w-4" />
+            <div>
+              <label for="new-report-conges" class="text-sm font-semibold text-slate-700 uppercase tracking-wider">Report des congés d'une année sur l'autre</label>
+              <p class="text-xs text-slate-500 mt-1">
+                Coché, les droits non pris s'accumulent sur les années suivantes.
+                Décoché, le solde repart à zéro à la clôture de chaque période.
+              </p>
             </div>
           </div>
 

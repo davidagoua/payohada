@@ -158,6 +158,9 @@ class Dossier(TimestampMixin, Base):
     # ne pas ajouter index=True ici (cela produisait deux DDL du même nom et
     # faisait échouer Base.metadata.create_all sur une base vierge).
     siret = Column(String(14))
+    #: Identifiant ivoirien de la société, saisi à la création (le SIRET reste
+    #: en base pour les dossiers anciens, mais n'est plus proposé à la saisie).
+    rccm = Column(String(100))
     nom_dossier = Column(String(50), nullable=False)
     adresse_email = Column(String(150))
     telephone = Column(String(15))
@@ -177,6 +180,7 @@ class Dossier(TimestampMixin, Base):
 
     __table_args__ = (
         Index("ix_dossiers_siret", "siret"),
+        Index("ix_dossiers_rccm", "rccm"),
     )
 
 

@@ -1347,7 +1347,17 @@ COMMENT ON COLUMN demandes_conges.absence_id
 COMMENT ON TABLE demandes_acomptes
     IS 'Demandes d''acompte, retenues sur le bulletin du mois après validation';
 
--- 7. Contrôles post-migration (à exécuter manuellement) :
+-- 7. Identifiant RCCM des sociétés (remplace le SIRET français).
+ALTER TABLE dossiers ADD COLUMN IF NOT EXISTS rccm VARCHAR(100);
+CREATE INDEX IF NOT EXISTS ix_dossiers_rccm ON dossiers (rccm);
+
+-- Reprise des dossiers existants : le SIRET saisi jusqu'ici devient le RCCM.
+UPDATE dossiers SET rccm = siret WHERE rccm IS NULL AND siret IS NOT NULL;
+
+COMMENT ON COLUMN dossiers.rccm
+    IS 'Numéro RCCM de la société (identifiant ivoirien, remplace le SIRET)';
+
+-- 8. Contrôles post-migration (à exécuter manuellement) :
 --    -- Aucun compte sans mot de passe (sinon connexion impossible) :
 --    SELECT id, email, role FROM utilisateurs WHERE hashed_password IS NULL;
 --    -- La colonne et ses valeurs par défaut :

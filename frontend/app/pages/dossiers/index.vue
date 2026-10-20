@@ -10,7 +10,7 @@ const modalOpen = ref(false)
 // Form fields for dossier creation
 const code = ref('')
 const nomDossier = ref('')
-const siret = ref('')
+const rccm = ref('')
 const pays = ref("Côte d'Ivoire")
 const email = ref('')
 const telephone = ref('')
@@ -44,7 +44,7 @@ const handleCreateDossier = async () => {
     const payload = {
       code: code.value,
       nom_dossier: nomDossier.value,
-      siret: siret.value || null,
+      rccm: rccm.value || null,
       adresse_email: email.value || null,
       telephone: telephone.value || null,
       nom_contact: nomContact.value || null,
@@ -64,7 +64,7 @@ const handleCreateDossier = async () => {
       // Reset form
       code.value = ''
       nomDossier.value = ''
-      siret.value = ''
+      rccm.value = ''
       email.value = ''
       telephone.value = ''
       nomContact.value = ''
@@ -149,16 +149,16 @@ onMounted(() => {
             </span>
           </div>
 
-          <!-- Mid: Title & SIRET -->
+          <!-- Mid: Title & RCCM -->
           <div>
             <h2 class="font-bold text-slate-900 group-hover:text-green-700 text-lg transition-colors leading-tight">
               {{ dossier.nom_dossier }}
             </h2>
-            <p v-if="dossier.siret" class="text-xs text-slate-500 mt-1 font-mono">
-              SIRET : {{ dossier.siret }}
+            <p v-if="dossier.rccm" class="text-xs text-slate-500 mt-1 font-mono">
+              RCCM : {{ dossier.rccm }}
             </p>
             <p v-else class="text-xs text-slate-400 mt-1 italic">
-              Aucun SIRET renseigné
+              Aucun RCCM renseigné
             </p>
           </div>
         </div>
@@ -215,11 +215,11 @@ onMounted(() => {
 
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">SIRET</label>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">RCCM</label>
               <input 
-                v-model="siret" 
+                v-model="rccm" 
                 type="text" 
-                placeholder="14 chiffres" 
+                placeholder="Ex : CI-ABJ-03-2024-B12-01234" 
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
               />
             </div>
