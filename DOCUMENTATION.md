@@ -290,6 +290,20 @@ Propriétés de sécurité :
 - `POST /api/v1/etablissements/{id}/salaries` et `PUT /api/v1/salaries/{id}` : la fiche porte l'email personnel. Dès qu'un compte d'accès est créé (création de la fiche avec email, ou email ajouté plus tard), ses identifiants partent par email. La réponse expose `acces_email_envoye` / `acces_email_message` et, à la création du compte seulement, `mot_de_passe_initial` — pour le cas où l'envoi échoue.
 - `POST /api/v1/salaries/{id}/envoyer-acces` : Renvoie les identifiants (**cabinet uniquement**). Un nouveau mot de passe provisoire est généré — l'ancien cesse de fonctionner — puis envoyé ; il est aussi renvoyé dans la réponse (`mot_de_passe_provisoire`). 400 si la fiche n'a pas d'email ou si le compte est désactivé.
 
+### Demandes du salarié (`/api/v1/demandes`)
+Un circuit court : le salarié dépose, l'**entreprise** décide, la paie applique.
+
+- `POST /api/v1/demandes/conges` : le salarié connecté dépose des congés (`date_debut`, `date_fin`, `motif`). 409 si une demande en attente ou validée couvre déjà ces dates.
+- `GET /api/v1/demandes/conges` : les siennes pour un salarié, celles de son entreprise pour un compte client, celles de ses dossiers pour le cabinet.
+- `POST /api/v1/demandes/conges/{id}/valider` : **gestionnaire entreprise uniquement**. Crée l'absence « Congés payés » de `salaries_absences` (celle que consomme le moteur) et la référence dans `absence_id`. 409 si un bulletin de la période est déjà validé.
+- `POST /api/v1/demandes/conges/{id}/refuser` : idem, avec un motif facultatif (`commentaire`) ; aucune absence n'est créée.
+- `POST /api/v1/demandes/acomptes` : le salarié demande un acompte (`montant`, `mois`, `annee`, `motif`).
+- `GET /api/v1/demandes/acomptes` : même portée que les congés.
+- `POST /api/v1/demandes/acomptes/{id}/valider` : validation par l'entreprise ; le bulletin du mois retient alors le montant **sans ressaisie**. 409 si le bulletin est déjà validé.
+- `POST /api/v1/demandes/acomptes/{id}/refuser` : refus motivé.
+
+Une décision est définitive : une demande déjà traitée ne peut plus changer de statut (409).
+
 ### Réclamations (`/api/v1/reclamations`)
 - `POST /api/v1/reclamations` : Création d'une réclamation par un salarié sur l'un de ses bulletins.
 - `GET /api/v1/reclamations` : Liste des réclamations — les siennes pour un salarié, celles de son entreprise pour un compte client, celles de ses dossiers pour le cabinet.
@@ -571,6 +585,34 @@ condamné au parcours « mot de passe oublié » pour sa première connexion.
 - 7 tests : création avec email, absence d'email, email ajouté plus tard, SMTP
   indisponible, renvoi avec invalidation de l'ancien mot de passe, renvoi sans
   email, autorisations.
+
+#### Demandes de congés et d'acomptes
+Le salarié n'avait aucun moyen de demander quoi que ce soit : les congés et les
+acomptes étaient saisis directement par le cabinet ou par l'entreprise, sans
+trace de la demande ni de la décision.
+
+Deux tables, `demandes_conges` et `demandes_acomptes` (section incrémentale de
+`schema.sql`), portent la demande, son statut (`en_attente | validee | refusee`),
+son motif, son auteur et la date de décision.
+
+- **Validé = appliqué.** La validation d'un congé crée une absence
+  `SalarieAbsence(type_absence="Congés payés")` : le moteur la normalise en
+  `CONGES_PAYES`, produit la ligne `CONGES_PRIS` et compense par `ABS_CONGES_PAYES`,
+  donc le net n'est pas amputé mais les jours sont comptés.
+- La validation d'un acompte laisse `calculate_payslip()` retenir le montant :
+  `_acomptes_valides()` somme les demandes validées du salarié sur la période et
+  l'ajoute à l'avance éventuellement saisie à la main. L'acompte reste une
+  retenue (`montant_cs`), jamais un gain.
+- **Un bulletin validé est figé** : valider une demande qui tomberait dessus
+  renvoie 409 plutôt que de produire un bulletin incohérent.
+- **La décision appartient à l'entreprise** (`client`) : ni le cabinet ni le
+  salarié ne peuvent trancher ; une autre entreprise reçoit 404.
+- 19 tests : dépôt, chevauchement, dates inversées, portée de lecture par rôle,
+  absence créée, net inchangé pour un congé, retenue effective pour un acompte,
+  acompte d'un autre mois ignoré, refus motivé, verrou du bulletin, autorisations.
+
+Reste à faire pour ce lot : les écrans salarié (déposer, suivre) et entreprise
+(file de validation), et le contrôle du solde de congés au moment de la demande.
 
 #### Interface : style Carbon (IBM), charte graphique conservée
 Le vocabulaire visuel suit l'**IBM Carbon Design System** ; le vert de la marque

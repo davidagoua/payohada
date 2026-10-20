@@ -1297,7 +1297,57 @@ COMMENT ON COLUMN avantages_en_nature.vehicule_type
 COMMENT ON COLUMN avantages_en_nature.valeur_reelle_hors_vehicule_cnps
     IS 'Valeur réelle pour l''assiette CNPS, distincte de l''évaluation fiscale';
 
--- 6. Contrôles post-migration (à exécuter manuellement) :
+-- 6. Demandes du salarié : congés et acomptes.
+--    La demande porte la décision ; la validation d'un congé crée l'absence
+--    correspondante (c'est elle que lit le moteur), et la validation d'un
+--    acompte est lue directement par le calcul du bulletin.
+
+CREATE TABLE IF NOT EXISTS demandes_conges (
+    id SERIAL PRIMARY KEY,
+    salarie_id INTEGER NOT NULL REFERENCES salaries(id) ON DELETE CASCADE,
+    date_debut DATE NOT NULL,
+    date_fin DATE NOT NULL,
+    nombre_jours DOUBLE PRECISION NOT NULL DEFAULT 0,
+    motif TEXT,
+    statut VARCHAR(20) NOT NULL DEFAULT 'en_attente',
+    commentaire_gestionnaire TEXT,
+    decide_par_id INTEGER REFERENCES utilisateurs(id) ON DELETE SET NULL,
+    date_decision TIMESTAMP WITH TIME ZONE,
+    absence_id INTEGER REFERENCES salaries_absences(id) ON DELETE SET NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS ix_demandes_conges_salarie ON demandes_conges (salarie_id, statut);
+CREATE INDEX IF NOT EXISTS ix_demandes_conges_statut ON demandes_conges (statut);
+
+CREATE TABLE IF NOT EXISTS demandes_acomptes (
+    id SERIAL PRIMARY KEY,
+    salarie_id INTEGER NOT NULL REFERENCES salaries(id) ON DELETE CASCADE,
+    montant DOUBLE PRECISION NOT NULL,
+    mois INTEGER NOT NULL,
+    annee VARCHAR(4) NOT NULL,
+    motif TEXT,
+    statut VARCHAR(20) NOT NULL DEFAULT 'en_attente',
+    commentaire_gestionnaire TEXT,
+    decide_par_id INTEGER REFERENCES utilisateurs(id) ON DELETE SET NULL,
+    date_decision TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS ix_demandes_acomptes_salarie
+    ON demandes_acomptes (salarie_id, annee, mois);
+CREATE INDEX IF NOT EXISTS ix_demandes_acomptes_statut ON demandes_acomptes (statut);
+
+COMMENT ON TABLE demandes_conges
+    IS 'Demandes de congés : en_attente | validee | refusee (validation = entreprise)';
+COMMENT ON COLUMN demandes_conges.absence_id
+    IS 'Absence créée à la validation, celle que consomme le calcul du bulletin';
+COMMENT ON TABLE demandes_acomptes
+    IS 'Demandes d''acompte, retenues sur le bulletin du mois après validation';
+
+-- 7. Contrôles post-migration (à exécuter manuellement) :
 --    -- Aucun compte sans mot de passe (sinon connexion impossible) :
 --    SELECT id, email, role FROM utilisateurs WHERE hashed_password IS NULL;
 --    -- La colonne et ses valeurs par défaut :

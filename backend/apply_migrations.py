@@ -36,7 +36,12 @@ CHEMIN_SCHEMA = RACINE / "schema.sql"
 
 #: Tables et colonnes que l'application attend et qui proviennent de la section
 #: incrémentale. Sert à vérifier le résultat après application.
-ATTENDUS_TABLES = ("avantages_en_nature", "password_reset_tokens")
+ATTENDUS_TABLES = (
+    "avantages_en_nature",
+    "password_reset_tokens",
+    "demandes_conges",
+    "demandes_acomptes",
+)
 ATTENDUS_COLONNES = (
     ("utilisateurs", "must_change_password"),
     ("contrats", "smhc_mensuel"),

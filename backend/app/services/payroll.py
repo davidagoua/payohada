@@ -2,13 +2,13 @@ import logging
 import re
 from collections import Counter
 from sqlalchemy.orm import Session
-from sqlalchemy import or_
+from sqlalchemy import func, or_
 from datetime import datetime
 
 from app.models.models import (
     Contrat, BulletinPaie, LigneBulletinPaie, VariableBulletin,
     Absence, HeureSupplementaire, Prime, Option, CaisseCotisation, Etablissement, Constante, Salarie, PretSalarie,
-    SalarieAbsence, DepartSalarie, SoldeToutCompte, AvantageEnNature
+    SalarieAbsence, DepartSalarie, SoldeToutCompte, AvantageEnNature, DemandeAcompte
 )
 from app.services.avantages_nature import (
     ResultatAvantagesNature, calculer_avantage_vehicule, calculer_avantages_nature,
@@ -975,6 +975,25 @@ def _calculate_payslip_raw(
     return net_a_payer
 
 
+def _acomptes_valides(db: Session, salarie_id: int, mois: int, annee: int) -> float:
+    """Total des acomptes validés par l'entreprise pour la période.
+
+    Une demande validée est la source du prélèvement : le bulletin la retient
+    même si personne n'a ressaisi le montant à la main.
+    """
+    total = (
+        db.query(func.coalesce(func.sum(DemandeAcompte.montant), 0.0))
+        .filter(
+            DemandeAcompte.salarie_id == salarie_id,
+            DemandeAcompte.mois == mois,
+            DemandeAcompte.annee == str(annee),
+            DemandeAcompte.statut == "validee",
+        )
+        .scalar()
+    )
+    return round(float(total or 0.0), 2)
+
+
 def calculate_payslip(db: Session, contrat_id: int, mois: int, annee: int, acompte: float = 0.0) -> BulletinPaie:
     """
     Calcule le bulletin de paie pour un contrat donné, un mois et une année.
@@ -983,6 +1002,11 @@ def calculate_payslip(db: Session, contrat_id: int, mois: int, annee: int, acomp
     # 1. Récupération des données d'entrée
     (contrat, etab, salarie, absences, heures_sup, primes, options,
      avantage_nature) = _get_payroll_inputs(db, contrat_id, mois, annee)
+
+    # Les acomptes validés s'ajoutent à l'avance éventuellement saisie à la main.
+    acompte = round(float(acompte or 0.0) + _acomptes_valides(
+        db, contrat.salarie_id, mois, annee
+    ), 2)
 
     # 2. Récupération ou création du bulletin de paie
     bulletin = _get_or_create_bulletin(db, contrat_id, contrat.dossier_id, mois, annee)

@@ -1126,3 +1126,64 @@ class AvantageEnNature(TimestampMixin, Base):
         UniqueConstraint("contrat_id", "mois", "annee", name="uq_avantage_nature_contrat_periode"),
         Index("ix_avantage_nature_contrat_periode", "contrat_id", "annee", "mois"),
     )
+
+
+# ─────────────────────────────────────────
+#  DEMANDES DU SALARIÉ (congés, acomptes)
+# ─────────────────────────────────────────
+
+class DemandeConge(TimestampMixin, Base):
+    """Demande de congés d'un salarié, validée par l'entreprise.
+
+    La validation crée l'absence correspondante dans `salaries_absences` : c'est
+    elle, et non la demande, que le moteur de paie consomme. La demande reste
+    la trace de la décision (qui, quand, pour quelles dates).
+    """
+    __tablename__ = "demandes_conges"
+
+    id = Column(Integer, primary_key=True, index=True)
+    salarie_id = Column(Integer, ForeignKey("salaries.id", ondelete="CASCADE"), nullable=False)
+    date_debut = Column(Date, nullable=False)
+    date_fin = Column(Date, nullable=False)
+    nombre_jours = Column(Float, nullable=False, default=0.0)
+    motif = Column(Text, nullable=True)
+    statut = Column(String(20), nullable=False, default="en_attente", index=True)
+    commentaire_gestionnaire = Column(Text, nullable=True)
+    decide_par_id = Column(Integer, ForeignKey("utilisateurs.id", ondelete="SET NULL"), nullable=True)
+    date_decision = Column(DateTime(timezone=True), nullable=True)
+    #: Absence créée lors de la validation — la preuve que la paie en tiendra compte.
+    absence_id = Column(Integer, ForeignKey("salaries_absences.id", ondelete="SET NULL"), nullable=True)
+
+    salarie = relationship("Salarie", foreign_keys=[salarie_id])
+    decide_par = relationship("Utilisateur", foreign_keys=[decide_par_id])
+
+    __table_args__ = (
+        Index("ix_demandes_conges_salarie", "salarie_id", "statut"),
+    )
+
+
+class DemandeAcompte(TimestampMixin, Base):
+    """Demande d'acompte sur la paie d'un mois donné.
+
+    Une fois validée, le montant est retenu sur le bulletin de la période par
+    le moteur de paie : la demande est la source unique, plus une saisie libre.
+    """
+    __tablename__ = "demandes_acomptes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    salarie_id = Column(Integer, ForeignKey("salaries.id", ondelete="CASCADE"), nullable=False)
+    montant = Column(Float, nullable=False)
+    mois = Column(Integer, nullable=False)
+    annee = Column(String(4), nullable=False)
+    motif = Column(Text, nullable=True)
+    statut = Column(String(20), nullable=False, default="en_attente", index=True)
+    commentaire_gestionnaire = Column(Text, nullable=True)
+    decide_par_id = Column(Integer, ForeignKey("utilisateurs.id", ondelete="SET NULL"), nullable=True)
+    date_decision = Column(DateTime(timezone=True), nullable=True)
+
+    salarie = relationship("Salarie", foreign_keys=[salarie_id])
+    decide_par = relationship("Utilisateur", foreign_keys=[decide_par_id])
+
+    __table_args__ = (
+        Index("ix_demandes_acomptes_salarie", "salarie_id", "annee", "mois"),
+    )
