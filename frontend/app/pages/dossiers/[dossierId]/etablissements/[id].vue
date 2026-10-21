@@ -120,6 +120,45 @@ const handleBulkDeleteSalaries = async () => {
   }
 }
 
+/**
+ * Envoie au salarié ses identifiants, depuis la liste.
+ *
+ * Le mot de passe n'étant stocké que haché, l'envoi en génère un nouveau :
+ * l'ancien cesse de fonctionner, ce que le message rappelle.
+ */
+const envoiIdentifiantsId = ref(null)
+
+const envoyerIdentifiants = async (salarie) => {
+  envoiIdentifiantsId.value = salarie.id
+  try {
+    const resultat = await post(`/salaries/${salarie.id}/envoyer-acces`)
+    const provisoire = resultat?.mot_de_passe_provisoire || ''
+    if (resultat?.email_envoye) {
+      toast.add({
+        title: 'Identifiants envoyés',
+        description: `Un nouveau mot de passe provisoire a été envoyé à ${salarie.email}. L'ancien n'est plus valable.`,
+        color: 'success'
+      })
+    } else {
+      toast.add({
+        title: 'Envoi impossible',
+        description: `Mot de passe provisoire : ${provisoire} — transmettez-le au salarié${resultat?.email_message ? ` (${resultat.email_message})` : ''}.`,
+        color: 'warning',
+        duration: 20000
+      })
+    }
+  } catch (e) {
+    console.error('Envoi des identifiants impossible :', e)
+    toast.add({
+      title: 'Envoi impossible',
+      description: e.data?.detail || 'Une erreur est survenue.',
+      color: 'danger'
+    })
+  } finally {
+    envoiIdentifiantsId.value = null
+  }
+}
+
 const handleBulkDeleteContracts = async () => {
   if (selectedContracts.value.length === 0) return
   if (!confirm(`Voulez-vous vraiment supprimer définitivement les ${selectedContracts.value.length} contrats sélectionnés ? Les bulletins associés seront supprimés.`)) return
@@ -1936,10 +1975,27 @@ onMounted(async () => {
                   </span>
                 </td>
                 <td class="px-6 py-4 text-right">
-                  <span class="text-green-600 group-hover:underline text-xs font-bold uppercase tracking-wider flex items-center justify-end gap-1">
-                    Fiche Salarié
-                    <UIcon name="i-lucide-chevron-right" class="w-4 h-4" />
-                  </span>
+                  <div class="flex items-center justify-end gap-3">
+                    <button
+                      type="button"
+                      :disabled="!sal.email || envoiIdentifiantsId === sal.id"
+                      :title="sal.email
+                        ? 'Génère un nouveau mot de passe provisoire et l\'envoie par email'
+                        : 'Renseignez un email sur la fiche pour pouvoir envoyer les identifiants'"
+                      class="p-1 text-slate-400 hover:text-green-700 disabled:text-slate-200 disabled:cursor-not-allowed transition-colors"
+                      @click.stop="envoyerIdentifiants(sal)"
+                    >
+                      <UIcon
+                        :name="envoiIdentifiantsId === sal.id ? 'i-lucide-loader-2' : 'i-lucide-mail'"
+                        class="w-4 h-4"
+                        :class="{ 'animate-spin': envoiIdentifiantsId === sal.id }"
+                      />
+                    </button>
+                    <span class="text-green-600 group-hover:underline text-xs font-bold uppercase tracking-wider flex items-center gap-1">
+                      Fiche Salarié
+                      <UIcon name="i-lucide-chevron-right" class="w-4 h-4" />
+                    </span>
+                  </div>
                 </td>
               </tr>
             </tbody>
