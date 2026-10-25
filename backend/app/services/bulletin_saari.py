@@ -426,7 +426,7 @@ def _corps_bulletin(
           <td colspan="3" class="pat"></td>
         </tr>
         <tr class="synthese">
-          <td colspan="4">Net imposable (ITS)</td>
+          <td colspan="4">Brut imposable (ITS)</td>
           <td colspan="2" class="num">{_entier(getattr(bulletin, 'net_imposable', 0))}</td>
           <td colspan="3" class="pat"></td>
         </tr>

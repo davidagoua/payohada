@@ -56,12 +56,13 @@ class MoteurPaieTests(unittest.TestCase):
         self.assertAlmostEqual(lignes["CMU_S"].montant_cs, 500.0, places=2)
         self.assertAlmostEqual(lignes["CMU_P"].montant_cp, 500.0, places=2)
 
-        # Base imposable = brut - retraite salariale - CMU salariale
-        base_imposable = 300000.0 - 18900.0 - 500.0
+        # Base imposable = brut imposable. Depuis la réforme ITS de 2024, la
+        # part salariale CNPS et la CMU ne sont plus déductibles de cette base.
+        base_imposable = 300000.0
         self.assertAlmostEqual(bulletin.net_imposable, base_imposable, places=2)
 
-        # ITS progressif sur 280 600 : 165 000×16 % + 40 600×21 %
-        its_attendu = 165000 * 0.16 + 40600 * 0.21
+        # ITS progressif sur 300 000 : 165 000×16 % + 60 000×21 %
+        its_attendu = 165000 * 0.16 + 60000 * 0.21
         self.assertAlmostEqual(lignes["IBS"].montant_cs, its_attendu, places=2)
 
         # RICF : marié + 2 enfants = 3 parts → 2 parts × 11 000
@@ -71,6 +72,26 @@ class MoteurPaieTests(unittest.TestCase):
         cot_salariales = 18900.0 + its_attendu - 22000.0 + 500.0
         self.assertAlmostEqual(bulletin.cotisations_salariales, cot_salariales, places=2)
         self.assertAlmostEqual(bulletin.net_a_payer, 300000.0 - cot_salariales, places=2)
+
+    def test_its_est_calcule_sur_le_brut_imposable(self):
+        """Réforme 2024 : l'ITS est assis sur le brut, sans déduction CNPS/CMU.
+
+        Exemple de référence DGI : 300 000 FCFA de brut, 1 part → 39 000 FCFA
+        d'impôt brut (16 % × 165 000 + 21 % × 60 000), sans RICF.
+        """
+        salarie = self.t["salarie"]
+        salarie.situation_matrimoniale = "Célibataire"
+        salarie.enfants_charge = 0
+        self.db.commit()
+
+        bulletin = calculate_payslip(self.db, self.contrat.id, 6, 2025)
+        lignes = {l.code: l for l in bulletin.lignes}
+
+        self.assertAlmostEqual(bulletin.salaire_brut, 300000.0, places=2)
+        self.assertAlmostEqual(bulletin.net_imposable, 300000.0, places=2)
+        self.assertAlmostEqual(lignes["IBS"].base_s, 300000.0, places=2)
+        self.assertAlmostEqual(lignes["IBS"].montant_cs, 39000.0, places=2)
+        self.assertAlmostEqual(lignes["RICF"].montant_cs, 0.0, places=2)
 
     def test_net_imposable_correspond_a_la_base_its(self):
         """Le net imposable stocké doit être exactement la base de l'ITS."""

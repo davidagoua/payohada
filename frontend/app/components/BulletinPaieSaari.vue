@@ -329,7 +329,7 @@ const estExpatrie = computed(() => !!props.salarie?.expatrie)
           <td colspan="3" class="pat"></td>
         </tr>
         <tr class="synthese">
-          <td colspan="4">Net imposable (ITS)</td>
+          <td colspan="4">Brut imposable (ITS)</td>
           <td colspan="2" class="mono num">{{ formatXOF(bulletin.net_imposable) }}</td>
           <td colspan="3" class="pat"></td>
         </tr>

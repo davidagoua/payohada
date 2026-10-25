@@ -192,6 +192,77 @@ Fonctions : `calculer_avantages_nature()`, `calculer_avantage_vehicule()`, `bare
 
 ---
 
+## 7. Impôt sur les traitements et salaires (ITS)
+
+**Textes** : ordonnance n° 2023-719 du 13 septembre 2023, applicable au
+1er janvier 2024 ; doctrine DGI 2024 (dont la note n° 0026 du 3 janvier 2024).
+
+La réforme a fusionné l'impôt sur les salaires, la contribution nationale et
+l'IGR en un impôt unique et progressif. Elle a **supprimé l'abattement
+forfaitaire de 20 %** pour frais professionnels et remplacé le quotient
+familial par une **réduction d'impôt pour charges de famille (RICF)**.
+
+### Base imposable
+
+Le revenu brut imposable est le **montant total brut** des traitements,
+indemnités, émoluments, salaires, primes, heures supplémentaires et avantages
+en nature, diminué des seules exonérations légales (indemnité de transport dans
+ses limites, indemnités de rupture, etc.).
+
+> **Depuis la réforme, la part salariale CNPS et la CMU ne sont plus déduites
+> de la base de l'ITS** : les cotisations et l'impôt se calculent sur le même
+> brut. L'ITS ne peut pas être négatif.
+
+### Barème mensuel progressif
+
+| Tranche mensuelle (FCFA) | Taux |
+|---|---|
+| 0 → 75 000 | 0 % |
+| 75 001 → 240 000 | 16 % |
+| 240 001 → 800 000 | 21 % |
+| 800 001 → 2 400 000 | 24 % |
+| 2 400 001 → 8 000 000 | 28 % |
+| > 8 000 000 | 32 % |
+
+Chaque tranche n'est imposée que pour la portion qui y tombe.
+
+### Réduction pour charges de famille (RICF)
+
+`RICF = (parts − 1) × 11 000 F`, plafonnée à 4 parts supplémentaires
+(44 000 F) et au montant de l'impôt brut.
+
+| Situation | Parts |
+|---|---|
+| Célibataire, divorcé(e) ou veuf(ve) sans enfant | 1 |
+| Marié(e) sans enfant | 2 |
+| Célibataire ou divorcé(e) avec 1 enfant | 2 |
+| Marié(e) ou veuf(ve) avec 1 enfant | 2,5 |
+| Célibataire ou divorcé(e) avec 2 enfants | 2,5 |
+| Marié(e) ou veuf(ve) avec 2 enfants | 3 |
+| … puis 0,5 part par enfant supplémentaire | plafond **5 parts** |
+
+### Exemple
+
+Brut 300 000 F, 1 part :
+`16 % × 165 000 + 21 % × 60 000 = 26 400 + 12 600 = 39 000 F`.
+RICF nulle → **ITS = 39 000 F**.
+
+Même brut, marié(e) avec 2 enfants (3 parts) :
+`39 000 − (2 × 11 000) = 17 000 F`.
+
+### Implémentation
+
+- `app/services/payroll.py` : `bareme_its()`, `parts_familiales()`,
+  `calculer_its()` — fonctions pures partagées par le moteur de bulletin et le
+  simulateur, afin que les deux donnent toujours le même résultat.
+- La RICF unitaire reste paramétrable par la constante `RICF_MONTANT`
+  (écran Administration → Constantes).
+- Le champ `bulletins_paie.net_imposable` porte désormais la base retenue
+  (le brut imposable) ; il est libellé « Brut imposable (ITS) » dans l'IHM et
+  les états.
+
+---
+
 ## Points de vigilance
 
 1. **Le SMHC est indispensable** à la gratification et aux frais funéraires. Il

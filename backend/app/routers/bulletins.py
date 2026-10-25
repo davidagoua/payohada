@@ -809,8 +809,20 @@ def _simulate_bulletin_core(
 
     cmu_salariale = get_val("CMU_MONTANT_S", 500.0)
     cmu_patronale = get_val("CMU_MONTANT_P", 500.0)
-    ibs_montant = get_val("IBS_MONTANT", 74577.0)
-    ricf_montant = get_val("RICF_MONTANT", -11000.0)
+
+    # ITS : même règle que le moteur de paie — base = brut imposable (la part
+    # salariale CNPS/CMU n'est plus déductible depuis la réforme de 2024),
+    # barème progressif puis RICF selon la situation familiale.
+    ricf_par_part = abs(get_val("RICF_MONTANT", -11000.0))
+    net_imposable = max(0.0, salaire_brut)
+    ibs_montant, parts_its, ricf_applicable = calculer_its(
+        net_imposable,
+        sim_in.situation_matrimoniale,
+        sim_in.enfants_charge,
+        ricf_par_part,
+    )
+    ricf_montant = -ricf_applicable
+    parts_str = f"{parts_its:.1f}".rstrip('0').rstrip('.')
 
     cn_taux_p = get_val("CN_TAUX_P_EXP", 8.0) if sim_in.expatrie else get_val("CN_TAUX_P_LOC", 1.5)
     ta_taux_p = get_val("TA_TAUX_P", 0.4)
@@ -821,7 +833,7 @@ def _simulate_bulletin_core(
         LigneSimulationOut(
             code="IBS",
             libelle="Impôt brut sur salaire",
-            base_s=round(salaire_brut, 2),
+            base_s=round(net_imposable, 2),
             taux_s=0.0,
             montant_cs=round(ibs_montant, 2)
         )
@@ -832,8 +844,8 @@ def _simulate_bulletin_core(
     lignes.append(
         LigneSimulationOut(
             code="RICF",
-            libelle="Réduction d'impôt pour charge familiale",
-            base_s=round(salaire_brut, 2),
+            libelle=f"Réduction d'impôt charge familiale ({parts_str} part{'s' if parts_its > 1 else ''})",
+            base_s=round(net_imposable, 2),
             taux_s=0.0,
             montant_cs=round(ricf_montant, 2)
         )
@@ -1086,7 +1098,8 @@ def simulate_bulletin_paie(
             montant_retraite_s
         ) = _simulate_bulletin_core(sim_in, base_val, db)
 
-        net_imposable = salaire_brut - (min(salaire_brut, 3375000) * 0.063)
+        # Base de l'ITS exposée au client : le brut imposable (réforme 2024).
+        net_imposable = salaire_brut
 
         # Calculer les cumuls pour la simulation
         jours_absences = sum(line.base_s for line in lignes if line.code and line.code.startswith("ABS_") and line.base_s is not None)

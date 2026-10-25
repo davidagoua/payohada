@@ -451,7 +451,7 @@ const handleChangePassword = async () => {
               <div class="text-right text-[10px] text-slate-500 leading-tight space-y-1">
                 <p>Salaire Brut : {{ formatXOF(selectedBulletin.salaire_brut) }}</p>
                 <p>Retenues salariales : {{ formatXOF(selectedBulletin.cotisations_salariales) }}</p>
-                <p class="font-bold text-slate-800">Net imposable : {{ formatXOF(selectedBulletin.net_imposable) }}</p>
+                <p class="font-bold text-slate-800">Brut imposable (ITS) : {{ formatXOF(selectedBulletin.net_imposable) }}</p>
               </div>
             </div>
           </div>

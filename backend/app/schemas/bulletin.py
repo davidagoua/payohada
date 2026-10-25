@@ -245,6 +245,10 @@ class SimulationInput(BaseModel):
     heures_sup: List[SimulationHeureSupInput] = []
     primes: List[SimulationPrimeInput] = []
     mode_calcul: Optional[str] = "base"  # "base", "brut" ou "net"
+    # Situation fiscale utilisée pour la réduction d'impôt pour charges de
+    # famille (RICF). Absente → 1 part, donc aucune réduction.
+    situation_matrimoniale: Optional[str] = None
+    enfants_charge: Optional[int] = 0
 
 class LigneSimulationOut(BaseModel):
     code: str

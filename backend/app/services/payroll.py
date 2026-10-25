@@ -54,6 +54,106 @@ def _hs_majoration(code: Optional[str]) -> float:
     return majoration
 
 
+# ═══════════════════════════════════════════════════════════════════════
+# IMPÔT SUR LES TRAITEMENTS ET SALAIRES (ITS) — Côte d'Ivoire
+#
+# Référence : ordonnance n° 2023-719 du 13 septembre 2023, applicable au
+# 1er janvier 2024, et doctrine DGI 2024. La réforme a :
+#   - fusionné l'impôt sur les salaires, la contribution nationale et l'IGR
+#     en un impôt unique et progressif ;
+#   - supprimé l'abattement forfaitaire de 20 % pour frais professionnels ;
+#   - remplacé le quotient familial par une réduction d'impôt forfaitaire
+#     pour charges de famille (RICF).
+#
+# La base imposable est le **brut imposable** (revenu brut des traitements,
+# primes, heures supplémentaires et avantages en nature). Depuis la réforme,
+# la part salariale CNPS et la CMU ne sont plus déduites de cette base : les
+# cotisations et l'ITS se calculent sur le même brut.
+# ═══════════════════════════════════════════════════════════════════════
+
+#: Barème mensuel progressif : (borne basse, borne haute, taux).
+#: Chaque tranche n'est imposée que pour la portion qui y tombe.
+TRANCHES_ITS: tuple[tuple[float, float, float], ...] = (
+    (0.0, 75_000.0, 0.0),
+    (75_000.0, 240_000.0, 0.16),
+    (240_000.0, 800_000.0, 0.21),
+    (800_000.0, 2_400_000.0, 0.24),
+    (2_400_000.0, 8_000_000.0, 0.28),
+    (8_000_000.0, float("inf"), 0.32),
+)
+
+#: Nombre de parts maximal retenu pour la RICF (article 120 du CGI).
+PARTS_ITS_MAX = 5.0
+
+
+def bareme_its(base_imposable: float) -> float:
+    """Impôt brut sur salaire (IBS) avant réduction pour charges de famille.
+
+    Le barème est appliqué tranche par tranche : un brut de 300 000 FCFA n'est
+    pas taxé à 21 % sur la totalité, mais à 16 % sur la part de 75 000 à
+    240 000 puis à 21 % au-delà.
+    """
+    total = 0.0
+    base = max(0.0, base_imposable or 0.0)
+    for borne_basse, borne_haute, taux in TRANCHES_ITS:
+        if base > borne_basse:
+            portion = min(base, borne_haute) - borne_basse
+            if portion > 0:
+                total += portion * taux
+    return total
+
+
+def parts_familiales(situation_matrimoniale: Optional[str], enfants_charge: Optional[int]) -> float:
+    """Nombre de parts fiscales (article 120 du CGI), plafonné à 5.
+
+    * marié(e) : 2 parts + 0,5 par enfant à charge ;
+    * veuf(ve) : 1 part sans enfant, sinon 2 parts + 0,5 par enfant ;
+    * célibataire / divorcé(e) : 1 part sans enfant, 2 parts pour un enfant,
+      puis 0,5 part supplémentaire par enfant au-delà.
+    """
+    situation = (situation_matrimoniale or "").strip().lower()
+    enfants = max(0, int(enfants_charge or 0))
+
+    if "mari" in situation:
+        parts = 2.0 + (enfants * 0.5)
+    elif "veuf" in situation or "veuve" in situation:
+        parts = 1.0 if enfants == 0 else 2.0 + (enfants * 0.5)
+    elif enfants == 0:
+        parts = 1.0
+    elif enfants == 1:
+        parts = 2.0
+    else:
+        parts = 2.0 + ((enfants - 1) * 0.5)
+
+    return min(PARTS_ITS_MAX, parts)
+
+
+def calculer_its(
+    base_imposable: float,
+    situation_matrimoniale: Optional[str],
+    enfants_charge: Optional[int],
+    ricf_par_part: float = 11_000.0,
+) -> tuple[float, float, float]:
+    """Calcule l'ITS d'un mois.
+
+    Retourne `(ibs, parts, ricf_applicable)` où :
+    * `ibs` est l'impôt brut issu du barème ;
+    * `parts` le nombre de parts fiscales retenu ;
+    * `ricf_applicable` la réduction pour charges de famille effectivement
+      imputable, jamais supérieure à l'impôt brut (l'ITS ne peut être négatif).
+
+    La RICF vaut 11 000 FCFA par part au-delà de la première, plafonnée à
+    4 parts supplémentaires (44 000 FCFA). Le montant unitaire reste
+    paramétrable par la constante `RICF_MONTANT`.
+    """
+    ibs = bareme_its(base_imposable)
+    parts = parts_familiales(situation_matrimoniale, enfants_charge)
+    ricf_plafond = (PARTS_ITS_MAX - 1.0) * ricf_par_part
+    ricf = min(max(0.0, (parts - 1.0) * ricf_par_part), ricf_plafond)
+    ricf_applicable = min(ricf, ibs)
+    return ibs, parts, ricf_applicable
+
+
 def _daily_hours(contrat: Contrat) -> float:
     """Durée d'une journée de travail pour ce contrat (base unique de calcul).
 
@@ -609,8 +709,9 @@ def _calculate_cnps_cotisations(
     """Calcule les cotisations sociales, taxes et impôts (zone UEMOA).
 
     Retourne `(lignes, cotisations_salariales, cotisations_patronales, net_imposable)`.
-    Le net imposable retourné est **celui réellement utilisé** pour l'ITS, afin
-    qu'il ne puisse pas diverger de la valeur stockée sur le bulletin.
+    Depuis la réforme ITS de 2024, la base imposable est le **brut imposable** :
+    la valeur retournée (et stockée sur le bulletin) est donc le brut retenu
+    pour l'ITS, afin qu'elle ne puisse pas diverger de l'impôt calculé.
     """
     cotisations_salariales_totales = 0.0
     cotisations_patronales_totales = 0.0
@@ -647,9 +748,6 @@ def _calculate_cnps_cotisations(
     # RICF : réduction d'impôt par part de charge familiale (valeur positive).
     ricf_par_part = abs(get_val("RICF_MONTANT", -11000.0))
 
-    # Réduction maximale : 5 parts retenues pour l'ITS (mêmes bornes que le calcul).
-    ricf_plafond = 4.0 * ricf_par_part
-
     # CN, TA, TFC Taux
     is_expat = salarie.expatrie if salarie else False
     cn_taux_p = get_val("CN_TAUX_P_EXP", 8.0) if is_expat else get_val("CN_TAUX_P_LOC", 1.5)
@@ -670,48 +768,21 @@ def _calculate_cnps_cotisations(
     cotisations_salariales_totales += montant_retraite_s
     cotisations_patronales_totales += montant_retraite_p
 
-    # Base imposable ITS = Salaire Brut - cotisations sociales déductibles
-    # (retraite CNPS + CMU part salariale).
-    net_imposable = max(0.0, salaire_brut - montant_retraite_s - cmu_salariale)
+    # Base imposable ITS : depuis la réforme du 1er janvier 2024, l'impôt est
+    # assis sur le **brut imposable**. La part salariale CNPS et la CMU ne sont
+    # plus déductibles, et l'abattement forfaitaire de 20 % a été supprimé :
+    # les cotisations et l'ITS se calculent donc sur le même brut.
+    # Le champ `net_imposable` conserve son nom en base, mais il porte cette
+    # base (le brut imposable) : c'est la valeur réellement utilisée pour l'ITS.
+    net_imposable = max(0.0, salaire_brut)
 
-    # 2. Calcul dynamique de l'ITS (IBS et RICF) sur le Net Imposable
-    tranches = [
-        (0, 75000, 0.0),  
-        (75000, 240000, 0.16),
-        (240000, 800000, 0.21),
-        (800000, 2400000, 0.24),
-        (2400000, 8000000, 0.28),
-        (8000000, float('inf'), 0.32)
-    ]
-    its_brut = 0.0
-
-    for min_val, max_val, taux in tranches:
-        if net_imposable > min_val:
-            portion = min(net_imposable, max_val) - min_val
-            if portion > 0:
-                its_brut += portion * taux
-
-    # Calcul des parts familiales
-    sit = (salarie.situation_matrimoniale if salarie else "").strip().lower() if (salarie and salarie.situation_matrimoniale) else ""
-    kids = max(0, int(salarie.enfants_charge or 0)) if salarie else 0
-    
-    if "mari" in sit:
-        parts = 2.0 + (kids * 0.5)
-    elif "veuf" in sit or "veuve" in sit:
-        parts = 1.0 if kids == 0 else 2.0 + (kids * 0.5)
-    else:  # Célibataire / Divorcé(e)
-        if kids == 0:
-            parts = 1.0
-        elif kids == 1:
-            parts = 2.0
-        else:
-            parts = 2.0 + ((kids - 1) * 0.5)
-    parts = min(5.0, parts)
-
-    # Réduction d'Impôt pour Charge Familiale (RICF) — montant paramétrable
-    ricf_montant = max(0.0, (parts - 1.0) * ricf_par_part)
-    ricf_montant = min(ricf_montant, ricf_plafond)
-    ricf_applicable = min(ricf_montant, its_brut)
+    # 2. Calcul de l'ITS (IBS puis RICF) sur le brut imposable
+    its_brut, parts, ricf_applicable = calculer_its(
+        net_imposable,
+        salarie.situation_matrimoniale if salarie else None,
+        salarie.enfants_charge if salarie else 0,
+        ricf_par_part=ricf_par_part,
+    )
 
     # IBS Line
     lignes_cotisations.append(
@@ -906,7 +977,7 @@ def _save_bulletin(
     # Variables de bulletin spécifiques
     var_brut = VariableBulletin(bulletin_id=bulletin.id, code="BRUT", libelle="Salaire Brut", valeur=round(salaire_brut, 2))
     var_net_payer = VariableBulletin(bulletin_id=bulletin.id, code="NET_PAYER", libelle="Net à payer", valeur=round(net_a_payer, 2))
-    var_net_imp = VariableBulletin(bulletin_id=bulletin.id, code="NET_IMP", libelle="Net Imposable", valeur=round(net_imposable, 2))
+    var_net_imp = VariableBulletin(bulletin_id=bulletin.id, code="NET_IMP", libelle="Brut imposable (ITS)", valeur=round(net_imposable, 2))
     
     db.add(var_brut)
     db.add(var_net_payer)
@@ -1236,9 +1307,10 @@ def calculate_payslip(db: Session, contrat_id: int, mois: int, annee: int, acomp
 
     # 6. Calcul du net à payer
     # `net_imposable` provient du calcul des cotisations : c'est exactement la
-    # base utilisée pour l'ITS. Il n'est plus recalculé ici avec des taux codés
-    # en dur, ce qui faisait diverger la valeur stockée de l'impôt réellement
-    # calculé dès que les constantes CNPS étaient modifiées.
+    # base utilisée pour l'ITS (le brut imposable depuis la réforme de 2024).
+    # Il n'est pas recalculé ici avec des taux codés en dur, ce qui faisait
+    # diverger la valeur stockée de l'impôt réellement calculé dès que les
+    # constantes CNPS étaient modifiées.
     net_a_payer = (
         salaire_brut
         - cot_salariales

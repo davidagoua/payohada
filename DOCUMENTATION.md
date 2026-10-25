@@ -785,7 +785,7 @@ Structure reproduite : en-tête employeur (NIF/RCCM, n° employeur CNPS, code
 tableau des rubriques ventilé en `Code | Désignation | Base | Taux | Gain |
 Retenue` avec les charges patronales en regard, groupé en trois sections
 (éléments de salaire brut, cotisations et retenues, indemnités et retenues
-diverses) ; totaux (salaire brut, retenues, net imposable, net à payer) ;
+diverses) ; totaux (salaire brut, retenues, brut imposable ITS, net à payer) ;
 **cadre des cumuls** mensuel et annuel ; état des congés ; zones de signature.
 
 Accès : depuis le détail d'un bulletin, le bouton d'impression ouvre la page
@@ -804,6 +804,29 @@ Le montant saisi dans « Salaire Mensuel Brut (FCFA) » **est** le salaire brut.
 - Sur un contrat horaire, le sursalaire saisi est un écart de taux horaire : il est ramené au mois en le multipliant par la base horaire.
 - Un sursalaire supérieur au brut est plafonné, pour que la base ne devienne jamais négative.
 - Corrigé dans les quatre endroits qui recomposaient le brut : calcul du bulletin, simulateur de bulletin, taux journalier de l'indemnité de congés payés du départ, et salaire imposable des calculateurs. Le taux de déduction des absences reste le taux plein, sursalaire compris.
+
+#### ITS : base imposable = brut (réforme 2024)
+
+Le moteur calculait l'ITS sur `brut − CNPS salariale − CMU salariale` (l'ancien
+« net imposable »). Depuis la réforme entrée en vigueur le 1er janvier 2024
+(ordonnance n° 2023-719), l'impôt est assis sur le **brut imposable** : la part
+salariale CNPS et la CMU ne sont plus déductibles, et l'abattement de 20 % a
+disparu. Le calcul a été corrigé en conséquence :
+
+- `app/services/payroll.py` : fonctions pures `bareme_its()`,
+  `parts_familiales()` et `calculer_its()` ; la base vaut désormais le brut
+  imposable. Le champ `net_imposable` conserve son nom en base mais porte cette
+  base, libellée « Brut imposable (ITS) » sur le bulletin et dans les états.
+- `app/routers/bulletins.py` : le simulateur n'utilise plus la constante
+  forfaitaire `IBS_MONTANT` (jamais alimentée) ni une RICF fixe ; il applique le
+  même barème et la même RICF que le moteur. Les champs
+  `situation_matrimoniale` et `enfants_charge` ont été ajoutés à la simulation
+  et à l'écran « Simulateur de paie ».
+- Tests : cas de référence recalculé (300 000 F, marié 2 enfants → IBS
+  39 000 F, RICF 22 000 F) et nouveau test verrouillant l'exemple DGI (300 000 F,
+  1 part → 39 000 F d'ITS), assiettes des avantages nature et du sursalaire
+  mises à jour.
+- Références : `docs/REFERENTIEL_CALCULS_CI.md`, section 7.
 
 #### Pages Nuxt des calculateurs
 - `contrats/[contratId]/depart/index.vue` — formulaire de départ complet : choix du motif (licenciement, retraite, décès, fin de CDD, démission, rupture), saisie ou reprise automatique des 12 salaires de référence, gratification, congés payés (les deux méthodes comparées) et éléments complémentaires. Chaque section alimente un **aperçu en direct** avec le détail du barème, avant enregistrement du solde.

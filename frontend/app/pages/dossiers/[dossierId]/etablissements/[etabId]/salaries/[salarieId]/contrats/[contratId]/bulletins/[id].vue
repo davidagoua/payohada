@@ -1097,7 +1097,7 @@ onMounted(() => {
             <span class="font-bold font-mono text-slate-900">{{ formatXOF(bulletin.cotisations_patronales) }}</span>
           </div>
           <div class="flex justify-between border-b border-slate-200 pb-1.5">
-            <span class="text-slate-500 font-bold uppercase tracking-wider">Net Imposable :</span>
+            <span class="text-slate-500 font-bold uppercase tracking-wider">Brut imposable (ITS) :</span>
             <span class="font-bold font-mono text-slate-900">{{ formatXOF(bulletin.net_imposable) }}</span>
           </div>
         </div>

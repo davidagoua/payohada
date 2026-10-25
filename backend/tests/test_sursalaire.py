@@ -130,8 +130,8 @@ class BulletinSursalaireTests(unittest.TestCase):
         contrat = self._contrat_avec_sursalaire()
         bulletin = calculate_payslip(self.db, contrat.id, 6, 2025)
 
-        # Brut 500 000 → retraite 6,3 % = 31 500 ; CMU 500
-        self.assertAlmostEqual(bulletin.net_imposable, 500_000.0 - 31_500.0 - 500.0, places=2)
+        # Base ITS = brut imposable (réforme 2024 : plus de déduction CNPS/CMU)
+        self.assertAlmostEqual(bulletin.net_imposable, 500_000.0, places=2)
 
     def test_assiette_cnps_non_gonflee(self):
         contrat = self._contrat_avec_sursalaire()

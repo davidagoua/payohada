@@ -59,10 +59,8 @@ class AvantagesNatureDansLeBulletinTests(unittest.TestCase):
 
         # La ligne d'impôt doit porter sur la base incluant l'avantage
         self.assertAlmostEqual(lignes["IBS"].base_s, bulletin.net_imposable, places=2)
-        # Brut 360 000 → retraite 6,3 % = 22 680 ; CMU 500
-        self.assertAlmostEqual(
-            bulletin.net_imposable, 360_000.0 - 22_680.0 - 500.0, places=2
-        )
+        # Base ITS = brut imposable (réforme 2024 : plus de déduction CNPS/CMU)
+        self.assertAlmostEqual(bulletin.net_imposable, 360_000.0, places=2)
 
     def test_impot_augmente_avec_l_avantage(self):
         sans = calculate_payslip(self.db, self.contrat.id, 5, 2025)

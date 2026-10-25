@@ -169,7 +169,7 @@ def _journal_de_paie(db: Session, contexte: ContexteEdition) -> ResultatEdition:
         Colonne("nom", "Nom et prénoms", TYPE_TEXTE, largeur=22),
         Colonne("brut", "Salaire brut", TYPE_MONTANT, total=True, largeur=12),
         Colonne("cotisations", "Cotisations", TYPE_MONTANT, total=True, largeur=12),
-        Colonne("net_imposable", "Net imposable", TYPE_MONTANT, total=True, largeur=12),
+        Colonne("net_imposable", "Brut imposable (ITS)", TYPE_MONTANT, total=True, largeur=12),
         Colonne("its", "ITS", TYPE_MONTANT, total=True, largeur=11),
         Colonne("net_a_payer", "Net à payer", TYPE_MONTANT, total=True, largeur=12),
     ]
