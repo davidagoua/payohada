@@ -68,12 +68,12 @@ const formatFCFA = (amount) => {
     <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div>
         <div class="flex items-center gap-2">
-          <NuxtLink to="/client" class="text-xs text-slate-500 hover:text-green-600 font-semibold flex items-center gap-1">
+          <NuxtLink to="/client" class="text-xs text-slate-500 hover:text-navy-700 font-semibold flex items-center gap-1">
             <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
             Tableau de bord
           </NuxtLink>
         </div>
-        <h1 class="text-xl font-bold text-slate-900 mt-1">
+        <h1 class="text-xl font-bold text-navy-900 mt-1">
           Effectif du Personnel • {{ dossier?.nom_dossier || 'Entreprise' }}
         </h1>
         <p class="text-xs text-slate-500 mt-0.5">
@@ -115,7 +115,7 @@ const formatFCFA = (amount) => {
 
       <div v-else-if="filteredSalaries.length === 0" class="p-12 text-center text-slate-500">
         <UIcon name="i-lucide-users" class="w-10 h-10 mx-auto text-slate-300 mb-2" />
-        <p class="text-sm font-bold text-slate-800">Aucun salarié trouvé</p>
+        <p class="text-sm font-bold text-navy-900">Aucun salarié trouvé</p>
       </div>
 
       <div v-else class="overflow-x-auto">

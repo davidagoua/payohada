@@ -139,7 +139,7 @@ onMounted(fetchPrintData)
         <!-- En-tête -->
         <div class="flex justify-between items-start border-b border-slate-200 pb-6">
           <div class="space-y-1.5">
-            <h2 class="text-lg font-bold text-slate-800 uppercase">{{ etab?.raison_sociale || etab?.nom || dossier?.nom_dossier }}</h2>
+            <h2 class="text-lg font-bold text-navy-900 uppercase">{{ etab?.raison_sociale || etab?.nom || dossier?.nom_dossier }}</h2>
             <p class="text-xs text-slate-500">
               Établissement {{ etab?.code || '—' }}<br>
               NIF/RCCM : {{ etab?.nif || etab?.numero_contribuable || 'Non spécifié' }}
@@ -151,7 +151,7 @@ onMounted(fetchPrintData)
         </div>
 
         <div class="text-center py-6">
-          <h1 class="text-xl font-extrabold uppercase tracking-wider text-slate-900 border-2 border-slate-900 py-2.5 px-4 inline-block">
+          <h1 class="text-xl font-extrabold uppercase tracking-wider text-navy-900 border-2 border-navy-900 py-2.5 px-4 inline-block">
             Reçu pour solde de tout compte
           </h1>
         </div>
@@ -223,7 +223,7 @@ onMounted(fetchPrintData)
 
     <!-- ══════════════ ANNEXE : DÉTAIL DU CALCUL ══════════════ -->
     <div v-if="details" class="page-break pt-10 mt-10 border-t-2 border-slate-300">
-      <h2 class="text-sm font-bold uppercase tracking-wider text-slate-900 mb-4">
+      <h2 class="text-sm font-bold uppercase tracking-wider text-navy-900 mb-4">
         Annexe — détail du calcul
       </h2>
 
@@ -255,13 +255,13 @@ onMounted(fetchPrintData)
 
       <!-- Indemnité de rupture -->
       <div v-if="details.rupture" class="mb-6">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-navy-900 mb-2">
           Indemnité de rupture — décret n° 2017-210, art. 4
         </h3>
         <p class="text-xs text-slate-600 mb-2">
           Salaire global mensuel moyen des 12 derniers mois :
           <strong class="font-mono">{{ formatFcfa(details.rupture.salaire_global_moyen) }}</strong>
-          <span v-if="details.rupture.eligible" class="text-emerald-700 font-semibold"> · éligible</span>
+          <span v-if="details.rupture.eligible" class="text-green-700 font-semibold"> · éligible</span>
           <span v-else class="text-amber-700 font-semibold"> · non éligible</span>
         </p>
         <p v-if="details.rupture.motif_ineligibilite" class="text-xs px-2.5 py-2 bg-amber-50 border border-amber-200 rounded text-amber-800 mb-2">
@@ -291,7 +291,7 @@ onMounted(fetchPrintData)
 
       <!-- Décès -->
       <div v-if="details.deces" class="mb-6">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-navy-900 mb-2">
           Droits des ayants droit
         </h3>
         <p class="text-xs text-slate-600">
@@ -302,7 +302,7 @@ onMounted(fetchPrintData)
 
       <!-- Fin de CDD -->
       <div v-if="details.fin_cdd" class="mb-6">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-navy-900 mb-2">
           Indemnité de fin de CDD — art. 15.8 du Code du travail
         </h3>
         <table class="w-full text-xs">
@@ -325,7 +325,7 @@ onMounted(fetchPrintData)
 
       <!-- Gratification -->
       <div v-if="details.gratification" class="mb-6">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-navy-900 mb-2">
           Gratification annuelle — art. 53 de la convention collective
         </h3>
         <table class="w-full text-xs">
@@ -360,7 +360,7 @@ onMounted(fetchPrintData)
 
       <!-- Congés payés -->
       <div v-if="details.conges" class="mb-6">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-700 mb-2">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-navy-900 mb-2">
           Congés payés — art. 25.1/25.2, 71-72 et décret n° 98-39
         </h3>
         <table class="w-full text-xs">

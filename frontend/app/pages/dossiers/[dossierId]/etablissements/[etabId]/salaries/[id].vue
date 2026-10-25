@@ -692,11 +692,11 @@ onMounted(() => {
     <!-- Header Object page -->
     <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div class="flex items-center space-x-4">
-        <div class="w-12 h-12 bg-green-50 text-green-700 rounded-full flex items-center justify-center font-bold text-lg border border-green-200">
+        <div class="w-12 h-12 bg-navy-50 text-navy-700 rounded-full flex items-center justify-center font-bold text-lg border border-navy-200">
           {{ sal.prenom[0] }}{{ sal.nom[0] }}
         </div>
         <div>
-          <h1 class="text-2xl font-bold text-slate-900 leading-tight">
+          <h1 class="text-2xl font-bold text-navy-900 leading-tight">
             {{ sal.civilite }} {{ sal.prenom }} {{ sal.nom.toUpperCase() }}
           </h1>
           <p class="text-xs text-slate-500 font-mono mt-1">Matricule : {{ sal.matricule }}</p>
@@ -723,7 +723,7 @@ onMounted(() => {
           @click="activeTab = tab.id"
           :class="[
             activeTab === tab.id 
-              ? 'border-green-600 text-green-700 font-bold' 
+              ? 'border-green-600 text-navy-900 font-bold'
               : 'border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300',
             'whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-all'
           ]"
@@ -739,7 +739,7 @@ onMounted(() => {
         
         <!-- Civil Profile -->
         <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
-          <h3 class="text-md font-bold text-slate-900 border-b border-slate-100 pb-2">État Civil & Informations Générales</h3>
+          <h3 class="text-md font-bold text-navy-900 border-b border-slate-100 pb-2">État Civil & Informations Générales</h3>
           
           <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div>
@@ -853,7 +853,7 @@ onMounted(() => {
 
         <!-- Coordonnees -->
         <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
-          <h3 class="text-md font-bold text-slate-900 border-b border-slate-100 pb-2">Coordonnées de Contact & Adresse</h3>
+          <h3 class="text-md font-bold text-navy-900 border-b border-slate-100 pb-2">Coordonnées de Contact & Adresse</h3>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -871,7 +871,7 @@ onMounted(() => {
                 type="button"
                 title="Génère un nouveau mot de passe provisoire et l'envoie par email au salarié"
                 :disabled="envoiIdentifiantsEnCours || !salEmail"
-                class="mt-2 text-xs font-semibold text-green-700 hover:text-green-900 disabled:text-slate-400 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
+                class="mt-2 text-xs font-semibold text-navy-700 hover:text-navy-900 disabled:text-slate-400 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
                 @click="envoyerIdentifiants"
               >
                 <UIcon
@@ -928,7 +928,7 @@ onMounted(() => {
 
         <!-- Banque -->
         <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
-          <h3 class="text-md font-bold text-slate-900 border-b border-slate-100 pb-2">Informations Bancaires de Versement</h3>
+          <h3 class="text-md font-bold text-navy-900 border-b border-slate-100 pb-2">Informations Bancaires de Versement</h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">IBAN du salarié</label>
@@ -977,7 +977,7 @@ onMounted(() => {
         
         <div class="flex justify-between items-center border-b border-slate-100 pb-4 mb-4">
           <div>
-            <h3 class="text-lg font-bold text-slate-900">Historique des Contrats</h3>
+            <h3 class="text-lg font-bold text-navy-900">Historique des Contrats</h3>
             <p class="text-xs text-slate-500">Liste des contrats de travail (actifs et échus) de cet employé.</p>
           </div>
           <button 
@@ -1014,7 +1014,7 @@ onMounted(() => {
                 class="hover:bg-slate-50 cursor-pointer group"
               >
                 <td class="px-6 py-4 font-mono font-semibold text-slate-900">{{ c.numero_contrat }}</td>
-                <td class="px-6 py-4 font-medium text-slate-700 group-hover:text-green-700 transition-colors">
+                <td class="px-6 py-4 font-medium text-slate-700 group-hover:text-navy-700 transition-colors">
                   {{ c.emploi || 'Non renseigné' }}
                 </td>
                 <td class="px-6 py-4 text-slate-600 font-semibold">
@@ -1024,7 +1024,7 @@ onMounted(() => {
                   {{ c.salaire_mensuel }} FCFA / {{ c.type_salaire }}
                   <span
                     :class="[
-                      c.mode_calcul === 'net' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-amber-50 text-amber-700 border-amber-200',
+                      c.mode_calcul === 'net' ? 'bg-navy-50 text-navy-700 border-navy-200' : 'bg-slate-100 text-slate-650 border-slate-200',
                       'ml-1 px-1.5 py-0.5 rounded text-[9px] uppercase font-bold border'
                     ]"
                   >{{ c.mode_calcul === 'net' ? 'Net' : 'Brut' }}</span>
@@ -1041,7 +1041,7 @@ onMounted(() => {
                   </span>
                 </td>
                 <td class="px-6 py-4 text-right">
-                  <span class="text-green-600 group-hover:underline text-xs font-semibold flex items-center justify-end gap-1">
+                  <span class="text-navy-700 group-hover:underline text-xs font-semibold flex items-center justify-end gap-1">
                     Gérer le Contrat
                     <UIcon name="i-lucide-chevron-right" class="w-4 h-4" />
                   </span>
@@ -1060,7 +1060,7 @@ onMounted(() => {
       <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
         <div class="flex justify-between items-center border-b border-slate-100 pb-4 mb-4">
           <div>
-            <h3 class="text-lg font-bold text-slate-900">Entretiens Annuels d'Évaluation</h3>
+            <h3 class="text-lg font-bold text-navy-900">Entretiens Annuels d'Évaluation</h3>
             <p class="text-xs text-slate-500">Historique des entretiens d'évaluation du salarié.</p>
           </div>
           <button 
@@ -1075,7 +1075,7 @@ onMounted(() => {
 
         <!-- Form -->
         <form v-if="showEntretienForm" @submit.prevent="saveEntretien" class="space-y-4 bg-slate-50 p-4 rounded-lg border border-slate-200 mb-6">
-          <h4 class="font-semibold text-sm text-slate-700">{{ editingEntretien ? 'Modifier l\'entretien' : 'Saisir un nouvel entretien' }}</h4>
+          <h4 class="font-semibold text-sm text-navy-900">{{ editingEntretien ? 'Modifier l\'entretien' : 'Saisir un nouvel entretien' }}</h4>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Date de l'entretien</label>
@@ -1122,7 +1122,7 @@ onMounted(() => {
                 <td class="px-6 py-4 font-mono font-semibold">{{ item.note_globale !== null ? item.note_globale + '/20' : '-' }}</td>
                 <td class="px-6 py-4 text-slate-650 max-w-xs truncate">{{ item.commentaires || '-' }}</td>
                 <td class="px-6 py-4 text-right space-x-2">
-                  <button @click="editEntretien(item)" class="text-green-600 hover:text-green-800 text-xs font-semibold">Modifier</button>
+                  <button @click="editEntretien(item)" class="text-navy-700 hover:text-navy-900 text-xs font-semibold">Modifier</button>
                   <button @click="deleteEntretien(item.id)" class="text-red-600 hover:text-red-800 text-xs font-semibold">Supprimer</button>
                 </td>
               </tr>
@@ -1138,7 +1138,7 @@ onMounted(() => {
       <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
         <div class="flex justify-between items-center border-b border-slate-100 pb-4 mb-4">
           <div>
-            <h3 class="text-lg font-bold text-slate-900">Visites Médicales</h3>
+            <h3 class="text-lg font-bold text-navy-900">Visites Médicales</h3>
             <p class="text-xs text-slate-500">Suivi médical et avis d'aptitude du salarié.</p>
           </div>
           <button 
@@ -1153,7 +1153,7 @@ onMounted(() => {
 
         <!-- Form -->
         <form v-if="showVisiteForm" @submit.prevent="saveVisite" class="space-y-4 bg-slate-50 p-4 rounded-lg border border-slate-200 mb-6">
-          <h4 class="font-semibold text-sm text-slate-700">{{ editingVisite ? 'Modifier la visite' : 'Saisir une nouvelle visite' }}</h4>
+          <h4 class="font-semibold text-sm text-navy-900">{{ editingVisite ? 'Modifier la visite' : 'Saisir une nouvelle visite' }}</h4>
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Date de la visite</label>
@@ -1217,7 +1217,7 @@ onMounted(() => {
                 </td>
                 <td class="px-6 py-4 font-mono text-slate-600">{{ item.prochaine_visite || '-' }}</td>
                 <td class="px-6 py-4 text-right space-x-2">
-                  <button @click="editVisite(item)" class="text-green-600 hover:text-green-800 text-xs font-semibold">Modifier</button>
+                  <button @click="editVisite(item)" class="text-navy-700 hover:text-navy-900 text-xs font-semibold">Modifier</button>
                   <button @click="deleteVisite(item.id)" class="text-red-600 hover:text-red-800 text-xs font-semibold">Supprimer</button>
                 </td>
               </tr>
@@ -1233,7 +1233,7 @@ onMounted(() => {
       <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
         <div class="flex justify-between items-center border-b border-slate-100 pb-4 mb-4">
           <div>
-            <h3 class="text-lg font-bold text-slate-900">Suivi des Formations</h3>
+            <h3 class="text-lg font-bold text-navy-900">Suivi des Formations</h3>
             <p class="text-xs text-slate-500">Formations demandées, en cours ou terminées.</p>
           </div>
           <button 
@@ -1248,7 +1248,7 @@ onMounted(() => {
 
         <!-- Form -->
         <form v-if="showFormationForm" @submit.prevent="saveFormation" class="space-y-4 bg-slate-50 p-4 rounded-lg border border-slate-200 mb-6">
-          <h4 class="font-semibold text-sm text-slate-700">{{ editingFormation ? 'Modifier la formation' : 'Saisir une nouvelle formation' }}</h4>
+          <h4 class="font-semibold text-sm text-navy-900">{{ editingFormation ? 'Modifier la formation' : 'Saisir une nouvelle formation' }}</h4>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Intitulé de la formation</label>
@@ -1306,7 +1306,7 @@ onMounted(() => {
                 <td class="px-6 py-4">
                   <span 
                     :class="[
-                      item.statut_formation === 'Terminée' ? 'bg-green-50 text-green-700 border-green-200' : item.statut_formation === 'En cours' ? 'bg-blue-50 text-blue-700 border-blue-200' : 'bg-slate-100 text-slate-650 border-slate-200',
+                      item.statut_formation === 'Terminée' ? 'bg-green-50 text-green-700 border-green-200' : item.statut_formation === 'En cours' ? 'bg-navy-50 text-navy-700 border-navy-200' : 'bg-slate-100 text-slate-650 border-slate-200',
                       'px-2 py-0.5 rounded text-[10px] uppercase font-bold border'
                     ]"
                   >
@@ -1314,7 +1314,7 @@ onMounted(() => {
                   </span>
                 </td>
                 <td class="px-6 py-4 text-right space-x-2">
-                  <button @click="editFormation(item)" class="text-green-600 hover:text-green-800 text-xs font-semibold">Modifier</button>
+                  <button @click="editFormation(item)" class="text-navy-700 hover:text-navy-900 text-xs font-semibold">Modifier</button>
                   <button @click="deleteFormation(item.id)" class="text-red-600 hover:text-red-800 text-xs font-semibold">Supprimer</button>
                 </td>
               </tr>
@@ -1330,7 +1330,7 @@ onMounted(() => {
       <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
         <div class="flex justify-between items-center border-b border-slate-100 pb-4 mb-4">
           <div>
-            <h3 class="text-lg font-bold text-slate-900">Saisie et Suivi des Absences</h3>
+            <h3 class="text-lg font-bold text-navy-900">Saisie et Suivi des Absences</h3>
             <p class="text-xs text-slate-500">Congés, maladies et autres motifs d'absences.</p>
           </div>
           <button 
@@ -1345,7 +1345,7 @@ onMounted(() => {
 
         <!-- Form -->
         <form v-if="showAbsenceForm" @submit.prevent="saveAbsence" class="space-y-4 bg-slate-50 p-4 rounded-lg border border-slate-200 mb-6">
-          <h4 class="font-semibold text-sm text-slate-700">{{ editingAbsence ? 'Modifier l\'absence' : 'Saisir une nouvelle absence' }}</h4>
+          <h4 class="font-semibold text-sm text-navy-900">{{ editingAbsence ? 'Modifier l\'absence' : 'Saisir une nouvelle absence' }}</h4>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Motif de l'absence</label>
@@ -1408,7 +1408,7 @@ onMounted(() => {
                   </span>
                 </td>
                 <td class="px-6 py-4 text-right space-x-2">
-                  <button @click="editAbsence(item)" class="text-green-600 hover:text-green-800 text-xs font-semibold">Modifier</button>
+                  <button @click="editAbsence(item)" class="text-navy-700 hover:text-navy-900 text-xs font-semibold">Modifier</button>
                   <button @click="deleteAbsence(item.id)" class="text-red-600 hover:text-red-800 text-xs font-semibold">Supprimer</button>
                 </td>
               </tr>
@@ -1424,7 +1424,7 @@ onMounted(() => {
       <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
         <div class="flex justify-between items-center border-b border-slate-100 pb-4 mb-4">
           <div>
-            <h3 class="text-lg font-bold text-slate-900">Prêts accordés au Salarié</h3>
+            <h3 class="text-lg font-bold text-navy-900">Prêts accordés au Salarié</h3>
             <p class="text-xs text-slate-500">Suivi des retenues mensuelles et soldes des prêts.</p>
           </div>
           <button 
@@ -1439,7 +1439,7 @@ onMounted(() => {
 
         <!-- Form -->
         <form v-if="showPretForm" @submit.prevent="savePret" class="space-y-4 bg-slate-50 p-4 rounded-lg border border-slate-200 mb-6">
-          <h4 class="font-semibold text-sm text-slate-700">{{ editingPret ? 'Modifier le prêt' : 'Saisir un nouveau prêt' }}</h4>
+          <h4 class="font-semibold text-sm text-navy-900">{{ editingPret ? 'Modifier le prêt' : 'Saisir un nouveau prêt' }}</h4>
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Montant total accordé (FCFA)</label>
@@ -1486,7 +1486,7 @@ onMounted(() => {
                 <td class="px-6 py-4 font-mono text-slate-650">{{ item.montant_mensualite.toLocaleString() }} FCFA</td>
                 <td class="px-6 py-4 font-mono text-red-650 font-bold">{{ item.reste_a_rembourser.toLocaleString() }} FCFA</td>
                 <td class="px-6 py-4 text-right space-x-2">
-                  <button @click="editPret(item)" class="text-green-600 hover:text-green-800 text-xs font-semibold">Modifier</button>
+                  <button @click="editPret(item)" class="text-navy-700 hover:text-navy-900 text-xs font-semibold">Modifier</button>
                   <button @click="deletePret(item.id)" class="text-red-600 hover:text-red-800 text-xs font-semibold">Supprimer</button>
                 </td>
               </tr>
@@ -1502,7 +1502,7 @@ onMounted(() => {
       <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
         <div class="flex justify-between items-center border-b border-slate-100 pb-4 mb-4">
           <div>
-            <h3 class="text-lg font-bold text-slate-900">Suivi Administratif des Contrats</h3>
+            <h3 class="text-lg font-bold text-navy-900">Suivi Administratif des Contrats</h3>
             <p class="text-xs text-slate-500">Dates clés, périodes d'essai et types de contrats RH.</p>
           </div>
           <button 
@@ -1517,7 +1517,7 @@ onMounted(() => {
 
         <!-- Form -->
         <form v-if="showContratHrForm" @submit.prevent="saveContratHr" class="space-y-4 bg-slate-50 p-4 rounded-lg border border-slate-200 mb-6">
-          <h4 class="font-semibold text-sm text-slate-700">{{ editingContratHr ? 'Modifier le contrat' : 'Saisir un nouveau contrat' }}</h4>
+          <h4 class="font-semibold text-sm text-navy-900">{{ editingContratHr ? 'Modifier le contrat' : 'Saisir un nouveau contrat' }}</h4>
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Type de contrat</label>
@@ -1569,7 +1569,7 @@ onMounted(() => {
                 <td class="px-6 py-4 font-mono text-slate-650">{{ item.date_fin_contrat || 'Illimité (CDI)' }}</td>
                 <td class="px-6 py-4 font-mono text-slate-600">{{ item.fin_periode_essai || '-' }}</td>
                 <td class="px-6 py-4 text-right space-x-2">
-                  <button @click="editContratHr(item)" class="text-green-600 hover:text-green-800 text-xs font-semibold">Modifier</button>
+                  <button @click="editContratHr(item)" class="text-navy-700 hover:text-navy-900 text-xs font-semibold">Modifier</button>
                   <button @click="deleteContratHr(item.id)" class="text-red-600 hover:text-red-800 text-xs font-semibold">Supprimer</button>
                 </td>
               </tr>
@@ -1585,7 +1585,7 @@ onMounted(() => {
       <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
         <div class="flex justify-between items-center border-b border-slate-100 pb-4 mb-4">
           <div>
-            <h3 class="text-lg font-bold text-slate-900">Département, Poste & Matériel</h3>
+            <h3 class="text-lg font-bold text-navy-900">Département, Poste & Matériel</h3>
             <p class="text-xs text-slate-500">Service d'affectation, manager et équipements remis.</p>
           </div>
           <button 
@@ -1600,7 +1600,7 @@ onMounted(() => {
 
         <!-- Form -->
         <form v-if="showServiceForm" @submit.prevent="saveService" class="space-y-4 bg-slate-50 p-4 rounded-lg border border-slate-200 mb-6">
-          <h4 class="font-semibold text-sm text-slate-700">{{ editingService ? 'Modifier l\'affectation' : 'Saisir une nouvelle affectation' }}</h4>
+          <h4 class="font-semibold text-sm text-navy-900">{{ editingService ? 'Modifier l\'affectation' : 'Saisir une nouvelle affectation' }}</h4>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Département / Service</label>
@@ -1656,7 +1656,7 @@ onMounted(() => {
                 <td class="px-6 py-4 font-medium text-slate-650">{{ item.manager }}</td>
                 <td class="px-6 py-4 text-slate-500 max-w-xs truncate">{{ item.dotation_materiel || '-' }}</td>
                 <td class="px-6 py-4 text-right space-x-2">
-                  <button @click="editService(item)" class="text-green-600 hover:text-green-800 text-xs font-semibold">Modifier</button>
+                  <button @click="editService(item)" class="text-navy-700 hover:text-navy-900 text-xs font-semibold">Modifier</button>
                   <button @click="deleteService(item.id)" class="text-red-600 hover:text-red-800 text-xs font-semibold">Supprimer</button>
                 </td>
               </tr>
@@ -1672,7 +1672,7 @@ onMounted(() => {
       <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
         <div class="flex justify-between items-center border-b border-slate-100 pb-4 mb-4">
           <div>
-            <h3 class="text-lg font-bold text-slate-900">Archivage de Documents</h3>
+            <h3 class="text-lg font-bold text-navy-900">Archivage de Documents</h3>
             <p class="text-xs text-slate-500">Stockage et dépôt de documents liés au salarié (CNI, RIB, etc.).</p>
           </div>
           <button 
@@ -1687,7 +1687,7 @@ onMounted(() => {
 
         <!-- Form -->
         <form v-if="showArchivageForm" @submit.prevent="saveArchivage" class="space-y-4 bg-slate-50 p-4 rounded-lg border border-slate-200 mb-6">
-          <h4 class="font-semibold text-sm text-slate-700">{{ editingArchivage ? 'Modifier le document' : 'Archiver un nouveau document' }}</h4>
+          <h4 class="font-semibold text-sm text-navy-900">{{ editingArchivage ? 'Modifier le document' : 'Archiver un nouveau document' }}</h4>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Type de document</label>
@@ -1701,7 +1701,7 @@ onMounted(() => {
               <label class="block text-xs font-semibold text-slate-500 uppercase">Fichier joint</label>
               <input type="file" @change="onFileSelected" :required="!editingArchivage" class="mt-1 block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100" />
               <div v-if="formArchivage.fichier_joint" class="text-xs text-slate-500 mt-1">
-                Fichier actuel : <a :href="`${apiBase}${formArchivage.fichier_joint}`" target="_blank" class="text-green-600 hover:underline font-medium">{{ formArchivage.fichier_joint.split('/').pop() }}</a>
+                Fichier actuel : <a :href="`${apiBase}${formArchivage.fichier_joint}`" target="_blank" class="text-navy-700 hover:underline font-medium">{{ formArchivage.fichier_joint.split('/').pop() }}</a>
               </div>
             </div>
           </div>
@@ -1734,7 +1734,7 @@ onMounted(() => {
                     v-if="item.fichier_joint"
                     :href="`${apiBase}${item.fichier_joint}`" 
                     target="_blank" 
-                    class="inline-flex items-center gap-1 text-green-600 hover:text-green-800 font-semibold hover:underline"
+                    class="inline-flex items-center gap-1 text-navy-700 hover:text-navy-900 font-semibold hover:underline"
                   >
                     <UIcon name="i-lucide-download" class="w-3.5 h-3.5" />
                     Télécharger
@@ -1742,7 +1742,7 @@ onMounted(() => {
                   <span v-else class="text-slate-400 italic">Aucun fichier</span>
                 </td>
                 <td class="px-6 py-4 text-right space-x-2">
-                  <button @click="editArchivage(item)" class="text-green-600 hover:text-green-800 text-xs font-semibold">Modifier</button>
+                  <button @click="editArchivage(item)" class="text-navy-700 hover:text-navy-900 text-xs font-semibold">Modifier</button>
                   <button @click="deleteArchivage(item.id)" class="text-red-600 hover:text-red-800 text-xs font-semibold">Supprimer</button>
                 </td>
               </tr>

@@ -448,6 +448,7 @@ const estExpatrie = computed(() => !!props.salarie?.expatrie)
 .entete-titre h1 {
   font-size: 12px;
   font-weight: bold;
+  color: var(--brand-navy);
   text-transform: uppercase;
   letter-spacing: 0.4px;
   margin: 0 0 1mm;
@@ -514,6 +515,7 @@ const estExpatrie = computed(() => !!props.salarie?.expatrie)
 .mono { font-family: "Courier New", Courier, monospace; }
 .rubriques tr.section td {
   background: #dcdcdc;
+  color: var(--brand-navy);
   font-weight: bold;
   text-transform: uppercase;
   font-size: 7.5px;
@@ -535,6 +537,7 @@ const estExpatrie = computed(() => !!props.salarie?.expatrie)
 .titre-cadre {
   display: block;
   background: #dcdcdc;
+  color: var(--brand-navy);
   font-weight: bold;
   text-transform: uppercase;
   font-size: 7.5px;

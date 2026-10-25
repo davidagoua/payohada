@@ -100,7 +100,7 @@ const renderMarkdown = (content: string): string => {
   html = html.replace(/```([\s\S]*?)```/g, '<pre class="bg-slate-900 text-slate-100 p-2.5 rounded-md text-xs font-mono overflow-x-auto my-2"><code>$1</code></pre>')
 
   // 3. Code en ligne
-  html = html.replace(/`([^`]+)`/g, '<code class="bg-slate-100 text-emerald-800 px-1 py-0.5 rounded text-xs font-mono font-semibold">$1</code>')
+  html = html.replace(/`([^`]+)`/g, '<code class="bg-slate-100 text-green-800 px-1 py-0.5 rounded text-xs font-mono font-semibold">$1</code>')
 
   // 4. Titres
   html = html.replace(/^### (.*$)/gim, '<h4 class="text-xs font-bold uppercase tracking-wider text-slate-800 mt-2.5 mb-1">$1</h4>')
@@ -160,7 +160,7 @@ const activeContextLabel = computed(() => {
         class="w-[92vw] sm:w-[420px] md:w-[460px] h-[580px] max-h-[82vh] bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden mb-3.5 select-text"
       >
         <!-- En-tête du Chatbot -->
-        <header class="bg-gradient-to-r from-emerald-700 via-green-700 to-emerald-800 text-white p-3.5 flex items-center justify-between shadow-sm select-none">
+        <header class="bg-navy-900 text-white p-3.5 flex items-center justify-between shadow-sm select-none">
           <div class="flex items-center space-x-2.5">
             <div class="relative flex-shrink-0">
               <div class="w-9 h-9 rounded-xl bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center p-1 shadow-inner">
@@ -170,7 +170,7 @@ const activeContextLabel = computed(() => {
                   class="w-6 h-6 object-contain"
                 >
               </div>
-              <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-emerald-400 border-2 border-emerald-800 rounded-full animate-pulse" />
+              <span class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-400 border-2 border-navy-900 rounded-full animate-pulse" />
             </div>
             <div class="flex flex-col">
               <div class="flex items-center space-x-1.5">
@@ -179,7 +179,7 @@ const activeContextLabel = computed(() => {
                 </h3>
                 <span class="text-[10px] font-semibold uppercase bg-white/20 px-1.5 py-0.5 rounded-full text-white/90">IA</span>
               </div>
-              <span class="text-[11px] text-emerald-100/90 leading-tight">Expert Paie & Droit Social OHADA</span>
+              <span class="text-[11px] text-navy-200 leading-tight">Expert Paie & Droit Social OHADA</span>
             </div>
           </div>
 
@@ -189,7 +189,7 @@ const activeContextLabel = computed(() => {
             <button
               type="button"
               title="Nouvelle conversation"
-              class="p-1.5 rounded-lg text-emerald-100 hover:text-white hover:bg-white/15 transition-colors cursor-pointer"
+              class="p-1.5 rounded-lg text-navy-200 hover:text-white hover:bg-white/15 transition-colors cursor-pointer"
               @click="clearHistory"
             >
               <UIcon
@@ -202,7 +202,7 @@ const activeContextLabel = computed(() => {
             <button
               type="button"
               title="Fermer le chat"
-              class="p-1.5 rounded-lg text-emerald-100 hover:text-white hover:bg-white/15 transition-colors cursor-pointer"
+              class="p-1.5 rounded-lg text-navy-200 hover:text-white hover:bg-white/15 transition-colors cursor-pointer"
               @click="closeChat"
             >
               <UIcon
@@ -216,16 +216,16 @@ const activeContextLabel = computed(() => {
         <!-- Bandeau de contexte actif (si dossier/établissement sélectionné) -->
         <div
           v-if="activeContextLabel"
-          class="bg-emerald-50/80 border-b border-emerald-150 px-3.5 py-1.5 flex items-center justify-between text-[11px] text-emerald-900 select-none"
+          class="bg-navy-50/80 border-b border-navy-200 px-3.5 py-1.5 flex items-center justify-between text-[11px] text-navy-900 select-none"
         >
           <div class="flex items-center space-x-1.5 truncate">
             <UIcon
               name="i-lucide-building-2"
-              class="w-3.5 h-3.5 text-emerald-600 flex-shrink-0"
+              class="w-3.5 h-3.5 text-navy-700 flex-shrink-0"
             />
-            <span class="truncate font-medium">Dossier : <strong class="font-bold text-emerald-950">{{ activeContextLabel }}</strong></span>
+            <span class="truncate font-medium">Dossier : <strong class="font-bold text-navy-950">{{ activeContextLabel }}</strong></span>
           </div>
-          <span class="text-[10px] bg-emerald-200/60 text-emerald-800 font-semibold px-1.5 py-0.2 rounded">Actif</span>
+          <span class="text-[10px] bg-green-200/60 text-green-800 font-semibold px-1.5 py-0.2 rounded">Actif</span>
         </div>
 
         <!-- Corps des messages -->
@@ -241,7 +241,7 @@ const activeContextLabel = computed(() => {
             <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center space-x-1">
               <UIcon
                 name="i-lucide-sparkles"
-                class="w-3 h-3 text-emerald-600"
+                class="w-3 h-3 text-navy-700"
               />
               <span>Questions fréquentes</span>
             </div>
@@ -250,13 +250,13 @@ const activeContextLabel = computed(() => {
                 v-for="(prompt, idx) in suggestedPrompts"
                 :key="idx"
                 type="button"
-                class="text-left text-xs text-slate-700 bg-white hover:bg-emerald-50/80 hover:text-emerald-800 border border-slate-200/90 hover:border-emerald-300 rounded-xl px-3 py-2 transition-all duration-150 shadow-xs flex items-center justify-between group cursor-pointer"
+                class="text-left text-xs text-slate-700 bg-white hover:bg-green-50/80 hover:text-green-800 border border-slate-200/90 hover:border-green-300 rounded-xl px-3 py-2 transition-all duration-150 shadow-xs flex items-center justify-between group cursor-pointer"
                 @click="selectPrompt(prompt)"
               >
                 <span>{{ prompt }}</span>
                 <UIcon
                   name="i-lucide-corner-down-left"
-                  class="w-3.5 h-3.5 text-slate-400 group-hover:text-emerald-600 opacity-0 group-hover:opacity-100 transition-opacity"
+                  class="w-3.5 h-3.5 text-slate-400 group-hover:text-green-600 opacity-0 group-hover:opacity-100 transition-opacity"
                 />
               </button>
             </div>
@@ -273,7 +273,7 @@ const activeContextLabel = computed(() => {
               class="max-w-[88%] sm:max-w-[84%] rounded-2xl p-3.5 text-xs shadow-xs leading-relaxed"
               :class="[
                 msg.role === 'user'
-                  ? 'bg-gradient-to-br from-emerald-600 to-green-700 text-white rounded-br-xs font-medium'
+                  ? 'bg-gradient-to-br from-navy-800 to-navy-900 text-white rounded-br-xs font-medium'
                   : 'bg-white border border-slate-200 text-slate-800 rounded-bl-xs'
               ]"
             >
@@ -282,7 +282,7 @@ const activeContextLabel = computed(() => {
                 v-if="msg.role === 'assistant'"
                 class="flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-100 text-[10px] text-slate-400"
               >
-                <div class="flex items-center space-x-1.5 font-semibold text-emerald-700">
+                <div class="flex items-center space-x-1.5 font-semibold text-navy-700">
                   <UIcon
                     name="i-lucide-bot"
                     class="w-3.5 h-3.5"
@@ -302,7 +302,7 @@ const activeContextLabel = computed(() => {
                   />
                   <span
                     v-if="copiedId === msg.id"
-                    class="text-[9px] text-emerald-600 font-bold"
+                    class="text-[9px] text-green-600 font-bold"
                   >Copié</span>
                 </button>
               </div>
@@ -324,18 +324,18 @@ const activeContextLabel = computed(() => {
               <!-- Indicateur de streaming ou de chargement -->
               <div
                 v-if="msg.status === 'streaming' && !msg.content"
-                class="flex items-center space-x-1.5 py-1 text-emerald-600"
+                class="flex items-center space-x-1.5 py-1 text-green-600"
               >
                 <span
-                  class="w-2 h-2 rounded-full bg-emerald-600 animate-bounce"
+                  class="w-2 h-2 rounded-full bg-green-600 animate-bounce"
                   style="animation-delay: 0ms"
                 />
                 <span
-                  class="w-2 h-2 rounded-full bg-emerald-600 animate-bounce"
+                  class="w-2 h-2 rounded-full bg-green-600 animate-bounce"
                   style="animation-delay: 150ms"
                 />
                 <span
-                  class="w-2 h-2 rounded-full bg-emerald-600 animate-bounce"
+                  class="w-2 h-2 rounded-full bg-green-600 animate-bounce"
                   style="animation-delay: 300ms"
                 />
                 <span class="text-[11px] font-medium text-slate-500 ml-1">Réflexion en cours...</span>
@@ -352,7 +352,7 @@ const activeContextLabel = computed(() => {
         <!-- Zone de saisie du message -->
         <footer class="p-3 bg-white border-t border-slate-200">
           <form
-            class="relative flex items-center bg-slate-100 rounded-xl border border-slate-200 focus-within:border-emerald-500 focus-within:ring-2 focus-within:ring-emerald-500/20 transition-all shadow-inner"
+            class="relative flex items-center bg-slate-100 rounded-xl border border-slate-200 focus-within:border-green-500 focus-within:ring-2 focus-within:ring-green-500/20 transition-all shadow-inner"
             @submit.prevent="handleSend"
           >
             <textarea
@@ -368,7 +368,7 @@ const activeContextLabel = computed(() => {
               type="submit"
               :disabled="!inputText.trim() || isLoading"
               title="Envoyer le message"
-              class="absolute right-1.5 p-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:opacity-40 disabled:hover:bg-emerald-600 text-white transition-all cursor-pointer disabled:cursor-not-allowed shadow-xs"
+              class="absolute right-1.5 p-1.5 rounded-lg bg-green-600 hover:bg-green-700 disabled:opacity-40 disabled:hover:bg-green-600 text-white transition-all cursor-pointer disabled:cursor-not-allowed shadow-xs"
             >
               <UIcon
                 :name="isLoading ? 'i-lucide-loader-2' : 'i-lucide-send'"
@@ -388,7 +388,7 @@ const activeContextLabel = computed(() => {
     <!-- Bouton flottant déclencheur du Chatbot -->
     <button
       type="button"
-      class="group relative flex items-center space-x-2.5 bg-gradient-to-r from-emerald-600 to-green-700 hover:from-emerald-700 hover:to-green-800 text-white font-medium px-4 py-3 rounded-full shadow-lg hover:shadow-emerald-500/25 transition-all duration-200 hover:scale-105 active:scale-95 border border-emerald-500/40 cursor-pointer"
+      class="group relative flex items-center space-x-2.5 bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white font-medium px-4 py-3 rounded-full shadow-lg hover:shadow-green-500/25 transition-all duration-200 hover:scale-105 active:scale-95 border border-green-500/40 cursor-pointer"
       :aria-expanded="isOpen"
       @click="toggleChat"
     >
@@ -399,15 +399,15 @@ const activeContextLabel = computed(() => {
           alt="PayOHADA"
           class="w-5 h-5 object-contain"
         >
-        <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-300 rounded-full border-2 border-emerald-700 animate-ping" />
-        <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-300 rounded-full border-2 border-emerald-700" />
+        <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-300 rounded-full border-2 border-green-700 animate-ping" />
+        <span class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-300 rounded-full border-2 border-green-700" />
       </div>
 
       <span class="text-xs font-bold tracking-wide">Assistant Paie</span>
 
       <UIcon
         :name="isOpen ? 'i-lucide-x' : 'i-lucide-sparkles'"
-        class="w-4 h-4 text-emerald-200 group-hover:rotate-12 transition-transform"
+        class="w-4 h-4 text-green-200 group-hover:rotate-12 transition-transform"
       />
     </button>
   </aside>

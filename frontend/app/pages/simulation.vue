@@ -177,13 +177,13 @@ onMounted(() => {
 <template>
   <div class="space-y-6">
     <!-- Header Object page -->
-    <div class="bg-white border-2 border-slate-200 p-6 shadow-flat flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-t-4 border-t-green-600">
+    <div class="bg-white border-2 border-slate-200 p-6 shadow-flat flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-t-4 border-t-navy-900">
       <div class="flex items-center space-x-4">
-        <div class="w-12 h-12 bg-green-50 text-green-700 flex items-center justify-center font-bold text-xl border border-green-200">
+        <div class="w-12 h-12 bg-navy-50 text-navy-700 flex items-center justify-center font-bold text-xl border border-navy-200">
           <UIcon name="i-lucide-calculator" class="w-6 h-6" />
         </div>
         <div>
-          <h1 class="text-2xl font-bold text-slate-900 leading-tight">Simulateur de Bulletin de Paie</h1>
+          <h1 class="text-2xl font-bold text-navy-900 leading-tight">Simulateur de Bulletin de Paie</h1>
           <p class="text-xs text-slate-500 mt-1">Calculez instantanément les salaires, retenues et cotisations CNPS de la zone UEMOA.</p>
         </div>
       </div>
@@ -206,8 +206,8 @@ onMounted(() => {
       <div class="lg:col-span-5 space-y-6">
         
         <!-- Base Salary Config -->
-        <div class="bg-white border-2 border-slate-200 p-6 shadow-flat space-y-4 border-t-4 border-t-slate-500">
-          <h2 class="text-sm font-bold text-slate-950 uppercase tracking-wider border-b border-slate-100 pb-2">Rémunération de base</h2>
+        <div class="bg-white border-2 border-slate-200 p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
+          <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider border-b border-slate-100 pb-2">Rémunération de base</h2>
           
           <div class="grid grid-cols-2 gap-4">
             <div>
@@ -331,9 +331,9 @@ onMounted(() => {
         </div>
 
         <!-- Absences Config -->
-        <div class="bg-white border-2 border-slate-200 p-6 shadow-flat space-y-4 border-t-4 border-t-slate-500">
+        <div class="bg-white border-2 border-slate-200 p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
           <div class="flex justify-between items-center border-b border-slate-100 pb-2">
-            <h2 class="text-sm font-bold text-slate-950 uppercase tracking-wider">Absences à déduire</h2>
+            <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider">Absences à déduire</h2>
             <button 
               @click="addAbsence" 
               class="text-xs text-green-600 hover:text-green-700 font-bold flex items-center gap-1"
@@ -376,9 +376,9 @@ onMounted(() => {
         </div>
 
         <!-- Overtime (Heures Sup) Config -->
-        <div class="bg-white border-2 border-slate-200 p-6 shadow-flat space-y-4 border-t-4 border-t-slate-500">
+        <div class="bg-white border-2 border-slate-200 p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
           <div class="flex justify-between items-center border-b border-slate-100 pb-2">
-            <h2 class="text-sm font-bold text-slate-950 uppercase tracking-wider">Heures Supplémentaires</h2>
+            <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider">Heures Supplémentaires</h2>
             <button 
               @click="addHeureSup" 
               class="text-xs text-green-600 hover:text-green-700 font-bold flex items-center gap-1"
@@ -416,9 +416,9 @@ onMounted(() => {
         </div>
 
         <!-- Primes Config -->
-        <div class="bg-white border-2 border-slate-200 p-6 shadow-flat space-y-4 border-t-4 border-t-slate-500">
+        <div class="bg-white border-2 border-slate-200 p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
           <div class="flex justify-between items-center border-b border-slate-100 pb-2">
-            <h2 class="text-sm font-bold text-slate-950 uppercase tracking-wider">Primes & Indemnités</h2>
+            <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider">Primes & Indemnités</h2>
             <button 
               @click="addPrime" 
               class="text-xs text-green-600 hover:text-green-700 font-bold flex items-center gap-1"
@@ -484,15 +484,15 @@ onMounted(() => {
           <span class="text-sm font-semibold text-slate-650">Calcul en cours et génération du bulletin...</span>
         </div>
 
-        <div v-else-if="result" class="bg-white border-2 border-slate-200 shadow-flat overflow-hidden divide-y divide-slate-150 border-t-4 border-t-green-600">
+        <div v-else-if="result" class="bg-white border-2 border-slate-200 shadow-flat overflow-hidden divide-y divide-slate-150 border-t-4 border-t-navy-900">
           
           <!-- Payslip Header -->
           <div class="p-6 bg-slate-50 flex justify-between items-start">
             <div class="space-y-1">
-              <span class="text-[10px] font-bold uppercase tracking-widest text-green-700 bg-green-50 px-2 py-0.5 border border-green-200 rounded">
+              <span class="text-[10px] font-bold uppercase tracking-widest text-navy-700 bg-navy-50 px-2 py-0.5 border border-navy-200 rounded">
                 Zone UEMOA
               </span>
-              <h3 class="text-lg font-extrabold text-slate-900">BULLETIN DE PAIE SIMULÉ</h3>
+              <h3 class="text-lg font-extrabold text-navy-900">BULLETIN DE PAIE SIMULÉ</h3>
               <p class="text-xs text-slate-500">Calculateur d'exercice local</p>
             </div>
             
@@ -688,7 +688,7 @@ onMounted(() => {
 
             <!-- Cumul Table -->
             <div v-if="result.cumuls" class="space-y-3 pt-4 border-t border-slate-200">
-              <h4 class="text-xs font-bold text-slate-900 uppercase tracking-wider">Cumuls de Paie</h4>
+              <h4 class="text-xs font-bold text-navy-900 uppercase tracking-wider">Cumuls de Paie</h4>
               <div class="overflow-x-auto rounded-lg border border-slate-200">
                 <table class="min-w-full divide-y divide-slate-200 text-[10px] text-left">
                   <thead class="bg-slate-100 font-bold text-slate-650">
@@ -729,7 +729,7 @@ onMounted(() => {
             <!-- Vacation Tracker -->
             <div class="pt-4 border-t border-slate-200 grid grid-cols-2 gap-4 text-[10px] text-slate-650">
               <div class="bg-white border border-slate-200 rounded-none p-3 space-y-1 shadow-sm">
-                <span class="block font-bold text-slate-950 uppercase tracking-wider">Congés Payés</span>
+                <span class="block font-bold text-navy-900 uppercase tracking-wider">Congés Payés</span>
                 <div class="flex justify-between font-mono">
                   <span>Acquis :</span>
                   <span class="font-bold text-slate-900">2.50 jours / mois</span>
@@ -744,7 +744,7 @@ onMounted(() => {
                 </div>
               </div>
               <div class="bg-white border border-slate-200 rounded-none p-3 space-y-1 shadow-sm">
-                <span class="block font-bold text-slate-950 uppercase tracking-wider">Logement & Congés</span>
+                <span class="block font-bold text-navy-900 uppercase tracking-wider">Logement & Congés</span>
                 <div class="flex justify-between font-mono">
                   <span>Brut Congés :</span>
                   <span class="font-bold text-slate-900">{{ formatXOF(result.salaire_brut) }}</span>

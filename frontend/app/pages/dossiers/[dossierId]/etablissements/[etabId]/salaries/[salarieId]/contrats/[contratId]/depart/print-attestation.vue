@@ -73,7 +73,7 @@ onMounted(() => {
     <div class="space-y-8">
       <div class="flex justify-between items-start border-b border-slate-200 pb-6">
         <div class="space-y-1.5">
-          <h2 class="text-lg font-bold text-slate-800 uppercase">{{ etab.nom || dossier.nom }}</h2>
+          <h2 class="text-lg font-bold text-navy-900 uppercase">{{ etab.nom || dossier.nom }}</h2>
           <p class="text-xs text-slate-500">
             {{ etab.adresse || 'Adresse de l\'établissement' }}<br />
             NIF/RCCM : {{ etab.nif || 'Non spécifié' }}
@@ -86,7 +86,7 @@ onMounted(() => {
 
       <!-- Main Title -->
       <div class="text-center py-6">
-        <h1 class="text-2xl font-extrabold uppercase tracking-wider text-slate-900 border-b-4 border-slate-900 pb-2 inline-block">
+        <h1 class="text-2xl font-extrabold uppercase tracking-wider text-navy-900 border-b-4 border-navy-900 pb-2 inline-block">
           ATTESTATION DE TRAVAIL
         </h1>
       </div>
@@ -124,7 +124,7 @@ onMounted(() => {
     <div class="flex justify-end pt-24">
       <div class="w-1/2 text-right space-y-16">
         <div class="text-sm">
-          <p class="font-bold text-slate-800">La Direction</p>
+          <p class="font-bold text-navy-900">La Direction</p>
           <p class="text-xs text-slate-500 italic">Signature et cachet de l'entreprise</p>
         </div>
       </div>

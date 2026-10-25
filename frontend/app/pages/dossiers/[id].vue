@@ -380,14 +380,14 @@ onMounted(() => {
   <div v-else-if="dossier" class="space-y-6">
 
     <!-- Onglets horizontaux -->
-    <div class="border-b-2 border-slate-200">
+    <div class="border-b-2 border-navy-900">
       <nav class="flex space-x-8" aria-label="Tabs">
         
         <button 
           @click="activeTab = 'etabs'"
           :class="[
             activeTab === 'etabs' 
-              ? 'border-green-600 text-green-700 font-bold bg-green-50/20' 
+              ? 'border-green-600 text-navy-900 font-bold bg-white'
               : 'border-transparent text-slate-500 hover:text-slate-750 hover:bg-slate-50',
             'whitespace-nowrap py-4 px-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all'
           ]"
@@ -398,7 +398,7 @@ onMounted(() => {
           @click="activeTab = 'net'"
           :class="[
             activeTab === 'net' 
-              ? 'border-green-600 text-green-700 font-bold bg-green-50/20' 
+              ? 'border-green-600 text-navy-900 font-bold bg-white'
               : 'border-transparent text-slate-500 hover:text-slate-750 hover:bg-slate-50',
             'whitespace-nowrap py-4 px-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all'
           ]"
@@ -409,7 +409,7 @@ onMounted(() => {
           @click="activeTab = 'depts'"
           :class="[
             activeTab === 'depts' 
-              ? 'border-green-600 text-green-700 font-bold bg-green-50/20' 
+              ? 'border-green-600 text-navy-900 font-bold bg-white'
               : 'border-transparent text-slate-500 hover:text-slate-750 hover:bg-slate-50',
             'whitespace-nowrap py-4 px-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all'
           ]"
@@ -420,7 +420,7 @@ onMounted(() => {
           @click="activeTab = 'infos'"
           :class="[
             activeTab === 'infos' 
-              ? 'border-green-600 text-green-700 font-bold bg-green-50/20' 
+              ? 'border-green-600 text-navy-900 font-bold bg-white'
               : 'border-transparent text-slate-500 hover:text-slate-750 hover:bg-slate-50',
             'whitespace-nowrap py-4 px-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all'
           ]"
@@ -553,10 +553,10 @@ onMounted(() => {
 
     <!-- Tab 2: Établissements -->
     <div v-show="activeTab === 'etabs'" class="space-y-6">
-      <div class="bg-white border-2 border-slate-200 p-6 shadow-flat border-t-4 border-t-slate-500">
+      <div class="bg-white border-2 border-slate-200 p-6 shadow-flat border-t-4 border-t-navy-900">
         <div class="flex justify-between items-center border-b border-slate-100 pb-4 mb-4">
           <div>
-            <h3 class="text-lg font-bold text-slate-900">Établissements Rattachés</h3>
+            <h3 class="text-lg font-bold text-navy-900">Établissements Rattachés</h3>
             <p class="text-xs text-slate-500">Liste des filiales, sièges ou entités physiques déclarées pour DSN.</p>
           </div>
           <button 
@@ -613,11 +613,11 @@ onMounted(() => {
                   <input type="checkbox" :value="etab.id" v-model="selectedEtabs" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
                 </td>
                 <td class="px-6 py-4 font-mono font-semibold text-slate-900">{{ etab.code }}</td>
-                <td class="px-6 py-4 font-medium text-slate-700 group-hover:text-green-700 transition-colors">{{ etab.raison_sociale }}</td>
+                <td class="px-6 py-4 font-medium text-slate-700 group-hover:text-navy-700 transition-colors">{{ etab.raison_sociale }}</td>
                 <td class="px-6 py-4 font-mono text-slate-500">{{ etab.cnps_matricule || '-' }}</td>
                 <td class="px-6 py-4 font-mono text-slate-500">{{ etab.dgi_compte_contribuable || '-' }}</td>
                 <td class="px-6 py-4 text-right">
-                  <span class="text-green-600 group-hover:underline text-xs font-semibold flex items-center justify-end gap-1">
+                  <span class="text-navy-700 group-hover:underline text-xs font-semibold flex items-center justify-end gap-1">
                     Gérer
                     <UIcon name="i-lucide-chevron-right" class="w-4 h-4" />
                   </span>
@@ -630,10 +630,10 @@ onMounted(() => {
     </div>
 
     <!-- Tab 3: NetEntreprise -->
-    <div v-show="activeTab === 'net'" class="bg-white border-2 border-slate-200 p-6 shadow-flat border-t-4 border-t-slate-500">
+    <div v-show="activeTab === 'net'" class="bg-white border-2 border-slate-200 p-6 shadow-flat border-t-4 border-t-navy-900">
       <form @submit.prevent="handleSaveNetEntreprise" class="space-y-6">
         <div>
-          <h3 class="text-lg font-bold text-slate-900">Configuration NetEntreprise</h3>
+          <h3 class="text-lg font-bold text-navy-900">Configuration NetEntreprise</h3>
           <p class="text-xs text-slate-500 mt-1">Ces coordonnées sont utilisées pour signer les dépôts DSN.</p>
         </div>
 
@@ -720,10 +720,10 @@ onMounted(() => {
 
     <!-- Tab 4: Départements -->
     <div v-show="activeTab === 'depts'" class="space-y-6">
-      <div class="bg-white border-2 border-slate-200 p-6 shadow-flat border-t-4 border-t-slate-500">
+      <div class="bg-white border-2 border-slate-200 p-6 shadow-flat border-t-4 border-t-navy-900">
         <div class="flex justify-between items-center border-b border-slate-100 pb-4 mb-4">
           <div>
-            <h3 class="text-lg font-bold text-slate-900">Départements / Services de l'Entreprise</h3>
+            <h3 class="text-lg font-bold text-navy-900">Départements / Services de l'Entreprise</h3>
             <p class="text-xs text-slate-500">Définissez la structure organisationnelle de l'entreprise.</p>
           </div>
           <button 
@@ -738,7 +738,7 @@ onMounted(() => {
 
         <!-- Form -->
         <form v-if="showDeptForm" @submit.prevent="saveDept" class="space-y-4 bg-slate-50 p-4 rounded-lg border border-slate-200 mb-6">
-          <h4 class="font-semibold text-sm text-slate-700">{{ editingDept ? 'Modifier le département' : 'Créer un nouveau département' }}</h4>
+          <h4 class="font-semibold text-sm text-navy-900">{{ editingDept ? 'Modifier le département' : 'Créer un nouveau département' }}</h4>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Nom du Département <span class="text-red-500">*</span></label>
@@ -779,7 +779,7 @@ onMounted(() => {
                 <td class="px-6 py-4 font-medium text-slate-700">{{ item.nom }}</td>
                 <td class="px-6 py-4 text-slate-500 max-w-xs truncate">{{ item.description || '-' }}</td>
                 <td class="px-6 py-4 text-right space-x-2">
-                  <button @click="editDept(item)" class="text-green-600 hover:text-green-800 text-xs font-semibold">Modifier</button>
+                  <button @click="editDept(item)" class="text-navy-700 hover:text-navy-900 text-xs font-semibold">Modifier</button>
                   <button @click="deleteDept(item.id)" class="text-red-600 hover:text-red-800 text-xs font-semibold">Supprimer</button>
                 </td>
               </tr>
@@ -791,14 +791,14 @@ onMounted(() => {
 
     <!-- Tab 5: Accès Client Entreprise -->
     <div v-show="activeTab === 'comptes'" class="space-y-6">
-      <div class="bg-white border-2 border-slate-200 p-6 shadow-flat border-t-4 border-t-emerald-600">
+      <div class="bg-white border-2 border-slate-200 p-6 shadow-flat border-t-4 border-t-navy-900">
         <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-slate-100 pb-4 mb-6">
           <div>
             <div class="flex items-center gap-2">
-              <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-emerald-100 text-emerald-800 uppercase tracking-wider">
+              <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-navy-100 text-navy-800 uppercase tracking-wider">
                 Plateforme Entreprise
               </span>
-              <h3 class="text-lg font-bold text-slate-900">Comptes d'accès Client pour {{ dossier.nom_dossier }}</h3>
+              <h3 class="text-lg font-bold text-navy-900">Comptes d'accès Client pour {{ dossier.nom_dossier }}</h3>
             </div>
             <p class="text-xs text-slate-500 mt-1">
               Permettez aux responsables RH et comptables de cette entreprise de se connecter à leur portail dédié pour saisir leurs variables de paie mensuelles et consulter leurs bulletins.
@@ -807,7 +807,7 @@ onMounted(() => {
           <button 
             v-if="!showClientForm"
             @click="showClientForm = true"
-            class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-flat cursor-pointer rounded-lg self-start sm:self-auto"
+            class="px-3.5 py-2 bg-green-600 hover:bg-green-700 text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-flat cursor-pointer rounded-lg self-start sm:self-auto"
           >
             <UIcon name="i-lucide-user-plus" class="w-4 h-4" />
             Créer un compte d'accès
@@ -815,12 +815,12 @@ onMounted(() => {
         </div>
 
         <!-- Banner Info -->
-        <div class="mb-6 p-4 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 flex items-start gap-3">
-          <div class="p-2 rounded-lg bg-emerald-100 text-emerald-700 shrink-0">
+        <div class="mb-6 p-4 rounded-xl bg-navy-50 border border-navy-200 flex items-start gap-3">
+          <div class="p-2 rounded-lg bg-navy-100 text-navy-700 shrink-0">
             <UIcon name="i-lucide-info" class="w-5 h-5" />
           </div>
-          <div class="text-xs text-slate-600 space-y-1">
-            <p class="font-bold text-slate-800 text-sm">Comment fonctionne l'accès client ?</p>
+          <div class="text-xs text-navy-800 space-y-1">
+            <p class="font-bold text-navy-900 text-sm">Comment fonctionne l'accès client ?</p>
             <p>
               L'utilisateur créé aura le rôle <strong>Client Entreprise</strong> restreint à ce dossier ({{ dossier.nom_dossier }}).
               Dès sa connexion sur la page de login, il sera automatiquement redirigé vers l'espace <code>/client</code> pour gérer les variables du mois (heures sup, congés, absences, acomptes) et transmettre le dossier au cabinet.
@@ -831,8 +831,8 @@ onMounted(() => {
         <!-- Create Client Form Modal / Section -->
         <div v-if="showClientForm" class="bg-slate-50 p-6 rounded-xl border border-slate-200 mb-6 space-y-4">
           <div class="flex items-center justify-between border-b border-slate-200 pb-3">
-            <h4 class="font-bold text-sm text-slate-800 flex items-center gap-2">
-              <UIcon name="i-lucide-shield-check" class="w-4 h-4 text-emerald-600" />
+            <h4 class="font-bold text-sm text-navy-900 flex items-center gap-2">
+              <UIcon name="i-lucide-shield-check" class="w-4 h-4 text-navy-700" />
               Nouveau compte d'accès pour {{ dossier.nom_dossier }}
             </h4>
             <button @click="showClientForm = false" class="text-slate-400 hover:text-slate-600 text-sm">✕ Fermer</button>
@@ -846,7 +846,7 @@ onMounted(() => {
                   type="text" 
                   v-model="formClient.nom" 
                   required 
-                  class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" 
+                  class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-green-500 focus:outline-none"
                   placeholder="Ex: TRAORE" 
                 />
               </div>
@@ -855,7 +855,7 @@ onMounted(() => {
                 <input 
                   type="text" 
                   v-model="formClient.prenom" 
-                  class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" 
+                  class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-green-500 focus:outline-none"
                   placeholder="Ex: Ibrahim" 
                 />
               </div>
@@ -868,7 +868,7 @@ onMounted(() => {
                   type="email" 
                   v-model="formClient.email" 
                   required 
-                  class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" 
+                  class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-green-500 focus:outline-none"
                   placeholder="rh@entreprise-cliente.com" 
                 />
               </div>
@@ -877,7 +877,7 @@ onMounted(() => {
                 <input 
                   type="text" 
                   v-model="formClient.password" 
-                  class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono bg-white focus:ring-2 focus:ring-emerald-500 focus:outline-none" 
+                  class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono bg-white focus:ring-2 focus:ring-green-500 focus:outline-none"
                   placeholder="Laisser vide pour génération automatique" 
                 />
                 <span class="text-[11px] text-slate-400">
@@ -897,7 +897,7 @@ onMounted(() => {
               <button 
                 type="submit" 
                 :disabled="clientSubmitting"
-                class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold shadow-sm flex items-center gap-2"
+                class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-semibold shadow-sm flex items-center gap-2"
               >
                 <UIcon v-if="clientSubmitting" name="i-lucide-loader-2" class="w-3.5 h-3.5 animate-spin" />
                 <span>{{ clientSubmitting ? 'Création en cours...' : 'Créer le compte client' }}</span>
@@ -911,13 +911,13 @@ onMounted(() => {
           <div class="w-12 h-12 mx-auto rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-3">
             <UIcon name="i-lucide-users" class="w-6 h-6" />
           </div>
-          <h4 class="text-sm font-bold text-slate-700">Aucun accès client configuré</h4>
+          <h4 class="text-sm font-bold text-navy-900">Aucun accès client configuré</h4>
           <p class="text-xs text-slate-500 max-w-md mx-auto mt-1 mb-4">
             Créez un compte pour votre client afin qu'il puisse saisir directement les heures supplémentaires, les congés et les absences de ses salariés chaque mois.
           </p>
           <button 
             @click="showClientForm = true"
-            class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-sm"
+            class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold text-xs uppercase tracking-wider rounded-lg shadow-sm"
           >
             Créer le premier compte
           </button>
@@ -938,7 +938,7 @@ onMounted(() => {
               <tr v-for="user in comptesClients" :key="user.id" class="hover:bg-slate-50">
                 <td class="px-6 py-4">
                   <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center">
+                    <div class="w-8 h-8 rounded-full bg-navy-100 text-navy-800 font-bold text-xs flex items-center justify-center">
                       {{ (user.prenom?.[0] || '') + (user.nom?.[0] || 'C') }}
                     </div>
                     <div>
@@ -956,8 +956,8 @@ onMounted(() => {
                   </div>
                 </td>
                 <td class="px-6 py-4">
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                    <UIcon name="i-lucide-briefcase" class="w-3 h-3 mr-1 text-emerald-600" />
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-navy-50 text-navy-700 border border-navy-200">
+                    <UIcon name="i-lucide-briefcase" class="w-3 h-3 mr-1 text-navy-700" />
                     Client Entreprise
                   </span>
                 </td>
@@ -970,7 +970,7 @@ onMounted(() => {
                 <td class="px-6 py-4 text-right space-x-2">
                   <button 
                     @click="copyToClipboard(user.email, 'Email')"
-                    class="text-xs font-semibold text-emerald-600 hover:text-emerald-800 inline-flex items-center gap-1"
+                    class="text-xs font-semibold text-navy-700 hover:text-navy-900 inline-flex items-center gap-1"
                   >
                     <UIcon name="i-lucide-copy" class="w-3.5 h-3.5" />
                     Copier email

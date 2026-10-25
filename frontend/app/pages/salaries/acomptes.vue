@@ -94,8 +94,8 @@ onMounted(charger)
 <template>
   <div class="space-y-6">
     <!-- En-tête -->
-    <div class="bg-white border-2 border-slate-200 p-6 shadow-flat border-t-4 border-t-green-600">
-      <h1 class="text-2xl font-black text-slate-900 uppercase">
+    <div class="bg-white border-2 border-slate-200 p-6 shadow-flat border-t-4 border-t-navy-900">
+      <h1 class="text-2xl font-black text-navy-900 uppercase">
         Mes acomptes
       </h1>
       <p class="text-sm text-slate-500 font-medium mt-1">
@@ -107,7 +107,7 @@ onMounted(charger)
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Explication -->
       <div class="bg-white border-2 border-slate-200 p-6 shadow-flat space-y-3">
-        <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">
+        <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider">
           Comment ça marche
         </h2>
         <ol class="text-xs text-slate-600 space-y-2 list-decimal list-inside">
@@ -123,7 +123,7 @@ onMounted(charger)
 
       <!-- Demande -->
       <div class="lg:col-span-2 bg-white border-2 border-slate-200 p-6 shadow-flat space-y-4">
-        <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">
+        <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider">
           Demander un acompte
         </h2>
         <form
@@ -208,7 +208,7 @@ onMounted(charger)
 
     <!-- Historique -->
     <div class="bg-white border-2 border-slate-200 p-6 shadow-flat">
-      <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">
+      <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider mb-4">
         Mes demandes
       </h2>
       <div

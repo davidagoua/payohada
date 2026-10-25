@@ -61,9 +61,9 @@ const handleSaveProcess = async () => {
 <template>
   <div class="space-y-6">
     <!-- Header -->
-    <div class="bg-white border-2 border-slate-200 p-6 shadow-flat border-t-4 border-t-green-600 flex justify-between items-center">
+    <div class="bg-white border-2 border-slate-200 p-6 shadow-flat border-t-4 border-t-navy-900 flex justify-between items-center">
       <div>
-        <h1 class="text-2xl font-black text-slate-900 uppercase">Gestion des Réclamations</h1>
+        <h1 class="text-2xl font-black text-navy-900 uppercase">Gestion des Réclamations</h1>
         <p class="text-sm text-slate-500 font-medium mt-1">
           Visualisez et traitez les réclamations soumises par les salariés sur leurs bulletins de paie.
         </p>
@@ -73,8 +73,8 @@ const handleSaveProcess = async () => {
     <!-- Main List Card -->
     <div class="bg-white border-2 border-slate-200 shadow-flat rounded-none">
       <div class="px-6 py-4 border-b border-slate-200 bg-slate-50/50 flex justify-between items-center">
-        <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Réclamations reçues</h2>
-        <span class="px-2 py-0.5 text-[10px] bg-green-50 text-green-700 border border-green-200 font-bold uppercase tracking-wider">
+        <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider">Réclamations reçues</h2>
+        <span class="px-2 py-0.5 text-[10px] bg-navy-50 text-navy-700 border border-navy-200 font-bold uppercase tracking-wider">
           {{ claims.length }} total
         </span>
       </div>
@@ -144,7 +144,7 @@ const handleSaveProcess = async () => {
     <UModal v-model:open="processModalOpen" title="Traiter la réclamation">
       <template #content>
         <div v-if="selectedClaim" class="p-6 space-y-4 bg-white border border-slate-200 max-w-md mx-auto">
-          <h2 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Répondre à la réclamation</h2>
+          <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Répondre à la réclamation</h2>
           
           <div class="p-3 bg-slate-50 border border-slate-200 text-xs space-y-1">
             <p><span class="font-bold">Salarié :</span> {{ selectedClaim.salarie_prenom }} {{ selectedClaim.salarie_nom?.toUpperCase() }}</p>

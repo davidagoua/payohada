@@ -56,12 +56,12 @@ const getStatusBadge = (statut) => {
     <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div>
         <div class="flex items-center gap-2">
-          <NuxtLink to="/client" class="text-xs text-slate-500 hover:text-green-600 font-semibold flex items-center gap-1">
+          <NuxtLink to="/client" class="text-xs text-slate-500 hover:text-navy-700 font-semibold flex items-center gap-1">
             <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
             Tableau de bord
           </NuxtLink>
         </div>
-        <h1 class="text-xl font-bold text-slate-900 mt-1">
+        <h1 class="text-xl font-bold text-navy-900 mt-1">
           Suivi des Réclamations des Salariés
         </h1>
         <p class="text-xs text-slate-500 mt-0.5">
@@ -83,7 +83,7 @@ const getStatusBadge = (statut) => {
           class="px-2.5 py-1 text-xs font-bold rounded transition-colors cursor-pointer"
           :class="[
             selectedFilter === filter.key 
-              ? 'bg-white text-green-700 shadow-2xs border border-slate-200' 
+              ? 'bg-white text-navy-900 shadow-2xs border border-slate-200'
               : 'text-slate-600 hover:text-slate-900'
           ]"
           @click="selectedFilter = filter.key"
@@ -114,7 +114,7 @@ const getStatusBadge = (statut) => {
 
       <div v-else-if="filteredReclamations.length === 0" class="p-12 text-center text-slate-500">
         <UIcon name="i-lucide-message-square-off" class="w-10 h-10 mx-auto text-slate-300 mb-2" />
-        <p class="text-sm font-bold text-slate-800">Aucune réclamation trouvée</p>
+        <p class="text-sm font-bold text-navy-900">Aucune réclamation trouvée</p>
         <p class="text-xs text-slate-500 mt-1">Vos salariés n'ont soumis aucune réclamation pour le moment.</p>
       </div>
 
@@ -140,9 +140,9 @@ const getStatusBadge = (statut) => {
           </div>
 
           <!-- Commentaire du gestionnaire -->
-          <div v-if="r.commentaire_gestionnaire" class="mt-3 bg-green-50/70 p-3 rounded-lg border border-green-200 text-xs">
-            <span class="font-bold text-green-900 flex items-center gap-1 mb-1">
-              <UIcon name="i-lucide-message-circle" class="w-4 h-4 text-green-700" />
+          <div v-if="r.commentaire_gestionnaire" class="mt-3 bg-navy-50/70 p-3 rounded-lg border border-navy-200 text-xs">
+            <span class="font-bold text-navy-900 flex items-center gap-1 mb-1">
+              <UIcon name="i-lucide-message-circle" class="w-4 h-4 text-navy-700" />
               Réponse du cabinet :
             </span>
             <p class="text-slate-700 leading-relaxed">{{ r.commentaire_gestionnaire }}</p>

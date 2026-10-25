@@ -163,11 +163,11 @@ onMounted(() => {
     <!-- Header Page -->
     <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex items-center justify-between">
       <div class="flex items-center space-x-4">
-        <div class="w-12 h-12 bg-green-50 text-green-700 rounded-lg flex items-center justify-center font-bold text-xl border border-green-200">
+        <div class="w-12 h-12 bg-navy-50 text-navy-700 rounded-lg flex items-center justify-center font-bold text-xl border border-navy-200">
           <UIcon name="i-lucide-file-text" class="w-6 h-6" />
         </div>
         <div>
-          <h1 class="text-2xl font-bold text-slate-900 leading-tight">Nouveau Contrat de Travail</h1>
+          <h1 class="text-2xl font-bold text-navy-900 leading-tight">Nouveau Contrat de Travail</h1>
           <p class="text-xs text-slate-500 mt-1">
             Employé : {{ currentSalarie?.prenom }} {{ currentSalarie?.nom?.toUpperCase() }} | Dossier : {{ currentDossier?.nom_dossier }}
           </p>
@@ -178,7 +178,7 @@ onMounted(() => {
     <!-- Main Form -->
     <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
       <form @submit.prevent="handleCreateContract" class="space-y-6">
-        <h3 class="text-md font-bold text-slate-900 border-b border-slate-100 pb-2">Paramètres du Contrat</h3>
+        <h3 class="text-md font-bold text-navy-900 border-b border-slate-100 pb-2">Paramètres du Contrat</h3>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>

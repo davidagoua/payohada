@@ -349,12 +349,12 @@ const handleImportExcel = async (event) => {
     <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div>
         <div class="flex items-center gap-2">
-          <NuxtLink to="/client" class="text-xs text-slate-500 hover:text-green-600 font-semibold flex items-center gap-1">
+          <NuxtLink to="/client" class="text-xs text-slate-500 hover:text-navy-700 font-semibold flex items-center gap-1">
             <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
             Tableau de bord
           </NuxtLink>
         </div>
-        <h1 class="text-xl font-bold text-slate-900 mt-1">
+        <h1 class="text-xl font-bold text-navy-900 mt-1">
           Saisie des Variables de Paie
         </h1>
         <p class="text-xs text-slate-500 mt-0.5">
@@ -396,7 +396,7 @@ const handleImportExcel = async (event) => {
           :loading="excelExporting"
           @click="handleExportExcel"
         >
-          <UIcon name="i-lucide-download" class="w-4 h-4 mr-1 text-green-600" />
+          <UIcon name="i-lucide-download" class="w-4 h-4 mr-1 text-navy-700" />
           Maquette Excel
         </UButton>
 
@@ -407,7 +407,7 @@ const handleImportExcel = async (event) => {
           size="sm"
           @click="excelImportModalOpen = true"
         >
-          <UIcon name="i-lucide-upload" class="w-4 h-4 mr-1 text-blue-600" />
+          <UIcon name="i-lucide-upload" class="w-4 h-4 mr-1 text-navy-700" />
           Importer Excel
         </UButton>
 
@@ -490,7 +490,7 @@ const handleImportExcel = async (event) => {
 
       <div v-else-if="filteredRows.length === 0" class="p-12 text-center text-slate-500">
         <UIcon name="i-lucide-users" class="w-10 h-10 mx-auto text-slate-300 mb-2" />
-        <p class="text-sm font-bold text-slate-800">Aucun salarié trouvé</p>
+        <p class="text-sm font-bold text-navy-900">Aucun salarié trouvé</p>
         <p class="text-xs text-slate-500 mt-1">Aucun contrat actif n'est associé à cette entreprise pour cette période.</p>
       </div>
 
@@ -592,7 +592,7 @@ const handleImportExcel = async (event) => {
                   <span 
                     v-for="p in row.primes" 
                     :key="p.id"
-                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-purple-50 text-purple-800 border border-purple-200 group"
+                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-navy-50 text-navy-800 border border-navy-200 group"
                   >
                     <span>{{ p.libelle || p.code }}: {{ formatFCFA(p.montant) }}</span>
                     <button 
@@ -608,7 +608,7 @@ const handleImportExcel = async (event) => {
                   <!-- Bouton + Prime -->
                   <button 
                     type="button" 
-                    class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[11px] font-semibold text-purple-700 hover:bg-purple-100 border border-dashed border-purple-300 transition-colors cursor-pointer"
+                    class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[11px] font-semibold text-navy-700 hover:bg-navy-100 border border-dashed border-navy-300 transition-colors cursor-pointer"
                     @click="openPrimeModal(row)"
                   >
                     <UIcon name="i-lucide-plus" class="w-3 h-3" />
@@ -623,7 +623,7 @@ const handleImportExcel = async (event) => {
                   <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-800 border border-green-200">
                     Calculé
                   </span>
-                  <span class="text-xs font-black text-slate-900 mt-0.5">
+                  <span class="text-xs font-black text-navy-900 mt-0.5">
                     {{ formatFCFA(row.net_a_payer) }}
                   </span>
                 </div>
@@ -766,7 +766,7 @@ const handleImportExcel = async (event) => {
       <template #footer>
         <div class="flex justify-end gap-2">
           <UButton color="neutral" variant="ghost" @click="primeModalOpen = false">Annuler</UButton>
-          <UButton color="primary" class="bg-purple-600 hover:bg-purple-700 text-white font-bold" @click="submitPrime">
+          <UButton color="primary" class="bg-green-600 hover:bg-green-700 text-white font-bold" @click="submitPrime">
             Enregistrer
           </UButton>
         </div>
@@ -820,9 +820,9 @@ const handleImportExcel = async (event) => {
           </p>
 
           <div class="border-2 border-dashed border-slate-300 hover:border-green-500 rounded-xl p-6 text-center transition-colors">
-            <UIcon name="i-lucide-file-spreadsheet" class="w-10 h-10 mx-auto text-green-600 mb-2" />
+            <UIcon name="i-lucide-file-spreadsheet" class="w-10 h-10 mx-auto text-navy-700 mb-2" />
             <label class="cursor-pointer">
-              <span class="text-xs font-bold text-green-700 hover:underline">Sélectionner un fichier Excel (.xlsx, .xls)</span>
+              <span class="text-xs font-bold text-navy-700 hover:underline">Sélectionner un fichier Excel (.xlsx, .xls)</span>
               <input type="file" accept=".xlsx,.xls" class="hidden" @change="handleImportExcel" />
             </label>
             <p class="text-[11px] text-slate-400 mt-1">Période : {{ currentPeriodLabel }}</p>

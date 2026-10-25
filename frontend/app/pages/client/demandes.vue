@@ -159,7 +159,7 @@ onMounted(charger)
     <!-- En-tête -->
     <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-black text-slate-900 uppercase">
+        <h1 class="text-2xl font-black text-navy-900 uppercase">
           Demandes du personnel
         </h1>
         <p class="text-sm text-slate-500 font-medium mt-1">
@@ -187,7 +187,7 @@ onMounted(charger)
           ]"
           :key="choix.cle"
           class="px-3 py-1.5 text-xs font-bold uppercase tracking-wider rounded-lg transition-colors"
-          :class="filtre === choix.cle ? 'bg-slate-900 text-white' : 'text-slate-500 hover:bg-slate-100'"
+          :class="filtre === choix.cle ? 'bg-navy-900 text-white' : 'text-slate-500 hover:bg-slate-100'"
           @click="filtre = choix.cle"
         >
           {{ choix.libelle }}
@@ -348,7 +348,7 @@ onMounted(charger)
     >
       <div class="bg-white border border-slate-300 w-full max-w-md rounded-xl">
         <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
-          <h2 class="font-bold uppercase tracking-wide text-sm">
+          <h2 class="font-bold uppercase tracking-wide text-sm text-navy-900">
             Refuser la demande
           </h2>
           <button

@@ -94,9 +94,9 @@ onMounted(() => {
   <div class="space-y-6">
     
     <!-- En-tête de page -->
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b-2 border-slate-200 pb-4">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b-2 border-navy-900 pb-4">
       <div>
-        <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Tableau de bord des Dossiers</h1>
+        <h1 class="text-2xl font-bold text-navy-900 tracking-tight">Tableau de bord des Dossiers</h1>
         <p class="text-sm text-slate-500 mt-1">Sélectionnez ou créez un dossier client pour commencer la saisie de paie.</p>
       </div>
       
@@ -117,10 +117,10 @@ onMounted(() => {
 
     <!-- Empty State -->
     <div v-else-if="dossiers.length === 0" class="bg-white border-2 border-dashed border-slate-350 p-12 text-center max-w-xl mx-auto space-y-4 shadow-flat">
-      <div class="w-12 h-12 bg-green-50 flex items-center justify-center text-green-600 mx-auto">
+      <div class="w-12 h-12 bg-navy-50 flex items-center justify-center text-navy-700 mx-auto">
         <UIcon name="i-lucide-folder-open" class="w-6 h-6" />
       </div>
-      <h3 class="font-bold text-slate-900 text-lg">Aucun dossier d'entreprise</h3>
+      <h3 class="font-bold text-navy-900 text-lg">Aucun dossier d'entreprise</h3>
       <p class="text-sm text-slate-500">
         Vous n'avez pas encore configuré de dossier client. Commencez par créer votre premier dossier pour ajouter vos établissements et salariés.
       </p>
@@ -139,22 +139,22 @@ onMounted(() => {
         v-for="dossier in dossiers" 
         :key="dossier.id" 
         :to="`/dossiers/${dossier.id}`"
-        class="bg-white border-2 border-slate-200 p-6 shadow-flat hover:shadow-flat-hover hover:border-green-600 transition-all duration-150 flex flex-col justify-between group cursor-pointer border-t-4 border-t-slate-500 hover:border-t-green-600"
+        class="bg-white border-2 border-slate-200 p-6 shadow-flat hover:shadow-flat-hover hover:border-navy-700 transition-all duration-150 flex flex-col justify-between group cursor-pointer border-t-4 border-t-navy-900 hover:border-t-navy-700"
       >
         <div class="space-y-4">
           <!-- Top Row: Icon and Code badge -->
           <div class="flex items-center justify-between">
-            <div class="w-10 h-10 bg-green-50 text-green-600 flex items-center justify-center group-hover:bg-green-600 group-hover:text-white transition-colors duration-150 border border-green-100">
+            <div class="w-10 h-10 bg-navy-50 text-navy-700 flex items-center justify-center group-hover:bg-navy-800 group-hover:text-white transition-colors duration-150 border border-navy-100">
               <UIcon name="i-lucide-folder" class="w-5 h-5" />
             </div>
-            <span class="text-xs px-2 py-0.5 font-mono font-bold bg-slate-100 text-slate-650 group-hover:bg-green-50 group-hover:text-green-700 transition-colors border border-slate-250">
+            <span class="text-xs px-2 py-0.5 font-mono font-bold bg-navy-50 text-navy-700 group-hover:bg-navy-100 group-hover:text-navy-900 transition-colors border border-navy-200">
               {{ dossier.code }}
             </span>
           </div>
 
           <!-- Mid: Title & RCCM -->
           <div>
-            <h2 class="font-bold text-slate-900 group-hover:text-green-700 text-lg transition-colors leading-tight">
+            <h2 class="font-bold text-navy-900 group-hover:text-navy-700 text-lg transition-colors leading-tight">
               {{ dossier.nom_dossier }}
             </h2>
             <p v-if="dossier.rccm" class="text-xs text-slate-500 mt-1 font-mono">
@@ -172,7 +172,7 @@ onMounted(() => {
             <UIcon name="i-lucide-user" class="w-3.5 h-3.5 inline mr-1 text-slate-400" />
             {{ dossier.nom_contact || 'Non spécifié' }}
           </span>
-          <span class="bg-slate-100 px-1.5 py-0.5 font-semibold text-slate-600 border border-slate-200">
+          <span class="bg-navy-50 px-1.5 py-0.5 font-semibold text-navy-700 border border-navy-200">
             Exercice {{ dossier.annee || new Date().getFullYear() }}
           </span>
         </div>
@@ -183,7 +183,7 @@ onMounted(() => {
     <UModal v-model:open="modalOpen" title="Créer un nouveau Dossier Client">
       <template #content>
         <div class="p-6 space-y-4">
-          <h2 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">Nouveau Dossier d'Entreprise</h2>
+          <h2 class="text-lg font-bold text-navy-900 border-b border-slate-100 pb-2">Nouveau Dossier d'Entreprise</h2>
           
           <div class="grid grid-cols-2 gap-4">
             <div>

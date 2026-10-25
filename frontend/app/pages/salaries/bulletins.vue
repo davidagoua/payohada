@@ -160,9 +160,9 @@ const handleChangePassword = async () => {
 <template>
   <div class="space-y-6">
     <!-- Header Hero Banner -->
-    <div class="bg-white border-2 border-slate-200 p-6 shadow-flat border-t-4 border-t-green-600 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div class="bg-white border-2 border-slate-200 p-6 shadow-flat border-t-4 border-t-navy-900 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div>
-        <h1 class="text-2xl font-black text-slate-900 uppercase">Espace Salarié</h1>
+        <h1 class="text-2xl font-black text-navy-900 uppercase">Espace Salarié</h1>
         <p class="text-sm text-slate-500 font-medium mt-1">
           Bienvenue, <span class="font-bold text-slate-800">{{ user?.user_metadata?.first_name }} {{ user?.user_metadata?.last_name }}</span>. Consultez vos bulletins de paie et gérez votre compte.
         </p>
@@ -172,7 +172,7 @@ const handleChangePassword = async () => {
           @click="showPasswordForm = !showPasswordForm" 
           class="px-4 py-2 border-2 border-slate-200 hover:bg-slate-50 text-slate-850 text-xs font-bold uppercase tracking-wider rounded-none shadow-flat transition-all cursor-pointer flex items-center gap-1.5"
         >
-          <UIcon name="i-lucide-key" class="w-4 h-4 text-green-600" />
+          <UIcon name="i-lucide-key" class="w-4 h-4 text-navy-700" />
           {{ showPasswordForm ? "Masquer le formulaire" : "Modifier mon mot de passe" }}
         </button>
       </div>
@@ -180,7 +180,7 @@ const handleChangePassword = async () => {
 
     <!-- Password Change Form -->
     <div v-if="showPasswordForm" class="bg-white border-2 border-slate-200 p-6 shadow-flat border-t-4 border-t-amber-500 max-w-lg">
-      <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Modifier le mot de passe</h3>
+      <h3 class="text-sm font-bold text-navy-900 uppercase tracking-wider mb-4">Modifier le mot de passe</h3>
       <form @submit.prevent="handleChangePassword" class="space-y-4">
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Mot de passe actuel</label>
@@ -213,8 +213,8 @@ const handleChangePassword = async () => {
         <div class="bg-white border-2 border-slate-200 shadow-flat rounded-none">
           <!-- Table Header -->
           <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
-            <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Mes Bulletins de Salaire</h2>
-            <span class="px-2 py-0.5 text-[10px] bg-green-50 text-green-700 border border-green-200 font-bold uppercase tracking-wider">
+            <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider">Mes Bulletins de Salaire</h2>
+            <span class="px-2 py-0.5 text-[10px] bg-navy-50 text-navy-700 border border-navy-200 font-bold uppercase tracking-wider">
               {{ bulletins.length }} bulletins
             </span>
           </div>
@@ -285,7 +285,7 @@ const handleChangePassword = async () => {
         <div class="bg-white border-2 border-slate-200 shadow-flat rounded-none">
           <!-- Claims Header -->
           <div class="px-6 py-4 border-b border-slate-200 bg-slate-50/50">
-            <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">Suivi de mes réclamations</h2>
+            <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider">Suivi de mes réclamations</h2>
           </div>
 
           <!-- Claims Content -->
@@ -326,16 +326,16 @@ const handleChangePassword = async () => {
       <template #content>
         <div v-if="selectedBulletin" class="p-6 space-y-4 bg-slate-50 border border-slate-200 max-h-[85vh] overflow-y-auto w-full max-w-4xl">
           <div class="flex justify-between items-center border-b border-slate-200 pb-2">
-            <h2 class="text-md font-bold text-slate-900 uppercase">Aperçu du bulletin de paie</h2>
+            <h2 class="text-md font-bold text-navy-900 uppercase">Aperçu du bulletin de paie</h2>
             <button @click="previewModalOpen = false" class="text-slate-500 hover:text-slate-800 font-bold text-sm">Fermer</button>
           </div>
 
           <!-- Payslip layout copied from the admin bulletin page -->
-          <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat text-slate-800 border-t-4 border-t-green-600 max-w-3xl mx-auto">
+          <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat text-slate-800 border-t-4 border-t-navy-900 max-w-3xl mx-auto">
             <!-- Top columns: Employer / Employee -->
             <div class="grid grid-cols-2 gap-8 border-b-2 border-slate-200 pb-6 text-xs">
               <div class="space-y-1">
-                <h3 class="text-sm font-black text-slate-900 uppercase">{{ selectedBulletin.contrat?.code_etablissement }}</h3>
+                <h3 class="text-sm font-black text-navy-900 uppercase">{{ selectedBulletin.contrat?.code_etablissement }}</h3>
                 <p class="text-slate-650 leading-relaxed font-medium">
                   Établissement rattaché au dossier client.
                 </p>
@@ -463,7 +463,7 @@ const handleChangePassword = async () => {
     <UModal v-model:open="claimModalOpen" title="Créer une réclamation">
       <template #content>
         <div class="p-6 space-y-4 bg-white border border-slate-200 max-w-md mx-auto">
-          <h2 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Déposer une réclamation</h2>
+          <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Déposer une réclamation</h2>
           
           <div class="space-y-3">
             <div>

@@ -101,12 +101,12 @@ const handlePrint = () => {
     <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div>
         <div class="flex items-center gap-2">
-          <NuxtLink to="/client" class="text-xs text-slate-500 hover:text-green-600 font-semibold flex items-center gap-1">
+          <NuxtLink to="/client" class="text-xs text-slate-500 hover:text-navy-700 font-semibold flex items-center gap-1">
             <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
             Tableau de bord
           </NuxtLink>
         </div>
-        <h1 class="text-xl font-bold text-slate-900 mt-1">
+        <h1 class="text-xl font-bold text-navy-900 mt-1">
           Bulletins de Paie de l'Entreprise
         </h1>
         <p class="text-xs text-slate-500 mt-0.5">
@@ -142,7 +142,7 @@ const handlePrint = () => {
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
       <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
         <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Masse Brute Totale</p>
-        <p class="text-2xl font-black text-slate-900 mt-1">{{ formatFCFA(totalBrut) }}</p>
+        <p class="text-2xl font-black text-navy-900 mt-1">{{ formatFCFA(totalBrut) }}</p>
         <p class="text-xs text-slate-500 mt-0.5">{{ bulletins.length }} bulletin(s) généré(s)</p>
       </div>
 
@@ -154,7 +154,7 @@ const handlePrint = () => {
 
       <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs">
         <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Cotisations Patronales</p>
-        <p class="text-2xl font-black text-blue-700 mt-1">{{ formatFCFA(totalCharges) }}</p>
+        <p class="text-2xl font-black text-navy-900 mt-1">{{ formatFCFA(totalCharges) }}</p>
         <p class="text-xs text-slate-500 mt-0.5">CNPS, CMU, taxes patronales</p>
       </div>
     </div>
@@ -180,11 +180,11 @@ const handlePrint = () => {
 
       <div v-else-if="filteredBulletins.length === 0" class="p-12 text-center text-slate-500">
         <UIcon name="i-lucide-file-x" class="w-10 h-10 mx-auto text-slate-300 mb-2" />
-        <p class="text-sm font-bold text-slate-800">Aucun bulletin calculé</p>
+        <p class="text-sm font-bold text-navy-900">Aucun bulletin calculé</p>
         <p class="text-xs text-slate-500 mt-1">
           Les bulletins de cette période n'ont pas encore été calculés par le cabinet. Assurez-vous d'avoir transmis vos variables.
         </p>
-        <NuxtLink to="/client/variables" class="inline-flex items-center gap-1 mt-4 text-xs font-bold text-green-700 hover:underline">
+        <NuxtLink to="/client/variables" class="inline-flex items-center gap-1 mt-4 text-xs font-bold text-navy-700 hover:underline">
           <UIcon name="i-lucide-edit-3" class="w-4 h-4" />
           Accéder à la saisie des variables
         </NuxtLink>

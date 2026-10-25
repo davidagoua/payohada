@@ -104,8 +104,8 @@ onMounted(charger)
 <template>
   <div class="space-y-6">
     <!-- En-tête -->
-    <div class="bg-white border-2 border-slate-200 p-6 shadow-flat border-t-4 border-t-green-600">
-      <h1 class="text-2xl font-black text-slate-900 uppercase">
+    <div class="bg-white border-2 border-slate-200 p-6 shadow-flat border-t-4 border-t-navy-900">
+      <h1 class="text-2xl font-black text-navy-900 uppercase">
         Mes congés
       </h1>
       <p class="text-sm text-slate-500 font-medium mt-1">
@@ -116,7 +116,7 @@ onMounted(charger)
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Solde -->
       <div class="bg-white border-2 border-slate-200 p-6 shadow-flat space-y-4">
-        <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">
+        <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider">
           Mon solde
         </h2>
         <div
@@ -126,7 +126,7 @@ onMounted(charger)
           Calcul en cours…
         </div>
         <template v-else-if="solde">
-          <p class="text-4xl font-black text-green-700">
+          <p class="text-4xl font-black text-navy-900">
             {{ solde.solde }}<span class="text-lg font-bold text-slate-400"> j</span>
           </p>
           <dl class="text-sm divide-y divide-slate-100">
@@ -170,7 +170,7 @@ onMounted(charger)
 
       <!-- Demande -->
       <div class="lg:col-span-2 bg-white border-2 border-slate-200 p-6 shadow-flat space-y-4">
-        <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider">
+        <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider">
           Demander des congés
         </h2>
         <form
@@ -242,7 +242,7 @@ onMounted(charger)
 
     <!-- Historique -->
     <div class="bg-white border-2 border-slate-200 p-6 shadow-flat">
-      <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">
+      <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider mb-4">
         Mes demandes
       </h2>
       <div

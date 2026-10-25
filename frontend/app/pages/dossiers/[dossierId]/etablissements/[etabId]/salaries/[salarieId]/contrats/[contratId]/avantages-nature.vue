@@ -201,13 +201,13 @@ onMounted(async () => {
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
       <div>
         <button
-          class="text-xs font-semibold text-slate-500 hover:text-emerald-700 inline-flex items-center gap-1.5 mb-1"
+          class="text-xs font-semibold text-slate-500 hover:text-navy-700 inline-flex items-center gap-1.5 mb-1"
           @click="router.back()"
         >
           <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
           Retour au contrat
         </button>
-        <h1 class="text-lg font-bold text-slate-900">Avantages en nature</h1>
+        <h1 class="text-lg font-bold text-navy-900">Avantages en nature</h1>
         <p class="text-xs text-slate-500 mt-0.5">
           Barème fiscal DGI du 08/07/2024 —
           <span v-if="salarie">{{ salarie.prenom }} {{ salarie.nom }}</span>
@@ -242,8 +242,8 @@ onMounted(async () => {
       <div class="lg:col-span-2 space-y-5">
         <!-- Logement -->
         <section class="bg-white border border-slate-200 rounded-xl p-5">
-          <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <UIcon name="i-lucide-house" class="w-4 h-4 text-emerald-600" />
+          <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <UIcon name="i-lucide-house" class="w-4 h-4 text-navy-700" />
             Logement et charges
           </h2>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -255,7 +255,7 @@ onMounted(async () => {
             ]" :key="champ.cle"
               class="flex items-center gap-2 px-3 py-2.5 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50"
             >
-              <input v-model="saisie[champ.cle]" type="checkbox" class="accent-emerald-600">
+              <input v-model="saisie[champ.cle]" type="checkbox" class="accent-green-600">
               <span class="text-xs font-semibold text-slate-700">{{ champ.libelle }}</span>
             </label>
           </div>
@@ -271,7 +271,7 @@ onMounted(async () => {
               <p class="text-[10px] text-slate-400 mt-1">20 000 F par unité</p>
             </div>
             <label class="flex items-end gap-2 px-3 py-2.5 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50">
-              <input v-model="saisie.piscine" type="checkbox" class="accent-emerald-600">
+              <input v-model="saisie.piscine" type="checkbox" class="accent-green-600">
               <span class="text-xs font-semibold text-slate-700">Piscine (30 000 F)</span>
             </label>
           </div>
@@ -279,8 +279,8 @@ onMounted(async () => {
 
         <!-- Domesticité -->
         <section class="bg-white border border-slate-200 rounded-xl p-5">
-          <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <UIcon name="i-lucide-users" class="w-4 h-4 text-emerald-600" />
+          <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <UIcon name="i-lucide-users" class="w-4 h-4 text-navy-700" />
             Domesticité et autres avantages
           </h2>
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -304,7 +304,7 @@ onMounted(async () => {
               <input v-model.number="saisie.cout_mensuel_repas" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
             </div>
             <label class="flex items-end gap-2 px-3 py-2.5 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50">
-              <input v-model="saisie.exoneration_repas_applicable" type="checkbox" class="accent-emerald-600">
+              <input v-model="saisie.exoneration_repas_applicable" type="checkbox" class="accent-green-600">
               <span class="text-xs font-semibold text-slate-700">Exonération 30 000 F</span>
             </label>
             <div>
@@ -316,8 +316,8 @@ onMounted(async () => {
 
         <!-- Véhicule -->
         <section class="bg-white border border-slate-200 rounded-xl p-5">
-          <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <UIcon name="i-lucide-car" class="w-4 h-4 text-emerald-600" />
+          <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <UIcon name="i-lucide-car" class="w-4 h-4 text-navy-700" />
             Véhicule
           </h2>
           <select v-model="saisie.vehicule_type" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm mb-3">
@@ -374,8 +374,8 @@ onMounted(async () => {
 
         <!-- Participations et assiette sociale -->
         <section class="bg-white border border-slate-200 rounded-xl p-5">
-          <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <UIcon name="i-lucide-scale" class="w-4 h-4 text-emerald-600" />
+          <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider mb-4 flex items-center gap-2">
+            <UIcon name="i-lucide-scale" class="w-4 h-4 text-navy-700" />
             Participations et assiette CNPS
           </h2>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -396,15 +396,15 @@ onMounted(async () => {
             </div>
           </div>
           <label class="mt-4 flex items-center gap-2 cursor-pointer">
-            <input v-model="saisie.est_persistant" type="checkbox" class="accent-emerald-600">
+            <input v-model="saisie.est_persistant" type="checkbox" class="accent-green-600">
             <span class="text-xs font-semibold text-slate-700">Avantage récurrent (reporté sur les mois suivants)</span>
           </label>
         </section>
 
         <!-- Périodes enregistrées -->
         <section class="bg-white border border-slate-200 rounded-xl p-5">
-          <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-3 flex items-center gap-2">
-            <UIcon name="i-lucide-history" class="w-4 h-4 text-emerald-600" />
+          <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider mb-3 flex items-center gap-2">
+            <UIcon name="i-lucide-history" class="w-4 h-4 text-navy-700" />
             Périodes enregistrées
           </h2>
           <p v-if="!periodes.length" class="text-xs text-slate-500">
@@ -424,11 +424,11 @@ onMounted(async () => {
                   {{ MOIS_LABELS[periode.mois - 1] }} {{ periode.annee }}
                 </td>
                 <td class="py-2">
-                  <span v-if="periode.est_persistant" class="text-emerald-700 font-bold">Oui</span>
+                  <span v-if="periode.est_persistant" class="text-green-700 font-bold">Oui</span>
                   <span v-else class="text-slate-400">Non</span>
                 </td>
                 <td class="py-2 text-right space-x-2">
-                  <button class="text-emerald-700 hover:underline font-semibold" @click="chargerPeriode(periode)">Charger</button>
+                  <button class="text-navy-700 hover:underline font-semibold" @click="chargerPeriode(periode)">Charger</button>
                   <button class="text-red-600 hover:underline font-semibold" @click="supprimerPeriode(periode)">Supprimer</button>
                 </td>
               </tr>
@@ -440,8 +440,8 @@ onMounted(async () => {
       <!-- Résultat -->
       <div class="lg:col-span-1">
         <div class="lg:sticky lg:top-4 space-y-4">
-          <div class="bg-white border-2 border-emerald-200 rounded-xl overflow-hidden">
-            <div class="bg-emerald-600 px-4 py-3">
+          <div class="bg-white border-2 border-navy-200 rounded-xl overflow-hidden">
+            <div class="bg-navy-900 px-4 py-3">
               <h2 class="text-xs font-bold text-white uppercase tracking-wider">
                 Évaluation fiscale
               </h2>
@@ -477,7 +477,7 @@ onMounted(async () => {
                   <span>Avantage imposable</span>
                   <span class="font-mono">{{ formatFcfa(simulation.avantage_imposable) }}</span>
                 </div>
-                <div class="flex justify-between text-emerald-800 font-bold bg-emerald-50 -mx-4 px-4 py-2 mt-2">
+                <div class="flex justify-between text-navy-900 font-bold bg-navy-50 -mx-4 px-4 py-2 mt-2">
                   <span>Salaire brut imposable</span>
                   <span class="font-mono">{{ formatFcfa(simulation.salaire_brut_imposable) }}</span>
                 </div>
@@ -501,7 +501,7 @@ onMounted(async () => {
 
           <button
             :disabled="enregistrement"
-            class="w-full px-4 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white text-sm font-bold rounded-xl inline-flex items-center justify-center gap-2"
+            class="w-full px-4 py-3 bg-green-600 hover:bg-green-700 disabled:bg-slate-300 text-white text-sm font-bold rounded-xl inline-flex items-center justify-center gap-2"
             @click="enregistrer"
           >
             <UIcon :name="enregistrement ? 'i-lucide-loader-2' : 'i-lucide-save'" class="w-4 h-4" :class="{ 'animate-spin': enregistrement }" />

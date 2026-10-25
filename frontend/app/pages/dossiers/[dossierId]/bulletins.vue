@@ -331,11 +331,11 @@ onMounted(() => {
     <!-- Header bar -->
     <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div class="flex items-center space-x-4">
-        <div class="w-12 h-12 bg-green-50 text-green-700 rounded-lg flex items-center justify-center font-bold text-xl border border-green-200">
+        <div class="w-12 h-12 bg-navy-50 text-navy-700 rounded-lg flex items-center justify-center font-bold text-xl border border-navy-200">
           <UIcon name="i-lucide-files" class="w-6 h-6" />
         </div>
         <div>
-          <h1 class="text-2xl font-bold text-slate-900 leading-tight">Traitement de la Paie Globale</h1>
+          <h1 class="text-2xl font-bold text-navy-900 leading-tight">Traitement de la Paie Globale</h1>
           <p class="text-xs text-slate-500 mt-1">
             Dossier : <span class="font-bold text-slate-700">{{ currentDossier?.nom_dossier }}</span> | Gérer les bulletins en masse.
           </p>
@@ -380,7 +380,7 @@ onMounted(() => {
 
       <div class="text-xs font-medium text-slate-500 sm:ml-auto">
         Salariés actifs : <span class="font-bold text-slate-800">{{ contracts.length }}</span> |
-        Bulletins générés : <span class="font-bold text-green-600">{{ Object.keys(bulletinsMap).length }}</span>
+        Bulletins générés : <span class="font-bold text-navy-900">{{ Object.keys(bulletinsMap).length }}</span>
       </div>
     </div>
 
@@ -453,7 +453,7 @@ onMounted(() => {
               <!-- Employee Column -->
               <td class="px-6 py-4">
                 <div class="flex items-center space-x-3">
-                  <div class="w-8 h-8 bg-green-50 text-green-700 rounded-full flex items-center justify-center font-bold text-xs border border-green-200">
+                  <div class="w-8 h-8 bg-navy-50 text-navy-700 rounded-full flex items-center justify-center font-bold text-xs border border-navy-200">
                     {{ c.matricule_salarie.substring(c.matricule_salarie.lastIndexOf('-') + 1) }}
                   </div>
                   <div>
@@ -490,7 +490,7 @@ onMounted(() => {
                 </span>
                 <span
                   v-else
-                  class="bg-slate-100 text-slate-400 border-slate-200 px-2.5 py-0.5 rounded text-[10px] uppercase font-bold border inline-block"
+                  class="bg-navy-50 text-navy-700 border-navy-200 px-2.5 py-0.5 rounded text-[10px] uppercase font-bold border inline-block"
                 >
                   Non calculé
                 </span>

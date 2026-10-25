@@ -314,11 +314,11 @@ onMounted(async () => {
     <!-- En-tête -->
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
       <div>
-        <button class="text-xs font-semibold text-slate-500 hover:text-emerald-700 inline-flex items-center gap-1.5 mb-1" @click="router.back()">
+        <button class="text-xs font-semibold text-slate-500 hover:text-navy-700 inline-flex items-center gap-1.5 mb-1" @click="router.back()">
           <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
           Retour au contrat
         </button>
-        <h1 class="text-lg font-bold text-slate-900">Départ et solde de tout compte</h1>
+        <h1 class="text-lg font-bold text-navy-900">Départ et solde de tout compte</h1>
         <p v-if="salarie" class="text-xs text-slate-500 mt-0.5">
           {{ salarie.prenom }} {{ salarie.nom }} · matricule {{ salarie.matricule }}
         </p>
@@ -352,7 +352,7 @@ onMounted(async () => {
       <div class="lg:col-span-2 space-y-5">
         <!-- Motif -->
         <section class="bg-white border border-slate-200 rounded-xl p-5">
-          <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4">Motif de fin de contrat</h2>
+          <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider mb-4">Motif de fin de contrat</h2>
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
             <button
               v-for="motif in MOTIFS"
@@ -360,13 +360,13 @@ onMounted(async () => {
               :class="[
                 'px-3 py-3 border-2 rounded-xl text-left transition-colors',
                 form.motif_fin_contrat === motif.valeur
-                  ? 'border-emerald-500 bg-emerald-50'
+                  ? 'border-green-500 bg-green-50'
                   : 'border-slate-200 hover:border-slate-300 hover:bg-slate-50'
               ]"
               @click="form.motif_fin_contrat = motif.valeur"
             >
-              <UIcon :name="motif.icone" class="w-4 h-4 mb-1" :class="form.motif_fin_contrat === motif.valeur ? 'text-emerald-700' : 'text-slate-400'" />
-              <div class="text-xs font-bold" :class="form.motif_fin_contrat === motif.valeur ? 'text-emerald-900' : 'text-slate-700'">
+              <UIcon :name="motif.icone" class="w-4 h-4 mb-1" :class="form.motif_fin_contrat === motif.valeur ? 'text-green-700' : 'text-slate-400'" />
+              <div class="text-xs font-bold" :class="form.motif_fin_contrat === motif.valeur ? 'text-green-900' : 'text-slate-700'">
                 {{ motif.libelle }}
               </div>
             </button>
@@ -413,7 +413,7 @@ onMounted(async () => {
               <span class="text-xs font-semibold text-slate-700">Faute lourde retenue (supprime l'indemnité)</span>
             </label>
             <label v-if="form.motif_fin_contrat === 'deces'" class="flex items-center gap-2 cursor-pointer">
-              <input v-model="form.conditions_retraite_remplies" type="checkbox" class="accent-emerald-600">
+              <input v-model="form.conditions_retraite_remplies" type="checkbox" class="accent-green-600">
               <span class="text-xs font-semibold text-slate-700">Conditions de départ à la retraite remplies</span>
             </label>
           </div>
@@ -422,9 +422,9 @@ onMounted(async () => {
         <!-- Rémunérations de référence -->
         <section v-if="besoinRemunerations" class="bg-white border border-slate-200 rounded-xl p-5">
           <div class="flex items-center justify-between mb-3">
-            <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Rémunérations de référence</h2>
+            <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider">Rémunérations de référence</h2>
             <label class="flex items-center gap-2 cursor-pointer">
-              <input v-model="form.saisie_salaires" type="checkbox" class="accent-emerald-600">
+              <input v-model="form.saisie_salaires" type="checkbox" class="accent-green-600">
               <span class="text-[11px] font-semibold text-slate-600">Saisir manuellement</span>
             </label>
           </div>
@@ -446,9 +446,9 @@ onMounted(async () => {
         <!-- Gratification -->
         <section class="bg-white border border-slate-200 rounded-xl p-5">
           <div class="flex items-center justify-between mb-4">
-            <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider">Gratification annuelle</h2>
+            <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider">Gratification annuelle</h2>
             <label class="flex items-center gap-2 cursor-pointer">
-              <input v-model="form.gratification_active" type="checkbox" class="accent-emerald-600">
+              <input v-model="form.gratification_active" type="checkbox" class="accent-green-600">
               <span class="text-[11px] font-semibold text-slate-600">Inclure</span>
             </label>
           </div>
@@ -475,7 +475,7 @@ onMounted(async () => {
 
         <!-- Congés payés -->
         <section class="bg-white border border-slate-200 rounded-xl p-5">
-          <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4">Congés payés</h2>
+          <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider mb-4">Congés payés</h2>
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div>
               <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Mois de service</label>
@@ -506,7 +506,7 @@ onMounted(async () => {
 
         <!-- Éléments complémentaires -->
         <section class="bg-white border border-slate-200 rounded-xl p-5">
-          <h2 class="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4">Éléments complémentaires</h2>
+          <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider mb-4">Éléments complémentaires</h2>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Indemnité compensatrice de préavis</label>
@@ -523,8 +523,8 @@ onMounted(async () => {
       <!-- Colonne résultat -->
       <div class="lg:col-span-1">
         <div class="lg:sticky lg:top-4 space-y-4">
-          <div class="bg-white border-2 border-slate-800 rounded-xl overflow-hidden">
-            <div class="bg-slate-800 px-4 py-3 flex items-center justify-between">
+          <div class="bg-white border-2 border-navy-900 rounded-xl overflow-hidden">
+            <div class="bg-navy-900 px-4 py-3 flex items-center justify-between">
               <h2 class="text-xs font-bold text-white uppercase tracking-wider">Solde estimé</h2>
               <button :disabled="calculEnCours" class="text-[10px] font-bold text-slate-200 hover:text-white inline-flex items-center gap-1" @click="simuler">
                 <UIcon :name="calculEnCours ? 'i-lucide-loader-2' : 'i-lucide-refresh-cw'" class="w-3.5 h-3.5" :class="{ 'animate-spin': calculEnCours }" />
@@ -599,7 +599,7 @@ onMounted(async () => {
                 <span class="font-mono">{{ formatFcfa(form.indemnite_autre) }}</span>
               </div>
 
-              <div class="flex justify-between font-bold text-emerald-800 bg-emerald-50 -mx-4 px-4 py-3 mt-2 text-sm">
+              <div class="flex justify-between font-bold text-green-800 bg-green-50 -mx-4 px-4 py-3 mt-2 text-sm">
                 <span>TOTAL</span>
                 <span class="font-mono">{{ formatFcfa(totalSolde) }}</span>
               </div>
@@ -629,7 +629,7 @@ onMounted(async () => {
 
           <button
             :disabled="enregistrement || !form.date_sortie"
-            class="w-full px-4 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 text-white text-sm font-bold rounded-xl inline-flex items-center justify-center gap-2"
+            class="w-full px-4 py-3 bg-green-600 hover:bg-green-700 disabled:bg-slate-300 text-white text-sm font-bold rounded-xl inline-flex items-center justify-center gap-2"
             @click="enregistrer"
           >
             <UIcon :name="enregistrement ? 'i-lucide-loader-2' : 'i-lucide-save'" class="w-4 h-4" :class="{ 'animate-spin': enregistrement }" />

@@ -230,11 +230,11 @@ onMounted(async () => {
     <!-- Header Object page -->
     <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex items-center justify-between">
       <div class="flex items-center space-x-4">
-        <div class="w-12 h-12 bg-green-50 text-green-700 rounded-lg flex items-center justify-center font-bold text-xl border border-green-200">
+        <div class="w-12 h-12 bg-navy-50 text-navy-700 rounded-lg flex items-center justify-center font-bold text-xl border border-navy-200">
           <UIcon name="i-lucide-building" class="w-6 h-6" />
         </div>
         <div>
-          <h1 class="text-2xl font-bold text-slate-900 leading-tight">Nouvel Établissement</h1>
+          <h1 class="text-2xl font-bold text-navy-900 leading-tight">Nouvel Établissement</h1>
           <p class="text-xs text-slate-500 mt-1">Dossier client : {{ currentDossier?.nom_dossier }}</p>
         </div>
       </div>
@@ -244,7 +244,7 @@ onMounted(async () => {
     <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
       <form @submit.prevent="handleCreateEtablissement" class="space-y-6">
         <div class="space-y-4">
-          <h3 class="text-md font-bold text-slate-900 border-b border-slate-100 pb-2">Informations de l'Établissement</h3>
+          <h3 class="text-md font-bold text-navy-900 border-b border-slate-100 pb-2">Informations de l'Établissement</h3>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -328,7 +328,7 @@ onMounted(async () => {
 
         <!-- Detailed Physical Address & Contacts Section -->
         <div class="space-y-4 pt-4 border-t border-slate-100">
-          <h3 class="text-md font-bold text-slate-900 border-b border-slate-100 pb-2">Adresse physique détaillée & Contacts</h3>
+          <h3 class="text-md font-bold text-navy-900 border-b border-slate-100 pb-2">Adresse physique détaillée & Contacts</h3>
           
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
@@ -454,7 +454,7 @@ onMounted(async () => {
 
         <!-- Payroll, HR & Matricule Settings Section -->
         <div class="space-y-4 pt-4 border-t border-slate-100">
-          <h3 class="text-md font-bold text-slate-900 border-b border-slate-100 pb-2">Paramètres de Paie, RH & Matricules</h3>
+          <h3 class="text-md font-bold text-navy-900 border-b border-slate-100 pb-2">Paramètres de Paie, RH & Matricules</h3>
           
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Adresse d'édition (sur le bulletin de paie)</label>
@@ -545,7 +545,7 @@ onMounted(async () => {
 
         <!-- CNPS Section -->
         <div class="space-y-4 pt-4 border-t border-slate-100">
-          <h3 class="text-md font-bold text-slate-900 border-b border-slate-100 pb-2">Caisse Nationale de prévoyance sociale - CNPS</h3>
+          <h3 class="text-md font-bold text-navy-900 border-b border-slate-100 pb-2">Caisse Nationale de prévoyance sociale - CNPS</h3>
           
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
@@ -633,7 +633,7 @@ onMounted(async () => {
 
         <!-- DGI Section -->
         <div class="space-y-4 pt-4 border-t border-slate-100">
-          <h3 class="text-md font-bold text-slate-900 border-b border-slate-100 pb-2">Direction générale des impôts - DGI</h3>
+          <h3 class="text-md font-bold text-navy-900 border-b border-slate-100 pb-2">Direction générale des impôts - DGI</h3>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -686,7 +686,7 @@ onMounted(async () => {
 
         <!-- DFE : Document Fiscal d'Entreprise -->
         <div class="space-y-4 pt-4 border-t border-slate-100">
-          <h3 class="text-md font-bold text-slate-900 border-b border-slate-100 pb-2">DFE — Document Fiscal d'Entreprise</h3>
+          <h3 class="text-md font-bold text-navy-900 border-b border-slate-100 pb-2">DFE — Document Fiscal d'Entreprise</h3>
           <p class="text-xs text-slate-500">
             Repris de la liasse DGI. Le n° de compte contribuable se saisit plus haut, dans les informations DGI.
           </p>

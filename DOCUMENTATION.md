@@ -644,10 +644,17 @@ son motif, son auteur et la date de décision.
 
 Reste à faire pour ce lot : le contrôle du solde de congés à la validation.
 
-#### Interface : style Carbon (IBM), charte graphique conservée
-Le vocabulaire visuel suit l'**IBM Carbon Design System** ; le vert de la marque
-reste la couleur primaire et les rayons restent nuls. Tout est défini dans
-`frontend/app/assets/css/main.css`, sans modification des gabarits.
+#### Interface : style Carbon (IBM) et duo de marque vert / bleu encre
+Le vocabulaire visuel suit l'**IBM Carbon Design System**. Le logo associe deux
+couleurs : le **vert**, couleur primaire d'action, et le **bleu encre `#01173a`**,
+couleur de structure. Les rayons restent nuls. Les jetons vivent dans
+`frontend/app/assets/css/main.css` ; la règle d'attribution complète est écrite
+dans [`docs/CHARTE_GRAPHIQUE.md`](docs/CHARTE_GRAPHIQUE.md).
+
+> **Structure = bleu encre. Action = vert.**
+> En-tête, navigation, pied de page, titres, en-têtes de tableaux et encarts
+> d'information portent le navy ; boutons primaires, focus, succès, badges
+> « validé » et montants positifs restent verts.
 
 | Élément | Choix Carbon |
 |---|---|
@@ -656,20 +663,26 @@ reste la couleur primaire et les rayons restent nuls. Tout est défini dans
 | Échelle de gris | Les gris Carbon (gray-10 → gray-100) remplacent l'échelle « slate ». L'application employant ces classes plus de deux mille fois, les redéfinir suffit à basculer toute l'interface. |
 | Champs de formulaire | Style *text input* : fond gray-10, **aucune bordure sauf un filet inférieur** gray-50, hauteur 40 px, survol gray-20. |
 | Libellés | 12 px, **casse de phrase** — Carbon proscrit les capitales, contrairement à l'ancien style qui les employait partout. |
-| Tableaux | Style *data table* : aucune bordure verticale, filet sous l'en-tête uniquement, hauteur de ligne 40 px, survol gray-20. |
-| Focus | Contour de 2 px dans la couleur d'action, à l'intérieur de l'élément — défini une seule fois, globalement. |
+| En-tête applicatif | Coque **navy** : `#01173a`, logo clair (`payohada-logo-light.png`), onglet actif blanc à soulignement vert, pied de page navy. |
+| Tableaux | Style *data table* : aucune bordure verticale, **en-tête navy à texte blanc souligné d'un filet vert de 2 px**, hauteur de ligne 40 px, survol gray-20. |
+| Couleur secondaire | Échelle `navy-50 → navy-950` exposée en utilitaires Tailwind ; `secondary` et `info` de Nuxt UI pointent sur `navy`, ce qui aligne `UBadge`, `UButton` et les notifications. |
+| Focus | Contour de 2 px dans la couleur d'action (vert), à l'intérieur de l'élément — défini une seule fois, globalement. |
 | Relief | L'ombre décalée d'origine est remplacée par un relief plat. Carbon sépare par des filets, non par des ombres. |
 | Composants Nuxt UI | Les jetons sémantiques (`--ui-bg`, `--ui-text`, `--ui-border`…) sont alignés sur Carbon, ce qui habille `UButton`, `UInput`, `UCard` et `UModal` sans les toucher. Les surcharges sont limitées au mode clair (`:root:not(.dark)`) pour préserver la palette sombre. |
 
-Classes maison ajoutées pour les nouveaux écrans : `.carbon-tile`, `.carbon-label`,
-`.carbon-helper`, `.carbon-error`, `.carbon-tag`, `.carbon-notification`,
-`.carbon-divider`, `.carbon-heading-03/04`.
+Classes maison ajoutées : `.carbon-tile`, `.carbon-label`, `.carbon-helper`,
+`.carbon-error`, `.carbon-tag`, `.carbon-notification`, `.carbon-divider`,
+`.carbon-heading-03/04`, ainsi que les classes de marque `.brand-accent-bar`
+(liseré dégradé navy → vert), `.brand-title`, `.brand-rule`, `.brand-tile` et
+`.brand-info`. Les pages d'authentification partagent la coque `AuthShell`
+(panneau navy + colonne de formulaire).
 
 **Défaut corrigé au passage** : le code employait `slate-350`, `slate-450`,
 `slate-550` et `slate-650` — 229 occurrences — alors que ces nuances n'existaient
 pas dans le thème. Tailwind n'émettait donc aucune règle et les bordures et
 textes concernés retombaient silencieusement sur la couleur héritée. Les quatre
 nuances sont désormais définies.
+
 
 #### Autorisations en écriture
 Les gardes de propriété (`check_contrat_ownership`, `check_salarie_ownership`,

@@ -159,39 +159,27 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-emerald-50/30 flex flex-col justify-center py-10 px-4 sm:px-6 lg:px-8 font-sans selection:bg-emerald-100 selection:text-emerald-900">
-    <!-- Top accent bar -->
-    <div class="h-1.5 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 fixed top-0 left-0 right-0 w-full shadow-sm" />
-
-    <div class="sm:mx-auto sm:w-full sm:max-w-xl text-center">
-      <!-- Logo payohada -->
-      <div class="flex justify-center mb-4">
-        <img
-          src="/payohada-logo.png"
-          alt="payohada"
-          class="h-12 sm:h-14 w-auto object-contain drop-shadow-sm transition-transform hover:scale-105"
-        >
-      </div>
-
+  <AuthShell>
+    <div class="text-center lg:text-left">
       <!-- Titre contextuel -->
       <template v-if="isRegister">
-        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold mb-3">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-navy-50 border border-navy-200 text-navy-700 text-xs font-semibold mb-3">
           <UIcon
             name="i-lucide-building-2"
-            class="w-3.5 h-3.5"
+            class="w-3.5 h-3.5 text-navy-700"
           />
           <span>Espace Cabinet Comptable & RH</span>
         </div>
-        <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-navy-900 tracking-tight">
           Créer un compte Cabinet
         </h1>
-        <p class="mt-2 text-sm text-slate-600 max-w-md mx-auto">
+        <p class="mt-2 text-sm text-slate-600 max-w-md mx-auto lg:mx-0">
           Gérez l'ensemble de vos dossiers clients, calculez vos bulletins conformes OHADA et pilotez vos déclarations sociales en toute simplicité.
         </p>
       </template>
 
       <template v-else>
-        <h1 class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-navy-900 tracking-tight">
           Connexion à payohada
         </h1>
         <p class="mt-2 text-sm text-slate-600">
@@ -205,7 +193,7 @@ onMounted(() => {
           {{ isRegister ? "Vous avez déjà un compte ?" : "Vous représentez un cabinet ou un gestionnaire ?" }}
         </span>
         <button
-          class="ml-1.5 font-semibold text-emerald-600 hover:text-emerald-700 hover:underline transition-colors"
+          class="ml-1.5 font-semibold text-green-700 hover:text-green-800 hover:underline transition-colors"
           @click="isRegister = !isRegister; errorMsg = ''; successMsg = ''; fieldErrors = {}; currentStep = 1"
         >
           {{ isRegister ? "Connectez-vous ici" : "Inscrivez votre cabinet" }}
@@ -214,8 +202,8 @@ onMounted(() => {
     </div>
 
     <!-- Main Card Container -->
-    <div class="mt-6 sm:mx-auto sm:w-full sm:max-w-xl">
-      <div class="bg-white py-8 px-6 shadow-xl border border-slate-200/80 rounded-2xl sm:px-10 relative overflow-hidden backdrop-blur-sm">
+    <div class="mt-6">
+      <div class="bg-white py-8 px-6 shadow-flat border border-slate-200 border-t-4 border-t-navy-900 sm:px-10 relative overflow-hidden">
         <!-- Alerts -->
         <div
           v-if="errorMsg"
@@ -230,11 +218,11 @@ onMounted(() => {
 
         <div
           v-if="successMsg"
-          class="mb-5 p-3.5 bg-emerald-50/90 border border-emerald-200 text-emerald-700 rounded-xl text-sm flex items-start space-x-2.5"
+          class="mb-5 p-3.5 bg-green-50/90 border border-green-200 text-green-700 rounded-xl text-sm flex items-start space-x-2.5"
         >
           <UIcon
             name="i-lucide-check-circle"
-            class="w-5 h-5 text-emerald-600 shrink-0 mt-0.5"
+            class="w-5 h-5 text-green-600 shrink-0 mt-0.5"
           />
           <span class="font-medium">{{ successMsg }}</span>
         </div>
@@ -248,7 +236,7 @@ onMounted(() => {
             <div class="flex items-center justify-between relative">
               <div class="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 bg-slate-200 w-full z-0" />
               <div
-                class="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 bg-emerald-500 transition-all duration-300 z-0"
+                class="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 bg-green-500 transition-all duration-300 z-0"
                 :style="{ width: currentStep === 1 ? '50%' : '100%' }"
               />
 
@@ -256,12 +244,12 @@ onMounted(() => {
               <button
                 type="button"
                 class="relative z-10 flex items-center gap-2 bg-white px-3 py-1 rounded-full border transition-all text-xs font-medium"
-                :class="currentStep === 1 ? 'border-emerald-500 text-emerald-700 ring-2 ring-emerald-100 shadow-sm' : 'border-slate-300 text-slate-600 hover:border-slate-400'"
+                :class="currentStep === 1 ? 'border-green-500 text-green-700 ring-2 ring-green-100 shadow-sm' : 'border-slate-300 text-slate-600 hover:border-slate-400'"
                 @click="currentStep = 1"
               >
                 <span
                   class="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold text-white"
-                  :class="currentStep === 1 ? 'bg-emerald-600' : 'bg-emerald-500'"
+                  :class="currentStep === 1 ? 'bg-green-600' : 'bg-green-500'"
                 >
                   1
                 </span>
@@ -272,12 +260,12 @@ onMounted(() => {
               <button
                 type="button"
                 class="relative z-10 flex items-center gap-2 bg-white px-3 py-1 rounded-full border transition-all text-xs font-medium"
-                :class="currentStep === 2 ? 'border-emerald-500 text-emerald-700 ring-2 ring-emerald-100 shadow-sm' : 'border-slate-300 text-slate-500 hover:border-slate-400'"
+                :class="currentStep === 2 ? 'border-green-500 text-green-700 ring-2 ring-green-100 shadow-sm' : 'border-slate-300 text-slate-500 hover:border-slate-400'"
                 @click="goToStep2"
               >
                 <span
                   class="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold"
-                  :class="currentStep === 2 ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-600'"
+                  :class="currentStep === 2 ? 'bg-green-600 text-white' : 'bg-slate-200 text-slate-600'"
                 >
                   2
                 </span>
@@ -295,7 +283,7 @@ onMounted(() => {
               <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
                 <UIcon
                   name="i-lucide-briefcase"
-                  class="w-4 h-4 text-emerald-600"
+                  class="w-4 h-4 text-green-600"
                 />
                 Informations sur la structure
               </h2>
@@ -320,7 +308,7 @@ onMounted(() => {
                   placeholder="Ex: Cabinet Audit & Paie Afrique, FIDUCO..."
                   :class="[
                     'block w-full px-3.5 py-2.5 border rounded-xl focus:outline-none text-sm transition-all',
-                    fieldErrors.cabinetNom ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500'
+                    fieldErrors.cabinetNom ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
                   ]"
                 >
               </div>
@@ -346,7 +334,7 @@ onMounted(() => {
                     v-model="cabinetTelephone"
                     type="tel"
                     placeholder="Ex: +225 07 00 00 00 00"
-                    class="block w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                    class="block w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
                   >
                 </div>
               </div>
@@ -364,7 +352,7 @@ onMounted(() => {
                     v-model="cabinetVille"
                     type="text"
                     placeholder="Ex: Abidjan, Cocody"
-                    class="block w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all"
+                    class="block w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
                   >
                 </div>
               </div>
@@ -380,7 +368,7 @@ onMounted(() => {
               <select
                 id="cabinet_pays"
                 v-model="cabinetPays"
-                class="mt-1 block w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white"
+                class="mt-1 block w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
               >
                 <option value="Côte d'Ivoire">
                   Côte d'Ivoire (Conforme CNPS / CMU / Barème IGR)
@@ -418,7 +406,7 @@ onMounted(() => {
             <div class="pt-2">
               <button
                 type="button"
-                class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl shadow-md text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all"
+                class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl shadow-md text-sm font-semibold text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all"
                 @click="goToStep2"
               >
                 <span>Étape suivante : Identifiants administrateur</span>
@@ -440,7 +428,7 @@ onMounted(() => {
               <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
                 <UIcon
                   name="i-lucide-user-check"
-                  class="w-4 h-4 text-emerald-600"
+                  class="w-4 h-4 text-green-600"
                 />
                 Compte du Gestionnaire Référent
               </h2>
@@ -465,7 +453,7 @@ onMounted(() => {
                   placeholder="Jean"
                   :class="[
                     'mt-1 block w-full px-3.5 py-2.5 border rounded-xl focus:outline-none text-sm transition-all',
-                    fieldErrors.firstName ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500'
+                    fieldErrors.firstName ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
                   ]"
                 >
                 <p
@@ -491,7 +479,7 @@ onMounted(() => {
                   placeholder="Kouassi"
                   :class="[
                     'mt-1 block w-full px-3.5 py-2.5 border rounded-xl focus:outline-none text-sm transition-all',
-                    fieldErrors.lastName ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500'
+                    fieldErrors.lastName ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
                   ]"
                 >
                 <p
@@ -518,7 +506,7 @@ onMounted(() => {
                 placeholder="direction@votre-cabinet.com"
                 :class="[
                   'mt-1 block w-full px-3.5 py-2.5 border rounded-xl focus:outline-none text-sm transition-all',
-                  fieldErrors.email ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500'
+                  fieldErrors.email ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
                 ]"
               >
               <p
@@ -546,7 +534,7 @@ onMounted(() => {
                     placeholder="8 caractères min."
                     :class="[
                       'block w-full px-3.5 py-2.5 pr-10 border rounded-xl focus:outline-none text-sm transition-all',
-                      fieldErrors.password ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500'
+                      fieldErrors.password ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
                     ]"
                   >
                   <button
@@ -583,7 +571,7 @@ onMounted(() => {
                   placeholder="Répétez le mot de passe"
                   :class="[
                     'mt-1 block w-full px-3.5 py-2.5 border rounded-xl focus:outline-none text-sm transition-all',
-                    fieldErrors.passwordConfirm ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500'
+                    fieldErrors.passwordConfirm ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
                   ]"
                 >
                 <p
@@ -600,13 +588,13 @@ onMounted(() => {
               <div class="flex items-center gap-2">
                 <UIcon
                   name="i-lucide-shield-check"
-                  class="w-4 h-4 text-emerald-600 shrink-0"
+                  class="w-4 h-4 text-green-600 shrink-0"
                 />
                 <span>Cabinet : <strong class="text-slate-800">{{ cabinetNom || 'Non renseigné' }}</strong></span>
               </div>
               <button
                 type="button"
-                class="text-emerald-600 hover:text-emerald-700 font-semibold underline"
+                class="text-green-600 hover:text-green-700 font-semibold underline"
                 @click="currentStep = 1"
               >
                 Modifier
@@ -624,7 +612,7 @@ onMounted(() => {
               <button
                 type="submit"
                 :disabled="loading"
-                class="w-2/3 flex justify-center items-center py-2.5 px-4 rounded-xl shadow-md text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-colors disabled:opacity-50"
+                class="w-2/3 flex justify-center items-center py-2.5 px-4 rounded-xl shadow-md text-sm font-semibold text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors disabled:opacity-50"
               >
                 <UIcon
                   v-if="loading"
@@ -660,7 +648,7 @@ onMounted(() => {
               placeholder="votre@email.com"
               :class="[
                 'mt-1 block w-full px-3.5 py-2.5 border rounded-xl focus:outline-none text-sm transition-all',
-                fieldErrors.loginEmail ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500'
+                fieldErrors.loginEmail ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
               ]"
             >
             <p
@@ -681,7 +669,7 @@ onMounted(() => {
               </label>
               <NuxtLink
                 to="/forgot-password"
-                class="text-xs font-semibold text-emerald-700 hover:text-emerald-800 hover:underline"
+                class="text-xs font-semibold text-green-700 hover:text-green-800 hover:underline"
               >
                 Mot de passe oublié ?
               </NuxtLink>
@@ -695,7 +683,7 @@ onMounted(() => {
                 placeholder="••••••••"
                 :class="[
                   'block w-full px-3.5 py-2.5 pr-10 border rounded-xl focus:outline-none text-sm transition-all',
-                  fieldErrors.loginPassword ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500'
+                  fieldErrors.loginPassword ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
                 ]"
               >
               <button
@@ -721,7 +709,7 @@ onMounted(() => {
             <button
               type="submit"
               :disabled="loading"
-              class="w-full flex justify-center items-center py-2.5 px-4 rounded-xl shadow-md text-sm font-semibold text-white bg-emerald-600 hover:bg-emerald-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-emerald-500 transition-all disabled:opacity-50"
+              class="w-full flex justify-center items-center py-2.5 px-4 rounded-xl shadow-md text-sm font-semibold text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all disabled:opacity-50"
             >
               <UIcon
                 v-if="loading"
@@ -738,26 +726,26 @@ onMounted(() => {
           <div class="flex flex-col items-center">
             <UIcon
               name="i-lucide-scale"
-              class="w-4 h-4 text-emerald-600 mb-1"
+              class="w-4 h-4 text-green-600 mb-1"
             />
             <span class="font-medium">Conformité OHADA</span>
           </div>
           <div class="flex flex-col items-center">
             <UIcon
               name="i-lucide-shield-alert"
-              class="w-4 h-4 text-emerald-600 mb-1"
+              class="w-4 h-4 text-green-600 mb-1"
             />
             <span class="font-medium">Données Chiffrées</span>
           </div>
           <div class="flex flex-col items-center">
             <UIcon
               name="i-lucide-folder-git-2"
-              class="w-4 h-4 text-emerald-600 mb-1"
+              class="w-4 h-4 text-green-600 mb-1"
             />
             <span class="font-medium">Multi-entreprises</span>
           </div>
         </div>
       </div>
     </div>
-  </div>
+  </AuthShell>
 </template>

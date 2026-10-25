@@ -735,13 +735,13 @@ onMounted(async () => {
   <div class="space-y-6">
 
     <!-- Top Action / Title Header -->
-    <div class="bg-white border-2 border-slate-200 p-6 shadow-flat flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-t-4 border-t-green-600">
+    <div class="bg-white border-2 border-slate-200 p-6 shadow-flat flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-t-4 border-t-navy-900">
       <div class="flex items-center space-x-4">
-        <div class="w-12 h-12 bg-green-50 text-green-700 flex items-center justify-center font-bold text-xl border border-green-200">
+        <div class="w-12 h-12 bg-navy-50 text-navy-700 flex items-center justify-center font-bold text-xl border border-navy-200">
           <UIcon name="i-lucide-files" class="w-6 h-6" />
         </div>
         <div>
-          <h1 class="text-2xl font-bold text-slate-900 leading-tight">Gestion Administrative des Bulletins</h1>
+          <h1 class="text-2xl font-bold text-navy-900 leading-tight">Gestion Administrative des Bulletins</h1>
           <p class="text-xs text-slate-500 mt-1">
             Gérez la paie, calculez et validez les bulletins de vos salariés par période.
           </p>
@@ -803,13 +803,13 @@ onMounted(async () => {
     <!-- ═══ Import/Export Excel QPXL1501 ═══ -->
     <div v-if="selectedDossierId" class="bg-white border-2 border-slate-200 shadow-flat overflow-hidden">
       <!-- Header -->
-      <div class="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-indigo-900 to-indigo-700 border-b-2 border-indigo-800">
+      <div class="flex items-center gap-3 px-5 py-3 bg-gradient-to-r from-navy-900 to-navy-700 border-b-2 border-navy-800">
         <div class="w-8 h-8 bg-white/10 flex items-center justify-center rounded">
           <UIcon name="i-lucide-file-spreadsheet" class="w-4 h-4 text-white" />
         </div>
         <div>
           <h2 class="text-sm font-bold text-white tracking-wide uppercase">Import / Export Variables de Paie</h2>
-          <p class="text-indigo-200 text-[10px]">Format QPXL1501 — Période : {{ getPeriodLabel(selectedMois, selectedAnnee) }}</p>
+          <p class="text-navy-200 text-[10px]">Format QPXL1501 — Période : {{ getPeriodLabel(selectedMois, selectedAnnee) }}</p>
         </div>
       </div>
 
@@ -818,18 +818,18 @@ onMounted(async () => {
         <!-- ── Colonne Export ── -->
         <div class="p-5 space-y-3">
           <div class="flex items-center gap-2 mb-1">
-            <div class="w-6 h-6 rounded bg-indigo-50 flex items-center justify-center">
-              <UIcon name="i-lucide-download" class="w-3.5 h-3.5 text-indigo-700" />
+            <div class="w-6 h-6 rounded bg-navy-50 flex items-center justify-center">
+              <UIcon name="i-lucide-download" class="w-3.5 h-3.5 text-navy-700" />
             </div>
-            <span class="text-sm font-bold text-slate-800">Exporter le modèle</span>
+            <span class="text-sm font-bold text-navy-900">Exporter le modèle</span>
           </div>
           <p class="text-xs text-slate-500 leading-relaxed">
             Téléchargez un fichier Excel pré-rempli avec la liste des salariés du dossier.
             Remplissez les variables (heures sup, absences, primes...) puis réimportez-le.
           </p>
-          <div class="bg-indigo-50 border border-indigo-100 rounded p-3 text-xs text-indigo-700 space-y-1">
+          <div class="bg-navy-50 border border-navy-200 rounded p-3 text-xs text-navy-800 space-y-1">
             <div class="flex items-center gap-1.5 font-semibold"><UIcon name="i-lucide-table-2" class="w-3.5 h-3.5" /> 4 feuilles générées</div>
-            <div class="text-indigo-600 pl-5 space-y-0.5">
+            <div class="text-navy-700 pl-5 space-y-0.5">
               <div>📋 Saisie — Heures sup, primes (BP01, BP02, BP06)</div>
               <div>🗓 Absences — Congés, maladie, AT...</div>
               <div>⏱ RTT — Journées de repos</div>
@@ -839,7 +839,7 @@ onMounted(async () => {
           <button
             @click="handleExportExcel"
             :disabled="excelExporting || excelImporting"
-            class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-indigo-700 hover:bg-indigo-800 text-white text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-flat"
+            class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-flat"
           >
             <UIcon v-if="excelExporting" name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
             <UIcon v-else name="i-lucide-download-cloud" class="w-4 h-4" />
@@ -850,10 +850,10 @@ onMounted(async () => {
         <!-- ── Colonne Import : bouton → modal ── -->
         <div class="p-5 flex flex-col justify-center space-y-3">
           <div class="flex items-center gap-2 mb-1">
-            <div class="w-6 h-6 rounded bg-emerald-50 flex items-center justify-center">
-              <UIcon name="i-lucide-upload" class="w-3.5 h-3.5 text-emerald-700" />
+            <div class="w-6 h-6 rounded bg-navy-50 flex items-center justify-center">
+              <UIcon name="i-lucide-upload" class="w-3.5 h-3.5 text-navy-700" />
             </div>
-            <span class="text-sm font-bold text-slate-800">Importer les variables</span>
+            <span class="text-sm font-bold text-navy-900">Importer les variables</span>
           </div>
           <p class="text-xs text-slate-500 leading-relaxed">
             Importez le fichier Excel rempli pour créer automatiquement les variables
@@ -862,7 +862,7 @@ onMounted(async () => {
           <button
             @click="openImportModal"
             :disabled="excelImporting"
-            class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-flat"
+            class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-xs font-bold uppercase tracking-wider transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-flat"
           >
             <UIcon name="i-lucide-upload-cloud" class="w-4 h-4" />
             Importer un fichier Excel
@@ -891,10 +891,10 @@ onMounted(async () => {
 
     <!-- NO DOSSIER STATE -->
     <div v-else-if="dossiers.length === 0" class="bg-white border border-dashed border-slate-300 rounded-xl p-12 text-center max-w-xl mx-auto space-y-4 shadow-sm">
-      <div class="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center text-green-600 mx-auto">
+      <div class="w-12 h-12 bg-navy-50 rounded-lg flex items-center justify-center text-navy-700 mx-auto">
         <UIcon name="i-lucide-folder-open" class="w-6 h-6" />
       </div>
-      <h3 class="font-bold text-slate-900 text-lg">Aucune entreprise trouvée</h3>
+      <h3 class="font-bold text-navy-900 text-lg">Aucune entreprise trouvée</h3>
       <p class="text-sm text-slate-500">
         Vous devez d'abord créer un dossier d'entreprise avant de pouvoir gérer et générer des bulletins de paie.
       </p>
@@ -914,14 +914,14 @@ onMounted(async () => {
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
 
         <!-- Total Employees -->
-        <div class="bg-white border-2 border-slate-200 p-5 shadow-flat space-y-2 border-t-4 border-t-slate-500">
+        <div class="bg-white border-2 border-slate-200 p-5 shadow-flat space-y-2 border-t-4 border-t-navy-900">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Effectif Actif</span>
-            <div class="w-7 h-7 bg-slate-100 text-slate-600 rounded-lg flex items-center justify-center">
+            <div class="w-7 h-7 bg-navy-50 text-navy-700 rounded-lg flex items-center justify-center">
               <UIcon name="i-lucide-users" class="w-4 h-4" />
             </div>
           </div>
-          <p class="text-2xl font-bold text-slate-900">{{ stats.totalEmployees }} salariés</p>
+          <p class="text-2xl font-bold text-navy-900">{{ stats.totalEmployees }} salariés</p>
           <div class="text-[10px] text-slate-450">Contrats déclarés au dossier</div>
         </div>
 
@@ -933,7 +933,7 @@ onMounted(async () => {
               <UIcon name="i-lucide-check-circle-2" class="w-4 h-4" />
             </div>
           </div>
-          <p class="text-2xl font-bold text-slate-900">{{ stats.generatedCount }} / {{ stats.totalEmployees }}</p>
+          <p class="text-2xl font-bold text-navy-900">{{ stats.generatedCount }} / {{ stats.totalEmployees }}</p>
           <div class="text-[10px] text-slate-450 flex items-center gap-1">
             <span v-if="stats.pendingCount > 0" class="text-yellow-600 font-semibold flex items-center gap-0.5">
               <span class="w-1.5 h-1.5 rounded-full bg-yellow-500 inline-block animate-pulse"></span>
@@ -946,22 +946,22 @@ onMounted(async () => {
         </div>
 
         <!-- Masse Salariale Brut -->
-        <div class="bg-white border-2 border-slate-200 p-5 shadow-flat space-y-2 border-t-4 border-t-blue-500">
+        <div class="bg-white border-2 border-slate-200 p-5 shadow-flat space-y-2 border-t-4 border-t-navy-900">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Masse Brut</span>
-            <div class="w-7 h-7 bg-blue-50 text-blue-700 rounded-lg flex items-center justify-center">
+            <div class="w-7 h-7 bg-navy-50 text-navy-700 rounded-lg flex items-center justify-center">
               <UIcon name="i-lucide-coins" class="w-4 h-4" />
             </div>
           </div>
-          <p class="text-2xl font-bold text-slate-900 font-mono tracking-tight">{{ formatXOF(stats.masseBrut) }}</p>
+          <p class="text-2xl font-bold text-navy-900 font-mono tracking-tight">{{ formatXOF(stats.masseBrut) }}</p>
           <div class="text-[10px] text-slate-450 font-sans">Total salaire brut brut pour la période</div>
         </div>
 
         <!-- Masse Salariale Net -->
-        <div class="bg-white border-2 border-slate-200 p-5 shadow-flat space-y-2 border-t-4 border-t-emerald-600">
+        <div class="bg-white border-2 border-slate-200 p-5 shadow-flat space-y-2 border-t-4 border-t-navy-900">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Masse Nette (Net à Payer)</span>
-            <div class="w-7 h-7 bg-emerald-50 text-emerald-700 rounded-lg flex items-center justify-center">
+            <div class="w-7 h-7 bg-navy-50 text-navy-700 rounded-lg flex items-center justify-center">
               <UIcon name="i-lucide-banknote" class="w-4 h-4" />
             </div>
           </div>
@@ -994,7 +994,7 @@ onMounted(async () => {
       </div>
 
       <!-- Employees & Bulletins List Table Card -->
-      <div class="bg-white border-2 border-slate-200 shadow-flat overflow-hidden border-t-4 border-t-slate-500">
+      <div class="bg-white border-2 border-slate-200 shadow-flat overflow-hidden border-t-4 border-t-navy-900">
         <div v-if="loadingData" class="flex flex-col items-center justify-center py-20 space-y-4">
           <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-green-600" />
           <span class="text-sm text-slate-500 font-medium">Chargement des fiches de paye...</span>
@@ -1004,7 +1004,7 @@ onMounted(async () => {
           <div class="w-10 h-10 bg-slate-100 text-slate-400 rounded-full flex items-center justify-center mx-auto">
             <UIcon name="i-lucide-user-x" class="w-5 h-5" />
           </div>
-          <h4 class="font-bold text-slate-800">Aucun salarié avec contrat actif</h4>
+          <h4 class="font-bold text-navy-900">Aucun salarié avec contrat actif</h4>
           <p class="text-xs text-slate-500 max-w-sm mx-auto">
             Afin de calculer la paie, vous devez d'abord ajouter des salariés et créer des contrats de travail actifs dans cette entreprise.
           </p>
@@ -1041,7 +1041,7 @@ onMounted(async () => {
                 <!-- Employee Column -->
                 <td class="px-6 py-4">
                   <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 bg-green-50 text-green-700 rounded-full flex items-center justify-center font-bold text-xs border border-green-200">
+                    <div class="w-8 h-8 bg-navy-50 text-navy-700 rounded-full flex items-center justify-center font-bold text-xs border border-navy-200">
                       {{ c.matricule_salarie.substring(c.matricule_salarie.lastIndexOf('-') + 1) || 'EMP' }}
                     </div>
                     <div>
@@ -1090,7 +1090,7 @@ onMounted(async () => {
                   </span>
                   <span
                     v-else
-                    class="bg-slate-100 text-slate-400 border-slate-200 px-2.5 py-0.5 rounded text-[10px] uppercase font-bold border inline-block tracking-wider"
+                    class="bg-navy-50 text-navy-700 border-navy-200 px-2.5 py-0.5 rounded text-[10px] uppercase font-bold border inline-block tracking-wider"
                   >
                     Non calculé
                   </span>
@@ -1217,7 +1217,7 @@ onMounted(async () => {
     <UModal v-model:open="hsModalOpen" title="Saisir des Heures Supplémentaires">
       <template #content>
         <div class="p-6 space-y-4 bg-white border border-slate-200">
-          <h2 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Heure Supp.</h2>
+          <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Heure Supp.</h2>
 
           <div class="space-y-4">
             <div>
@@ -1250,7 +1250,7 @@ onMounted(async () => {
     <UModal v-model:open="absModalOpen" title="Saisir une Absence / Congé">
       <template #content>
         <div class="p-6 space-y-4 bg-white border border-slate-200">
-          <h2 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Saisir Absence</h2>
+          <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Saisir Absence</h2>
 
           <div class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
@@ -1302,7 +1302,7 @@ onMounted(async () => {
     <UModal v-model:open="primeModalOpen" title="Saisir une Prime">
       <template #content>
         <div class="p-6 space-y-4 bg-white border border-slate-200">
-          <h2 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Prime</h2>
+          <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Prime</h2>
 
           <div class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
@@ -1368,7 +1368,7 @@ onMounted(async () => {
     <UModal v-model:open="acompteModalOpen" title="Définir un Acompte">
       <template #content>
         <div class="p-6 space-y-4 bg-white border border-slate-200">
-          <h2 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Acompte sur salaire</h2>
+          <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Acompte sur salaire</h2>
 
           <div class="space-y-4">
             <div>
@@ -1396,7 +1396,7 @@ onMounted(async () => {
         <div class="space-y-5 p-1">
 
           <!-- Info période -->
-          <div class="flex items-center gap-2 px-3 py-2 bg-indigo-50 border border-indigo-100 rounded text-xs text-indigo-700 font-medium">
+          <div class="flex items-center gap-2 px-3 py-2 bg-navy-50 border border-navy-200 rounded text-xs text-navy-800 font-medium">
             <UIcon name="i-lucide-calendar" class="w-4 h-4 shrink-0" />
             Période : <span class="font-bold">{{ getPeriodLabel(selectedMois, selectedAnnee) }}</span>
             &nbsp;·&nbsp; Dossier : <span class="font-bold">{{ dossiers.find(d => d.id === Number(selectedDossierId))?.code }}</span>
@@ -1404,21 +1404,21 @@ onMounted(async () => {
 
           <!-- Résultat import (affiché si import déjà effectué) -->
           <div v-if="showImportResult && excelImportResult" class="space-y-3">
-            <div class="bg-emerald-50 border border-emerald-200 rounded-lg p-4 space-y-3">
-              <div class="flex items-center gap-2 text-emerald-700 font-bold text-sm">
+            <div class="bg-green-50 border border-green-200 rounded-lg p-4 space-y-3">
+              <div class="flex items-center gap-2 text-green-700 font-bold text-sm">
                 <UIcon name="i-lucide-check-circle-2" class="w-5 h-5" />
                 Import terminé — {{ excelImportResult.salaries_traites }} salarié(s) traités
               </div>
               <div class="grid grid-cols-3 gap-3 text-center">
-                <div class="bg-white border border-emerald-100 rounded-lg p-3">
-                  <div class="text-2xl font-black text-emerald-700">{{ excelImportResult.absences_creees }}</div>
+                <div class="bg-white border border-green-100 rounded-lg p-3">
+                  <div class="text-2xl font-black text-green-700">{{ excelImportResult.absences_creees }}</div>
                   <div class="text-[10px] text-slate-500 uppercase font-semibold mt-0.5">Absences</div>
                 </div>
-                <div class="bg-white border border-emerald-100 rounded-lg p-3">
-                  <div class="text-2xl font-black text-indigo-700">{{ excelImportResult.heures_sup_creees }}</div>
+                <div class="bg-white border border-green-100 rounded-lg p-3">
+                  <div class="text-2xl font-black text-navy-700">{{ excelImportResult.heures_sup_creees }}</div>
                   <div class="text-[10px] text-slate-500 uppercase font-semibold mt-0.5">Heures Sup.</div>
                 </div>
-                <div class="bg-white border border-emerald-100 rounded-lg p-3">
+                <div class="bg-white border border-green-100 rounded-lg p-3">
                   <div class="text-2xl font-black text-amber-700">{{ excelImportResult.primes_creees }}</div>
                   <div class="text-[10px] text-slate-500 uppercase font-semibold mt-0.5">Primes</div>
                 </div>
@@ -1440,7 +1440,7 @@ onMounted(async () => {
             <!-- Bouton nouvel import -->
             <button
               @click="showImportResult = false; excelImportResult = null"
-              class="w-full text-xs text-indigo-600 hover:text-indigo-800 font-semibold underline text-center"
+              class="w-full text-xs text-navy-700 hover:text-navy-900 font-semibold underline text-center"
             >
               Importer un autre fichier
             </button>
@@ -1451,7 +1451,7 @@ onMounted(async () => {
             <label
               :class="[
                 'flex flex-col items-center justify-center gap-3 border-2 border-dashed rounded-lg p-8 cursor-pointer transition-all',
-                excelImporting ? 'border-indigo-400 bg-indigo-50/60 cursor-wait' : 'border-slate-300 hover:border-emerald-400 hover:bg-emerald-50/50'
+                excelImporting ? 'border-navy-400 bg-navy-50/60 cursor-wait' : 'border-slate-300 hover:border-green-400 hover:bg-green-50/50'
               ]"
             >
               <input
@@ -1463,10 +1463,10 @@ onMounted(async () => {
                 @change="handleImportExcel"
               />
               <div v-if="excelImporting" class="flex flex-col items-center gap-3">
-                <UIcon name="i-lucide-loader-2" class="w-10 h-10 text-indigo-500 animate-spin" />
+                <UIcon name="i-lucide-loader-2" class="w-10 h-10 text-green-600 animate-spin" />
                 <div class="text-center">
-                  <p class="text-sm font-bold text-indigo-700">Import en cours...</p>
-                  <p class="text-xs text-indigo-500 mt-0.5">Veuillez patienter</p>
+                  <p class="text-sm font-bold text-navy-700">Import en cours...</p>
+                  <p class="text-xs text-navy-600 mt-0.5">Veuillez patienter</p>
                 </div>
               </div>
               <div v-else class="flex flex-col items-center gap-2 text-center">
@@ -1477,7 +1477,7 @@ onMounted(async () => {
                   <p class="text-sm font-bold text-slate-700">Cliquer pour sélectionner un fichier</p>
                   <p class="text-xs text-slate-400 mt-0.5">ou glisser-déposer ici</p>
                 </div>
-                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-slate-100 text-slate-500 text-[10px] font-mono rounded-full">
+                <span class="inline-flex items-center gap-1 px-2.5 py-0.5 bg-navy-50 text-navy-700 text-[10px] font-mono rounded-full">
                   .xls &nbsp;·&nbsp; .xlsx
                 </span>
               </div>

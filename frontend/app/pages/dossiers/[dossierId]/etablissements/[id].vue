@@ -1291,8 +1291,8 @@ onMounted(async () => {
       <form @submit.prevent="handleUpdateEtab" class="space-y-6">
 
         <!-- Main Form -->
-        <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-slate-500">
-          <h3 class="text-sm font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Profil Établissement</h3>
+        <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
+          <h3 class="text-sm font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Profil Établissement</h3>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -1362,8 +1362,8 @@ onMounted(async () => {
         </div>
 
         <!-- Address Sub-form -->
-        <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-slate-500">
-          <h3 class="text-sm font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Adresse de l'Établissement</h3>
+        <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
+          <h3 class="text-sm font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Adresse de l'Établissement</h3>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="md:col-span-2">
@@ -1393,8 +1393,8 @@ onMounted(async () => {
         </div>
 
         <!-- Detailed Physical Address & Contacts Section -->
-        <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-slate-500">
-          <h3 class="text-sm font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Adresse physique détaillée & Contacts (Côte d'Ivoire / Local)</h3>
+        <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
+          <h3 class="text-sm font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Adresse physique détaillée & Contacts (Côte d'Ivoire / Local)</h3>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
@@ -1519,8 +1519,8 @@ onMounted(async () => {
         </div>
 
         <!-- Bank Sub-form -->
-        <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-slate-500">
-          <h3 class="text-sm font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Informations Bancaires de l'Établissement</h3>
+        <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
+          <h3 class="text-sm font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Informations Bancaires de l'Établissement</h3>
 
           <div class="flex items-center space-x-2 pb-2">
             <input id="bank-virement" v-model="bankVirement" type="checkbox" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
@@ -1540,8 +1540,8 @@ onMounted(async () => {
         </div>
 
         <!-- CNPS Sub-form -->
-        <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-slate-500">
-          <h3 class="text-sm font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Caisse Nationale de prévoyance sociale - CNPS</h3>
+        <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
+          <h3 class="text-sm font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Caisse Nationale de prévoyance sociale - CNPS</h3>
 
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
@@ -1628,8 +1628,8 @@ onMounted(async () => {
         </div>
 
         <!-- DGI Sub-form -->
-        <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-slate-500">
-          <h3 class="text-sm font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Direction générale des impôts - DGI</h3>
+        <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
+          <h3 class="text-sm font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Direction générale des impôts - DGI</h3>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -1679,8 +1679,8 @@ onMounted(async () => {
         </div>
 
         <!-- DFE : Document Fiscal d'Entreprise -->
-        <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-slate-500">
-          <h3 class="text-sm font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">DFE — Document Fiscal d'Entreprise</h3>
+        <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
+          <h3 class="text-sm font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">DFE — Document Fiscal d'Entreprise</h3>
           <p class="text-xs text-slate-500">
             Repris de la liasse DGI. Le n° de compte contribuable se saisit plus haut, dans les informations DGI.
           </p>
@@ -1726,8 +1726,8 @@ onMounted(async () => {
         </div>
 
         <!-- Payroll, HR & Matricule Settings Section -->
-        <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-slate-500">
-          <h3 class="text-sm font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Paramètres de Paie, RH & Matricules</h3>
+        <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
+          <h3 class="text-sm font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Paramètres de Paie, RH & Matricules</h3>
 
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Adresse d'édition (sur le bulletin de paie)</label>
@@ -1813,10 +1813,10 @@ onMounted(async () => {
       </form>
 
       <!-- Caisses de Cotisation Section (Fused at the bottom of General Info) -->
-      <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat border-t-4 border-t-slate-500">
+      <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat border-t-4 border-t-navy-900">
         <div class="flex justify-between items-center border-b border-slate-200 pb-4 mb-4">
           <div>
-            <h3 class="text-lg font-bold text-slate-900 uppercase tracking-wider">Caisses de Cotisation</h3>
+            <h3 class="text-lg font-bold text-navy-900 uppercase tracking-wider">Caisses de Cotisation</h3>
             <p class="text-xs text-slate-500">Caisses de cotisations sociales rattachées à cet établissement (CNPS, Retraite...).</p>
           </div>
           <button
@@ -1867,7 +1867,7 @@ onMounted(async () => {
                   <input type="checkbox" :value="c.id" v-model="selectedCaisses" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
                 </td>
                 <td class="px-6 py-4">
-                  <span class="px-2 py-0.5 rounded-none text-xs font-bold bg-green-50 text-green-700 border border-green-200 uppercase">
+                  <span class="px-2 py-0.5 rounded-none text-xs font-bold bg-navy-50 text-navy-700 border border-navy-200 uppercase">
                     {{ c.type_cotisation }}
                   </span>
                 </td>
@@ -1897,11 +1897,11 @@ onMounted(async () => {
 
     <!-- Tab 2: Salariés -->
     <div v-show="activeTab === 'sals'" class="space-y-6">
-      <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat border-t-4 border-t-slate-500">
+      <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat border-t-4 border-t-navy-900">
 
         <div class="flex justify-between items-center border-b border-slate-200 pb-4 mb-4">
           <div>
-            <h3 class="text-lg font-bold text-slate-900 uppercase tracking-wider">Salariés de l'Établissement</h3>
+            <h3 class="text-lg font-bold text-navy-900 uppercase tracking-wider">Salariés de l'Établissement</h3>
             <p class="text-xs text-slate-500">Liste des fiches civiles des salariés déclarés dans cet établissement.</p>
           </div>
           <button
@@ -1958,7 +1958,7 @@ onMounted(async () => {
                   <input type="checkbox" :value="sal.id" v-model="selectedSalaries" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
                 </td>
                 <td class="px-6 py-4 font-mono font-semibold text-slate-900">{{ sal.matricule }}</td>
-                <td class="px-6 py-4 font-medium text-slate-700 group-hover:text-green-700 transition-colors">
+                <td class="px-6 py-4 font-medium text-slate-700 group-hover:text-navy-700 transition-colors">
                   {{ sal.nom.toUpperCase() }} {{ sal.prenom }}
                 </td>
                 <td class="px-6 py-4 font-mono text-slate-500">{{ sal.numero_securite_sociale || '-' }}</td>
@@ -1991,7 +1991,7 @@ onMounted(async () => {
                         :class="{ 'animate-spin': envoiIdentifiantsId === sal.id }"
                       />
                     </button>
-                    <span class="text-green-600 group-hover:underline text-xs font-bold uppercase tracking-wider flex items-center gap-1">
+                    <span class="text-navy-700 group-hover:underline text-xs font-bold uppercase tracking-wider flex items-center gap-1">
                       Fiche Salarié
                       <UIcon name="i-lucide-chevron-right" class="w-4 h-4" />
                     </span>
@@ -2007,11 +2007,11 @@ onMounted(async () => {
 
     <!-- Tab 3: Contrats -->
     <div v-show="activeTab === 'contrats'" class="space-y-6">
-      <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat border-t-4 border-t-slate-500">
+      <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat border-t-4 border-t-navy-900">
 
         <div class="flex justify-between items-center border-b border-slate-200 pb-4 mb-4">
           <div>
-            <h3 class="text-lg font-bold text-slate-900 uppercase tracking-wider">Contrats de l'Établissement</h3>
+            <h3 class="text-lg font-bold text-navy-900 uppercase tracking-wider">Contrats de l'Établissement</h3>
             <p class="text-xs text-slate-500">Historique des contrats de travail rattachés à cet établissement.</p>
           </div>
         </div>
@@ -2061,7 +2061,7 @@ onMounted(async () => {
                   <input type="checkbox" :value="c.id" v-model="selectedContracts" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
                 </td>
                 <td class="px-6 py-4 font-mono font-semibold text-slate-900">{{ c.numero_contrat }}</td>
-                <td class="px-6 py-4 font-medium text-slate-700 group-hover:text-green-700 transition-colors">
+                <td class="px-6 py-4 font-medium text-slate-700 group-hover:text-navy-700 transition-colors">
                   {{ getSalarieName(c.salarie_id) }}
                 </td>
                 <td class="px-6 py-4 font-medium text-slate-700">
@@ -2083,7 +2083,7 @@ onMounted(async () => {
                   </span>
                 </td>
                 <td class="px-6 py-4 text-right">
-                  <span class="text-green-600 group-hover:underline text-xs font-bold uppercase tracking-wider flex items-center justify-end gap-1">
+                  <span class="text-navy-700 group-hover:underline text-xs font-bold uppercase tracking-wider flex items-center justify-end gap-1">
                     Gérer le Contrat
                     <UIcon name="i-lucide-chevron-right" class="w-4 h-4" />
                   </span>
@@ -2150,14 +2150,14 @@ onMounted(async () => {
 
       <!-- Statistics cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div class="bg-white border-2 border-slate-200 p-5 shadow-flat space-y-2 border-t-4 border-t-slate-500">
+        <div class="bg-white border-2 border-slate-200 p-5 shadow-flat space-y-2 border-t-4 border-t-navy-900">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Effectif Établissement</span>
-            <div class="w-7 h-7 bg-slate-100 text-slate-600 rounded-none flex items-center justify-center">
+            <div class="w-7 h-7 bg-navy-50 text-navy-700 rounded-none flex items-center justify-center">
               <UIcon name="i-lucide-users" class="w-4 h-4" />
             </div>
           </div>
-          <p class="text-2xl font-bold text-slate-900">{{ stats.totalEmployees }} salariés</p>
+          <p class="text-2xl font-bold text-navy-900">{{ stats.totalEmployees }} salariés</p>
           <div class="text-[10px] text-slate-450 font-sans">Avec contrat actif rattaché</div>
         </div>
 
@@ -2168,7 +2168,7 @@ onMounted(async () => {
               <UIcon name="i-lucide-check-circle-2" class="w-4 h-4" />
             </div>
           </div>
-          <p class="text-2xl font-bold text-slate-900">{{ stats.generatedCount }} / {{ stats.totalEmployees }}</p>
+          <p class="text-2xl font-bold text-navy-900">{{ stats.generatedCount }} / {{ stats.totalEmployees }}</p>
           <div class="text-[10px] text-slate-450 flex items-center gap-1">
             <span v-if="stats.pendingCount > 0" class="text-yellow-600 font-semibold flex items-center gap-0.5">
               <span class="w-1.5 h-1.5 rounded-full bg-yellow-500 inline-block animate-pulse"></span>
@@ -2180,21 +2180,21 @@ onMounted(async () => {
           </div>
         </div>
 
-        <div class="bg-white border-2 border-slate-200 p-5 shadow-flat space-y-2 border-t-4 border-t-blue-500">
+        <div class="bg-white border-2 border-slate-200 p-5 shadow-flat space-y-2 border-t-4 border-t-navy-900">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Masse Brut</span>
-            <div class="w-7 h-7 bg-blue-50 text-blue-700 rounded-none flex items-center justify-center">
+            <div class="w-7 h-7 bg-navy-50 text-navy-700 rounded-none flex items-center justify-center">
               <UIcon name="i-lucide-coins" class="w-4 h-4" />
             </div>
           </div>
-          <p class="text-2xl font-bold text-slate-900 font-mono tracking-tight">{{ formatXOF(stats.masseBrut) }}</p>
+          <p class="text-2xl font-bold text-navy-900 font-mono tracking-tight">{{ formatXOF(stats.masseBrut) }}</p>
           <div class="text-[10px] text-slate-450 font-sans">Brut total sur la période</div>
         </div>
 
-        <div class="bg-white border-2 border-slate-200 p-5 shadow-flat space-y-2 border-t-4 border-t-emerald-600">
+        <div class="bg-white border-2 border-slate-200 p-5 shadow-flat space-y-2 border-t-4 border-t-green-600">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Masse Nette</span>
-            <div class="w-7 h-7 bg-emerald-50 text-emerald-700 rounded-none flex items-center justify-center">
+            <div class="w-7 h-7 bg-green-50 text-green-700 rounded-none flex items-center justify-center">
               <UIcon name="i-lucide-banknote" class="w-4 h-4" />
             </div>
           </div>
@@ -2225,21 +2225,21 @@ onMounted(async () => {
           </button>
           <button
             @click="handlePrintSelected"
-            class="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white font-bold uppercase tracking-wider transition-colors shadow-flat cursor-pointer"
+            class="px-3 py-1.5 bg-navy-800 hover:bg-navy-700 text-white font-bold uppercase tracking-wider transition-colors shadow-flat cursor-pointer"
           >
             <UIcon name="i-lucide-printer" class="w-3.5 h-3.5 inline mr-1" />
             Imprimer
           </button>
           <button
             @click="handleSendEmployeeEmailsSelected"
-            class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white font-bold uppercase tracking-wider transition-colors shadow-flat cursor-pointer"
+            class="px-3 py-1.5 bg-navy-800 hover:bg-navy-700 text-white font-bold uppercase tracking-wider transition-colors shadow-flat cursor-pointer"
           >
             <UIcon name="i-lucide-mail" class="w-3.5 h-3.5 inline mr-1" />
             Mail Employé
           </button>
           <button
             @click="handleSendManagerEmailsSelected"
-            class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold uppercase tracking-wider transition-colors shadow-flat cursor-pointer"
+            class="px-3 py-1.5 bg-navy-800 hover:bg-navy-700 text-white font-bold uppercase tracking-wider transition-colors shadow-flat cursor-pointer"
           >
             <UIcon name="i-lucide-mail" class="w-3.5 h-3.5 inline mr-1" />
             Mail Gestionnaire
@@ -2255,12 +2255,12 @@ onMounted(async () => {
       </div>
 
       <!-- Bulletins Table Card -->
-      <div class="bg-white border-2 border-slate-200 shadow-flat overflow-hidden border-t-4 border-t-slate-500">
+      <div class="bg-white border-2 border-slate-200 shadow-flat overflow-hidden border-t-4 border-t-navy-900">
         <div v-if="contracts.length === 0" class="text-center py-16 px-4 bg-white space-y-3">
           <div class="w-10 h-10 bg-slate-100 text-slate-400 rounded-none flex items-center justify-center mx-auto">
             <UIcon name="i-lucide-user-x" class="w-5 h-5" />
           </div>
-          <h4 class="font-bold text-slate-800">Aucun salarié avec contrat actif</h4>
+          <h4 class="font-bold text-navy-900">Aucun salarié avec contrat actif</h4>
           <p class="text-xs text-slate-500 max-w-sm mx-auto">
             Pour générer des bulletins de paie, vous devez d'abord associer des salariés avec des contrats de travail actifs dans cet établissement.
           </p>
@@ -2288,7 +2288,7 @@ onMounted(async () => {
                 <!-- Employee -->
                 <td class="px-6 py-4">
                   <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 bg-green-50 text-green-700 rounded-none flex items-center justify-center font-bold text-xs border border-green-200">
+                    <div class="w-8 h-8 bg-navy-50 text-navy-700 rounded-none flex items-center justify-center font-bold text-xs border border-navy-200">
                       {{ c.matricule_salarie.substring(c.matricule_salarie.lastIndexOf('-') + 1) || 'EMP' }}
                     </div>
                     <div>
@@ -2438,7 +2438,7 @@ onMounted(async () => {
     <UModal v-model:open="caisseModalOpen" title="Rattacher une Caisse de Cotisation">
       <template #content>
         <div class="p-6 space-y-4 bg-white border border-slate-200">
-          <h2 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Caisse</h2>
+          <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Caisse</h2>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
@@ -2496,7 +2496,7 @@ onMounted(async () => {
     <UModal v-model:open="hsModalOpen" title="Saisir des Heures Supplémentaires">
       <template #content>
         <div class="p-6 space-y-4 bg-white border border-slate-200">
-          <h2 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Heure Supp.</h2>
+          <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Heure Supp.</h2>
 
           <div class="space-y-4">
             <div>
@@ -2529,7 +2529,7 @@ onMounted(async () => {
     <UModal v-model:open="absModalOpen" title="Saisir une Absence / Congé">
       <template #content>
         <div class="p-6 space-y-4 bg-white border border-slate-200">
-          <h2 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Saisir Absence</h2>
+          <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Saisir Absence</h2>
 
           <div class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
@@ -2581,7 +2581,7 @@ onMounted(async () => {
     <UModal v-model:open="primeModalOpen" title="Saisir une Prime">
       <template #content>
         <div class="p-6 space-y-4 bg-white border border-slate-200">
-          <h2 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Prime</h2>
+          <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Prime</h2>
 
           <div class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
@@ -2647,7 +2647,7 @@ onMounted(async () => {
     <UModal v-model:open="acompteModalOpen" title="Définir un Acompte">
       <template #content>
         <div class="p-6 space-y-4 bg-white border border-slate-200">
-          <h2 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Acompte sur salaire</h2>
+          <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Acompte sur salaire</h2>
 
           <div class="space-y-4">
             <div>

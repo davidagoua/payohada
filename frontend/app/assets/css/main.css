@@ -66,6 +66,23 @@
   --color-green-900: #0d4019;
   --color-green-950: #08260f;
 
+  /* ── Échelle « navy » : l'encre bleue de la marque (#01173a) ───────
+     Deuxième couleur du logo, elle porte la structure de l'interface :
+     en-tête, navigation, pied de page, titres, en-têtes de tableaux,
+     encarts d'information. Le vert reste réservé à l'action.
+     Voir `docs/CHARTE_GRAPHIQUE.md` pour la règle d'attribution. */
+  --color-navy-50: #f3f5f9;
+  --color-navy-100: #dfe6f1;
+  --color-navy-200: #c2d0e5;
+  --color-navy-300: #9fb2d1;
+  --color-navy-400: #748db4;
+  --color-navy-500: #536b93;
+  --color-navy-600: #3c5377;
+  --color-navy-700: #243c60;
+  --color-navy-800: #0f2548;
+  --color-navy-900: #01173a;   /* échantillon exact de la marque */
+  --color-navy-950: #030e21;
+
   /* ── Échelle neutre alignée sur les gris Carbon ────────────────────
      Ces valeurs remplacent l'échelle « slate » d'origine. L'application
      utilise ces classes plus de deux mille fois : les redéfinir ici suffit
@@ -116,6 +133,16 @@
 
 :root {
   --ui-radius: 0px !important;
+
+  /* ── Jetons de marque ───────────────────────────────────────────────
+     Le bleu encre #01173a est la deuxième couleur du logo. Il structure
+     l'interface ; le vert reste la couleur d'action. */
+  --brand-navy: #01173a;
+  --brand-navy-deep: #030e21;
+  --brand-navy-soft: #0f2548;
+  --brand-navy-line: #c2d0e5;
+  --brand-green: var(--color-green-600);
+  --brand-accent: linear-gradient(90deg, #01173a 0%, #20973d 100%);
 
   /* Jetons Carbon, réutilisables dans les composants maison */
   --carbon-primary: var(--color-green-600);
@@ -259,11 +286,13 @@ table {
   font-size: 0.875rem;
 }
 
+/* En-tête de tableau : l'encre navy, signature de la charte. Le filet vert
+   rappelle que l'action reste verte. */
 thead th {
   font-weight: 600;
-  color: var(--carbon-text);
-  background-color: transparent;
-  border-bottom: 1px solid var(--carbon-border-strong);
+  color: #ffffff;
+  background-color: var(--brand-navy);
+  border-bottom: 2px solid var(--color-green-600);
   border-top: none;
   border-left: none;
   border-right: none;
@@ -367,6 +396,59 @@ tbody tr:last-child td {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
+   SIGNATURE DE MARQUE — le duo vert / bleu encre
+   Le bleu #01173a est la deuxième couleur du logo. Il structure
+   l'interface, le vert reste l'action. Ces classes donnent un vocabulaire
+   commun aux écrans sans imposer de structure.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* Barre d'accent supérieure : dégradé navy → vert, signe de l'application. */
+.brand-accent-bar {
+  height: 3px;
+  width: 100%;
+  background: var(--brand-accent);
+}
+
+/* Titre de page : encre de la marque, graisse 600. */
+.brand-title {
+  color: var(--brand-navy);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* Filet de titre de page : 2 px navy, à la place du filet gris. */
+.brand-rule {
+  border-bottom: 2px solid var(--brand-navy);
+}
+
+/* Tuile : filet supérieur navy et en-tête en navy. */
+.brand-tile {
+  background-color: #ffffff;
+  border: 1px solid var(--carbon-border-subtle);
+  border-top: 4px solid var(--brand-navy);
+  border-radius: 0;
+}
+
+.brand-tile-title {
+  color: var(--brand-navy);
+  font-weight: 600;
+}
+
+/* Encart d'information : fond navy très clair, filet gauche navy. */
+.brand-info {
+  background-color: var(--color-navy-50);
+  border: 1px solid var(--color-navy-200);
+  border-left: 3px solid var(--brand-navy);
+  color: var(--color-navy-800);
+}
+
+/* Sélection de texte : encre navy, comme un surlignage de registre. */
+::selection {
+  background-color: var(--brand-navy);
+  color: #ffffff;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
    COMPOSANTS NUXT UI (UButton, UInput, UCard, UModal…)
    Nuxt UI expose un jeu de jetons sémantiques : les redéfinir suffit à
    aligner ses composants sur Carbon, sans toucher au moindre gabarit.
@@ -433,8 +515,41 @@ input, select, textarea, button, [class*="rounded"] {
   border-radius: 9999px !important;
 }
 
+/* Barre de navigation défilable sans barre visible (petits écrans) */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Menus déroulants natifs */
 select option {
   background-color: #ffffff !important;
   color: var(--carbon-text) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   IMPRESSION
+   Les documents (bulletins, attestations, certificats, STC) restent sobres :
+   on rend aux en-têtes de tableaux leur neutralité, pour économiser l'encre
+   et rester lisible en noir et blanc.
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media print {
+  thead th {
+    background-color: transparent !important;
+    color: #000000 !important;
+    border-bottom: 1px solid #000000 !important;
+  }
+
+  tbody tr:hover {
+    background-color: transparent !important;
+  }
+
+  .brand-accent-bar {
+    display: none !important;
+  }
 }

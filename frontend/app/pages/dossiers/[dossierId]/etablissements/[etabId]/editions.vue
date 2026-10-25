@@ -259,7 +259,7 @@ onMounted(async () => {
           <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
           Retour à l'établissement
         </button>
-        <h1 class="carbon-heading-03">Éditions</h1>
+        <h1 class="carbon-heading-03 text-navy-900">Éditions</h1>
         <p class="carbon-helper mt-0.5">
           {{ etablissement?.raison_sociale || 'Établissement' }} — états de paie, exports et envois
         </p>
@@ -323,11 +323,11 @@ onMounted(async () => {
               :key="edition.code"
               :title="edition.description"
               class="carbon-tile carbon-tile--clickable w-full text-left"
-              :class="codeSelectionne === edition.code ? 'border-slate-900 border-2' : ''"
+              :class="codeSelectionne === edition.code ? 'border-navy-900 border-2' : ''"
               @click="choisir(edition.code)"
             >
               <div class="flex items-center justify-between gap-2">
-                <span class="font-semibold text-slate-900">{{ edition.libelle }}</span>
+                <span class="font-semibold text-navy-900">{{ edition.libelle }}</span>
                 <UIcon
                   v-if="codeSelectionne === edition.code"
                   name="i-lucide-check"
@@ -344,7 +344,7 @@ onMounted(async () => {
         <!-- Barre d'actions -->
         <div class="carbon-tile flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
           <div>
-            <p class="font-semibold text-slate-900">
+            <p class="font-semibold text-navy-900">
               {{ editionSelectionnee?.libelle || 'Choisissez une édition' }}
             </p>
             <p class="carbon-helper">{{ periodeLibelle }}</p>
@@ -385,7 +385,7 @@ onMounted(async () => {
         <div v-if="apercu" class="carbon-tile space-y-3">
           <div class="flex flex-wrap items-baseline justify-between gap-2">
             <div>
-              <h2 class="font-bold text-slate-900 uppercase tracking-wide text-sm">
+              <h2 class="font-bold text-navy-900 uppercase tracking-wide text-sm">
                 {{ apercu.titre }}
               </h2>
               <p class="carbon-helper">
@@ -452,7 +452,7 @@ onMounted(async () => {
          @click.self="envoi.ouvert = false">
       <div class="bg-white border border-slate-300 w-full max-w-lg">
         <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
-          <h2 class="font-bold uppercase tracking-wide text-sm">
+          <h2 class="font-bold uppercase tracking-wide text-sm text-navy-900">
             Envoyer « {{ editionSelectionnee?.libelle }} »
           </h2>
           <button class="text-slate-500 hover:text-slate-900" @click="envoi.ouvert = false">

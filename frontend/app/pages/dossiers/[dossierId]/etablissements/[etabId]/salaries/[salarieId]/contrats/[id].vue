@@ -374,11 +374,11 @@ onMounted(() => {
     <!-- Header Object page -->
     <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div class="flex items-center space-x-4">
-        <div class="w-12 h-12 bg-green-50 text-green-700 rounded-lg flex items-center justify-center font-bold text-lg border border-green-200">
+        <div class="w-12 h-12 bg-navy-50 text-navy-700 rounded-lg flex items-center justify-center font-bold text-lg border border-navy-200">
           CT
         </div>
         <div>
-          <h1 class="text-2xl font-bold text-slate-900 leading-tight">
+          <h1 class="text-2xl font-bold text-navy-900 leading-tight">
             Contrat N° {{ contrat.numero_contrat }}
           </h1>
           <p class="text-xs text-slate-500 font-mono mt-1">Poste : {{ contrat.emploi || 'Non spécifié' }}</p>
@@ -388,7 +388,7 @@ onMounted(() => {
       <div class="flex flex-wrap gap-3">
         <NuxtLink
           :to="`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}/contrats/${contratId}/avantages-nature`"
-          class="px-4 py-2 border border-emerald-200 text-sm font-semibold rounded-lg hover:bg-emerald-50 text-emerald-700 transition-colors flex items-center gap-1.5"
+          class="px-4 py-2 border border-navy-200 text-sm font-semibold rounded-lg hover:bg-navy-50 text-navy-700 transition-colors flex items-center gap-1.5"
         >
           <UIcon name="i-lucide-house-plus" class="w-4 h-4" />
           Avantages en nature
@@ -409,7 +409,7 @@ onMounted(() => {
       <div class="lg:col-span-2 space-y-6">
         <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
           <form @submit.prevent="handleUpdateContrat" class="space-y-6">
-            <h3 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">Paramètres du Contrat</h3>
+            <h3 class="text-lg font-bold text-navy-900 border-b border-slate-100 pb-2">Paramètres du Contrat</h3>
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -600,7 +600,7 @@ onMounted(() => {
         <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
           <div class="flex justify-between items-center border-b border-slate-100 pb-4 mb-4">
             <div>
-              <h3 class="text-lg font-bold text-slate-900">Bulletins de Paie</h3>
+              <h3 class="text-lg font-bold text-navy-900">Bulletins de Paie</h3>
               <p class="text-xs text-slate-500">Bulletins calculés pour ce contrat.</p>
             </div>
             <button 
@@ -657,7 +657,7 @@ onMounted(() => {
                     {{ b.net_a_payer?.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) }}
                   </td>
                   <td class="px-4 py-3 text-right">
-                    <span class="text-green-600 group-hover:underline text-xs font-semibold flex items-center justify-end gap-1">
+                    <span class="text-navy-700 group-hover:underline text-xs font-semibold flex items-center justify-end gap-1">
                       Visualiser
                       <UIcon name="i-lucide-eye" class="w-4 h-4" />
                     </span>
@@ -672,7 +672,7 @@ onMounted(() => {
       <!-- Right Col: Read-only Metadata Details -->
       <div class="space-y-6">
         <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
-          <h3 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">Informations Administratives</h3>
+          <h3 class="text-sm font-bold text-navy-900 border-b border-slate-100 pb-2">Informations Administratives</h3>
           
           <div class="space-y-3 text-xs">
             <div>
@@ -708,7 +708,7 @@ onMounted(() => {
 
         <!-- Départ Salarié & Solde Tout Compte -->
         <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
-          <h3 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">Départ & Solde Tout Compte</h3>
+          <h3 class="text-sm font-bold text-navy-900 border-b border-slate-100 pb-2">Départ & Solde Tout Compte</h3>
           
           <div v-if="!departSalarie" class="space-y-4">
             <p class="text-xs text-slate-500 italic">
@@ -716,7 +716,7 @@ onMounted(() => {
             </p>
             <NuxtLink
               :to="`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}/contrats/${contratId}/depart`"
-              class="w-full px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm"
+              class="w-full px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm"
             >
               <UIcon name="i-lucide-calculator" class="w-4 h-4" />
               Départ &amp; solde de tout compte (calcul réglementaire)
@@ -750,7 +750,7 @@ onMounted(() => {
             <div class="flex flex-col sm:flex-row gap-2">
               <NuxtLink
                 :to="`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}/contrats/${contratId}/depart`"
-                class="flex-1 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-lg text-xs text-center inline-flex items-center justify-center gap-1.5"
+                class="flex-1 px-3 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg text-xs text-center inline-flex items-center justify-center gap-1.5"
               >
                 <UIcon name="i-lucide-calculator" class="w-3.5 h-3.5" />
                 Recalculer le solde de tout compte
@@ -766,7 +766,7 @@ onMounted(() => {
 
             <!-- STC Form -->
             <div v-if="soldeToutCompte" class="space-y-3 pt-2 border-t border-slate-100">
-              <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wide">Indemnités de rupture (FCFA)</h4>
+              <h4 class="text-xs font-bold text-navy-900 uppercase tracking-wide">Indemnités de rupture (FCFA)</h4>
               
               <div class="space-y-2">
                 <div>
@@ -785,7 +785,7 @@ onMounted(() => {
                   <label class="block text-[10px] font-semibold text-slate-500 uppercase">Autre Indemnité</label>
                   <input v-model="editIndemniteAutre" type="number" step="0.01" class="mt-1 block w-full px-2 py-1 border border-slate-350 rounded-lg text-xs font-mono bg-white focus:outline-none focus:ring-1 focus:ring-green-500" />
                 </div>
-                <div class="bg-slate-50 border border-slate-200 rounded-lg p-2 flex justify-between items-center text-xs font-bold text-slate-900 font-mono">
+                <div class="bg-slate-50 border border-slate-200 rounded-lg p-2 flex justify-between items-center text-xs font-bold text-navy-900 font-mono">
                   <span>TOTAL STC :</span>
                   <span class="text-green-700 text-sm">{{ totalStc.toLocaleString('fr-FR') }} FCFA</span>
                 </div>
@@ -808,7 +808,7 @@ onMounted(() => {
 
             <!-- Exit Documents print links -->
             <div class="space-y-2 pt-4 border-t border-slate-100">
-              <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wide">Documents de sortie</h4>
+              <h4 class="text-xs font-bold text-navy-900 uppercase tracking-wide">Documents de sortie</h4>
               
               <div class="grid grid-cols-1 gap-2">
                 <a 
@@ -817,7 +817,7 @@ onMounted(() => {
                   class="px-3 py-2 border border-slate-250 hover:bg-slate-50 text-slate-700 font-semibold rounded-lg text-xs transition-colors flex items-center justify-between"
                 >
                   <span class="flex items-center gap-1.5">
-                    <UIcon name="i-lucide-printer" class="w-4 h-4 text-green-600" />
+                    <UIcon name="i-lucide-printer" class="w-4 h-4 text-navy-700" />
                     Reçu pour Solde de Tout Compte
                   </span>
                   <UIcon name="i-lucide-external-link" class="w-3.5 h-3.5 text-slate-400" />
@@ -829,7 +829,7 @@ onMounted(() => {
                   class="px-3 py-2 border border-slate-250 hover:bg-slate-50 text-slate-700 font-semibold rounded-lg text-xs transition-colors flex items-center justify-between"
                 >
                   <span class="flex items-center gap-1.5">
-                    <UIcon name="i-lucide-file-text" class="w-4 h-4 text-green-600" />
+                    <UIcon name="i-lucide-file-text" class="w-4 h-4 text-navy-700" />
                     Certificat de travail
                   </span>
                   <UIcon name="i-lucide-external-link" class="w-3.5 h-3.5 text-slate-400" />
@@ -841,7 +841,7 @@ onMounted(() => {
                   class="px-3 py-2 border border-slate-250 hover:bg-slate-50 text-slate-700 font-semibold rounded-lg text-xs transition-colors flex items-center justify-between"
                 >
                   <span class="flex items-center gap-1.5">
-                    <UIcon name="i-lucide-file-signature" class="w-4 h-4 text-green-600" />
+                    <UIcon name="i-lucide-file-signature" class="w-4 h-4 text-navy-700" />
                     Attestation de travail
                   </span>
                   <UIcon name="i-lucide-external-link" class="w-3.5 h-3.5 text-slate-400" />
@@ -868,7 +868,7 @@ onMounted(() => {
     <div v-if="showModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
       <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xl w-full max-w-md space-y-4">
         <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-          <h3 class="text-lg font-bold text-slate-900">Calculer un Bulletin</h3>
+          <h3 class="text-lg font-bold text-navy-900">Calculer un Bulletin</h3>
           <button @click="showModal = false" class="text-slate-400 hover:text-slate-600">
             <UIcon name="i-lucide-x" class="w-5 h-5" />
           </button>
@@ -914,7 +914,7 @@ onMounted(() => {
     <div v-if="showDepartModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
       <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xl w-full max-w-md space-y-4">
         <div class="flex justify-between items-center border-b border-slate-100 pb-3">
-          <h3 class="text-lg font-bold text-slate-900">Déclarer le départ du salarié</h3>
+          <h3 class="text-lg font-bold text-navy-900">Déclarer le départ du salarié</h3>
           <button @click="showDepartModal = false" class="text-slate-400 hover:text-slate-600">
             <UIcon name="i-lucide-x" class="w-5 h-5" />
           </button>

@@ -93,11 +93,11 @@ onMounted(() => {
     <!-- Header Page -->
     <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div class="flex items-center space-x-4">
-        <div class="w-12 h-12 bg-green-50 text-green-700 rounded-lg flex items-center justify-center font-bold text-xl border border-green-200">
+        <div class="w-12 h-12 bg-navy-50 text-navy-700 rounded-lg flex items-center justify-center font-bold text-xl border border-navy-200">
           <UIcon name="i-lucide-sliders" class="w-6 h-6" />
         </div>
         <div>
-          <h1 class="text-2xl font-bold text-slate-900 leading-tight">Constantes de Paie</h1>
+          <h1 class="text-2xl font-bold text-navy-900 leading-tight">Constantes de Paie</h1>
           <p class="text-xs text-slate-500 mt-1">Configurez les taux et les plafonds de paie utilisés dans les calculs de cotisations.</p>
         </div>
       </div>
@@ -172,7 +172,7 @@ onMounted(() => {
               <td class="px-6 py-4 text-right text-xs font-medium space-x-2">
                 <button 
                   @click="openEditModal(item)"
-                  class="text-green-600 hover:text-green-800 hover:bg-green-50 p-1.5 rounded transition-colors"
+                  class="text-navy-700 hover:text-navy-900 hover:bg-navy-50 p-1.5 rounded transition-colors"
                 >
                   <UIcon name="i-lucide-pencil" class="w-4 h-4" />
                 </button>
@@ -195,7 +195,7 @@ onMounted(() => {
         
         <!-- Modal Header -->
         <div class="px-6 py-4 bg-slate-50 border-b border-slate-150 flex justify-between items-center">
-          <h3 class="text-sm font-bold text-slate-900 uppercase tracking-wider">
+          <h3 class="text-sm font-bold text-navy-900 uppercase tracking-wider">
             {{ isEditing ? 'Modifier la Constante' : 'Créer une Constante' }}
           </h3>
           <button @click="showModal = false" class="text-slate-400 hover:text-slate-600">

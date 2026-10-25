@@ -149,13 +149,13 @@ const handleLogout = async () => {
 
 <template>
   <div class="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-800">
-    <!-- Liseré supérieur d'accentuation -->
-    <div class="h-1 bg-green-600 w-full" />
+    <!-- Liseré supérieur : signature bicolore de la marque (navy → vert) -->
+    <div class="brand-accent-bar" />
 
-    <!-- Barre de navigation principale -->
-    <header class="bg-white border-b-2 border-slate-200 shadow-flat sticky top-0 z-50">
+    <!-- Barre de navigation principale — l'encre navy structure l'application -->
+    <header class="bg-navy-900 shadow-flat sticky top-0 z-50">
       <!-- Top Row: Logo & Profile -->
-      <div class="border-b border-slate-150">
+      <div class="border-b border-white/10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
           <!-- Left: Logo & Breadcrumbs -->
           <div class="flex items-center space-x-6">
@@ -163,23 +163,23 @@ const handleLogout = async () => {
               to="/dossiers"
               class="flex items-center space-x-3 shrink-0 group"
             >
-              <!-- Official Payohada Logo -->
+              <!-- Official Payohada Logo (variante claire pour fond navy) -->
               <img
-                src="/payohada-logo.png"
+                src="/payohada-logo-light.png"
                 alt="payohada"
                 class="h-8 w-auto object-contain transition-transform group-hover:scale-105"
               >
               <span
                 v-if="contextName"
-                class="text-[9px] px-2 py-0.5 bg-slate-100 text-slate-600 font-bold border border-slate-350 tracking-wider uppercase ml-1"
+                class="text-[9px] px-2 py-0.5 bg-white/10 text-white/90 font-bold border border-white/20 tracking-wider uppercase ml-1"
               >
                 {{ contextName }}
               </span>
             </NuxtLink>
 
             <!-- Breadcrumbs (hidden on mobile) -->
-            <div class="hidden md:flex items-center space-x-2 text-sm text-slate-500">
-              <span class="text-slate-300">|</span>
+            <div class="hidden md:flex items-center space-x-2 text-sm text-slate-300">
+              <span class="text-white/25">|</span>
               <div class="flex items-center space-x-2">
                 <template
                   v-for="(item, index) in breadcrumbs"
@@ -187,16 +187,16 @@ const handleLogout = async () => {
                 >
                   <span
                     v-if="index > 0"
-                    class="text-slate-300"
+                    class="text-white/25"
                   >/</span>
                   <NuxtLink
                     :to="item.to"
-                    class="hover:text-green-600 font-medium transition-colors duration-150 flex items-center"
+                    class="hover:text-white font-medium transition-colors duration-150 flex items-center"
                   >
                     <UIcon
                       v-if="item.icon"
                       :name="item.icon"
-                      class="w-4 h-4 mr-1 text-slate-400"
+                      class="w-4 h-4 mr-1 text-white/40"
                     />
                     {{ item.label }}
                   </NuxtLink>
@@ -209,7 +209,7 @@ const handleLogout = async () => {
           <div class="flex items-center space-x-3">
             <span
                 v-if="user.cabinet_nom"
-                class="text-[11px] bg-emerald-50 text-emerald-700 font-semibold px-2 py-0.5 rounded-md border border-emerald-200/60 max-w-[140px] truncate"
+                class="hidden sm:inline-block text-[11px] bg-white/10 text-white/90 font-semibold px-2 py-0.5 border border-white/20 max-w-[140px] truncate"
                 :title="user.cabinet_nom"
               >
                 🏢 {{ user.cabinet_nom }}
@@ -222,11 +222,11 @@ const handleLogout = async () => {
               <div class="text-right hidden sm:block">
                 <div class="flex items-center justify-end gap-1.5">
                   
-                  <p class="text-sm font-semibold text-slate-900">
+                  <p class="text-sm font-semibold text-white">
                     {{ user.user_metadata?.first_name }} {{ user.user_metadata?.last_name }}
                   </p>
                 </div>
-                <p class="text-xs text-slate-500 truncate max-w-[180px]">
+                <p class="text-xs text-slate-400 truncate max-w-[180px]">
                   {{ user.email }}
                 </p>
               </div>
@@ -254,7 +254,7 @@ const handleLogout = async () => {
                 <UButton
                   color="neutral"
                   variant="ghost"
-                  class="rounded-full w-9 h-9 p-0 bg-green-50 text-green-700 hover:bg-green-100 flex items-center justify-center font-bold"
+                  class="rounded-full w-9 h-9 p-0 bg-green-500 text-navy-950 hover:bg-green-400 flex items-center justify-center font-bold"
                 >
                   {{ user.email?.[0].toUpperCase() }}
                 </UButton>
@@ -264,30 +264,30 @@ const handleLogout = async () => {
         </div>
       </div>
 
-      <!-- Bottom Row: Navigation Menu Bar -->
-      <div class="bg-slate-50/40">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-start">
-          <nav class="flex items-center space-x-1 h-12">
+      <!-- Bottom Row: Navigation Menu Bar — navy plus clair que l'en-tête -->
+      <div class="bg-navy-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-start overflow-x-auto no-scrollbar">
+          <nav class="flex items-center space-x-1 h-12 shrink-0">
             <!-- 1. ESPACE SALARIÉ -->
             <template v-if="activeSpace === 'salarie'">
               <NuxtLink
                 to="/salaries/bulletins"
-                class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
-                active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"
               >
                 Mes Bulletins
               </NuxtLink>
               <NuxtLink
                 to="/salaries/conges"
-                class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
-                active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"
               >
                 Mes Congés
               </NuxtLink>
               <NuxtLink
                 to="/salaries/acomptes"
-                class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
-                active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"
               >
                 Mes Acomptes
               </NuxtLink>
@@ -297,43 +297,43 @@ const handleLogout = async () => {
             <template v-else-if="activeSpace === 'client'">
               <NuxtLink
                 to="/client"
-                class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
-                exact-active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                exact-active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"
               >
                 Tableau de bord
               </NuxtLink>
               <NuxtLink
                 to="/client/variables"
-                class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
-                active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"
               >
                 Saisie des Variables
               </NuxtLink>
               <NuxtLink
                 to="/client/bulletins"
-                class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
-                active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"
               >
                 Bulletins de Paie
               </NuxtLink>
               <NuxtLink
                 to="/client/salaries"
-                class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
-                active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"
               >
                 Personnel
               </NuxtLink>
               <NuxtLink
                 to="/client/demandes"
-                class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
-                active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"
               >
                 Demandes
               </NuxtLink>
               <NuxtLink
                 to="/client/reclamations"
-                class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
-                active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"
               >
                 Réclamations
               </NuxtLink>
@@ -343,30 +343,30 @@ const handleLogout = async () => {
             <template v-else-if="!routeInfo.isEtabSelected">
               <NuxtLink
                 to="/dossiers"
-                class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
-                active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"
               >
                 Entreprises
               </NuxtLink>
               <NuxtLink
                 to="/simulation"
-                class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
-                active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"
               >
                 Simulateur de Paie
               </NuxtLink>
               <NuxtLink
                 to="/admin/reclamations"
-                class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
-                active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"
               >
                 Réclamations
               </NuxtLink>
               <NuxtLink
                 v-if="isAdmin"
                 to="/admin"
-                class="px-4 py-3.5 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-650 hover:text-green-600 hover:bg-slate-100/50 transition-all"
-                active-class="border-b-2! border-b-green-600! text-green-700! bg-white! font-bold"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"
               >
                 Administration
               </NuxtLink>
@@ -376,44 +376,44 @@ const handleLogout = async () => {
             <template v-else>
               <NuxtLink
                 :to="`/dossiers/${routeInfo.dossierId}/etablissements/${routeInfo.etabId}?tab=sals`"
-                class="px-4 py-3.5 border-b-2 text-xs font-bold uppercase tracking-wider transition-all"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 text-xs font-bold uppercase tracking-wider transition-all"
                 :class="[
                   (!route.query.tab || route.query.tab === 'sals')
-                    ? 'border-b-green-600 text-green-700 bg-white font-bold'
-                    : 'border-transparent text-slate-650 hover:text-green-600 hover:bg-slate-100/50'
+                    ? 'border-b-green-600 text-navy-900 bg-white font-bold'
+                    : 'border-transparent text-slate-300 hover:text-white hover:bg-white/5'
                 ]"
               >
                 Salariés
               </NuxtLink>
               <NuxtLink
                 :to="`/dossiers/${routeInfo.dossierId}/etablissements/${routeInfo.etabId}?tab=contrats`"
-                class="px-4 py-3.5 border-b-2 text-xs font-bold uppercase tracking-wider transition-all"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 text-xs font-bold uppercase tracking-wider transition-all"
                 :class="[
                   route.query.tab === 'contrats'
-                    ? 'border-b-green-600 text-green-700 bg-white font-bold'
-                    : 'border-transparent text-slate-650 hover:text-green-600 hover:bg-slate-100/50'
+                    ? 'border-b-green-600 text-navy-900 bg-white font-bold'
+                    : 'border-transparent text-slate-300 hover:text-white hover:bg-white/5'
                 ]"
               >
                 Contrats
               </NuxtLink>
               <NuxtLink
                 :to="`/dossiers/${routeInfo.dossierId}/etablissements/${routeInfo.etabId}?tab=bulletins`"
-                class="px-4 py-3.5 border-b-2 text-xs font-bold uppercase tracking-wider transition-all"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 text-xs font-bold uppercase tracking-wider transition-all"
                 :class="[
                   route.query.tab === 'bulletins'
-                    ? 'border-b-green-600 text-green-700 bg-white font-bold'
-                    : 'border-transparent text-slate-650 hover:text-green-600 hover:bg-slate-100/50'
+                    ? 'border-b-green-600 text-navy-900 bg-white font-bold'
+                    : 'border-transparent text-slate-300 hover:text-white hover:bg-white/5'
                 ]"
               >
                 Bulletins de Salaire
               </NuxtLink>
               <NuxtLink
                 :to="`/dossiers/${routeInfo.dossierId}/etablissements/${routeInfo.etabId}?tab=infos`"
-                class="px-4 py-3.5 border-b-2 text-xs font-bold uppercase tracking-wider transition-all"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 text-xs font-bold uppercase tracking-wider transition-all"
                 :class="[
                   route.query.tab === 'infos'
-                    ? 'border-b-green-600 text-green-700 bg-white font-bold'
-                    : 'border-transparent text-slate-650 hover:text-green-600 hover:bg-slate-100/50'
+                    ? 'border-b-green-600 text-navy-900 bg-white font-bold'
+                    : 'border-transparent text-slate-300 hover:text-white hover:bg-white/5'
                 ]"
               >
                 Information Générale
@@ -423,11 +423,11 @@ const handleLogout = async () => {
                    le chemin et non sur le paramètre « tab ». -->
               <NuxtLink
                 :to="`/dossiers/${routeInfo.dossierId}/etablissements/${routeInfo.etabId}/editions`"
-                class="px-4 py-3.5 border-b-2 text-xs font-bold uppercase tracking-wider transition-all"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 text-xs font-bold uppercase tracking-wider transition-all"
                 :class="[
                   route.path.endsWith('/editions')
-                    ? 'border-b-green-600 text-green-700 bg-white font-bold'
-                    : 'border-transparent text-slate-650 hover:text-green-600 hover:bg-slate-100/50'
+                    ? 'border-b-green-600 text-navy-900 bg-white font-bold'
+                    : 'border-transparent text-slate-300 hover:text-white hover:bg-white/5'
                 ]"
               >
                 Éditions
@@ -443,9 +443,13 @@ const handleLogout = async () => {
       <slot />
     </main>
 
-    <footer class="bg-white border-t border-slate-200 py-4 mt-auto">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center text-xs text-slate-500">
+    <!-- Pied de page : encre navy, filet vert de rappel -->
+    <footer class="bg-navy-900 border-t-2 border-green-600 py-4 mt-auto">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row justify-between items-center gap-2 text-xs text-slate-400">
         <p>payohada • © {{ new Date().getFullYear() }} — ERP Paie Solution</p>
+        <p class="tracking-wide uppercase text-[10px] text-slate-400/80">
+          La paie conforme pour l'Afrique de l'Ouest
+        </p>
       </div>
     </footer>
   </div>

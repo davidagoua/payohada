@@ -122,7 +122,7 @@ onMounted(() => {
     <div class="w-12 h-12 bg-slate-100 text-slate-400 rounded-none flex items-center justify-center mx-auto">
       <UIcon name="i-lucide-alert-circle" class="w-6 h-6" />
     </div>
-    <h3 class="font-bold text-slate-900 text-lg">Aucun bulletin sélectionné</h3>
+    <h3 class="font-bold text-navy-900 text-lg">Aucun bulletin sélectionné</h3>
     <p class="text-xs text-slate-500">
       Veuillez retourner sur la liste des bulletins pour en sélectionner.
     </p>
@@ -136,7 +136,7 @@ onMounted(() => {
 
   <div v-else class="space-y-6 print-container">
     <!-- Top toolbar hidden during printing -->
-    <div class="bg-white border-2 border-slate-200 p-4 shadow-flat flex flex-col sm:flex-row justify-between items-center gap-4 no-print border-t-4 border-t-green-600">
+    <div class="bg-white border-2 border-slate-200 p-4 shadow-flat flex flex-col sm:flex-row justify-between items-center gap-4 no-print border-t-4 border-t-navy-900">
       <div class="flex items-center space-x-3">
         <NuxtLink 
           :to="`/dossiers/${dossierId}/etablissements/${etabId}?tab=bulletins`"
@@ -145,7 +145,7 @@ onMounted(() => {
           <UIcon name="i-lucide-arrow-left" class="w-4 h-4" />
         </NuxtLink>
         <div>
-          <h1 class="text-lg font-bold text-slate-900 leading-tight uppercase">
+          <h1 class="text-lg font-bold text-navy-900 leading-tight uppercase">
             Impression en Masse
           </h1>
           <p class="text-xs text-slate-500 uppercase font-semibold">

@@ -93,15 +93,15 @@ const getStatusBadge = (statut) => {
     <!-- En-tête de bienvenue entreprise -->
     <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4">
       <div class="flex items-start gap-4">
-        <div class="w-14 h-14 rounded-xl bg-green-50 border border-green-200 flex items-center justify-center text-green-700 font-black text-2xl shadow-xs shrink-0">
+        <div class="w-14 h-14 rounded-xl bg-navy-50 border border-navy-200 flex items-center justify-center text-navy-700 font-black text-2xl shadow-xs shrink-0">
           {{ dossier?.nom_dossier ? dossier.nom_dossier.charAt(0).toUpperCase() : 'E' }}
         </div>
         <div>
           <div class="flex items-center gap-2.5 flex-wrap">
-            <h1 class="text-xl font-bold text-slate-900 tracking-tight">
+            <h1 class="text-xl font-bold text-navy-900 tracking-tight">
               {{ dossier?.nom_dossier || 'Mon Entreprise' }}
             </h1>
-            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-green-100 text-green-800 border border-green-200">
+            <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold bg-navy-50 text-navy-700 border border-navy-200">
               Espace Entreprise
             </span>
             <span v-if="dossier?.code" class="text-xs text-slate-500 font-mono bg-slate-100 px-2 py-0.5 rounded border border-slate-250">
@@ -118,7 +118,7 @@ const getStatusBadge = (statut) => {
       <div class="flex items-center gap-2 bg-slate-50 p-2 rounded-lg border border-slate-200 shrink-0">
         <UIcon name="i-lucide-calendar" class="w-4 h-4 text-slate-500 ml-1" />
         <span class="text-xs font-bold text-slate-700">Période :</span>
-        <span class="text-xs font-black text-green-700 bg-white px-2.5 py-1 rounded shadow-2xs border border-slate-200">
+        <span class="text-xs font-black text-navy-900 bg-white px-2.5 py-1 rounded shadow-2xs border border-slate-200">
           {{ currentPeriodLabel }}
         </span>
       </div>
@@ -128,8 +128,8 @@ const getStatusBadge = (statut) => {
     <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-xs">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-2">
-          <UIcon name="i-lucide-activity" class="w-5 h-5 text-green-600" />
-          <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wide">
+          <UIcon name="i-lucide-activity" class="w-5 h-5 text-navy-700" />
+          <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wide">
             Avancement de la paie • {{ currentPeriodLabel }}
           </h2>
         </div>
@@ -222,10 +222,10 @@ const getStatusBadge = (statut) => {
       <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex items-center justify-between">
         <div>
           <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Effectif Salariés</p>
-          <p class="text-2xl font-black text-slate-900 mt-1">{{ stats.salariesCount }}</p>
+          <p class="text-2xl font-black text-navy-900 mt-1">{{ stats.salariesCount }}</p>
           <p class="text-xs text-slate-500 mt-0.5">Contrats actifs dans l'entreprise</p>
         </div>
-        <div class="w-12 h-12 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600">
+        <div class="w-12 h-12 rounded-xl bg-navy-50 border border-navy-200 flex items-center justify-center text-navy-700">
           <UIcon name="i-lucide-users" class="w-6 h-6" />
         </div>
       </div>
@@ -235,12 +235,12 @@ const getStatusBadge = (statut) => {
         <div>
           <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Variables Saisies</p>
           <div class="flex items-baseline gap-2 mt-1">
-            <span class="text-2xl font-black text-slate-900">{{ stats.hsCount + stats.absCount }}</span>
+            <span class="text-2xl font-black text-navy-900">{{ stats.hsCount + stats.absCount }}</span>
             <span class="text-xs text-slate-500 font-medium">({{ stats.hsCount }} HS, {{ stats.absCount }} Abs)</span>
           </div>
           <p class="text-xs text-slate-500 mt-0.5">Pour {{ currentPeriodLabel }}</p>
         </div>
-        <div class="w-12 h-12 rounded-xl bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600">
+        <div class="w-12 h-12 rounded-xl bg-navy-50 border border-navy-200 flex items-center justify-center text-navy-700">
           <UIcon name="i-lucide-clock" class="w-6 h-6" />
         </div>
       </div>
@@ -249,10 +249,10 @@ const getStatusBadge = (statut) => {
       <div class="bg-white border border-slate-200 rounded-xl p-5 shadow-xs flex items-center justify-between">
         <div>
           <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Primes Déclarées</p>
-          <p class="text-2xl font-black text-slate-900 mt-1">{{ stats.primesCount }}</p>
+          <p class="text-2xl font-black text-navy-900 mt-1">{{ stats.primesCount }}</p>
           <p class="text-xs text-slate-500 mt-0.5">Primes et gratifications du mois</p>
         </div>
-        <div class="w-12 h-12 rounded-xl bg-purple-50 border border-purple-200 flex items-center justify-center text-purple-600">
+        <div class="w-12 h-12 rounded-xl bg-navy-50 border border-navy-200 flex items-center justify-center text-navy-700">
           <UIcon name="i-lucide-award" class="w-6 h-6" />
         </div>
       </div>
@@ -262,12 +262,12 @@ const getStatusBadge = (statut) => {
         <div>
           <p class="text-xs font-bold uppercase tracking-wider text-slate-500">Bulletins Générés</p>
           <div class="flex items-baseline gap-2 mt-1">
-            <span class="text-2xl font-black text-slate-900">{{ stats.bulletinsCount }}</span>
+            <span class="text-2xl font-black text-navy-900">{{ stats.bulletinsCount }}</span>
             <span class="text-xs text-slate-500 font-medium">/ {{ stats.salariesCount }}</span>
           </div>
           <p class="text-xs text-slate-500 mt-0.5">Calculés pour ce mois</p>
         </div>
-        <div class="w-12 h-12 rounded-xl bg-green-50 border border-green-200 flex items-center justify-center text-green-600">
+        <div class="w-12 h-12 rounded-xl bg-navy-50 border border-navy-200 flex items-center justify-center text-navy-700">
           <UIcon name="i-lucide-file-check" class="w-6 h-6" />
         </div>
       </div>
@@ -281,7 +281,7 @@ const getStatusBadge = (statut) => {
           <div class="w-10 h-10 rounded-lg bg-green-100 text-green-700 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             <UIcon name="i-lucide-edit-3" class="w-5 h-5" />
           </div>
-          <h3 class="text-base font-bold text-slate-900 group-hover:text-green-700 transition-colors">
+          <h3 class="text-base font-bold text-navy-900 group-hover:text-green-700 transition-colors">
             Saisir les variables du mois
           </h3>
           <p class="text-xs text-slate-500 mt-1 leading-relaxed">
@@ -295,38 +295,38 @@ const getStatusBadge = (statut) => {
       </NuxtLink>
 
       <!-- Action 2 : Bulletins de paie -->
-      <NuxtLink to="/client/bulletins" class="group bg-white border border-slate-200 hover:border-blue-500 rounded-xl p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between">
+      <NuxtLink to="/client/bulletins" class="group bg-white border border-slate-200 hover:border-navy-500 rounded-xl p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between">
         <div>
-          <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+          <div class="w-10 h-10 rounded-lg bg-navy-100 text-navy-700 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             <UIcon name="i-lucide-file-text" class="w-5 h-5" />
           </div>
-          <h3 class="text-base font-bold text-slate-900 group-hover:text-blue-700 transition-colors">
+          <h3 class="text-base font-bold text-navy-900 group-hover:text-navy-700 transition-colors">
             Consulter les bulletins
           </h3>
           <p class="text-xs text-slate-500 mt-1 leading-relaxed">
             Visualisez et téléchargez les bulletins de paie calculés par le cabinet, ainsi que le récapitulatif salarial.
           </p>
         </div>
-        <div class="mt-5 flex items-center text-xs font-bold text-blue-700 group-hover:translate-x-1 transition-transform">
+        <div class="mt-5 flex items-center text-xs font-bold text-navy-700 group-hover:translate-x-1 transition-transform">
           Accéder aux bulletins
           <UIcon name="i-lucide-arrow-right" class="w-4 h-4 ml-1" />
         </div>
       </NuxtLink>
 
       <!-- Action 3 : Salariés & Équipes -->
-      <NuxtLink to="/client/salaries" class="group bg-white border border-slate-200 hover:border-purple-500 rounded-xl p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between">
+      <NuxtLink to="/client/salaries" class="group bg-white border border-slate-200 hover:border-navy-900 rounded-xl p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between">
         <div>
-          <div class="w-10 h-10 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+          <div class="w-10 h-10 rounded-lg bg-navy-100 text-navy-700 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
             <UIcon name="i-lucide-users" class="w-5 h-5" />
           </div>
-          <h3 class="text-base font-bold text-slate-900 group-hover:text-purple-700 transition-colors">
+          <h3 class="text-base font-bold text-navy-900 group-hover:text-navy-900 transition-colors">
             Effectif & Personnel
           </h3>
           <p class="text-xs text-slate-500 mt-1 leading-relaxed">
             Consultez la liste des salariés de votre entreprise, leurs postes, dates d'embauche et contrats en cours.
           </p>
         </div>
-        <div class="mt-5 flex items-center text-xs font-bold text-purple-700 group-hover:translate-x-1 transition-transform">
+        <div class="mt-5 flex items-center text-xs font-bold text-navy-700 group-hover:translate-x-1 transition-transform">
           Voir le personnel
           <UIcon name="i-lucide-arrow-right" class="w-4 h-4 ml-1" />
         </div>

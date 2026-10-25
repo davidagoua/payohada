@@ -83,13 +83,13 @@ const handleSubmit = async () => {
     <template #content>
       <div class="p-6 bg-white border border-slate-200 max-w-lg w-full mx-auto shadow-flat">
         <!-- Header -->
-        <div class="flex items-start justify-between border-b border-slate-200 pb-4 mb-4">
+        <div class="flex items-start justify-between border-b-2 border-navy-900 pb-4 mb-4">
           <div class="flex items-center gap-2.5">
-            <div class="w-9 h-9 rounded-lg bg-green-50 border border-green-200 flex items-center justify-center text-green-700 shrink-0">
+            <div class="w-9 h-9 rounded-lg bg-navy-50 border border-navy-200 flex items-center justify-center text-navy-700 shrink-0">
               <UIcon name="i-lucide-shield-check" class="w-5 h-5" />
             </div>
             <div>
-              <h2 class="text-base font-bold text-slate-900 uppercase tracking-wider">
+              <h2 class="text-base font-bold text-navy-900 uppercase tracking-wider">
                 Modifier mon mot de passe
               </h2>
               <p class="text-xs text-slate-500 font-medium mt-0.5">
@@ -183,7 +183,7 @@ const handleSubmit = async () => {
               </button>
             </div>
             <div class="flex items-center gap-3 mt-1 text-[11px] text-slate-500">
-              <span :class="newPassword.length >= 8 ? 'text-emerald-700 font-bold' : ''">
+              <span :class="newPassword.length >= 8 ? 'text-green-700 font-bold' : ''">
                 ✓ Au moins 8 caractères
               </span>
               <span v-if="newPassword && !/[0-9]/.test(newPassword)" class="text-amber-600 font-bold">
