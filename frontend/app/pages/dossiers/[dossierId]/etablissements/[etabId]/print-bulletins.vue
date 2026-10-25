@@ -119,7 +119,7 @@ onMounted(() => {
   </div>
 
   <div v-else-if="bulletinsData.length === 0" class="max-w-md mx-auto py-20 text-center space-y-4 no-print bg-white p-8 border-2 border-slate-200 shadow-flat">
-    <div class="w-12 h-12 bg-slate-100 text-slate-400 rounded-none flex items-center justify-center mx-auto">
+    <div class="w-12 h-12 bg-slate-100 text-slate-400 rounded-lg flex items-center justify-center mx-auto">
       <UIcon name="i-lucide-alert-circle" class="w-6 h-6" />
     </div>
     <h3 class="font-bold text-navy-900 text-lg">Aucun bulletin sélectionné</h3>
@@ -128,7 +128,7 @@ onMounted(() => {
     </p>
     <NuxtLink 
       :to="`/dossiers/${dossierId}/etablissements/${etabId}?tab=bulletins`"
-      class="inline-block px-4 py-2 border-2 border-slate-200 text-xs font-bold uppercase tracking-wider hover:bg-slate-50 text-slate-700 transition-all rounded-none"
+      class="inline-block px-4 py-2 border-2 border-slate-200 text-xs font-bold uppercase tracking-wider hover:bg-slate-50 text-slate-700 transition-all rounded-lg"
     >
       Retourner aux bulletins
     </NuxtLink>
@@ -140,7 +140,7 @@ onMounted(() => {
       <div class="flex items-center space-x-3">
         <NuxtLink 
           :to="`/dossiers/${dossierId}/etablissements/${etabId}?tab=bulletins`"
-          class="p-2 border-2 border-slate-200 rounded-none hover:bg-slate-50 text-slate-700 transition-colors"
+          class="p-2 border-2 border-slate-200 rounded-lg hover:bg-slate-50 text-slate-700 transition-colors"
         >
           <UIcon name="i-lucide-arrow-left" class="w-4 h-4" />
         </NuxtLink>
@@ -157,7 +157,7 @@ onMounted(() => {
       <div>
         <button 
           @click="triggerPrint"
-          class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-none shadow-flat transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer shadow-flat-hover shadow-flat-active"
+          class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-lg shadow-flat transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer shadow-flat-hover shadow-flat-active"
         >
           <UIcon name="i-lucide-printer" class="w-4 h-4" />
           Lancer l'impression
@@ -165,7 +165,7 @@ onMounted(() => {
         <button
           :disabled="telechargementEnCours"
           @click="telechargerPdfLot"
-          class="ml-2 px-4 py-2 bg-slate-800 hover:bg-slate-900 disabled:bg-slate-400 text-white text-sm font-bold rounded-none transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer"
+          class="ml-2 px-4 py-2 bg-slate-800 hover:bg-slate-900 disabled:bg-slate-400 text-white text-sm font-bold rounded-lg transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer"
         >
           <UIcon :name="telechargementEnCours ? 'i-lucide-loader-2' : 'i-lucide-download'"
                  class="w-4 h-4" :class="{ 'animate-spin': telechargementEnCours }" />

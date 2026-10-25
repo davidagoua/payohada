@@ -64,6 +64,23 @@ L'échelle complète : `50 #f3f5f9 · 100 #dfe6f1 · 200 #c2d0e5 · 300 #9fb2d1 
 400 #748db4 · 500 #536b93 · 600 #3c5377 · 700 #243c60 · 800 #0f2548 ·
 900 #01173a · 950 #030e21`.
 
+### Rayons
+
+L'interface est volontairement arrondie (demande client). L'échelle est
+définie dans `@theme` ; les valeurs par défaut des composants sont :
+
+| Usage | Classe | Valeur |
+|---|---|---|
+| Petits badges, puces | `rounded-xs` / `rounded-sm` | 4 / 6 px |
+| Champs, boutons, petites cartes | `rounded-md` / `rounded-lg` | 8 / 10 px |
+| Cartes, panneaux, onglets | `rounded-xl` | 12 px |
+| Modales, grandes surfaces | `rounded-2xl` | 16 px |
+| Étiquettes (gélule) | `rounded-full` | 9999 px |
+
+Les contrôles sans classe dédiée (`input`, `select`, `textarea`, `button`)
+reçoivent `--radius-md` ; les cartes qui n'ont pas de classe `rounded-*` sont
+arrondies via `.shadow-flat`. En impression, tous les rayons sont remis à zéro.
+
 ### Variables sémantiques (dans `:root`)
 
 ```css

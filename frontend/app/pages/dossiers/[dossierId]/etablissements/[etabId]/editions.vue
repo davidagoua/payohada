@@ -450,7 +450,7 @@ onMounted(async () => {
     <div v-if="envoi.ouvert"
          class="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4"
          @click.self="envoi.ouvert = false">
-      <div class="bg-white border border-slate-300 w-full max-w-lg">
+      <div class="rounded-xl bg-white border border-slate-300 w-full max-w-lg">
         <div class="px-4 py-3 border-b border-slate-200 flex items-center justify-between">
           <h2 class="font-bold uppercase tracking-wide text-sm text-navy-900">
             Envoyer « {{ editionSelectionnee?.libelle }} »

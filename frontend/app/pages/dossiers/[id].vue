@@ -717,7 +717,7 @@ onMounted(() => {
             <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
               <tr>
                 <th scope="col" class="px-4 py-3 text-left w-10">
-                  <input type="checkbox" v-model="allEtabsSelected" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+                  <input type="checkbox" v-model="allEtabsSelected" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
                 </th>
                 <th scope="col" class="px-6 py-3 text-left">Code</th>
                 <th scope="col" class="px-6 py-3 text-left">Raison Sociale</th>
@@ -734,7 +734,7 @@ onMounted(() => {
                 class="hover:bg-slate-50 cursor-pointer group"
               >
                 <td class="px-4 py-4" @click.stop>
-                  <input type="checkbox" :value="etab.id" v-model="selectedEtabs" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+                  <input type="checkbox" :value="etab.id" v-model="selectedEtabs" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
                 </td>
                 <td class="px-6 py-4 font-mono font-semibold text-slate-900">{{ etab.code }}</td>
                 <td class="px-6 py-4 font-medium text-slate-700 group-hover:text-navy-700 transition-colors">{{ etab.raison_sociale }}</td>

@@ -659,7 +659,7 @@ onMounted(() => {
   <div v-else-if="bulletin" class="space-y-6">
     
     <!-- Switcher / Navigation de période (Caché à l'impression) -->
-    <div class="bg-white border-2 border-slate-200 p-4 shadow-flat flex flex-col sm:flex-row justify-between items-center gap-4 no-print border-t-4 border-t-navy-900 rounded-none">
+    <div class="bg-white border-2 border-slate-200 p-4 shadow-flat flex flex-col sm:flex-row justify-between items-center gap-4 no-print border-t-4 border-t-navy-900 rounded-lg">
       <div class="flex items-center space-x-3 w-full sm:w-auto">
         <span class="text-xs font-bold uppercase tracking-wider text-slate-500 min-w-max">Année :</span>
         <select v-model="selectedYear" class="px-3 py-1.5 border-2 border-slate-200 text-sm font-mono bg-white focus:ring-green-500 focus:border-green-500 select">
@@ -673,7 +673,7 @@ onMounted(() => {
           :key="m"
           @click="goToBulletin(selectedYear, m)"
           :disabled="!hasBulletin(selectedYear, m)"
-          class="px-2.5 py-1.5 text-xs font-bold uppercase tracking-wider border transition-all rounded-none cursor-pointer"
+          class="px-2.5 py-1.5 text-xs font-bold uppercase tracking-wider border transition-all rounded-lg cursor-pointer"
           :class="[
             isCurrentBulletin(selectedYear, m)
               ? 'bg-green-600 border-green-600 text-white shadow-flat'
@@ -688,11 +688,11 @@ onMounted(() => {
     </div>
 
     <!-- Action Bar (Hidden on Print) -->
-    <div class="bg-white border-2 border-slate-200 rounded-none p-4 shadow-flat flex flex-col sm:flex-row justify-between items-center gap-4 no-print border-t-4 border-t-navy-900">
+    <div class="bg-white border-2 border-slate-200 rounded-lg p-4 shadow-flat flex flex-col sm:flex-row justify-between items-center gap-4 no-print border-t-4 border-t-navy-900">
       <div class="flex items-center space-x-3">
         <NuxtLink 
           :to="`/dossiers/${dossierId}/etablissements/${etabId}?tab=bulletins`"
-          class="p-2 border-2 border-slate-200 rounded-none hover:bg-slate-50 text-slate-700 transition-colors"
+          class="p-2 border-2 border-slate-200 rounded-lg hover:bg-slate-50 text-slate-700 transition-colors"
         >
           <UIcon name="i-lucide-arrow-left" class="w-4 h-4" />
         </NuxtLink>
@@ -713,7 +713,7 @@ onMounted(() => {
         <button 
           v-if="bulletin.statut !== 'valide'"
           @click="handleRecalculate"
-          class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-none hover:bg-slate-50 text-slate-700 transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer shadow-flat-hover shadow-flat-active"
+          class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-lg hover:bg-slate-50 text-slate-700 transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer shadow-flat-hover shadow-flat-active"
         >
           <UIcon name="i-lucide-refresh-cw" class="w-4 h-4 text-green-600" />
           Recalculer
@@ -721,7 +721,7 @@ onMounted(() => {
         <button 
           v-if="bulletin.statut !== 'valide'"
           @click="handleDelete"
-          class="px-4 py-2 border-2 border-red-200 text-sm font-bold rounded-none hover:bg-red-50 text-red-650 transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer shadow-flat-hover shadow-flat-active"
+          class="px-4 py-2 border-2 border-red-200 text-sm font-bold rounded-lg hover:bg-red-50 text-red-650 transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer shadow-flat-hover shadow-flat-active"
         >
           <UIcon name="i-lucide-trash-2" class="w-4 h-4" />
           Supprimer
@@ -729,7 +729,7 @@ onMounted(() => {
         <button 
           v-if="bulletin.statut !== 'valide'"
           @click="handleValidate"
-          class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-bold rounded-none shadow-flat transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer shadow-flat-hover shadow-flat-active"
+          class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-bold rounded-lg shadow-flat transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer shadow-flat-hover shadow-flat-active"
         >
           <UIcon name="i-lucide-check-circle" class="w-4 h-4" />
           Valider
@@ -737,7 +737,7 @@ onMounted(() => {
         <button 
           v-if="canInvalidate"
           @click="handleInvalidate"
-          class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-none shadow-flat transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer shadow-flat-hover shadow-flat-active"
+          class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-lg shadow-flat transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer shadow-flat-hover shadow-flat-active"
         >
           <UIcon name="i-lucide-x-circle" class="w-4 h-4" />
           Dé-valider
@@ -746,7 +746,7 @@ onMounted(() => {
         <button 
           v-show="false"
           @click="triggerPrint"
-          class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-none shadow-flat transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer shadow-flat-hover shadow-flat-active"
+          class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-lg shadow-flat transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer shadow-flat-hover shadow-flat-active"
         >
           <UIcon name="i-lucide-printer" class="w-4 h-4" />
           Imprimer
@@ -754,7 +754,7 @@ onMounted(() => {
         <!-- Bulletin officiel au format Sage Saari (document destiné au salarié) -->
         <button
           @click="router.push(`/dossiers/${dossierId}/etablissements/${etabId}/print-bulletins?ids=${bulletinId}`)"
-          class="px-4 py-2 border-2 border-slate-800 text-slate-800 hover:bg-slate-800 hover:text-white text-sm font-bold rounded-none transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer"
+          class="px-4 py-2 border-2 border-slate-800 text-slate-800 hover:bg-slate-800 hover:text-white text-sm font-bold rounded-lg transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer"
         >
           <UIcon name="i-lucide-file-text" class="w-4 h-4" />
           Imprimer
@@ -763,7 +763,7 @@ onMounted(() => {
         <button
           v-show="false"
           @click="telechargerPdf"
-          class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold rounded-none transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer"
+          class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold rounded-lg transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer"
         >
           <UIcon name="i-lucide-download" class="w-4 h-4" />
           Bulletin PDF
@@ -777,7 +777,7 @@ onMounted(() => {
       
       <button 
         @click="hsModalOpen = true"
-        class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-850 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 border border-slate-350 rounded-none shadow-flat-hover shadow-flat-active cursor-pointer"
+        class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-850 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 border border-slate-350 rounded-lg shadow-flat-hover shadow-flat-active cursor-pointer"
       >
         <UIcon name="i-lucide-plus-circle" class="w-4 h-4 text-green-600" />
         Saisir Heure Supp
@@ -785,7 +785,7 @@ onMounted(() => {
 
       <button 
         @click="absModalOpen = true"
-        class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-850 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 border border-slate-350 rounded-none shadow-flat-hover shadow-flat-active cursor-pointer"
+        class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-850 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 border border-slate-350 rounded-lg shadow-flat-hover shadow-flat-active cursor-pointer"
       >
         <UIcon name="i-lucide-minus-circle" class="w-4 h-4 text-red-650" />
         Saisir Absence
@@ -793,7 +793,7 @@ onMounted(() => {
 
       <button 
         @click="primeModalOpen = true"
-        class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-850 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 border border-slate-350 rounded-none shadow-flat-hover shadow-flat-active cursor-pointer"
+        class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-850 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 border border-slate-350 rounded-lg shadow-flat-hover shadow-flat-active cursor-pointer"
       >
         <UIcon name="i-lucide-award" class="w-4 h-4 text-navy-700" />
         Saisir Prime
@@ -801,7 +801,7 @@ onMounted(() => {
 
       <button 
         @click="acompteModalOpen = true"
-        class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-850 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 border border-slate-350 rounded-none shadow-flat-hover shadow-flat-active cursor-pointer"
+        class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-850 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 border border-slate-350 rounded-lg shadow-flat-hover shadow-flat-active cursor-pointer"
       >
         <UIcon name="i-lucide-banknote" class="w-4 h-4 text-amber-600" />
         Définir Acompte
@@ -809,7 +809,7 @@ onMounted(() => {
 
       <button 
         @click="optionModalOpen = true"
-        class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-850 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 border border-slate-350 rounded-none shadow-flat-hover shadow-flat-active cursor-pointer"
+        class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-850 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 border border-slate-350 rounded-lg shadow-flat-hover shadow-flat-active cursor-pointer"
       >
         <UIcon name="i-lucide-plus-circle" class="w-4 h-4 text-navy-700" />
         Saisir Option / Avantage
@@ -817,7 +817,7 @@ onMounted(() => {
     </div>
 
     <!-- Official Printable Payslip Container -->
-    <div class="bg-white border-2 border-slate-200 shadow-flat rounded-none p-4  mx-auto print-payslip text-slate-800 border-t-4 border-t-navy-900">
+    <div class="bg-white border-2 border-slate-200 shadow-flat rounded-lg p-4  mx-auto print-payslip text-slate-800 border-t-4 border-t-navy-900">
       
       <!-- Top Columns: Employer vs Employee -->
       <div class="grid grid-cols-2 gap-8 border-b-2 border-slate-200 pb-6 text-xs">
@@ -852,7 +852,7 @@ onMounted(() => {
 
         <!-- Right Side: Employee Info -->
         <div class="space-y-3">
-          <div class="bg-slate-50 border-2 border-slate-200 rounded-none p-4 space-y-2 shadow-flat">
+          <div class="bg-slate-50 border-2 border-slate-200 rounded-lg p-4 space-y-2 shadow-flat">
             <div class="flex justify-between border-b border-slate-200 pb-1">
               <span class="font-bold text-navy-900 uppercase">{{ salarie?.civilite }} {{ salarie?.prenom }} {{ salarie?.nom?.toUpperCase() }}</span>
               <span class="font-mono text-slate-500 text-[10px] font-bold">Matricule : {{ salarie?.matricule }}</span>
@@ -901,7 +901,7 @@ onMounted(() => {
       </div>
 
       <!-- Payslip Metadata / Period Bar -->
-      <div class="my-4 py-3 px-4 bg-slate-50 border-2 border-slate-200 rounded-none flex justify-between items-center text-xs font-semibold shadow-flat">
+      <div class="my-4 py-3 px-4 bg-slate-50 border-2 border-slate-200 rounded-lg flex justify-between items-center text-xs font-semibold shadow-flat">
         <div>
           <span>PÉRIODE : </span>
           <span class="font-bold text-slate-900 font-mono uppercase">{{ getPeriodLabel(bulletin.mois, bulletin.annee) }}</span>
@@ -917,7 +917,7 @@ onMounted(() => {
       </div>
 
       <!-- Main Pay Lines Table -->
-      <div class="overflow-x-auto border-2 border-slate-200 rounded-none shadow-flat">
+      <div class="overflow-x-auto border-2 border-slate-200 rounded-lg shadow-flat">
         <table class="min-w-full divide-y divide-slate-250 text-xs">
           <thead class="bg-slate-100 text-slate-650 font-bold uppercase tracking-wider text-[9px] border-b-2 border-slate-200">
             <!-- Group Headers -->
@@ -1062,19 +1062,19 @@ onMounted(() => {
 
       <!-- Quick Inline Action Toolbar (Hidden on Print) -->
       <div v-if="bulletin.statut !== 'valide'" class="mt-4 no-print flex flex-wrap gap-2 justify-center border-t border-slate-200 pt-4">
-        <button @click="hsModalOpen = true" class="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold uppercase border-2 border-slate-250 rounded-none shadow-sm flex items-center gap-1 cursor-pointer">
+        <button @click="hsModalOpen = true" class="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold uppercase border-2 border-slate-250 rounded-lg shadow-sm flex items-center gap-1 cursor-pointer">
           <UIcon name="i-lucide-plus" class="w-3.5 h-3.5 text-green-600" /> + Heure Supp
         </button>
-        <button @click="absModalOpen = true" class="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold uppercase border-2 border-slate-250 rounded-none shadow-sm flex items-center gap-1 cursor-pointer">
+        <button @click="absModalOpen = true" class="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold uppercase border-2 border-slate-250 rounded-lg shadow-sm flex items-center gap-1 cursor-pointer">
           <UIcon name="i-lucide-minus" class="w-3.5 h-3.5 text-red-650" /> + Absence
         </button>
-        <button @click="primeModalOpen = true" class="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold uppercase border-2 border-slate-250 rounded-none shadow-sm flex items-center gap-1 cursor-pointer">
+        <button @click="primeModalOpen = true" class="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold uppercase border-2 border-slate-250 rounded-lg shadow-sm flex items-center gap-1 cursor-pointer">
           <UIcon name="i-lucide-award" class="w-3.5 h-3.5 text-navy-700" /> + Prime
         </button>
-        <button @click="acompteModalOpen = true" class="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold uppercase border-2 border-slate-250 rounded-none shadow-sm flex items-center gap-1 cursor-pointer">
+        <button @click="acompteModalOpen = true" class="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold uppercase border-2 border-slate-250 rounded-lg shadow-sm flex items-center gap-1 cursor-pointer">
           <UIcon name="i-lucide-banknote" class="w-3.5 h-3.5 text-amber-600" /> + Acompte
         </button>
-        <button @click="optionModalOpen = true" class="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold uppercase border-2 border-slate-250 rounded-none shadow-sm flex items-center gap-1 cursor-pointer">
+        <button @click="optionModalOpen = true" class="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold uppercase border-2 border-slate-250 rounded-lg shadow-sm flex items-center gap-1 cursor-pointer">
           <UIcon name="i-lucide-plus" class="w-3.5 h-3.5 text-navy-700" /> + Option / Avantage
         </button>
       </div>
@@ -1083,7 +1083,7 @@ onMounted(() => {
       <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
         
         <!-- Totals Table -->
-        <div class="bg-slate-50 border-2 border-slate-200 rounded-none p-4 space-y-2 text-xs shadow-flat">
+        <div class="bg-slate-50 border-2 border-slate-200 rounded-lg p-4 space-y-2 text-xs shadow-flat">
           <div class="flex justify-between border-b border-slate-200 pb-1.5">
             <span class="text-slate-500 font-bold uppercase tracking-wider">Total Salaire Brut :</span>
             <span class="font-bold font-mono text-slate-900">{{ formatXOF(bulletin.salaire_brut) }}</span>
@@ -1103,7 +1103,7 @@ onMounted(() => {
         </div>
 
         <!-- High-contrast Premium Net à Payer Callout -->
-        <div class="bg-green-600 rounded-none p-5 text-white flex justify-between items-center shadow-flat">
+        <div class="bg-green-600 rounded-lg p-5 text-white flex justify-between items-center shadow-flat">
           <div class="space-y-0.5">
             <p class="text-[9px] font-black uppercase tracking-widest text-green-200">NET À PAYER</p>
             <p class="text-3xl font-black tracking-tight font-mono">
@@ -1124,7 +1124,7 @@ onMounted(() => {
         <!-- Cumuls Table (cols-span 2) -->
         <div class="md:col-span-2 space-y-2">
           <h4 class="text-xs font-bold text-navy-900 uppercase tracking-wider">Cumuls Période et Annuel</h4>
-          <div class="overflow-x-auto rounded-none border-2 border-slate-200 shadow-flat">
+          <div class="overflow-x-auto rounded-lg border-2 border-slate-200 shadow-flat">
             <table class="min-w-full divide-y divide-slate-200 text-[10px] text-left">
               <thead class="bg-slate-100 font-bold text-slate-650 border-b border-slate-200">
                 <tr>
@@ -1164,7 +1164,7 @@ onMounted(() => {
         <!-- Congés Payés Card -->
         <div class="space-y-2">
           <h4 class="text-xs font-bold text-navy-900 uppercase tracking-wider">Congés Payés</h4>
-          <div class="bg-white border-2 border-slate-200 rounded-none p-3 space-y-1.5 shadow-flat text-[10px] text-slate-650">
+          <div class="bg-white border-2 border-slate-200 rounded-lg p-3 space-y-1.5 shadow-flat text-[10px] text-slate-650">
             <div class="flex justify-between font-mono font-semibold">
               <span>Droits acquis (Cumul) :</span>
               <span class="font-bold text-slate-900">{{ bulletin.cumuls?.annuel?.conges_acquis?.toFixed(2) }} j</span>
@@ -1202,7 +1202,7 @@ onMounted(() => {
     </div>
 
     <!-- Period Variables Management Section (Hidden on Print) -->
-    <div v-if="bulletin.statut !== 'valide' && (activeAbsences.length > 0 || activeHs.length > 0 || activePrimes.length > 0 || activeOptions.length > 0)" class="bg-white border-2 border-slate-200 p-6 shadow-flat no-print border-t-4 border-t-navy-900 space-y-4 rounded-none">
+    <div v-if="bulletin.statut !== 'valide' && (activeAbsences.length > 0 || activeHs.length > 0 || activePrimes.length > 0 || activeOptions.length > 0)" class="bg-white border-2 border-slate-200 p-6 shadow-flat no-print border-t-4 border-t-navy-900 space-y-4 rounded-lg">
       <h3 class="text-sm font-bold text-navy-900 uppercase tracking-wider border-b border-slate-200 pb-2">Variables actives sur cette période de paie</h3>
       
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1300,7 +1300,7 @@ onMounted(() => {
     </div>
 
     <!-- Raccourcis fiche salarié & contrat (Caché à l'impression) -->
-    <div class="bg-white border-2 border-slate-200 p-4 shadow-flat flex flex-col sm:flex-row justify-between items-center gap-4 no-print border-t-4 border-t-navy-900 rounded-none">
+    <div class="bg-white border-2 border-slate-200 p-4 shadow-flat flex flex-col sm:flex-row justify-between items-center gap-4 no-print border-t-4 border-t-navy-900 rounded-lg">
       <div class="flex items-center space-x-2">
         <UIcon name="i-lucide-link" class="w-4 h-4 text-slate-500" />
         <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Raccourcis :</span>
@@ -1308,14 +1308,14 @@ onMounted(() => {
       <div class="flex flex-wrap gap-3 w-full sm:w-auto justify-start sm:justify-end">
         <NuxtLink 
           :to="`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}`"
-          class="px-4 py-2 border-2 border-slate-200 text-xs font-bold uppercase tracking-wider rounded-none hover:bg-slate-50 text-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer shadow-flat-hover shadow-flat-active"
+          class="px-4 py-2 border-2 border-slate-200 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-slate-50 text-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer shadow-flat-hover shadow-flat-active"
         >
           <UIcon name="i-lucide-user" class="w-4 h-4 text-navy-700" />
           Fiche Salarié
         </NuxtLink>
         <NuxtLink 
           :to="`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}/contrats/${contratId}`"
-          class="px-4 py-2 border-2 border-slate-200 text-xs font-bold uppercase tracking-wider rounded-none hover:bg-slate-50 text-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer shadow-flat-hover shadow-flat-active"
+          class="px-4 py-2 border-2 border-slate-200 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-slate-50 text-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer shadow-flat-hover shadow-flat-active"
         >
           <UIcon name="i-lucide-file-text" class="w-4 h-4 text-navy-700" />
           Fiche Contrat
@@ -1328,13 +1328,13 @@ onMounted(() => {
     <!-- Modal: Overtime -->
     <UModal v-model:open="hsModalOpen" title="Saisir des Heures Supplémentaires">
       <template #content>
-        <div class="p-6 space-y-4 bg-white border border-slate-200">
+        <div class="p-6 space-y-4 rounded-xl bg-white border border-slate-200">
           <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Heure Supp.</h2>
           
           <div class="space-y-4">
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Taux de majoration</label>
-              <select v-model="hsCode" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white select">
+              <select v-model="hsCode" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white select">
                 <option value="HS_15">Majoration à 15%</option>
                 <option value="HS_25">Majoration à 25%</option>
                 <option value="HS_50">Majoration à 50%</option>
@@ -1342,15 +1342,15 @@ onMounted(() => {
             </div>
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Nombre d'heures</label>
-              <input v-model="hsNombre" type="number" step="0.5" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <input v-model="hsNombre" type="number" step="0.5" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
           </div>
 
           <div class="flex justify-end space-x-3 pt-4 border-t border-slate-200">
-            <button type="button" @click="hsModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-none hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
+            <button type="button" @click="hsModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-lg hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
               Annuler
             </button>
-            <button type="button" @click="handleAddHeureSupp" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-none shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
+            <button type="button" @click="handleAddHeureSupp" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
               Enregistrer et Recalculer
             </button>
           </div>
@@ -1361,14 +1361,14 @@ onMounted(() => {
     <!-- Modal: Absence -->
     <UModal v-model:open="absModalOpen" title="Saisir une Absence / Congé">
       <template #content>
-        <div class="p-6 space-y-4 bg-white border border-slate-200">
+        <div class="p-6 space-y-4 rounded-xl bg-white border border-slate-200">
           <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Saisir Absence</h2>
           
           <div class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Motif de l'absence</label>
-                <select v-model="absCode" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-none text-sm bg-white select">
+                <select v-model="absCode" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-lg text-sm bg-white select">
                   <option value="CONGES">Congés payés</option>
                   <option value="MALADIE">Maladie</option>
                   <option value="AT">Accident du travail</option>
@@ -1377,32 +1377,32 @@ onMounted(() => {
               </div>
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Nbr jours d'absence</label>
-                <input v-model="absNbrJour" type="number" step="0.5" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+                <input v-model="absNbrJour" type="number" step="0.5" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
               </div>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Date début</label>
-                <input v-model="absDateDebut" type="date" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
+                <input v-model="absDateDebut" type="date" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
               </div>
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Date fin</label>
-                <input v-model="absDateFin" type="date" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
+                <input v-model="absDateFin" type="date" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
               </div>
             </div>
 
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Nombre d'heures correspondantes (Si contrat horaire)</label>
-              <input v-model="absNbrHeure" type="number" step="1" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <input v-model="absNbrHeure" type="number" step="1" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
           </div>
 
           <div class="flex justify-end space-x-3 pt-4 border-t border-slate-200">
-            <button type="button" @click="absModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-none hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
+            <button type="button" @click="absModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-lg hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
               Annuler
             </button>
-            <button type="button" @click="handleAddAbsence" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-none shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
+            <button type="button" @click="handleAddAbsence" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
               Enregistrer et Recalculer
             </button>
           </div>
@@ -1413,14 +1413,14 @@ onMounted(() => {
     <!-- Modal: Prime -->
     <UModal v-model:open="primeModalOpen" title="Saisir une Prime">
       <template #content>
-        <div class="p-6 space-y-4 bg-white border border-slate-200">
+        <div class="p-6 space-y-4 rounded-xl bg-white border border-slate-200">
           <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Prime</h2>
           
           <div class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Code Identifiant</label>
-                <select v-model="primeCode" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-none text-sm bg-white select">
+                <select v-model="primeCode" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-lg text-sm bg-white select">
                   <option v-for="p in primesDisponibles" :key="p.code" :value="p.code">
                     {{ p.libelle }} ({{ p.code }})
                   </option>
@@ -1428,7 +1428,7 @@ onMounted(() => {
               </div>
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Mode de saisie</label>
-                <select v-model="primeMode" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-none text-sm bg-white select">
+                <select v-model="primeMode" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-lg text-sm bg-white select">
                   <option value="direct">Montant Direct</option>
                   <option value="calcul">Calcul par Base et Taux</option>
                 </select>
@@ -1438,22 +1438,22 @@ onMounted(() => {
             <div v-if="primeMode === 'calcul'" class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Base (FCFA)</label>
-                <input v-model="primeBase" type="number" @input="primeMontant = (Number(primeBase) || 0) * ((Number(primeTaux) || 0) / 100)" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+                <input v-model="primeBase" type="number" @input="primeMontant = (Number(primeBase) || 0) * ((Number(primeTaux) || 0) / 100)" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
               </div>
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Taux (%)</label>
-                <input v-model="primeTaux" type="number" step="0.01" @input="primeMontant = (Number(primeBase) || 0) * ((Number(primeTaux) || 0) / 100)" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+                <input v-model="primeTaux" type="number" step="0.01" @input="primeMontant = (Number(primeBase) || 0) * ((Number(primeTaux) || 0) / 100)" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
               </div>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Montant de la prime (FCFA)</label>
-                <input v-model="primeMontant" type="number" :disabled="primeMode === 'calcul'" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white disabled:bg-slate-100" />
+                <input v-model="primeMontant" type="number" :disabled="primeMode === 'calcul'" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white disabled:bg-slate-100" />
               </div>
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Libellé (Affiché sur le bulletin)</label>
-                <input v-model="primeLibelle" type="text" placeholder="Ex: Prime de rendement" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
+                <input v-model="primeLibelle" type="text" placeholder="Ex: Prime de rendement" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
               </div>
             <div class="flex items-center space-x-2 pt-2">
               <input v-model="primeEstPersistant" type="checkbox" id="prime_est_persistant" class="w-4 h-4 text-green-600 focus:ring-green-500 border-slate-300 rounded" />
@@ -1465,10 +1465,10 @@ onMounted(() => {
         </div>
 
           <div class="flex justify-end space-x-3 pt-4 border-t border-slate-200">
-            <button type="button" @click="primeModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-none hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
+            <button type="button" @click="primeModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-lg hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
               Annuler
             </button>
-            <button type="button" @click="handleAddPrime" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-none shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
+            <button type="button" @click="handleAddPrime" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
               Enregistrer et Recalculer
             </button>
           </div>
@@ -1479,22 +1479,22 @@ onMounted(() => {
     <!-- Modal: Acompte -->
     <UModal v-model:open="acompteModalOpen" title="Définir un Acompte">
       <template #content>
-        <div class="p-6 space-y-4 bg-white border border-slate-200">
+        <div class="p-6 space-y-4 rounded-xl bg-white border border-slate-200">
           <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Acompte sur salaire</h2>
           
           <div class="space-y-4">
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Montant de l'acompte (FCFA)</label>
-              <input v-model="acompteMontant" type="number" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <input v-model="acompteMontant" type="number" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
               <p class="text-[10px] text-slate-500 mt-1">Sera déduit directement du salaire net à payer.</p>
             </div>
           </div>
 
           <div class="flex justify-end space-x-3 pt-4 border-t border-slate-200">
-            <button type="button" @click="acompteModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-none hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
+            <button type="button" @click="acompteModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-lg hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
               Annuler
             </button>
-            <button type="button" @click="handleSaveAcompte" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-none shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
+            <button type="button" @click="handleSaveAcompte" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
               Enregistrer et Recalculer
             </button>
           </div>
@@ -1505,14 +1505,14 @@ onMounted(() => {
     <!-- Modal: Option -->
     <UModal v-model:open="optionModalOpen" title="Saisir une Option / Avantage">
       <template #content>
-        <div class="p-6 space-y-4 bg-white border border-slate-200">
+        <div class="p-6 space-y-4 rounded-xl bg-white border border-slate-200">
           <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Option ou Avantage</h2>
           
           <div class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Type d'option</label>
-                <select v-model="optionCode" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-none text-sm bg-white select">
+                <select v-model="optionCode" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-lg text-sm bg-white select">
                   <option v-for="o in optionsDisponibles" :key="o.code" :value="o.code">
                     {{ o.libelle }} ({{ o.code }})
                   </option>
@@ -1520,12 +1520,12 @@ onMounted(() => {
               </div>
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Montant (FCFA)</label>
-                <input v-model="optionMontant" type="number" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+                <input v-model="optionMontant" type="number" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
               </div>
             </div>
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Libellé (Affiché sur le bulletin)</label>
-              <input v-model="optionLibelle" type="text" placeholder="Ex: Logement de fonction" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
+              <input v-model="optionLibelle" type="text" placeholder="Ex: Logement de fonction" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
             <div class="flex items-center space-x-2 pt-2">
               <input v-model="optionEstPersistant" type="checkbox" id="option_est_persistant" class="w-4 h-4 text-green-600 focus:ring-green-500 border-slate-300 rounded" />
@@ -1536,10 +1536,10 @@ onMounted(() => {
           </div>
 
           <div class="flex justify-end space-x-3 pt-4 border-t border-slate-200">
-            <button type="button" @click="optionModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-none hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
+            <button type="button" @click="optionModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-lg hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
               Annuler
             </button>
-            <button type="button" @click="handleAddOption" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-none shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
+            <button type="button" @click="handleAddOption" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
               Enregistrer et Recalculer
             </button>
           </div>

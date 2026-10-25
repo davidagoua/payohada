@@ -71,7 +71,7 @@ const handleSaveProcess = async () => {
     </div>
 
     <!-- Main List Card -->
-    <div class="bg-white border-2 border-slate-200 shadow-flat rounded-none">
+    <div class="bg-white border-2 border-slate-200 shadow-flat rounded-lg">
       <div class="px-6 py-4 border-b border-slate-200 bg-slate-50/50 flex justify-between items-center">
         <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider">Réclamations reçues</h2>
         <span class="px-2 py-0.5 text-[10px] bg-navy-50 text-navy-700 border border-navy-200 font-bold uppercase tracking-wider">
@@ -116,7 +116,7 @@ const handleSaveProcess = async () => {
                 {{ new Date(c.created_at).toLocaleDateString('fr-FR') }}
               </td>
               <td class="px-6 py-4 text-center">
-                <span class="inline-block px-2.5 py-0.5 text-[9px] font-black uppercase border rounded-none tracking-wider"
+                <span class="inline-block px-2.5 py-0.5 text-[9px] font-black uppercase border rounded-lg tracking-wider"
                   :class="[
                     c.statut === 'en_attente' ? 'bg-amber-50 border-amber-300 text-amber-700' :
                     c.statut === 'traite' ? 'bg-green-50 border-green-300 text-green-700' :
@@ -129,7 +129,7 @@ const handleSaveProcess = async () => {
               <td class="px-6 py-4 text-center">
                 <button 
                   @click="handleOpenProcessModal(c)" 
-                  class="px-2.5 py-1 text-[11px] font-bold uppercase bg-slate-50 border-2 border-slate-200 text-slate-800 hover:bg-slate-100 rounded-none shadow-sm transition-colors cursor-pointer"
+                  class="px-2.5 py-1 text-[11px] font-bold uppercase bg-slate-50 border-2 border-slate-200 text-slate-800 hover:bg-slate-100 rounded-lg shadow-sm transition-colors cursor-pointer"
                 >
                   Traiter / Répondre
                 </button>
@@ -143,10 +143,10 @@ const handleSaveProcess = async () => {
     <!-- Modal: Process Claim -->
     <UModal v-model:open="processModalOpen" title="Traiter la réclamation">
       <template #content>
-        <div v-if="selectedClaim" class="p-6 space-y-4 bg-white border border-slate-200 max-w-md mx-auto">
+        <div v-if="selectedClaim" class="p-6 space-y-4 rounded-xl bg-white border border-slate-200 max-w-md mx-auto">
           <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Répondre à la réclamation</h2>
           
-          <div class="p-3 bg-slate-50 border border-slate-200 text-xs space-y-1">
+          <div class="p-3 rounded-md bg-slate-50 border border-slate-200 text-xs space-y-1">
             <p><span class="font-bold">Salarié :</span> {{ selectedClaim.salarie_prenom }} {{ selectedClaim.salarie_nom?.toUpperCase() }}</p>
             <p><span class="font-bold">Bulletin :</span> {{ getPeriodLabel(selectedClaim.bulletin_mois, selectedClaim.bulletin_annee) }}</p>
             <p><span class="font-bold">Motif :</span> {{ selectedClaim.sujet }}</p>
@@ -156,7 +156,7 @@ const handleSaveProcess = async () => {
           <div class="space-y-3">
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Statut du traitement</label>
-              <select v-model="claimStatus" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white select">
+              <select v-model="claimStatus" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white select">
                 <option value="en_attente">À traiter / En attente</option>
                 <option value="traite">Acceptée & Traitée</option>
                 <option value="rejete">Rejetée</option>
@@ -164,15 +164,15 @@ const handleSaveProcess = async () => {
             </div>
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Commentaire / Réponse pour le salarié</label>
-              <textarea v-model="managerComment" rows="4" placeholder="Indiquez au salarié les mesures prises ou la justification du traitement..." class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white" required></textarea>
+              <textarea v-model="managerComment" rows="4" placeholder="Indiquez au salarié les mesures prises ou la justification du traitement..." class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white" required></textarea>
             </div>
           </div>
 
           <div class="flex justify-end space-x-3 pt-4 border-t border-slate-200">
-            <button type="button" @click="processModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-xs font-bold rounded-none hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
+            <button type="button" @click="processModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-xs font-bold rounded-lg hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
               Annuler
             </button>
-            <button type="button" @click="handleSaveProcess" :disabled="submitting" class="px-4 py-2 text-xs font-bold bg-green-600 hover:bg-green-700 text-white rounded-none shadow-flat transition-colors uppercase tracking-wider cursor-pointer disabled:bg-slate-300">
+            <button type="button" @click="handleSaveProcess" :disabled="submitting" class="px-4 py-2 text-xs font-bold bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-flat transition-colors uppercase tracking-wider cursor-pointer disabled:bg-slate-300">
               {{ submitting ? "Enregistrement..." : "Valider le traitement" }}
             </button>
           </div>

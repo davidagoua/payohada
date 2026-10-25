@@ -89,7 +89,7 @@ definePageMeta({
         <!-- Hero Right Content (Visual mockup representation) -->
         <div class="relative hidden lg:block animate-fade-in">
           <!-- Main mock frame -->
-          <div class="relative bg-white border border-white/10 shadow-2xl p-6 overflow-hidden">
+          <div class="relative rounded-xl bg-white border border-white/10 shadow-2xl p-6 overflow-hidden">
             <!-- Header bar mock -->
             <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
               <div class="flex items-center space-x-2">
@@ -121,11 +121,11 @@ definePageMeta({
               <div class="space-y-2">
                 <div class="text-xs font-semibold text-navy-800 uppercase tracking-wider">Salariés & Contrats</div>
                 <div class="grid grid-cols-2 gap-2">
-                  <div class="bg-white border border-slate-150 p-2.5 shadow-sm">
+                  <div class="bg-white border border-slate-150 p-2.5 rounded-md shadow-sm">
                     <p class="text-xs font-bold text-slate-800">Jean Dupont</p>
                     <p class="text-[10px] text-navy-700 font-semibold">CDI • 35h/sem</p>
                   </div>
-                  <div class="bg-white border border-slate-150 p-2.5 shadow-sm">
+                  <div class="bg-white border border-slate-150 p-2.5 rounded-md shadow-sm">
                     <p class="text-xs font-bold text-slate-800">Sophie Martin</p>
                     <p class="text-[10px] text-navy-700 font-semibold">CDD • Temps partiel</p>
                   </div>
@@ -156,7 +156,7 @@ definePageMeta({
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           <!-- Card 1 -->
-          <div class="p-6 bg-slate-50 border border-slate-200 border-t-2 border-t-navy-900 hover:shadow-md transition-all duration-200 group">
+          <div class="p-6 rounded-xl bg-slate-50 border border-slate-200 border-t-2 border-t-navy-900 hover:shadow-md transition-all duration-200 group">
             <div class="w-10 h-10 bg-navy-50 rounded-lg flex items-center justify-center text-navy-700 mb-4 group-hover:bg-navy-900 group-hover:text-white transition-colors">
               <UIcon name="i-lucide-folder" class="w-6 h-6" />
             </div>
@@ -167,7 +167,7 @@ definePageMeta({
           </div>
 
           <!-- Card 2 -->
-          <div class="p-6 bg-slate-50 border border-slate-200 border-t-2 border-t-navy-900 hover:shadow-md transition-all duration-200 group">
+          <div class="p-6 rounded-xl bg-slate-50 border border-slate-200 border-t-2 border-t-navy-900 hover:shadow-md transition-all duration-200 group">
             <div class="w-10 h-10 bg-navy-50 rounded-lg flex items-center justify-center text-navy-700 mb-4 group-hover:bg-navy-900 group-hover:text-white transition-colors">
               <UIcon name="i-lucide-building" class="w-6 h-6" />
             </div>
@@ -178,7 +178,7 @@ definePageMeta({
           </div>
 
           <!-- Card 3 -->
-          <div class="p-6 bg-slate-50 border border-slate-200 border-t-2 border-t-navy-900 hover:shadow-md transition-all duration-200 group">
+          <div class="p-6 rounded-xl bg-slate-50 border border-slate-200 border-t-2 border-t-navy-900 hover:shadow-md transition-all duration-200 group">
             <div class="w-10 h-10 bg-navy-50 rounded-lg flex items-center justify-center text-navy-700 mb-4 group-hover:bg-navy-900 group-hover:text-white transition-colors">
               <UIcon name="i-lucide-users" class="w-6 h-6" />
             </div>
@@ -189,7 +189,7 @@ definePageMeta({
           </div>
 
           <!-- Card 4 -->
-          <div class="p-6 bg-slate-50 border border-slate-200 border-t-2 border-t-navy-900 hover:shadow-md transition-all duration-200 group">
+          <div class="p-6 rounded-xl bg-slate-50 border border-slate-200 border-t-2 border-t-navy-900 hover:shadow-md transition-all duration-200 group">
             <div class="w-10 h-10 bg-navy-50 rounded-lg flex items-center justify-center text-navy-700 mb-4 group-hover:bg-navy-900 group-hover:text-white transition-colors">
               <UIcon name="i-lucide-file-text" class="w-6 h-6" />
             </div>

@@ -119,20 +119,25 @@
   --color-carbon-text-placeholder: #a8a8a8;
   --color-carbon-inverse: #393939;
 
-  /* ── Raysons nuls : Carbon n'utilise aucun coin arrondi ────────── */
+  /* ── Rayons : interface adoucie ────────────────────────────────────
+     Le vocabulaire Carbon d'origine imposait des angles droits. Le client
+     demande une interface plus arrondie : l'échelle ci-dessous remplace les
+     rayons nuls. `rounded-lg` (10 px) devient la valeur des cartes, champs
+     et boutons ; `rounded-xl` (12 px) celle des grandes surfaces. */
   --radius-none: 0px;
-  --radius-xs: 0px;
-  --radius-sm: 0px;
-  --radius-md: 0px;
-  --radius-lg: 0px;
-  --radius-xl: 0px;
-  --radius-2xl: 0px;
-  --radius-3xl: 0px;
-  --radius-4xl: 0px;
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 24px;
+  --radius-4xl: 32px;
 }
 
 :root {
-  --ui-radius: 0px !important;
+  /* Rayon de base des composants Nuxt UI. */
+  --ui-radius: 8px !important;
 
   /* ── Jetons de marque ───────────────────────────────────────────────
      Le bleu encre #01173a est la deuxième couleur du logo. Il structure
@@ -322,12 +327,12 @@ tbody tr:last-child td {
    COMPOSANTS CARBON RÉUTILISABLES
    ═══════════════════════════════════════════════════════════════════ */
 
-/* Tuile : filet 1 px, aucun relief. La brique de base de Carbon. */
+/* Tuile : filet 1 px, aucun relief. La brique de base des écrans. */
 .carbon-tile {
   background-color: #ffffff;
   border: 1px solid var(--carbon-border-subtle);
   padding: var(--carbon-tile-padding);
-  border-radius: 0;
+  border-radius: var(--radius-xl);
   box-shadow: none;
 }
 
@@ -426,7 +431,7 @@ tbody tr:last-child td {
   background-color: #ffffff;
   border: 1px solid var(--carbon-border-subtle);
   border-top: 4px solid var(--brand-navy);
-  border-radius: 0;
+  border-radius: var(--radius-xl);
 }
 
 .brand-tile-title {
@@ -504,14 +509,36 @@ tbody tr:last-child td {
   transform: none;
 }
 
-/* Aucun coin arrondi, y compris sur les composants tiers. Les étiquettes
-   font exception : Carbon les dessine en gélule. */
-input, select, textarea, button, [class*="rounded"] {
-  border-radius: 0px !important;
+/* Rayons des contrôles sans classe dédiée : arrondi doux par défaut.
+   Déclarés dans la couche `base`, ils restent surchargeables par les
+   utilitaires `rounded-*` des gabarits et par les composants Nuxt UI. */
+@layer base {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]),
+  select,
+  textarea,
+  button {
+    border-radius: var(--radius-md);
+  }
 }
 
-.carbon-tag,
-[class*="rounded-full"] {
+/* Cartes : les gabarits qui n'ont pas de classe `rounded-*` sont arrondis
+   ici, pour que l'ensemble de l'interface suive la demande client. */
+.shadow-flat {
+  border-radius: var(--radius-xl);
+}
+
+/* Les coques et les boutons gardent leur forme propre. */
+header.shadow-flat,
+footer.shadow-flat {
+  border-radius: 0;
+}
+
+button.shadow-flat {
+  border-radius: var(--radius-lg);
+}
+
+/* Étiquettes : gélule, comme avant. */
+.carbon-tag {
   border-radius: 9999px !important;
 }
 
@@ -551,5 +578,10 @@ select option {
 
   .brand-accent-bar {
     display: none !important;
+  }
+
+  /* Les documents imprimés gardent des angles droits. */
+  *, *::before, *::after {
+    border-radius: 0 !important;
   }
 }

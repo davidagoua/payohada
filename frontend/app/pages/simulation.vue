@@ -217,7 +217,7 @@ onMounted(() => {
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Mode de calcul</label>
-              <select v-model="modeCalcul" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-none text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500">
+              <select v-model="modeCalcul" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500">
                 <option value="brut">Salaire brut</option>
                 <option value="net">Salaire net</option>
               </select>
@@ -225,7 +225,7 @@ onMounted(() => {
             
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Base de calcul</label>
-              <select v-model="typeSalaire" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-none text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500">
+              <select v-model="typeSalaire" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500">
                 <option value="Mensuel">Salaire Mensuel</option>
                 <option value="Horaire">Taux Horaire</option>
               </select>
@@ -240,7 +240,7 @@ onMounted(() => {
               <input 
                 v-model="salaireMensuel" 
                 type="number" 
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-none text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" 
+                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
             <div v-else>
@@ -250,7 +250,7 @@ onMounted(() => {
               <input 
                 v-model="salaireHoraire" 
                 type="number" 
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-none text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" 
+                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
           </div>
@@ -262,7 +262,7 @@ onMounted(() => {
                 v-model="horaireStandard" 
                 type="number" 
                 step="0.01" 
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-none text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" 
+                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
             <div>
@@ -271,7 +271,7 @@ onMounted(() => {
                 v-model="tauxAt" 
                 type="number" 
                 step="0.1" 
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-none text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" 
+                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
           </div>
@@ -279,7 +279,7 @@ onMounted(() => {
           <div class="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Unité de Temps</label>
-              <select v-model="uniteTemps" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-none text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500">
+              <select v-model="uniteTemps" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500">
                 <option value="Heures">Heures</option>
                 <option value="Jours">Jours</option>
               </select>
@@ -289,7 +289,7 @@ onMounted(() => {
               <input 
                 v-model="sursalaire" 
                 type="number" 
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-none text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" 
+                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500"
               />
               <p class="mt-1 text-[10px] text-slate-400">
                 Composante du salaire brut, pas un montant à ajouter.
@@ -300,7 +300,7 @@ onMounted(() => {
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Régime Expatrié</label>
-              <select v-model="expatrie" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-none text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500">
+              <select v-model="expatrie" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500">
                 <option :value="false">Non (Local)</option>
                 <option :value="true">Oui (Expatrié)</option>
               </select>
@@ -310,7 +310,7 @@ onMounted(() => {
               <input 
                 v-model="acompte" 
                 type="number" 
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-none text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" 
+                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
           </div>
@@ -318,7 +318,7 @@ onMounted(() => {
           <div class="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Situation familiale (RICF)</label>
-              <select v-model="situationMatrimoniale" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-none text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500">
+              <select v-model="situationMatrimoniale" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500">
                 <option value="Célibataire">Célibataire</option>
                 <option value="Marié">Marié(e)</option>
                 <option value="Veuf">Veuf / veuve</option>
@@ -332,7 +332,7 @@ onMounted(() => {
                 type="number"
                 min="0"
                 step="1"
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-none text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500"
+                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500"
               />
               <p class="mt-1 text-[10px] text-slate-400">
                 Utilisés pour la réduction d'impôt (RICF), plafonnée à 5 parts.
@@ -346,7 +346,7 @@ onMounted(() => {
               <input 
                 v-model="indemniteTransport" 
                 type="number" 
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-none text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" 
+                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
             <div>
@@ -354,7 +354,7 @@ onMounted(() => {
               <input 
                 v-model="dotationTelephonique" 
                 type="number" 
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-none text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" 
+                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
           </div>
@@ -376,11 +376,11 @@ onMounted(() => {
             Aucune absence renseignée. Le salarié a travaillé la totalité du mois.
           </div>
           <div v-else class="space-y-3">
-            <div v-for="(abs, index) in absences" :key="abs.id" class="flex gap-2 items-center bg-slate-50 p-3 rounded-none border border-slate-200">
+            <div v-for="(abs, index) in absences" :key="abs.id" class="flex gap-2 items-center bg-slate-50 p-3 rounded-lg border border-slate-200">
               <div class="flex-grow grid grid-cols-3 gap-2">
                 <div>
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Motif</label>
-                  <select v-model="abs.code" class="block w-full px-2 py-1 border border-slate-300 rounded-none text-xs bg-white select focus:outline-none focus:ring-2 focus:ring-green-500">
+                  <select v-model="abs.code" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs bg-white select focus:outline-none focus:ring-2 focus:ring-green-500">
                     <option v-for="type in absenceTypes" :key="type" :value="type">
                        {{ type }}
                     </option>
@@ -388,16 +388,16 @@ onMounted(() => {
                 </div>
                 <div>
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Nbr Heures</label>
-                  <input v-model="abs.nbr_heures" type="number" class="block w-full px-2 py-1 border border-slate-300 rounded-none text-xs font-mono" />
+                  <input v-model="abs.nbr_heures" type="number" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs font-mono" />
                 </div>
                 <div>
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Nbr Jours</label>
-                  <input v-model="abs.nbr_jours" type="number" class="block w-full px-2 py-1 border border-slate-300 rounded-none text-xs font-mono" />
+                  <input v-model="abs.nbr_jours" type="number" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs font-mono" />
                 </div>
               </div>
               <button 
                 @click="removeAbsence(abs.id)" 
-                class="mt-4 p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-none"
+                class="mt-4 p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg"
               >
                 <UIcon name="i-lucide-x" class="w-4 h-4" />
               </button>
@@ -421,23 +421,23 @@ onMounted(() => {
             Aucune heure supplémentaire à majorer.
           </div>
           <div v-else class="space-y-3">
-            <div v-for="(hs, index) in heuresSup" :key="hs.id" class="flex gap-2 items-center bg-slate-50 p-3 rounded-none border border-slate-200">
+            <div v-for="(hs, index) in heuresSup" :key="hs.id" class="flex gap-2 items-center bg-slate-50 p-3 rounded-lg border border-slate-200">
               <div class="flex-grow grid grid-cols-2 gap-2">
                 <div>
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Type Majoré</label>
-                  <select v-model="hs.code" class="block w-full px-2 py-1 border border-slate-300 rounded-none text-xs bg-white">
+                  <select v-model="hs.code" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs bg-white">
                     <option value="HS_25">HS Majorées à 25 %</option>
                     <option value="HS_50">HS Majorées à 50 %</option>
                   </select>
                 </div>
                 <div>
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Nombre d'heures</label>
-                  <input v-model="hs.nombre" type="number" class="block w-full px-2 py-1 border border-slate-300 rounded-none text-xs font-mono" />
+                  <input v-model="hs.nombre" type="number" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs font-mono" />
                 </div>
               </div>
               <button 
                 @click="removeHeureSup(hs.id)" 
-                class="mt-4 p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-none"
+                class="mt-4 p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg"
               >
                 <UIcon name="i-lucide-x" class="w-4 h-4" />
               </button>
@@ -461,19 +461,19 @@ onMounted(() => {
             Aucune prime ou indemnité ce mois-ci.
           </div>
           <div v-else class="space-y-3">
-            <div v-for="(p, index) in primes" :key="p.id" class="flex flex-col gap-2 bg-slate-50 p-3 rounded-none border border-slate-200 relative">
+            <div v-for="(p, index) in primes" :key="p.id" class="flex flex-col gap-2 bg-slate-50 p-3 rounded-lg border border-slate-200 relative">
               <div class="grid grid-cols-3 gap-2">
                 <div>
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Code</label>
-                  <input v-model="p.code" type="text" class="block w-full px-2 py-1 border border-slate-300 rounded-none text-xs font-mono" />
+                  <input v-model="p.code" type="text" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs font-mono" />
                 </div>
                 <div>
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Libellé</label>
-                  <input v-model="p.libelle" type="text" class="block w-full px-2 py-1 border border-slate-300 rounded-none text-xs" />
+                  <input v-model="p.libelle" type="text" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs" />
                 </div>
                 <div>
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Mode</label>
-                  <select v-model="p.mode" class="block w-full px-2 py-1 border border-slate-300 rounded-none text-xs bg-white">
+                  <select v-model="p.mode" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs bg-white">
                     <option value="direct">Montant Direct</option>
                     <option value="calcul">Base x Taux</option>
                   </select>
@@ -483,15 +483,15 @@ onMounted(() => {
               <div class="grid grid-cols-3 gap-2 items-end">
                 <div v-if="p.mode === 'calcul'">
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Base (FCFA)</label>
-                  <input v-model="p.base" type="number" @input="p.montant = (Number(p.base) || 0) * ((Number(p.taux) || 0) / 100)" class="block w-full px-2 py-1 border border-slate-300 rounded-none text-xs font-mono bg-white" />
+                  <input v-model="p.base" type="number" @input="p.montant = (Number(p.base) || 0) * ((Number(p.taux) || 0) / 100)" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs font-mono bg-white" />
                 </div>
                 <div v-if="p.mode === 'calcul'">
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Taux (%)</label>
-                  <input v-model="p.taux" type="number" step="0.01" @input="p.montant = (Number(p.base) || 0) * ((Number(p.taux) || 0) / 100)" class="block w-full px-2 py-1 border border-slate-300 rounded-none text-xs font-mono bg-white" />
+                  <input v-model="p.taux" type="number" step="0.01" @input="p.montant = (Number(p.base) || 0) * ((Number(p.taux) || 0) / 100)" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs font-mono bg-white" />
                 </div>
                 <div :class="p.mode === 'calcul' ? 'col-span-1' : 'col-span-3'">
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Montant (FCFA)</label>
-                  <input v-model="p.montant" type="number" :disabled="p.mode === 'calcul'" class="block w-full px-2 py-1 border border-slate-300 rounded-none text-xs font-mono bg-white disabled:bg-slate-100" />
+                  <input v-model="p.montant" type="number" :disabled="p.mode === 'calcul'" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs font-mono bg-white disabled:bg-slate-100" />
                 </div>
               </div>
               
@@ -758,7 +758,7 @@ onMounted(() => {
 
             <!-- Vacation Tracker -->
             <div class="pt-4 border-t border-slate-200 grid grid-cols-2 gap-4 text-[10px] text-slate-650">
-              <div class="bg-white border border-slate-200 rounded-none p-3 space-y-1 shadow-sm">
+              <div class="bg-white border border-slate-200 rounded-lg p-3 space-y-1 shadow-sm">
                 <span class="block font-bold text-navy-900 uppercase tracking-wider">Congés Payés</span>
                 <div class="flex justify-between font-mono">
                   <span>Acquis :</span>
@@ -773,7 +773,7 @@ onMounted(() => {
                   <span class="font-bold text-green-700">2.50</span>
                 </div>
               </div>
-              <div class="bg-white border border-slate-200 rounded-none p-3 space-y-1 shadow-sm">
+              <div class="bg-white border border-slate-200 rounded-lg p-3 space-y-1 shadow-sm">
                 <span class="block font-bold text-navy-900 uppercase tracking-wider">Logement & Congés</span>
                 <div class="flex justify-between font-mono">
                   <span>Brut Congés :</span>
@@ -790,7 +790,7 @@ onMounted(() => {
 
         </div>
 
-        <div v-else class="bg-white border border-slate-200 rounded-none p-16 text-center text-slate-500 italic text-sm shadow-sm">
+        <div v-else class="bg-white border border-slate-200 rounded-lg p-16 text-center text-slate-500 italic text-sm shadow-sm">
           Veuillez renseigner les paramètres à gauche puis cliquer sur "Lancer le calcul" pour générer la simulation du bulletin.
         </div>
 

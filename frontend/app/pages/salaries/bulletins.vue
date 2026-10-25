@@ -170,7 +170,7 @@ const handleChangePassword = async () => {
       <div>
         <button 
           @click="showPasswordForm = !showPasswordForm" 
-          class="px-4 py-2 border-2 border-slate-200 hover:bg-slate-50 text-slate-850 text-xs font-bold uppercase tracking-wider rounded-none shadow-flat transition-all cursor-pointer flex items-center gap-1.5"
+          class="px-4 py-2 border-2 border-slate-200 hover:bg-slate-50 text-slate-850 text-xs font-bold uppercase tracking-wider rounded-lg shadow-flat transition-all cursor-pointer flex items-center gap-1.5"
         >
           <UIcon name="i-lucide-key" class="w-4 h-4 text-navy-700" />
           {{ showPasswordForm ? "Masquer le formulaire" : "Modifier mon mot de passe" }}
@@ -184,21 +184,21 @@ const handleChangePassword = async () => {
       <form @submit.prevent="handleChangePassword" class="space-y-4">
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Mot de passe actuel</label>
-          <input v-model="oldPassword" type="password" placeholder="Saisir l'ancien mot de passe" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white" required />
+          <input v-model="oldPassword" type="password" placeholder="Saisir l'ancien mot de passe" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white" required />
           <p class="text-[10px] text-amber-600 font-semibold mt-1">
             Lors de votre première connexion, utilisez le mot de passe provisoire communiqué par votre gestionnaire.
           </p>
         </div>
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Nouveau mot de passe</label>
-          <input v-model="newPassword" type="password" placeholder="Au moins 8 caractères" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white" required />
+          <input v-model="newPassword" type="password" placeholder="Au moins 8 caractères" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white" required />
         </div>
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Confirmer le nouveau mot de passe</label>
-          <input v-model="confirmPassword" type="password" placeholder="Ressaisir le nouveau mot de passe" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white" required />
+          <input v-model="confirmPassword" type="password" placeholder="Ressaisir le nouveau mot de passe" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white" required />
         </div>
         <div class="flex justify-end pt-2">
-          <button type="submit" :disabled="changingPassword" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-bold uppercase tracking-wider rounded-none shadow-flat transition-colors cursor-pointer disabled:bg-slate-300">
+          <button type="submit" :disabled="changingPassword" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-flat transition-colors cursor-pointer disabled:bg-slate-300">
             {{ changingPassword ? "Enregistrement..." : "Enregistrer" }}
           </button>
         </div>
@@ -210,7 +210,7 @@ const handleChangePassword = async () => {
       
       <!-- Left Column: Bulletins List (2/3 width) -->
       <div class="lg:col-span-2 space-y-6">
-        <div class="bg-white border-2 border-slate-200 shadow-flat rounded-none">
+        <div class="bg-white border-2 border-slate-200 shadow-flat rounded-lg">
           <!-- Table Header -->
           <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50/50">
             <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider">Mes Bulletins de Salaire</h2>
@@ -249,7 +249,7 @@ const handleChangePassword = async () => {
                     {{ formatXOF(b.net_a_payer) }}
                   </td>
                   <td class="px-6 py-4 text-center">
-                    <span class="inline-block px-2.5 py-0.5 text-[9px] font-black uppercase border rounded-none tracking-wider"
+                    <span class="inline-block px-2.5 py-0.5 text-[9px] font-black uppercase border rounded-lg tracking-wider"
                       :class="[
                         b.statut === 'valide'
                           ? 'bg-green-50 border-green-300 text-green-700'
@@ -262,13 +262,13 @@ const handleChangePassword = async () => {
                   <td class="px-6 py-4 text-center space-x-2">
                     <button 
                       @click="handlePreview(b)" 
-                      class="px-2.5 py-1 text-[11px] font-bold uppercase bg-slate-50 border-2 border-slate-200 text-slate-800 hover:bg-slate-100 rounded-none shadow-sm transition-colors cursor-pointer"
+                      class="px-2.5 py-1 text-[11px] font-bold uppercase bg-slate-50 border-2 border-slate-200 text-slate-800 hover:bg-slate-100 rounded-lg shadow-sm transition-colors cursor-pointer"
                     >
                       Visualiser
                     </button>
                     <button 
                       @click="handleOpenClaimModal(b)" 
-                      class="px-2.5 py-1 text-[11px] font-bold uppercase bg-red-50 border-2 border-red-200 text-red-700 hover:bg-red-100 rounded-none shadow-sm transition-colors cursor-pointer"
+                      class="px-2.5 py-1 text-[11px] font-bold uppercase bg-red-50 border-2 border-red-200 text-red-700 hover:bg-red-100 rounded-lg shadow-sm transition-colors cursor-pointer"
                     >
                       Réclamation
                     </button>
@@ -282,7 +282,7 @@ const handleChangePassword = async () => {
 
       <!-- Right Column: Claims History (1/3 width) -->
       <div class="space-y-6">
-        <div class="bg-white border-2 border-slate-200 shadow-flat rounded-none">
+        <div class="bg-white border-2 border-slate-200 shadow-flat rounded-lg">
           <!-- Claims Header -->
           <div class="px-6 py-4 border-b border-slate-200 bg-slate-50/50">
             <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider">Suivi de mes réclamations</h2>
@@ -299,7 +299,7 @@ const handleChangePassword = async () => {
             <div v-for="c in claims" :key="c.id" class="p-4 space-y-2 text-xs">
               <div class="flex justify-between items-start">
                 <span class="font-bold text-slate-800 uppercase leading-snug">{{ c.sujet }}</span>
-                <span class="px-2 py-0.5 text-[8px] font-black uppercase border rounded-none tracking-widest"
+                <span class="px-2 py-0.5 text-[8px] font-black uppercase border rounded-lg tracking-widest"
                   :class="[
                     c.statut === 'en_attente' ? 'bg-amber-50 border-amber-300 text-amber-700' :
                     c.statut === 'traite' ? 'bg-green-50 border-green-300 text-green-700' :
@@ -324,14 +324,14 @@ const handleChangePassword = async () => {
     <!-- Modal: View Payslip -->
     <UModal v-model:open="previewModalOpen" title="Visualiser le bulletin">
       <template #content>
-        <div v-if="selectedBulletin" class="p-6 space-y-4 bg-slate-50 border border-slate-200 max-h-[85vh] overflow-y-auto w-full max-w-4xl">
+        <div v-if="selectedBulletin" class="p-6 space-y-4 rounded-xl bg-slate-50 border border-slate-200 max-h-[85vh] overflow-y-auto w-full max-w-4xl">
           <div class="flex justify-between items-center border-b border-slate-200 pb-2">
             <h2 class="text-md font-bold text-navy-900 uppercase">Aperçu du bulletin de paie</h2>
             <button @click="previewModalOpen = false" class="text-slate-500 hover:text-slate-800 font-bold text-sm">Fermer</button>
           </div>
 
           <!-- Payslip layout copied from the admin bulletin page -->
-          <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat text-slate-800 border-t-4 border-t-navy-900 max-w-3xl mx-auto">
+          <div class="bg-white border-2 border-slate-200 rounded-lg p-6 shadow-flat text-slate-800 border-t-4 border-t-navy-900 max-w-3xl mx-auto">
             <!-- Top columns: Employer / Employee -->
             <div class="grid grid-cols-2 gap-8 border-b-2 border-slate-200 pb-6 text-xs">
               <div class="space-y-1">
@@ -341,7 +341,7 @@ const handleChangePassword = async () => {
                 </p>
               </div>
               <div class="space-y-2">
-                <div class="bg-slate-50 border-2 border-slate-200 rounded-none p-3 space-y-1.5 shadow-flat">
+                <div class="bg-slate-50 border-2 border-slate-200 rounded-lg p-3 space-y-1.5 shadow-flat">
                   <div class="flex justify-between border-b border-slate-200 pb-1">
                     <span class="font-bold text-slate-900 uppercase">{{ user?.user_metadata?.first_name }} {{ user?.user_metadata?.last_name?.toUpperCase() }}</span>
                   </div>
@@ -356,7 +356,7 @@ const handleChangePassword = async () => {
             </div>
 
             <!-- Metadata period bar -->
-            <div class="my-4 py-3 px-4 bg-slate-50 border-2 border-slate-200 rounded-none flex justify-between items-center text-xs font-semibold shadow-flat">
+            <div class="my-4 py-3 px-4 bg-slate-50 border-2 border-slate-200 rounded-lg flex justify-between items-center text-xs font-semibold shadow-flat">
               <div>
                 <span>PÉRIODE : </span>
                 <span class="font-bold text-slate-900 uppercase">{{ getPeriodLabel(selectedBulletin.mois, selectedBulletin.annee) }}</span>
@@ -368,7 +368,7 @@ const handleChangePassword = async () => {
             </div>
 
             <!-- Pay lines table -->
-            <div class="overflow-x-auto border-2 border-slate-200 rounded-none shadow-flat">
+            <div class="overflow-x-auto border-2 border-slate-200 rounded-lg shadow-flat">
               <table class="min-w-full divide-y divide-slate-250 text-xs">
                 <thead class="bg-slate-100 text-slate-650 font-bold uppercase tracking-wider text-[8px] border-b-2 border-slate-200">
                   <tr>
@@ -462,25 +462,25 @@ const handleChangePassword = async () => {
     <!-- Modal: Make a Claim -->
     <UModal v-model:open="claimModalOpen" title="Créer une réclamation">
       <template #content>
-        <div class="p-6 space-y-4 bg-white border border-slate-200 max-w-md mx-auto">
+        <div class="p-6 space-y-4 rounded-xl bg-white border border-slate-200 max-w-md mx-auto">
           <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Déposer une réclamation</h2>
           
           <div class="space-y-3">
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Sujet de la réclamation</label>
-              <input v-model="claimSujet" type="text" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white" required />
+              <input v-model="claimSujet" type="text" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white" required />
             </div>
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Description détaillée de votre demande</label>
-              <textarea v-model="claimDescription" rows="4" placeholder="Expliquez en détail l'anomalie ou l'erreur constatée sur votre bulletin..." class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white" required></textarea>
+              <textarea v-model="claimDescription" rows="4" placeholder="Expliquez en détail l'anomalie ou l'erreur constatée sur votre bulletin..." class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white" required></textarea>
             </div>
           </div>
 
           <div class="flex justify-end space-x-3 pt-4 border-t border-slate-200">
-            <button type="button" @click="claimModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-xs font-bold rounded-none hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
+            <button type="button" @click="claimModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-xs font-bold rounded-lg hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
               Annuler
             </button>
-            <button type="button" @click="handleSendClaim" :disabled="submittingClaim" class="px-4 py-2 text-xs font-bold bg-green-600 hover:bg-green-700 text-white rounded-none shadow-flat transition-colors uppercase tracking-wider cursor-pointer disabled:bg-slate-300">
+            <button type="button" @click="handleSendClaim" :disabled="submittingClaim" class="px-4 py-2 text-xs font-bold bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-flat transition-colors uppercase tracking-wider cursor-pointer disabled:bg-slate-300">
               {{ submittingClaim ? "Envoi..." : "Envoyer la réclamation" }}
             </button>
           </div>

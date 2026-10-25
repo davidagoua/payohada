@@ -434,7 +434,7 @@ onMounted(() => {
           <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
             <tr>
               <th scope="col" class="px-4 py-3 text-left w-10">
-                <input type="checkbox" v-model="allBulletinsSelected" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+                <input type="checkbox" v-model="allBulletinsSelected" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
               </th>
               <th scope="col" class="px-6 py-3 text-left">Employé</th>
               <th scope="col" class="px-6 py-3 text-left">N° Contrat / Poste</th>
@@ -447,7 +447,7 @@ onMounted(() => {
           <tbody class="divide-y divide-slate-150 bg-white">
             <tr v-for="c in contracts" :key="c.id" class="hover:bg-slate-50 transition-colors">
               <td class="px-4 py-4" @click.stop>
-                <input type="checkbox" :value="c.id" v-model="selectedBulletins" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+                <input type="checkbox" :value="c.id" v-model="selectedBulletins" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
               </td>
 
               <!-- Employee Column -->

@@ -183,7 +183,7 @@ onMounted(charger)
               v-model="form.date_debut"
               type="date"
               required
-              class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white"
+              class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white"
             >
           </div>
           <div>
@@ -192,7 +192,7 @@ onMounted(charger)
               v-model="form.date_fin"
               type="date"
               required
-              class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white"
+              class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white"
             >
           </div>
           <div class="sm:col-span-2">
@@ -202,7 +202,7 @@ onMounted(charger)
               type="text"
               maxlength="1000"
               placeholder="Congés annuels, événement familial…"
-              class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white"
+              class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white"
             >
           </div>
           <div class="sm:col-span-2 flex flex-wrap items-center justify-between gap-3">

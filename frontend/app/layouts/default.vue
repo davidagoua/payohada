@@ -272,21 +272,21 @@ const handleLogout = async () => {
             <template v-if="activeSpace === 'salarie'">
               <NuxtLink
                 to="/salaries/bulletins"
-                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 rounded-t-lg border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
                 active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"
               >
                 Mes Bulletins
               </NuxtLink>
               <NuxtLink
                 to="/salaries/conges"
-                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 rounded-t-lg border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
                 active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"
               >
                 Mes Congés
               </NuxtLink>
               <NuxtLink
                 to="/salaries/acomptes"
-                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 rounded-t-lg border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
                 active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"
               >
                 Mes Acomptes
@@ -297,42 +297,42 @@ const handleLogout = async () => {
             <template v-else-if="activeSpace === 'client'">
               <NuxtLink
                 to="/client"
-                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 rounded-t-lg border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
                 exact-active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"
               >
                 Tableau de bord
               </NuxtLink>
               <NuxtLink
                 to="/client/variables"
-                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 rounded-t-lg border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
                 active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"
               >
                 Saisie des Variables
               </NuxtLink>
               <NuxtLink
                 to="/client/bulletins"
-                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 rounded-t-lg border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
                 active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"
               >
                 Bulletins de Paie
               </NuxtLink>
               <NuxtLink
                 to="/client/salaries"
-                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 rounded-t-lg border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
                 active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"
               >
                 Personnel
               </NuxtLink>
               <NuxtLink
                 to="/client/demandes"
-                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 rounded-t-lg border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
                 active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"
               >
                 Demandes
               </NuxtLink>
               <NuxtLink
                 to="/client/reclamations"
-                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 rounded-t-lg border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
                 active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"
               >
                 Réclamations
@@ -343,21 +343,21 @@ const handleLogout = async () => {
             <template v-else-if="!routeInfo.isEtabSelected">
               <NuxtLink
                 to="/dossiers"
-                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 rounded-t-lg border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
                 active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"
               >
                 Entreprises
               </NuxtLink>
               <NuxtLink
                 to="/simulation"
-                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 rounded-t-lg border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
                 active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"
               >
                 Simulateur de Paie
               </NuxtLink>
               <NuxtLink
                 to="/admin/reclamations"
-                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 rounded-t-lg border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
                 active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"
               >
                 Réclamations
@@ -365,7 +365,7 @@ const handleLogout = async () => {
               <NuxtLink
                 v-if="isAdmin"
                 to="/admin"
-                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 rounded-t-lg border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
                 active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"
               >
                 Administration
@@ -376,9 +376,9 @@ const handleLogout = async () => {
             <template v-else>
               <NuxtLink
                 :to="`/dossiers/${routeInfo.dossierId}/etablissements/${routeInfo.etabId}?tab=sals`"
-                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 text-xs font-bold uppercase tracking-wider transition-all"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 rounded-t-lg border-b-2 text-xs font-bold uppercase tracking-wider transition-all"
                 :class="[
-                  (!route.query.tab || route.query.tab === 'sals')
+                  (!route.path.endsWith('/editions') && (!route.query.tab || route.query.tab === 'sals'))
                     ? 'border-b-green-600 text-navy-900 bg-white font-bold'
                     : 'border-transparent text-slate-300 hover:text-white hover:bg-white/5'
                 ]"
@@ -387,7 +387,7 @@ const handleLogout = async () => {
               </NuxtLink>
               <NuxtLink
                 :to="`/dossiers/${routeInfo.dossierId}/etablissements/${routeInfo.etabId}?tab=contrats`"
-                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 text-xs font-bold uppercase tracking-wider transition-all"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 rounded-t-lg border-b-2 text-xs font-bold uppercase tracking-wider transition-all"
                 :class="[
                   route.query.tab === 'contrats'
                     ? 'border-b-green-600 text-navy-900 bg-white font-bold'
@@ -398,7 +398,7 @@ const handleLogout = async () => {
               </NuxtLink>
               <NuxtLink
                 :to="`/dossiers/${routeInfo.dossierId}/etablissements/${routeInfo.etabId}?tab=bulletins`"
-                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 text-xs font-bold uppercase tracking-wider transition-all"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 rounded-t-lg border-b-2 text-xs font-bold uppercase tracking-wider transition-all"
                 :class="[
                   route.query.tab === 'bulletins'
                     ? 'border-b-green-600 text-navy-900 bg-white font-bold'
@@ -409,7 +409,7 @@ const handleLogout = async () => {
               </NuxtLink>
               <NuxtLink
                 :to="`/dossiers/${routeInfo.dossierId}/etablissements/${routeInfo.etabId}?tab=infos`"
-                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 text-xs font-bold uppercase tracking-wider transition-all"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 rounded-t-lg border-b-2 text-xs font-bold uppercase tracking-wider transition-all"
                 :class="[
                   route.query.tab === 'infos'
                     ? 'border-b-green-600 text-navy-900 bg-white font-bold'
@@ -423,7 +423,7 @@ const handleLogout = async () => {
                    le chemin et non sur le paramètre « tab ». -->
               <NuxtLink
                 :to="`/dossiers/${routeInfo.dossierId}/etablissements/${routeInfo.etabId}/editions`"
-                class="px-4 py-3.5 whitespace-nowrap shrink-0 border-b-2 text-xs font-bold uppercase tracking-wider transition-all"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 rounded-t-lg border-b-2 text-xs font-bold uppercase tracking-wider transition-all"
                 :class="[
                   route.path.endsWith('/editions')
                     ? 'border-b-green-600 text-navy-900 bg-white font-bold'

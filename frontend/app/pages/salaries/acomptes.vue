@@ -139,14 +139,14 @@ onMounted(charger)
               step="1"
               required
               placeholder="50 000"
-              class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white"
+              class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white"
             >
           </div>
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Mois de paie</label>
             <select
               v-model.number="form.mois"
-              class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white"
+              class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white"
             >
               <option
                 v-for="(libelle, index) in MOIS"
@@ -161,7 +161,7 @@ onMounted(charger)
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Année</label>
             <select
               v-model.number="form.annee"
-              class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white"
+              class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white"
             >
               <option
                 v-for="annee in annees"
@@ -179,7 +179,7 @@ onMounted(charger)
               type="text"
               maxlength="1000"
               placeholder="Frais imprévus, rentrée scolaire…"
-              class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white"
+              class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white"
             >
           </div>
           <div class="sm:col-span-3 flex justify-end">

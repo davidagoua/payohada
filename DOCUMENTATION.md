@@ -647,7 +647,9 @@ Reste à faire pour ce lot : le contrôle du solde de congés à la validation.
 #### Interface : style Carbon (IBM) et duo de marque vert / bleu encre
 Le vocabulaire visuel suit l'**IBM Carbon Design System**. Le logo associe deux
 couleurs : le **vert**, couleur primaire d'action, et le **bleu encre `#01173a`**,
-couleur de structure. Les rayons restent nuls. Les jetons vivent dans
+couleur de structure. À la demande du client, les **rayons sont adoucis** :
+échelle `rounded-xs` (4 px) à `rounded-4xl` (32 px), `rounded-lg` (10 px) pour
+les cartes, champs et boutons. Les jetons vivent dans
 `frontend/app/assets/css/main.css` ; la règle d'attribution complète est écrite
 dans [`docs/CHARTE_GRAPHIQUE.md`](docs/CHARTE_GRAPHIQUE.md).
 
@@ -668,6 +670,7 @@ dans [`docs/CHARTE_GRAPHIQUE.md`](docs/CHARTE_GRAPHIQUE.md).
 | Couleur secondaire | Échelle `navy-50 → navy-950` exposée en utilitaires Tailwind ; `secondary` et `info` de Nuxt UI pointent sur `navy`, ce qui aligne `UBadge`, `UButton` et les notifications. |
 | Focus | Contour de 2 px dans la couleur d'action (vert), à l'intérieur de l'élément — défini une seule fois, globalement. |
 | Relief | L'ombre décalée d'origine est remplacée par un relief plat. Carbon sépare par des filets, non par des ombres. |
+| Rayons | Interface arrondie : `--radius-lg` = 10 px (cartes, champs, boutons), `--radius-xl` = 12 px (grandes surfaces), `--radius-2xl` = 16 px (modales), `--ui-radius` = 8 px pour Nuxt UI. L'impression remet des angles droits. |
 | Composants Nuxt UI | Les jetons sémantiques (`--ui-bg`, `--ui-text`, `--ui-border`…) sont alignés sur Carbon, ce qui habille `UButton`, `UInput`, `UCard` et `UModal` sans les toucher. Les surcharges sont limitées au mode clair (`:root:not(.dark)`) pour préserver la palette sombre. |
 
 Classes maison ajoutées : `.carbon-tile`, `.carbon-label`, `.carbon-helper`,

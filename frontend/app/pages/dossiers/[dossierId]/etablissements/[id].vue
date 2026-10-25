@@ -1291,13 +1291,13 @@ onMounted(async () => {
       <form @submit.prevent="handleUpdateEtab" class="space-y-6">
 
         <!-- Main Form -->
-        <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
+        <div class="bg-white border-2 border-slate-200 rounded-lg p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
           <h3 class="text-sm font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Profil Établissement</h3>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Code Établissement</label>
-              <input v-model="etabCode" type="text" disabled class="mt-1 block w-full px-3 py-2 border border-slate-200 rounded-none text-sm font-mono bg-slate-50 text-slate-450 cursor-not-allowed focus:outline-none" />
+              <input v-model="etabCode" type="text" disabled class="mt-1 block w-full px-3 py-2 border border-slate-200 rounded-lg text-sm font-mono bg-slate-50 text-slate-450 cursor-not-allowed focus:outline-none" />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Raison Sociale</label>
@@ -1305,7 +1305,7 @@ onMounted(async () => {
                 v-model="etabNom"
                 type="text"
                 :class="[
-                  'mt-1 block w-full px-3 py-2 border rounded-none text-sm transition-colors focus:ring-green-500 focus:border-green-500 bg-white',
+                  'mt-1 block w-full px-3 py-2 border rounded-lg text-sm transition-colors focus:ring-green-500 focus:border-green-500 bg-white',
                   fieldErrors.raison_sociale ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
                 ]"
               />
@@ -1318,7 +1318,7 @@ onMounted(async () => {
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Secteur d'activité</label>
               <select
                 v-model="etabSecteurId"
-                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 w-full"
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 w-full"
               >
                 <option :value="null">-- Aucun secteur sélectionné --</option>
                 <option v-for="s in secteurs" :key="s.id" :value="s.id">{{ s.nom }}</option>
@@ -1333,7 +1333,7 @@ onMounted(async () => {
                 v-model="etabSigle"
                 type="text"
                 placeholder="Ex: ACME"
-                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
@@ -1342,7 +1342,7 @@ onMounted(async () => {
                 v-model="etabNumeroRccm"
                 type="text"
                 placeholder="Ex: CI-ABJ-01-202X-B12..."
-                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
@@ -1350,50 +1350,50 @@ onMounted(async () => {
               <input
                 v-model="etabDateCreation"
                 type="date"
-                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
           </div>
 
           <div class="flex items-center space-x-2 pt-2">
-            <input id="is-principal" v-model="etabPrincipal" type="checkbox" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+            <input id="is-principal" v-model="etabPrincipal" type="checkbox" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
             <label for="is-principal" class="text-sm font-bold text-slate-700 uppercase tracking-wider">Établissement Principal du dossier</label>
           </div>
         </div>
 
         <!-- Address Sub-form -->
-        <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
+        <div class="bg-white border-2 border-slate-200 rounded-lg p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
           <h3 class="text-sm font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Adresse de l'Établissement</h3>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="md:col-span-2">
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Voie / Rue</label>
-              <input v-model="addrVoie" type="text" placeholder="Ex: 15 Rue de la Paix" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
+              <input v-model="addrVoie" type="text" placeholder="Ex: 15 Rue de la Paix" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Complément d'adresse</label>
-              <input v-model="addrVoie2" type="text" placeholder="Bâtiment, escalier..." class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
+              <input v-model="addrVoie2" type="text" placeholder="Bâtiment, escalier..." class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Code Postal</label>
-              <input v-model="addrCode" type="text" placeholder="75001" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <input v-model="addrCode" type="text" placeholder="75001" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Ville</label>
-              <input v-model="addrVille" type="text" placeholder="Paris" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
+              <input v-model="addrVille" type="text" placeholder="Paris" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Pays</label>
-              <input v-model="addrPays" type="text" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
+              <input v-model="addrPays" type="text" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
           </div>
         </div>
 
         <!-- Detailed Physical Address & Contacts Section -->
-        <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
+        <div class="bg-white border-2 border-slate-200 rounded-lg p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
           <h3 class="text-sm font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Adresse physique détaillée & Contacts (Côte d'Ivoire / Local)</h3>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -1403,7 +1403,7 @@ onMounted(async () => {
                 v-model="etabAdressePays"
                 type="text"
                 placeholder="Ex: COTE D'IVOIRE"
-                class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
+                class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
@@ -1412,7 +1412,7 @@ onMounted(async () => {
                 v-model="etabAdresseCommune"
                 type="text"
                 placeholder="Ex: Cocody"
-                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
@@ -1421,7 +1421,7 @@ onMounted(async () => {
                 v-model="etabAdresseQuartier"
                 type="text"
                 placeholder="Ex: Angré"
-                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
           </div>
@@ -1433,7 +1433,7 @@ onMounted(async () => {
                 v-model="etabAdresseRue"
                 type="text"
                 placeholder="Ex: Rue des Banques"
-                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
@@ -1442,7 +1442,7 @@ onMounted(async () => {
                 v-model="etabAdresseIlot"
                 type="text"
                 placeholder="Ex: 12"
-                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
@@ -1451,7 +1451,7 @@ onMounted(async () => {
                 v-model="etabAdresseLot"
                 type="text"
                 placeholder="Ex: 45"
-                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
           </div>
@@ -1462,7 +1462,7 @@ onMounted(async () => {
               v-model="etabAdresseLocalisation"
               rows="2"
               placeholder="Ex: Non loin du rond-point, face à la pharmacie..."
-              class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
+              class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white"
             ></textarea>
           </div>
 
@@ -1473,7 +1473,7 @@ onMounted(async () => {
                 v-model="etabAdressePostale"
                 type="text"
                 placeholder="Ex: BP 123 Abidjan"
-                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
@@ -1482,7 +1482,7 @@ onMounted(async () => {
                 v-model="etabTelephone"
                 type="text"
                 placeholder="Ex: +225 07 00 00 00 00"
-                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
@@ -1491,7 +1491,7 @@ onMounted(async () => {
                 v-model="etabFax"
                 type="text"
                 placeholder="Ex: +225 27 00 00 00 00"
-                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
           </div>
@@ -1503,7 +1503,7 @@ onMounted(async () => {
                 v-model="etabEmail"
                 type="email"
                 placeholder="Ex: contact@entreprise.com"
-                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
@@ -1512,35 +1512,35 @@ onMounted(async () => {
                 v-model="etabSiteWeb"
                 type="url"
                 placeholder="Ex: https://www.entreprise.com"
-                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white"
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
           </div>
         </div>
 
         <!-- Bank Sub-form -->
-        <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
+        <div class="bg-white border-2 border-slate-200 rounded-lg p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
           <h3 class="text-sm font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Informations Bancaires de l'Établissement</h3>
 
           <div class="flex items-center space-x-2 pb-2">
-            <input id="bank-virement" v-model="bankVirement" type="checkbox" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+            <input id="bank-virement" v-model="bankVirement" type="checkbox" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
             <label for="bank-virement" class="text-sm font-bold text-slate-700 uppercase tracking-wider">Autoriser le virement SEPA</label>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">IBAN</label>
-              <input v-model="bankIban" type="text" placeholder="FR76..." class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <input v-model="bankIban" type="text" placeholder="FR76..." class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Code BIC (Swift)</label>
-              <input v-model="bankBic" type="text" placeholder="Ex: UBAFRPP..." class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <input v-model="bankBic" type="text" placeholder="Ex: UBAFRPP..." class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
           </div>
         </div>
 
         <!-- CNPS Sub-form -->
-        <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
+        <div class="bg-white border-2 border-slate-200 rounded-lg p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
           <h3 class="text-sm font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Caisse Nationale de prévoyance sociale - CNPS</h3>
 
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -1550,7 +1550,7 @@ onMounted(async () => {
                 v-model="cnpsMatricule"
                 type="text"
                 :class="[
-                  'mt-1 block w-full px-3 py-2 border rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
+                  'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
                   fieldErrors.cnps_matricule ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
                 ]"
               />
@@ -1562,7 +1562,7 @@ onMounted(async () => {
                 v-model="cnpsCodeActivite"
                 type="text"
                 :class="[
-                  'mt-1 block w-full px-3 py-2 border rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
+                  'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
                   fieldErrors.cnps_code_activite ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
                 ]"
               />
@@ -1574,7 +1574,7 @@ onMounted(async () => {
                 v-model="cnpsCodeAgence"
                 type="text"
                 :class="[
-                  'mt-1 block w-full px-3 py-2 border rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
+                  'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
                   fieldErrors.cnps_code_agence ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
                 ]"
               />
@@ -1586,7 +1586,7 @@ onMounted(async () => {
                 v-model="cnpsCodeEtablissement"
                 type="text"
                 :class="[
-                  'mt-1 block w-full px-3 py-2 border rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
+                  'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
                   fieldErrors.cnps_code_etablissement ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
                 ]"
               />
@@ -1600,7 +1600,7 @@ onMounted(async () => {
               v-model="cnpsAgenceRattachement"
               type="text"
               :class="[
-                'mt-1 block w-full px-3 py-2 border rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
+                'mt-1 block w-full px-3 py-2 border rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
                 fieldErrors.cnps_agence_rattachement ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
               ]"
             />
@@ -1610,7 +1610,7 @@ onMounted(async () => {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Périodicité de paiement - CNPS</label>
-              <select v-model="cnpsPeriodicitePaiement" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white select">
+              <select v-model="cnpsPeriodicitePaiement" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white select">
                 <option value="Mensuelle">Mensuelle</option>
                 <option value="Trimestrielle">Trimestrielle</option>
                 <option value="Annuelle">Annuelle</option>
@@ -1618,7 +1618,7 @@ onMounted(async () => {
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Périodicité de paiement - CMU</label>
-              <select v-model="cmuPeriodicitePaiement" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white select">
+              <select v-model="cmuPeriodicitePaiement" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white select">
                 <option value="Mensuelle">Mensuelle</option>
                 <option value="Trimestrielle">Trimestrielle</option>
                 <option value="Annuelle">Annuelle</option>
@@ -1628,7 +1628,7 @@ onMounted(async () => {
         </div>
 
         <!-- DGI Sub-form -->
-        <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
+        <div class="bg-white border-2 border-slate-200 rounded-lg p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
           <h3 class="text-sm font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Direction générale des impôts - DGI</h3>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -1638,7 +1638,7 @@ onMounted(async () => {
                 v-model="dgiCompteContribuable"
                 type="text"
                 :class="[
-                  'mt-1 block w-full px-3 py-2 border rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
+                  'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
                   fieldErrors.dgi_compte_contribuable ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
                 ]"
               />
@@ -1650,7 +1650,7 @@ onMounted(async () => {
                 v-model="dgiCentreImpots"
                 type="text"
                 :class="[
-                  'mt-1 block w-full px-3 py-2 border rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
+                  'mt-1 block w-full px-3 py-2 border rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
                   fieldErrors.dgi_centre_impots ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
                 ]"
               />
@@ -1661,7 +1661,7 @@ onMounted(async () => {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Périodicité des déclarations</label>
-              <select v-model="dgiPeriodiciteDeclaration" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white select">
+              <select v-model="dgiPeriodiciteDeclaration" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white select">
                 <option value="Mensuelle">Mensuelle</option>
                 <option value="Trimestrielle">Trimestrielle</option>
                 <option value="Annuelle">Annuelle</option>
@@ -1669,7 +1669,7 @@ onMounted(async () => {
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Régime fiscal par défaut</label>
-              <select v-model="dgiRegimeFiscal" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white select">
+              <select v-model="dgiRegimeFiscal" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white select">
                 <option value="Régime général">Régime général</option>
                 <option value="Régime simplifié">Régime simplifié</option>
                 <option value="Impôt synthétique">Impôt synthétique</option>
@@ -1679,7 +1679,7 @@ onMounted(async () => {
         </div>
 
         <!-- DFE : Document Fiscal d'Entreprise -->
-        <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
+        <div class="bg-white border-2 border-slate-200 rounded-lg p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
           <h3 class="text-sm font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">DFE — Document Fiscal d'Entreprise</h3>
           <p class="text-xs text-slate-500">
             Repris de la liasse DGI. Le n° de compte contribuable se saisit plus haut, dans les informations DGI.
@@ -1689,16 +1689,16 @@ onMounted(async () => {
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Code CDI</label>
               <input v-model="dfeCodeCdi" type="text" maxlength="10" placeholder="Ex : 611"
-                     class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono bg-white" />
+                     class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono bg-white" />
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Code activité (DFE)</label>
               <input v-model="dfeCodeActivite" type="text" maxlength="20" placeholder="Ex : CCE0802"
-                     class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono bg-white" />
+                     class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono bg-white" />
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Régime d'imposition</label>
-              <select v-model="dfeRegimeImposition" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white select">
+              <select v-model="dfeRegimeImposition" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white select">
                 <option value="">-- Non précisé --</option>
                 <option value="RNI">RNI</option>
                 <option value="RSI">RSI</option>
@@ -1709,7 +1709,7 @@ onMounted(async () => {
           </div>
 
           <div class="flex items-center space-x-2">
-            <input id="edit-dfe-employeur" v-model="dfeEstEmployeur" type="checkbox" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+            <input id="edit-dfe-employeur" v-model="dfeEstEmployeur" type="checkbox" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
             <label for="edit-dfe-employeur" class="text-sm font-semibold text-slate-700 uppercase tracking-wider">Employeur</label>
           </div>
 
@@ -1718,7 +1718,7 @@ onMounted(async () => {
             <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               <label v-for="obligation in OBLIGATIONS_FISCALES" :key="obligation.code" class="flex items-center gap-2 text-sm text-slate-700">
                 <input v-model="dfeObligations" type="checkbox" :value="obligation.code"
-                       class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+                       class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
                 {{ obligation.libelle }}
               </label>
             </div>
@@ -1726,7 +1726,7 @@ onMounted(async () => {
         </div>
 
         <!-- Payroll, HR & Matricule Settings Section -->
-        <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
+        <div class="bg-white border-2 border-slate-200 rounded-lg p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
           <h3 class="text-sm font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Paramètres de Paie, RH & Matricules</h3>
 
           <div>
@@ -1735,14 +1735,14 @@ onMounted(async () => {
               v-model="etabAdresseBulletinPaie"
               rows="2"
               placeholder="Ex: Siège Social - Abidjan, Cocody..."
-              class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white focus:ring-green-500 focus:border-green-500"
+              class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white focus:ring-green-500 focus:border-green-500"
             ></textarea>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Mode de décompte ancienneté</label>
-              <select v-model="etabModeDecompteAnciennete" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white select focus:ring-green-500 focus:border-green-500">
+              <select v-model="etabModeDecompteAnciennete" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white select focus:ring-green-500 focus:border-green-500">
                 <option value="Date anniversaire de la date d'entrée">Date anniversaire de la date d'entrée</option>
                 <option value="Année civile">Année civile</option>
               </select>
@@ -1754,12 +1754,12 @@ onMounted(async () => {
                 type="number"
                 min="1"
                 max="12"
-                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white focus:ring-green-500 focus:border-green-500"
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white focus:ring-green-500 focus:border-green-500"
               />
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Mode de gestion du solde congés</label>
-              <select v-model="etabCongesModeGestionSolde" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white select focus:ring-green-500 focus:border-green-500">
+              <select v-model="etabCongesModeGestionSolde" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white select focus:ring-green-500 focus:border-green-500">
                 <option value="Jours calendaires">Jours calendaires</option>
                 <option value="Jours ouvrables">Jours ouvrables</option>
                 <option value="Jours ouvrés">Jours ouvrés</option>
@@ -1769,18 +1769,18 @@ onMounted(async () => {
 
           <div class="space-y-4 pt-2">
             <div class="flex items-center space-x-2">
-              <input id="edit-matricule-auto" v-model="etabMatriculeGenerationAuto" type="checkbox" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+              <input id="edit-matricule-auto" v-model="etabMatriculeGenerationAuto" type="checkbox" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
               <label for="edit-matricule-auto" class="text-sm font-bold text-slate-700 uppercase tracking-wider">Génération automatique des matricules salariés</label>
             </div>
 
-            <div v-if="etabMatriculeGenerationAuto" class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-50 p-4 border border-slate-200 rounded-none">
+            <div v-if="etabMatriculeGenerationAuto" class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-50 p-4 border border-slate-200 rounded-lg">
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Préfixe matricule</label>
                 <input
                   v-model="etabMatriculePrefixe"
                   type="text"
                   placeholder="Ex: EMP-"
-                  class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white"
+                  class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white"
                 />
               </div>
               <div>
@@ -1789,7 +1789,7 @@ onMounted(async () => {
                   v-model="etabMatriculeSuffixe"
                   type="text"
                   placeholder="Ex: -CI"
-                  class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white"
+                  class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white"
                 />
               </div>
               <div>
@@ -1798,7 +1798,7 @@ onMounted(async () => {
                   v-model="etabMatriculeNumeroSequentiel"
                   type="text"
                   placeholder="Ex: 001"
-                  class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white"
+                  class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white"
                 />
               </div>
             </div>
@@ -1806,14 +1806,14 @@ onMounted(async () => {
         </div>
 
         <div class="flex justify-end">
-          <button type="submit" class="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-none shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
+          <button type="submit" class="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
             Enregistrer toutes les modifications
           </button>
         </div>
       </form>
 
       <!-- Caisses de Cotisation Section (Fused at the bottom of General Info) -->
-      <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat border-t-4 border-t-navy-900">
+      <div class="bg-white border-2 border-slate-200 rounded-lg p-6 shadow-flat border-t-4 border-t-navy-900">
         <div class="flex justify-between items-center border-b border-slate-200 pb-4 mb-4">
           <div>
             <h3 class="text-lg font-bold text-navy-900 uppercase tracking-wider">Caisses de Cotisation</h3>
@@ -1821,7 +1821,7 @@ onMounted(async () => {
           </div>
           <button
             @click="caisseModalOpen = true"
-            class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-none text-xs transition-colors flex items-center gap-1.5 shadow-flat uppercase tracking-wider cursor-pointer"
+            class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg text-xs transition-colors flex items-center gap-1.5 shadow-flat uppercase tracking-wider cursor-pointer"
           >
             <UIcon name="i-lucide-plus" class="w-3.5 h-3.5" />
             Ajouter une Caisse
@@ -1851,7 +1851,7 @@ onMounted(async () => {
             <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
               <tr>
                 <th scope="col" class="px-4 py-3 text-left w-10">
-                  <input type="checkbox" v-model="allCaissesSelected" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+                  <input type="checkbox" v-model="allCaissesSelected" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
                 </th>
                 <th scope="col" class="px-6 py-3 text-left">Type</th>
                 <th scope="col" class="px-6 py-3 text-left">Nom de la Caisse</th>
@@ -1864,10 +1864,10 @@ onMounted(async () => {
             <tbody class="divide-y divide-slate-150 bg-white">
               <tr v-for="c in caisses" :key="c.id" class="hover:bg-slate-50">
                 <td class="px-4 py-4" @click.stop>
-                  <input type="checkbox" :value="c.id" v-model="selectedCaisses" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+                  <input type="checkbox" :value="c.id" v-model="selectedCaisses" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
                 </td>
                 <td class="px-6 py-4">
-                  <span class="px-2 py-0.5 rounded-none text-xs font-bold bg-navy-50 text-navy-700 border border-navy-200 uppercase">
+                  <span class="px-2 py-0.5 rounded-lg text-xs font-bold bg-navy-50 text-navy-700 border border-navy-200 uppercase">
                     {{ c.type_cotisation }}
                   </span>
                 </td>
@@ -1897,7 +1897,7 @@ onMounted(async () => {
 
     <!-- Tab 2: Salariés -->
     <div v-show="activeTab === 'sals'" class="space-y-6">
-      <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat border-t-4 border-t-navy-900">
+      <div class="bg-white border-2 border-slate-200 rounded-lg p-6 shadow-flat border-t-4 border-t-navy-900">
 
         <div class="flex justify-between items-center border-b border-slate-200 pb-4 mb-4">
           <div>
@@ -1906,7 +1906,7 @@ onMounted(async () => {
           </div>
           <button
             @click="router.push(`/dossiers/${dossierId}/etablissements/${etabId}/salaries/new`)"
-            class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-none text-xs transition-colors flex items-center gap-1.5 shadow-flat uppercase tracking-wider cursor-pointer"
+            class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg text-xs transition-colors flex items-center gap-1.5 shadow-flat uppercase tracking-wider cursor-pointer"
           >
             <UIcon name="i-lucide-user-plus" class="w-3.5 h-3.5" />
             Ajouter un Salarié
@@ -1936,7 +1936,7 @@ onMounted(async () => {
             <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
               <tr>
                 <th scope="col" class="px-4 py-3 text-left w-10">
-                  <input type="checkbox" v-model="allSalariesSelected" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+                  <input type="checkbox" v-model="allSalariesSelected" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
                 </th>
                 <th scope="col" class="px-6 py-3 text-left">Matricule</th>
                 <th scope="col" class="px-6 py-3 text-left">Nom & Prénom</th>
@@ -1955,7 +1955,7 @@ onMounted(async () => {
                 class="hover:bg-slate-50/55 cursor-pointer group"
               >
                 <td class="px-4 py-4" @click.stop>
-                  <input type="checkbox" :value="sal.id" v-model="selectedSalaries" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+                  <input type="checkbox" :value="sal.id" v-model="selectedSalaries" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
                 </td>
                 <td class="px-6 py-4 font-mono font-semibold text-slate-900">{{ sal.matricule }}</td>
                 <td class="px-6 py-4 font-medium text-slate-700 group-hover:text-navy-700 transition-colors">
@@ -1968,7 +1968,7 @@ onMounted(async () => {
                   <span
                     :class="[
                       sal.is_active ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-100 text-slate-500 border-slate-200',
-                      'px-2 py-0.5 rounded-none text-xs font-semibold border'
+                      'px-2 py-0.5 rounded-lg text-xs font-semibold border'
                     ]"
                   >
                     {{ sal.is_active ? 'Actif' : 'Inactif' }}
@@ -2007,7 +2007,7 @@ onMounted(async () => {
 
     <!-- Tab 3: Contrats -->
     <div v-show="activeTab === 'contrats'" class="space-y-6">
-      <div class="bg-white border-2 border-slate-200 rounded-none p-6 shadow-flat border-t-4 border-t-navy-900">
+      <div class="bg-white border-2 border-slate-200 rounded-lg p-6 shadow-flat border-t-4 border-t-navy-900">
 
         <div class="flex justify-between items-center border-b border-slate-200 pb-4 mb-4">
           <div>
@@ -2039,7 +2039,7 @@ onMounted(async () => {
             <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
               <tr>
                 <th scope="col" class="px-4 py-3 text-left w-10">
-                  <input type="checkbox" v-model="allContractsSelected" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+                  <input type="checkbox" v-model="allContractsSelected" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
                 </th>
                 <th scope="col" class="px-6 py-3 text-left">N° Contrat</th>
                 <th scope="col" class="px-6 py-3 text-left">Salarié</th>
@@ -2058,7 +2058,7 @@ onMounted(async () => {
                 class="hover:bg-slate-50 cursor-pointer group"
               >
                 <td class="px-4 py-4" @click.stop>
-                  <input type="checkbox" :value="c.id" v-model="selectedContracts" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+                  <input type="checkbox" :value="c.id" v-model="selectedContracts" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
                 </td>
                 <td class="px-6 py-4 font-mono font-semibold text-slate-900">{{ c.numero_contrat }}</td>
                 <td class="px-6 py-4 font-medium text-slate-700 group-hover:text-navy-700 transition-colors">
@@ -2076,7 +2076,7 @@ onMounted(async () => {
                   <span
                     :class="[
                       c.statut === 'actif' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-150 text-slate-500 border-slate-200',
-                      'px-2 py-0.5 rounded-none text-[10px] uppercase font-bold border'
+                      'px-2 py-0.5 rounded-lg text-[10px] uppercase font-bold border'
                     ]"
                   >
                     {{ c.statut }}
@@ -2106,14 +2106,14 @@ onMounted(async () => {
         <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
           <span class="text-xs font-bold uppercase tracking-wider text-slate-400 shrink-0">Période de Paie :</span>
           <div class="flex space-x-3 w-full sm:w-auto">
-            <select v-model="selectedMois" class="block w-full sm:w-40 px-3 py-2 border border-slate-350 rounded-none text-sm bg-white select">
+            <select v-model="selectedMois" class="block w-full sm:w-40 px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white select">
               <option v-for="m in 12" :key="m" :value="m">{{ getPeriodLabel(m, 2026).split(' ')[0] }}</option>
             </select>
             <input
               v-model="selectedAnnee"
               type="number"
               placeholder="Année"
-              class="block w-full sm:w-28 px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white"
+              class="block w-full sm:w-28 px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white"
             />
           </div>
         </div>
@@ -2153,7 +2153,7 @@ onMounted(async () => {
         <div class="bg-white border-2 border-slate-200 p-5 shadow-flat space-y-2 border-t-4 border-t-navy-900">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Effectif Établissement</span>
-            <div class="w-7 h-7 bg-navy-50 text-navy-700 rounded-none flex items-center justify-center">
+            <div class="w-7 h-7 bg-navy-50 text-navy-700 rounded-lg flex items-center justify-center">
               <UIcon name="i-lucide-users" class="w-4 h-4" />
             </div>
           </div>
@@ -2164,7 +2164,7 @@ onMounted(async () => {
         <div class="bg-white border-2 border-slate-200 p-5 shadow-flat space-y-2 border-t-4 border-t-green-600">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Bulletins Calculés</span>
-            <div class="w-7 h-7 bg-green-50 text-green-700 rounded-none flex items-center justify-center">
+            <div class="w-7 h-7 bg-green-50 text-green-700 rounded-lg flex items-center justify-center">
               <UIcon name="i-lucide-check-circle-2" class="w-4 h-4" />
             </div>
           </div>
@@ -2183,7 +2183,7 @@ onMounted(async () => {
         <div class="bg-white border-2 border-slate-200 p-5 shadow-flat space-y-2 border-t-4 border-t-navy-900">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Masse Brut</span>
-            <div class="w-7 h-7 bg-navy-50 text-navy-700 rounded-none flex items-center justify-center">
+            <div class="w-7 h-7 bg-navy-50 text-navy-700 rounded-lg flex items-center justify-center">
               <UIcon name="i-lucide-coins" class="w-4 h-4" />
             </div>
           </div>
@@ -2194,7 +2194,7 @@ onMounted(async () => {
         <div class="bg-white border-2 border-slate-200 p-5 shadow-flat space-y-2 border-t-4 border-t-green-600">
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Masse Nette</span>
-            <div class="w-7 h-7 bg-green-50 text-green-700 rounded-none flex items-center justify-center">
+            <div class="w-7 h-7 bg-green-50 text-green-700 rounded-lg flex items-center justify-center">
               <UIcon name="i-lucide-banknote" class="w-4 h-4" />
             </div>
           </div>
@@ -2257,7 +2257,7 @@ onMounted(async () => {
       <!-- Bulletins Table Card -->
       <div class="bg-white border-2 border-slate-200 shadow-flat overflow-hidden border-t-4 border-t-navy-900">
         <div v-if="contracts.length === 0" class="text-center py-16 px-4 bg-white space-y-3">
-          <div class="w-10 h-10 bg-slate-100 text-slate-400 rounded-none flex items-center justify-center mx-auto">
+          <div class="w-10 h-10 bg-slate-100 text-slate-400 rounded-lg flex items-center justify-center mx-auto">
             <UIcon name="i-lucide-user-x" class="w-5 h-5" />
           </div>
           <h4 class="font-bold text-navy-900">Aucun salarié avec contrat actif</h4>
@@ -2271,7 +2271,7 @@ onMounted(async () => {
             <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
               <tr>
                 <th scope="col" class="px-4 py-3 text-left w-10">
-                  <input type="checkbox" v-model="allBulletinsSelected" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+                  <input type="checkbox" v-model="allBulletinsSelected" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
                 </th>
                 <th scope="col" class="px-6 py-3 text-left">Employé</th>
                 <th scope="col" class="px-6 py-3 text-left">Statut Bulletin</th>
@@ -2283,12 +2283,12 @@ onMounted(async () => {
             <tbody class="divide-y divide-slate-150 bg-white">
               <tr v-for="c in contracts" :key="c.id" class="hover:bg-slate-50/50 transition-colors">
                 <td class="px-4 py-4" @click.stop>
-                  <input type="checkbox" :value="c.id" v-model="selectedBulletins" class="rounded-none border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+                  <input type="checkbox" :value="c.id" v-model="selectedBulletins" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
                 </td>
                 <!-- Employee -->
                 <td class="px-6 py-4">
                   <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 bg-navy-50 text-navy-700 rounded-none flex items-center justify-center font-bold text-xs border border-navy-200">
+                    <div class="w-8 h-8 bg-navy-50 text-navy-700 rounded-lg flex items-center justify-center font-bold text-xs border border-navy-200">
                       {{ c.matricule_salarie.substring(c.matricule_salarie.lastIndexOf('-') + 1) || 'EMP' }}
                     </div>
                     <div>
@@ -2312,14 +2312,14 @@ onMounted(async () => {
                       bulletinsMap[c.id].statut === 'valide'
                         ? 'bg-green-50 text-green-700 border-green-200'
                         : 'bg-yellow-50 text-yellow-700 border-yellow-200',
-                      'px-2.5 py-0.5 rounded-none text-[10px] uppercase font-bold border inline-block tracking-wider'
+                      'px-2.5 py-0.5 rounded-lg text-[10px] uppercase font-bold border inline-block tracking-wider'
                     ]"
                   >
                     {{ bulletinsMap[c.id].statut }}
                   </span>
                   <span
                     v-else
-                    class="bg-slate-100 text-slate-400 border-slate-200 px-2.5 py-0.5 rounded-none text-[10px] uppercase font-bold border inline-block tracking-wider"
+                    class="bg-slate-100 text-slate-400 border-slate-200 px-2.5 py-0.5 rounded-lg text-[10px] uppercase font-bold border inline-block tracking-wider"
                   >
                     Non calculé
                   </span>
@@ -2344,7 +2344,7 @@ onMounted(async () => {
                       <!-- View Link -->
                       <NuxtLink
                         :to="`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${c.salarie_id}/contrats/${c.id}/bulletins/${bulletinsMap[c.id].id}`"
-                        class="px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-none text-xs font-bold transition-colors flex items-center gap-1 uppercase tracking-wider"
+                        class="px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 uppercase tracking-wider"
                       >
                         <UIcon name="i-lucide-eye" class="w-3.5 h-3.5" />
                         Voir
@@ -2354,7 +2354,7 @@ onMounted(async () => {
                       <button
                         v-if="bulletinsMap[c.id].statut !== 'valide'"
                         @click="handleCalculateSingle(c.id)"
-                        class="px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 transition-colors rounded-none text-xs font-bold flex items-center gap-1 uppercase tracking-wider cursor-pointer"
+                        class="px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 transition-colors rounded-lg text-xs font-bold flex items-center gap-1 uppercase tracking-wider cursor-pointer"
                         title="Recalculer le bulletin"
                       >
                         <UIcon name="i-lucide-refresh-cw" class="w-3.5 h-3.5 text-green-600" />
@@ -2365,7 +2365,7 @@ onMounted(async () => {
                       <button
                         v-if="bulletinsMap[c.id].statut !== 'valide'"
                         @click="handleValidateSingle(bulletinsMap[c.id].id)"
-                        class="px-2.5 py-1.5 border border-yellow-250 bg-yellow-50 hover:bg-yellow-100 text-yellow-750 transition-colors rounded-none text-xs font-bold flex items-center gap-1 uppercase tracking-wider cursor-pointer"
+                        class="px-2.5 py-1.5 border border-yellow-250 bg-yellow-50 hover:bg-yellow-100 text-yellow-750 transition-colors rounded-lg text-xs font-bold flex items-center gap-1 uppercase tracking-wider cursor-pointer"
                         title="Valider définitivement"
                       >
                         <UIcon name="i-lucide-check-circle" class="w-3.5 h-3.5 text-yellow-600" />
@@ -2399,7 +2399,7 @@ onMounted(async () => {
                         ]]"
                       >
                         <button
-                          class="px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-none text-xs font-bold transition-colors flex items-center gap-1 uppercase tracking-wider cursor-pointer"
+                          class="px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 uppercase tracking-wider cursor-pointer"
                         >
                           Saisies
                           <UIcon name="i-lucide-chevron-down" class="w-3.5 h-3.5" />
@@ -2410,7 +2410,7 @@ onMounted(async () => {
                       <button
                         v-if="bulletinsMap[c.id].statut !== 'valide'"
                         @click="handleDeleteSingle(bulletinsMap[c.id].id)"
-                        class="px-2.5 py-1.5 border border-red-200 bg-red-50 hover:bg-red-100 text-red-650 transition-colors rounded-none cursor-pointer flex items-center justify-center"
+                        class="px-2.5 py-1.5 border border-red-200 bg-red-50 hover:bg-red-100 text-red-650 transition-colors rounded-lg cursor-pointer flex items-center justify-center"
                         title="Supprimer"
                       >
                         <UIcon name="i-lucide-trash-2" class="w-4 h-4" />
@@ -2420,7 +2420,7 @@ onMounted(async () => {
                     <button
                       v-else
                       @click="handleCalculateSingle(c.id)"
-                      class="px-2.5 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-none text-xs font-bold transition-colors flex items-center gap-1 shadow-flat uppercase tracking-wider cursor-pointer"
+                      class="px-2.5 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1 shadow-flat uppercase tracking-wider cursor-pointer"
                     >
                       <UIcon name="i-lucide-calculator" class="w-3.5 h-3.5" />
                       Calculer
@@ -2437,13 +2437,13 @@ onMounted(async () => {
     <!-- Modal: Add Caisse -->
     <UModal v-model:open="caisseModalOpen" title="Rattacher une Caisse de Cotisation">
       <template #content>
-        <div class="p-6 space-y-4 bg-white border border-slate-200">
+        <div class="p-6 space-y-4 rounded-xl bg-white border border-slate-200">
           <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Caisse</h2>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Type de cotisation</label>
-              <select v-model="caisseType" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-none text-sm bg-white select">
+              <select v-model="caisseType" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-lg text-sm bg-white select">
                 <option value="urssaf">CNPS (Sécurité Sociale)</option>
                 <option value="retraite_complementaire">Retraite Complémentaire</option>
                 <option value="prevoyance">Prévoyance / Mutuelle</option>
@@ -2452,37 +2452,37 @@ onMounted(async () => {
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Nom de la Caisse <span class="text-red-500">*</span></label>
-              <input v-model="caisseNom" type="text" placeholder="Ex: URSSAF IDF" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
+              <input v-model="caisseNom" type="text" placeholder="Ex: URSSAF IDF" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Code Organisme</label>
-              <input v-model="caisseDsn" type="text" placeholder="Ex: CNPS-01" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <input v-model="caisseDsn" type="text" placeholder="Ex: CNPS-01" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Numéro d'Affiliation</label>
-              <input v-model="caisseAffiliation" type="text" placeholder="Ex: AFF12345" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <input v-model="caisseAffiliation" type="text" placeholder="Ex: AFF12345" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-4 border-t border-slate-200 pt-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">IBAN de Règlement</label>
-              <input v-model="caisseIban" type="text" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <input v-model="caisseIban" type="text" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">BIC</label>
-              <input v-model="caisseBic" type="text" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <input v-model="caisseBic" type="text" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
           </div>
 
           <div class="flex justify-end space-x-3 pt-4 border-t border-slate-200">
-            <button type="button" @click="caisseModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-none hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
+            <button type="button" @click="caisseModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-lg hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
               Annuler
             </button>
-            <button type="button" @click="handleCreateCaisse" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-none shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
+            <button type="button" @click="handleCreateCaisse" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
               Rattacher la caisse
             </button>
           </div>
@@ -2495,13 +2495,13 @@ onMounted(async () => {
     <!-- Modal: Overtime -->
     <UModal v-model:open="hsModalOpen" title="Saisir des Heures Supplémentaires">
       <template #content>
-        <div class="p-6 space-y-4 bg-white border border-slate-200">
+        <div class="p-6 space-y-4 rounded-xl bg-white border border-slate-200">
           <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Heure Supp.</h2>
 
           <div class="space-y-4">
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Taux de majoration</label>
-              <select v-model="hsCode" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm bg-white select">
+              <select v-model="hsCode" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white select">
                 <option value="HS_15">Majoration à 15%</option>
                 <option value="HS_25">Majoration à 25%</option>
                 <option value="HS_50">Majoration à 50%</option>
@@ -2509,15 +2509,15 @@ onMounted(async () => {
             </div>
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Nombre d'heures</label>
-              <input v-model="hsNombre" type="number" step="0.5" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <input v-model="hsNombre" type="number" step="0.5" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
           </div>
 
           <div class="flex justify-end space-x-3 pt-4 border-t border-slate-200">
-            <button type="button" @click="hsModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-none hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
+            <button type="button" @click="hsModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-lg hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
               Annuler
             </button>
-            <button type="button" @click="handleAddHeureSupp" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-none shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
+            <button type="button" @click="handleAddHeureSupp" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
               Enregistrer et Recalculer
             </button>
           </div>
@@ -2528,14 +2528,14 @@ onMounted(async () => {
     <!-- Modal: Absence -->
     <UModal v-model:open="absModalOpen" title="Saisir une Absence / Congé">
       <template #content>
-        <div class="p-6 space-y-4 bg-white border border-slate-200">
+        <div class="p-6 space-y-4 rounded-xl bg-white border border-slate-200">
           <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Saisir Absence</h2>
 
           <div class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Motif de l'absence</label>
-                <select v-model="absCode" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-none text-sm bg-white select">
+                <select v-model="absCode" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-lg text-sm bg-white select">
                   <option value="CONGES">Congés payés</option>
                   <option value="MALADIE">Maladie</option>
                   <option value="AT">Accident du travail</option>
@@ -2544,32 +2544,32 @@ onMounted(async () => {
               </div>
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Nbr jours d'absence</label>
-                <input v-model="absNbrJour" type="number" step="0.5" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+                <input v-model="absNbrJour" type="number" step="0.5" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
               </div>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Date début</label>
-                <input v-model="absDateDebut" type="date" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
+                <input v-model="absDateDebut" type="date" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
               </div>
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Date fin</label>
-                <input v-model="absDateFin" type="date" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
+                <input v-model="absDateFin" type="date" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
               </div>
             </div>
 
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Nombre d'heures correspondantes (Si contrat horaire)</label>
-              <input v-model="absNbrHeure" type="number" step="1" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <input v-model="absNbrHeure" type="number" step="1" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
           </div>
 
           <div class="flex justify-end space-x-3 pt-4 border-t border-slate-200">
-            <button type="button" @click="absModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-none hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
+            <button type="button" @click="absModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-lg hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
               Annuler
             </button>
-            <button type="button" @click="handleAddAbsence" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-none shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
+            <button type="button" @click="handleAddAbsence" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
               Enregistrer et Recalculer
             </button>
           </div>
@@ -2580,14 +2580,14 @@ onMounted(async () => {
     <!-- Modal: Prime -->
     <UModal v-model:open="primeModalOpen" title="Saisir une Prime">
       <template #content>
-        <div class="p-6 space-y-4 bg-white border border-slate-200">
+        <div class="p-6 space-y-4 rounded-xl bg-white border border-slate-200">
           <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Prime</h2>
 
           <div class="space-y-4">
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Code Identifiant</label>
-                <select v-model="primeCode" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-none text-sm bg-white select">
+                <select v-model="primeCode" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-lg text-sm bg-white select">
                   <option v-for="p in primesDisponibles" :key="p.code" :value="p.code">
                     {{ p.libelle }} ({{ p.code }})
                   </option>
@@ -2595,7 +2595,7 @@ onMounted(async () => {
               </div>
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Mode de saisie</label>
-                <select v-model="primeMode" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-none text-sm bg-white select">
+                <select v-model="primeMode" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-lg text-sm bg-white select">
                   <option value="direct">Montant Direct</option>
                   <option value="calcul">Calcul par Base et Taux</option>
                 </select>
@@ -2605,22 +2605,22 @@ onMounted(async () => {
             <div v-if="primeMode === 'calcul'" class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Base (FCFA)</label>
-                <input v-model="primeBase" type="number" @input="primeMontant = (Number(primeBase) || 0) * ((Number(primeTaux) || 0) / 100)" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+                <input v-model="primeBase" type="number" @input="primeMontant = (Number(primeBase) || 0) * ((Number(primeTaux) || 0) / 100)" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
               </div>
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Taux (%)</label>
-                <input v-model="primeTaux" type="number" step="0.01" @input="primeMontant = (Number(primeBase) || 0) * ((Number(primeTaux) || 0) / 100)" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+                <input v-model="primeTaux" type="number" step="0.01" @input="primeMontant = (Number(primeBase) || 0) * ((Number(primeTaux) || 0) / 100)" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
               </div>
             </div>
 
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Montant de la prime (FCFA)</label>
-                <input v-model="primeMontant" type="number" :disabled="primeMode === 'calcul'" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white disabled:bg-slate-100" />
+                <input v-model="primeMontant" type="number" :disabled="primeMode === 'calcul'" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white disabled:bg-slate-100" />
               </div>
               <div>
                 <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Libellé (Affiché sur le bulletin)</label>
-                <input v-model="primeLibelle" type="text" placeholder="Ex: Prime de rendement" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
+                <input v-model="primeLibelle" type="text" placeholder="Ex: Prime de rendement" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
               </div>
             </div>
             <div class="flex items-center space-x-2 pt-2">
@@ -2632,10 +2632,10 @@ onMounted(async () => {
           </div>
 
           <div class="flex justify-end space-x-3 pt-4 border-t border-slate-200">
-            <button type="button" @click="primeModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-none hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
+            <button type="button" @click="primeModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-lg hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
               Annuler
             </button>
-            <button type="button" @click="handleAddPrime" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-none shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
+            <button type="button" @click="handleAddPrime" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
               Enregistrer et Recalculer
             </button>
           </div>
@@ -2646,22 +2646,22 @@ onMounted(async () => {
     <!-- Modal: Acompte -->
     <UModal v-model:open="acompteModalOpen" title="Définir un Acompte">
       <template #content>
-        <div class="p-6 space-y-4 bg-white border border-slate-200">
+        <div class="p-6 space-y-4 rounded-xl bg-white border border-slate-200">
           <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Acompte sur salaire</h2>
 
           <div class="space-y-4">
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Montant de l'acompte (FCFA)</label>
-              <input v-model="acompteMontant" type="number" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-none text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <input v-model="acompteMontant" type="number" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
               <p class="text-[10px] text-slate-500 mt-1">Sera déduit directement du salaire net à payer.</p>
             </div>
           </div>
 
           <div class="flex justify-end space-x-3 pt-4 border-t border-slate-200">
-            <button type="button" @click="acompteModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-none hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
+            <button type="button" @click="acompteModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-lg hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
               Annuler
             </button>
-            <button type="button" @click="handleSaveAcompte" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-none shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
+            <button type="button" @click="handleSaveAcompte" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
               Enregistrer et Recalculer
             </button>
           </div>

@@ -111,7 +111,7 @@ const handleSubmit = async () => {
         <!-- Suggestion Banner for Default Password -->
         <div
           v-if="isDefault"
-          class="mb-5 p-3.5 bg-amber-50/90 border border-amber-300/80 rounded-none flex items-start gap-3 text-amber-900"
+          class="mb-5 p-3.5 bg-amber-50/90 border border-amber-300/80 rounded-lg flex items-start gap-3 text-amber-900"
         >
           <UIcon name="i-lucide-shield-alert" class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
           <div class="text-xs leading-relaxed space-y-1">
@@ -127,7 +127,7 @@ const handleSubmit = async () => {
         <!-- Error Alert -->
         <div
           v-if="errorMessage"
-          class="mb-4 p-3 bg-red-50 border border-red-200 rounded-none flex items-center gap-2.5 text-red-700 text-xs font-semibold"
+          class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2.5 text-red-700 text-xs font-semibold"
         >
           <UIcon name="i-lucide-alert-circle" class="w-4 h-4 text-red-600 shrink-0" />
           <span>{{ errorMessage }}</span>
@@ -145,7 +145,7 @@ const handleSubmit = async () => {
                 v-model="oldPassword"
                 :type="showOldPassword ? 'text' : 'password'"
                 placeholder="Saisissez votre mot de passe actuel"
-                class="block w-full px-3 py-2 pr-10 border border-slate-350 rounded-none text-sm bg-white focus:outline-none focus:border-green-600"
+                class="block w-full px-3 py-2 pr-10 border border-slate-350 rounded-lg text-sm bg-white focus:outline-none focus:border-green-600"
                 required
               />
               <button
@@ -171,7 +171,7 @@ const handleSubmit = async () => {
                 v-model="newPassword"
                 :type="showNewPassword ? 'text' : 'password'"
                 placeholder="Au moins 8 caractères"
-                class="block w-full px-3 py-2 pr-10 border border-slate-350 rounded-none text-sm bg-white focus:outline-none focus:border-green-600"
+                class="block w-full px-3 py-2 pr-10 border border-slate-350 rounded-lg text-sm bg-white focus:outline-none focus:border-green-600"
                 required
               />
               <button
@@ -202,7 +202,7 @@ const handleSubmit = async () => {
                 v-model="confirmPassword"
                 :type="showConfirmPassword ? 'text' : 'password'"
                 placeholder="Ressaisissez le nouveau mot de passe"
-                class="block w-full px-3 py-2 pr-10 border border-slate-350 rounded-none text-sm bg-white focus:outline-none focus:border-green-600"
+                class="block w-full px-3 py-2 pr-10 border border-slate-350 rounded-lg text-sm bg-white focus:outline-none focus:border-green-600"
                 required
               />
               <button
@@ -227,7 +227,7 @@ const handleSubmit = async () => {
               v-if="!isDefault"
               type="button"
               @click="dismissModal"
-              class="px-4 py-2 border-2 border-slate-200 text-xs font-bold rounded-none hover:bg-slate-100 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer"
+              class="px-4 py-2 border-2 border-slate-200 text-xs font-bold rounded-lg hover:bg-slate-100 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer"
             >
               Annuler
             </button>
@@ -237,7 +237,7 @@ const handleSubmit = async () => {
             <button
               type="submit"
               :disabled="submitting || authLoading"
-              class="px-4 py-2 text-xs font-bold bg-green-600 hover:bg-green-700 text-white rounded-none shadow-flat transition-colors uppercase tracking-wider cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+              class="px-4 py-2 text-xs font-bold bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-flat transition-colors uppercase tracking-wider cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
             >
               <UIcon v-if="submitting || authLoading" name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
               {{ submitting ? "Enregistrement..." : "Enregistrer" }}
