@@ -16,7 +16,7 @@ from app.services.security import (
 )
 from app.routers.etablissements import check_etablissement_ownership
 
-from app.services.permissions import require_staff
+from app.services.permissions import ROLE_SALARIE, peut_gerer_dossier, require_staff
 
 router = APIRouter(tags=["Salariés"])
 
@@ -29,7 +29,10 @@ def check_salarie_ownership(salarie_id: int, user_id: int, db: Session) -> Salar
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Salarié introuvable ou accès refusé."
         )
-    if user and (user.is_admin or (user.role == "client" and user.dossier_id == salarie.etablissement.dossier_id) or (user.role == "cabinet" and salarie.etablissement.dossier.utilisateur_id == user_id) or (user.role == "salarie" and user.salarie_id == salarie_id)):
+    if user and (
+        peut_gerer_dossier(db, user, salarie.etablissement.dossier)
+        or (user.role == ROLE_SALARIE and user.salarie_id == salarie_id)
+    ):
         return salarie
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,

@@ -41,6 +41,7 @@ from app.models.models import (
     Salarie,
     Utilisateur,
 )
+from app.services.permissions import peut_gerer_dossier
 from app.services.security import get_current_user
 
 router = APIRouter(tags=["Import/Export Excel"])
@@ -58,7 +59,7 @@ def _check_dossier(dossier_id: int, user_id: int, db: Session) -> Dossier:
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Dossier introuvable.",
         )
-    if user and (user.is_admin or (user.role == "client" and user.dossier_id == dossier_id) or (user.role == "cabinet" and dossier.utilisateur_id == user_id)):
+    if user and peut_gerer_dossier(db, user, dossier):
         return dossier
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,

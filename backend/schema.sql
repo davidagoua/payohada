@@ -1375,7 +1375,25 @@ COMMENT ON COLUMN etablissements.dfe_regime_imposition
 COMMENT ON COLUMN etablissements.dfe_obligations_fiscales
     IS 'Obligations fiscales cochées sur le DFE, séparées par des virgules';
 
--- 10. Contrôles post-migration (à exécuter manuellement) :
+-- 10. Gestionnaires de paie : affectation d'un compte à une société.
+--     Le propriétaire du dossier reste `dossiers.utilisateur_id` ; cette table
+--     ajoute les gestionnaires supplémentaires, sans hiérarchie entre eux.
+
+CREATE TABLE IF NOT EXISTS acces_dossiers (
+    id SERIAL PRIMARY KEY,
+    utilisateur_id INTEGER NOT NULL REFERENCES utilisateurs(id) ON DELETE CASCADE,
+    dossier_id INTEGER NOT NULL REFERENCES dossiers(id) ON DELETE CASCADE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT uq_acces_dossier UNIQUE (utilisateur_id, dossier_id)
+);
+
+CREATE INDEX IF NOT EXISTS ix_acces_dossier_dossier ON acces_dossiers (dossier_id);
+
+COMMENT ON TABLE acces_dossiers
+    IS 'Sociétés confiées à un gestionnaire de paie (rôle gestionnaire_paie)';
+
+-- 11. Contrôles post-migration (à exécuter manuellement) :
 --    -- Aucun compte sans mot de passe (sinon connexion impossible) :
 --    SELECT id, email, role FROM utilisateurs WHERE hashed_password IS NULL;
 --    -- La colonne et ses valeurs par défaut :

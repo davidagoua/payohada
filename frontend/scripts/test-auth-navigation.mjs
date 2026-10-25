@@ -30,6 +30,7 @@ const CABINET = { role: 'cabinet', is_admin: false }
 const ADMIN = { role: 'cabinet', is_admin: true }
 const CLIENT = { role: 'client', dossier_id: 1, is_admin: false }
 const SALARIE = { role: 'salarie', salarie_id: 7, is_admin: false }
+const GESTIONNAIRE = { role: 'gestionnaire_paie', is_admin: false }
 
 let echecs = 0
 let total = 0
@@ -58,6 +59,8 @@ verifier('/login avec jeton et profil cabinet va vers /dossiers',
   deciderRedirection({ chemin: '/login', aJeton: true, utilisateur: CABINET }), vers('/dossiers'))
 verifier('/login avec jeton et profil salarié va vers /salaries/bulletins',
   deciderRedirection({ chemin: '/login', aJeton: true, utilisateur: SALARIE }), vers('/salaries/bulletins'))
+verifier('/login avec profil gestionnaire de paie va vers /dossiers',
+  deciderRedirection({ chemin: '/login', aJeton: true, utilisateur: GESTIONNAIRE }), vers('/dossiers'))
 verifier('/login sans jeton reste sur /login',
   deciderRedirection({ chemin: '/login', aJeton: false, utilisateur: null }), laisser)
 verifier('/ reste accessible sans session',
@@ -83,6 +86,12 @@ verifier('route protégée avec jeton sans profil laisse passer (l\'API tranche)
 console.log('\nCloisonnement par rôle')
 verifier('cabinet accède à /dossiers',
   deciderRedirection({ chemin: '/dossiers', aJeton: true, utilisateur: CABINET }), laisser)
+verifier('gestionnaire de paie accède à /dossiers',
+  deciderRedirection({ chemin: '/dossiers/12', aJeton: true, utilisateur: GESTIONNAIRE }), laisser)
+verifier('gestionnaire de paie est renvoyé de /client vers /dossiers',
+  deciderRedirection({ chemin: '/client', aJeton: true, utilisateur: GESTIONNAIRE }), vers('/dossiers'))
+verifier('gestionnaire de paie accède aux bulletins',
+  deciderRedirection({ chemin: '/bulletins', aJeton: true, utilisateur: GESTIONNAIRE }), laisser)
 verifier('client est renvoyé de /dossiers vers /client',
   deciderRedirection({ chemin: '/dossiers/12', aJeton: true, utilisateur: CLIENT }), vers('/client'))
 verifier('salarié est renvoyé de /dossiers vers /salaries/bulletins',

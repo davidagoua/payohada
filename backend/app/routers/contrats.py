@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 from app.routers.etablissements import check_etablissement_ownership
 from app.routers.salaries import check_salarie_ownership
 
-from app.services.permissions import require_staff
+from app.services.permissions import ROLE_SALARIE, peut_gerer_dossier, require_staff
 
 router = APIRouter(tags=["Contrats"])
 
@@ -33,7 +33,10 @@ def check_contrat_ownership(contrat_id: int, user_id: int, db: Session) -> Contr
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Contrat introuvable ou accès refusé."
         )
-    if user and (user.is_admin or (user.role == "client" and user.dossier_id == contrat.dossier_id) or (user.role == "cabinet" and contrat.dossier.utilisateur_id == user_id) or (user.role == "salarie" and user.salarie_id == contrat.salarie_id)):
+    if user and (
+        peut_gerer_dossier(db, user, contrat.dossier)
+        or (user.role == ROLE_SALARIE and user.salarie_id == contrat.salarie_id)
+    ):
         return contrat
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,

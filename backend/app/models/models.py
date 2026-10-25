@@ -1202,3 +1202,29 @@ class DemandeAcompte(TimestampMixin, Base):
     __table_args__ = (
         Index("ix_demandes_acomptes_salarie", "salarie_id", "annee", "mois"),
     )
+
+
+# ─────────────────────────────────────────
+#  AFFECTATION DES GESTIONNAIRES DE PAIE
+# ─────────────────────────────────────────
+
+class AccesDossier(TimestampMixin, Base):
+    """Affectation d'un gestionnaire de paie à une société.
+
+    Le propriétaire du dossier reste `dossiers.utilisateur_id` (le créateur).
+    Cette table ajoute les gestionnaires supplémentaires : plusieurs personnes
+    peuvent tenir la paie d'une même société, sans hiérarchie entre elles.
+    """
+    __tablename__ = "acces_dossiers"
+
+    id = Column(Integer, primary_key=True, index=True)
+    utilisateur_id = Column(Integer, ForeignKey("utilisateurs.id", ondelete="CASCADE"), nullable=False)
+    dossier_id = Column(Integer, ForeignKey("dossiers.id", ondelete="CASCADE"), nullable=False)
+
+    utilisateur = relationship("Utilisateur", backref="acces_dossiers")
+    dossier = relationship("Dossier", backref="acces_utilisateurs")
+
+    __table_args__ = (
+        UniqueConstraint("utilisateur_id", "dossier_id", name="uq_acces_dossier"),
+        Index("ix_acces_dossier_dossier", "dossier_id"),
+    )

@@ -14,14 +14,14 @@ from app.schemas.bulletin import (
     LigneSimulationOut, BulletinCumuls, BulletinCumulRow, LotCalculOut, ErreurCalculLot
 )
 from app.services.security import get_current_user
-from app.services.permissions import get_dossier_or_403, require_staff
+from app.services.permissions import get_dossier_or_403, peut_gerer_dossier, require_staff
 from app.routers.contrats import check_contrat_ownership
 from app.services.conges_gratification import JOURS_CONGES_PAR_MOIS
 from app.services.bulletin_saari import (
     construire_html_saari, generer_pdf_lot_saari, generer_pdf_saari,
     nom_fichier_bulletin,
 )
-from app.services.payroll import calculate_payslip, resoudre_brut_et_sursalaire
+from app.services.payroll import calculate_payslip, calculer_its, resoudre_brut_et_sursalaire
 from app.services.email import send_email
 
 logger = logging.getLogger(__name__)
@@ -47,18 +47,11 @@ def check_bulletin_ownership(bulletin_id: int, user_id: int, db: Session) -> Bul
             detail="Bulletin de paie introuvable."
         )
 
-    if user.is_admin:
-        return bulletin
-
     if user.salarie_id or user.role == "salarie":
         if bulletin.contrat.salarie_id == user.salarie_id:
             return bulletin
-    elif user.role == "client":
-        if bulletin.dossier_id == user.dossier_id:
-            return bulletin
-    elif user.role == "cabinet":
-        if bulletin.dossier.utilisateur_id == user.id:
-            return bulletin
+    elif peut_gerer_dossier(db, user, bulletin.dossier):
+        return bulletin
 
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,

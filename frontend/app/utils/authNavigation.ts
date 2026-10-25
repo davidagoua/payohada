@@ -21,11 +21,15 @@ export type Decision =
 export const ROUTES_PUBLIQUES = ['/', '/login', '/forgot-password', '/reset-password']
 
 /** Préfixes réservés à chaque espace, avec les rôles autorisés. */
+//: Rôles qui tiennent la paie des sociétés (le « cabinet » historique et le
+//: gestionnaire de paie affecté à des dossiers).
+export const ROLES_PAIE = ['cabinet', 'gestionnaire_paie']
+
 export const ESPACES = [
   { prefixe: '/admin', roles: [] as string[], adminSeulement: true },
-  { prefixe: '/dossiers', roles: ['cabinet'], adminSeulement: false },
-  { prefixe: '/simulation', roles: ['cabinet'], adminSeulement: false },
-  { prefixe: '/bulletins', roles: ['cabinet'], adminSeulement: false },
+  { prefixe: '/dossiers', roles: ROLES_PAIE, adminSeulement: false },
+  { prefixe: '/simulation', roles: ROLES_PAIE, adminSeulement: false },
+  { prefixe: '/bulletins', roles: ROLES_PAIE, adminSeulement: false },
   { prefixe: '/client', roles: ['client'], adminSeulement: false },
   { prefixe: '/salaries', roles: ['salarie'], adminSeulement: false }
 ]

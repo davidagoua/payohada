@@ -41,6 +41,7 @@ ATTENDUS_TABLES = (
     "password_reset_tokens",
     "demandes_conges",
     "demandes_acomptes",
+    "acces_dossiers",
 )
 ATTENDUS_COLONNES = (
     ("utilisateurs", "must_change_password"),

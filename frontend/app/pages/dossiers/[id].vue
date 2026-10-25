@@ -366,6 +366,117 @@ const copyToClipboard = (text, label = 'Identifiant') => {
   })
 }
 
+// ── Gestionnaires de paie (rôle plateforme, affecté à cette société) ──
+const gestionnaires = ref([])
+const showGestionnaireForm = ref(false)
+const formGestionnaire = ref({ nom: '', prenom: '', email: '', password: '' })
+const gestionnaireSubmitting = ref(false)
+const envoiGestionnaireEnCours = ref(null)
+
+const chargerGestionnaires = async () => {
+  try {
+    gestionnaires.value = (await get(`/dossiers/${dossierId}/gestionnaires`)) || []
+  } catch {
+    // Réservé au propriétaire : un gestionnaire affecté n'a pas à voir d'erreur.
+    gestionnaires.value = []
+  }
+}
+
+const handleCreateGestionnaire = async () => {
+  if (!formGestionnaire.value.nom || !formGestionnaire.value.email) {
+    toast.add({
+      title: 'Champs requis',
+      description: 'Renseignez le nom et l\'adresse email.',
+      color: 'warning'
+    })
+    return
+  }
+  gestionnaireSubmitting.value = true
+  try {
+    const payload = { ...formGestionnaire.value }
+    if (!payload.password) delete payload.password
+
+    const created = await post(`/dossiers/${dossierId}/gestionnaires`, payload)
+    const envoye = created?.email_envoye
+    toast.add({
+      title: envoye ? 'Gestionnaire créé et identifiants envoyés' : 'Gestionnaire affecté',
+      description: envoye
+        ? `Les identifiants ont été envoyés à ${formGestionnaire.value.email}.`
+        : created?.mot_de_passe_initial
+          ? `Email non envoyé${created?.email_message ? ` (${created.email_message})` : ''}. Mot de passe : ${created.mot_de_passe_initial}`
+          : 'Ce compte existait déjà : il a simplement été rattaché à cette société.',
+      color: envoye === false ? 'warning' : 'success',
+      duration: envoye === false ? 20000 : undefined
+    })
+    formGestionnaire.value = { nom: '', prenom: '', email: '', password: '' }
+    showGestionnaireForm.value = false
+    await chargerGestionnaires()
+  } catch (e) {
+    console.error(e)
+    toast.add({
+      title: 'Création impossible',
+      description: e?.data?.detail || 'Une erreur est survenue.',
+      color: 'danger'
+    })
+  } finally {
+    gestionnaireSubmitting.value = false
+  }
+}
+
+const envoyerIdentifiantsGestionnaire = async (compte) => {
+  envoiGestionnaireEnCours.value = compte.id
+  try {
+    const resultat = await post(
+      `/dossiers/${dossierId}/gestionnaires/${compte.id}/envoyer-acces`
+    )
+    if (resultat?.email_envoye) {
+      toast.add({
+        title: 'Identifiants envoyés',
+        description: `Un nouveau mot de passe provisoire a été envoyé à ${compte.email}.`,
+        color: 'success'
+      })
+    } else {
+      toast.add({
+        title: 'Envoi impossible',
+        description: `Mot de passe provisoire : ${resultat?.mot_de_passe_provisoire} — transmettez-le.`,
+        color: 'warning',
+        duration: 20000
+      })
+    }
+  } catch (e) {
+    toast.add({
+      title: 'Envoi impossible',
+      description: e?.data?.detail || 'Une erreur est survenue.',
+      color: 'danger'
+    })
+  } finally {
+    envoiGestionnaireEnCours.value = null
+  }
+}
+
+const retirerGestionnaire = async (compte) => {
+  try {
+    await apiDelete(`/dossiers/${dossierId}/gestionnaires/${compte.id}`)
+    toast.add({
+      title: 'Accès retiré',
+      description: `${compte.prenom} ${compte.nom} n'a plus accès à cette société.`,
+      color: 'success'
+    })
+    await chargerGestionnaires()
+  } catch (e) {
+    toast.add({
+      title: 'Retrait impossible',
+      description: e?.data?.detail || 'Une erreur est survenue.',
+      color: 'danger'
+    })
+  }
+}
+
+// Chargé à l'ouverture de l'onglet : inutile pour les autres vues du dossier.
+watch(activeTab, (onglet) => {
+  if (onglet === 'gestionnaires') chargerGestionnaires()
+})
+
 onMounted(() => {
   fetchDossierDetails()
 })
@@ -431,23 +542,36 @@ onMounted(() => {
           @click="activeTab = 'comptes'"
           :class="[
             activeTab === 'comptes' 
-              ? 'border-emerald-600 text-emerald-700 font-bold bg-emerald-50/20' 
+              ? 'border-green-600 text-navy-900 font-bold bg-white'
               : 'border-transparent text-slate-500 hover:text-slate-750 hover:bg-slate-50',
             'whitespace-nowrap py-4 px-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2'
           ]"
         >
           <UIcon name="i-lucide-building-2" class="w-4 h-4" />
           <span>Accès Client (Entreprise)</span>
-          <span class="px-2 py-0.5 rounded-full text-[10px] bg-slate-100 text-slate-700 font-bold">{{ comptesClients.length }}</span>
+          <span class="px-2 py-0.5 rounded-full text-[10px] bg-navy-50 text-navy-700 border border-navy-200 font-bold">{{ comptesClients.length }}</span>
+        </button>
+        <button
+          :class="[
+            activeTab === 'gestionnaires'
+              ? 'border-green-600 text-navy-900 font-bold bg-white'
+              : 'border-transparent text-slate-500 hover:text-slate-750 hover:bg-slate-50',
+            'whitespace-nowrap py-4 px-3 border-b-2 font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-2'
+          ]"
+          @click="activeTab = 'gestionnaires'"
+        >
+          <UIcon name="i-lucide-user-cog" class="w-4 h-4" />
+          <span>Gestionnaires de paie</span>
+          <span class="px-2 py-0.5 rounded-full text-[10px] bg-navy-50 text-navy-700 border border-navy-200 font-bold">{{ gestionnaires.length }}</span>
         </button>
 
       </nav>
     </div>
 
     <!-- Tab 1: Informations -->
-    <div v-show="activeTab === 'infos'" class="bg-white border-2 border-slate-200 p-6 shadow-flat border-t-4 border-t-slate-500">
+    <div v-show="activeTab === 'infos'" class="bg-white border-2 border-slate-200 p-6 shadow-flat border-t-4 border-t-navy-900">
       <form @submit.prevent="handleUpdateDossier" class="space-y-6">
-        <h3 class="text-lg font-bold text-slate-900 border-b border-slate-100 pb-2">Modifier le profil de l'entreprise</h3>
+        <h3 class="text-lg font-bold text-navy-900 border-b border-slate-100 pb-2">Modifier le profil de l'entreprise</h3>
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
@@ -996,6 +1120,194 @@ onMounted(() => {
       </div>
     </div>
 
+    <!-- Tab 6: Gestionnaires de paie -->
+    <div v-show="activeTab === 'gestionnaires'" class="space-y-6">
+      <div class="bg-white border-2 border-slate-200 p-6 shadow-flat border-t-4 border-t-navy-900">
+        <div class="flex flex-col sm:flex-row justify-between sm:items-center gap-4 border-b border-slate-100 pb-4 mb-6">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-navy-100 text-navy-800 uppercase tracking-wider">
+                Plateforme Paie
+              </span>
+              <h3 class="text-lg font-bold text-navy-900">Gestionnaires de paie de {{ dossier.nom_dossier }}</h3>
+            </div>
+            <p class="text-xs text-slate-500 mt-1">
+              Ces comptes tiennent la paie de cette société : bulletins, variables, contrats et états.
+              Ils n'ont accès à aucune autre société, sauf si vous les y affectez aussi.
+            </p>
+          </div>
+          <button
+            v-if="!showGestionnaireForm"
+            class="px-3.5 py-2 bg-green-600 hover:bg-green-700 text-white font-bold text-xs uppercase tracking-wider transition-all flex items-center gap-1.5 shadow-flat cursor-pointer rounded-lg self-start sm:self-auto"
+            @click="showGestionnaireForm = true"
+          >
+            <UIcon name="i-lucide-user-plus" class="w-4 h-4" />
+            Affecter un gestionnaire
+          </button>
+        </div>
+
+        <div class="mb-6 p-4 rounded-xl bg-navy-50 border border-navy-200 flex items-start gap-3">
+          <div class="p-2 rounded-lg bg-navy-100 text-navy-700 shrink-0">
+            <UIcon name="i-lucide-info" class="w-5 h-5" />
+          </div>
+          <div class="text-xs text-navy-800 space-y-1">
+            <p class="font-bold text-navy-900 text-sm">Ce que voit un gestionnaire de paie</p>
+            <p>
+              Il retrouve la société dans sa liste et gère sa paie comme le cabinet propriétaire.
+              Il ne peut pas distribuer d'accès : seul le propriétaire du dossier crée ou retire
+              des gestionnaires.
+            </p>
+          </div>
+        </div>
+
+        <!-- Création -->
+        <div v-if="showGestionnaireForm" class="bg-slate-50 p-6 rounded-xl border border-slate-200 mb-6 space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+            <h4 class="font-bold text-sm text-navy-900 flex items-center gap-2">
+              <UIcon name="i-lucide-user-cog" class="w-4 h-4 text-navy-700" />
+              Nouveau gestionnaire de paie
+            </h4>
+            <button class="text-slate-400 hover:text-slate-600 text-sm" @click="showGestionnaireForm = false">
+              ✕ Fermer
+            </button>
+          </div>
+
+          <form class="space-y-4" @submit.prevent="handleCreateGestionnaire">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase">Nom <span class="text-red-500">*</span></label>
+                <input
+                  v-model="formGestionnaire.nom"
+                  type="text"
+                  required
+                  placeholder="Ex: YAO"
+                  class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-green-500 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase">Prénom</label>
+                <input
+                  v-model="formGestionnaire.prenom"
+                  type="text"
+                  placeholder="Ex: Adjoua"
+                  class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-green-500 focus:outline-none"
+                />
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-xs font-semibold text-slate-600 uppercase">Email de connexion <span class="text-red-500">*</span></label>
+                <input
+                  v-model="formGestionnaire.email"
+                  type="email"
+                  required
+                  placeholder="paie@cabinet.ci"
+                  class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-green-500 focus:outline-none"
+                />
+                <p class="text-[11px] text-slate-500 mt-1">
+                  Un compte existant peut être rattaché à une autre société avec la même adresse.
+                </p>
+              </div>
+              <div class="md:col-span-2">
+                <label class="block text-xs font-semibold text-slate-600 uppercase">Mot de passe (facultatif)</label>
+                <input
+                  v-model="formGestionnaire.password"
+                  type="text"
+                  placeholder="Laisser vide pour en générer un et l'envoyer par email"
+                  class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-green-500 focus:outline-none"
+                />
+              </div>
+            </div>
+            <div class="flex justify-end gap-2">
+              <button
+                type="button"
+                class="px-3 py-2 border border-slate-300 rounded-lg text-sm font-semibold hover:bg-white"
+                @click="showGestionnaireForm = false"
+              >
+                Annuler
+              </button>
+              <button
+                type="submit"
+                :disabled="gestionnaireSubmitting"
+                class="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-slate-300 text-white text-sm font-bold rounded-lg inline-flex items-center gap-1.5"
+              >
+                <UIcon
+                  :name="gestionnaireSubmitting ? 'i-lucide-loader-2' : 'i-lucide-check'"
+                  class="w-4 h-4"
+                  :class="{ 'animate-spin': gestionnaireSubmitting }"
+                />
+                Créer l'accès
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Liste -->
+        <div v-if="!gestionnaires.length" class="text-center py-12 px-4 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+          <UIcon name="i-lucide-user-cog" class="w-8 h-8 text-slate-300 inline-block" />
+          <p class="text-sm text-slate-500 font-semibold mt-2">Aucun gestionnaire affecté</p>
+          <p class="text-xs text-slate-400 mt-1">
+            Le propriétaire du dossier tient la paie seul pour l'instant.
+          </p>
+        </div>
+        <div v-else class="overflow-x-auto border border-slate-200 rounded-xl">
+          <table class="min-w-full divide-y divide-slate-200 text-sm">
+            <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
+              <tr>
+                <th class="px-6 py-3.5 text-left">Gestionnaire</th>
+                <th class="px-6 py-3.5 text-left">Email de connexion</th>
+                <th class="px-6 py-3.5 text-left">Statut</th>
+                <th class="px-6 py-3.5 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 bg-white">
+              <tr v-for="compte in gestionnaires" :key="compte.id" class="hover:bg-slate-50">
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-navy-100 text-navy-800 font-bold text-xs flex items-center justify-center">
+                      {{ (compte.prenom?.[0] || '') + (compte.nom?.[0] || 'G') }}
+                    </div>
+                    <div>
+                      <span class="font-bold text-slate-900 block">{{ compte.prenom }} {{ compte.nom }}</span>
+                      <span class="text-xs text-slate-400">ID: {{ compte.id }}</span>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-6 py-4 font-mono text-xs text-slate-700">{{ compte.email }}</td>
+                <td class="px-6 py-4">
+                  <span
+                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold"
+                    :class="compte.is_active ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-500'"
+                  >
+                    {{ compte.is_active ? 'Actif' : 'Désactivé' }}
+                  </span>
+                </td>
+                <td class="px-6 py-4 text-right space-x-3">
+                  <button
+                    :disabled="envoiGestionnaireEnCours === compte.id"
+                    title="Génère un nouveau mot de passe provisoire et l'envoie par email"
+                    class="text-xs font-semibold text-slate-600 hover:text-slate-900 disabled:opacity-40 inline-flex items-center gap-1"
+                    @click="envoyerIdentifiantsGestionnaire(compte)"
+                  >
+                    <UIcon
+                      :name="envoiGestionnaireEnCours === compte.id ? 'i-lucide-loader-2' : 'i-lucide-mail'"
+                      class="w-3.5 h-3.5"
+                      :class="{ 'animate-spin': envoiGestionnaireEnCours === compte.id }"
+                    />
+                    Envoyer les identifiants
+                  </button>
+                  <button
+                    class="text-xs font-semibold text-red-600 hover:text-red-800 inline-flex items-center gap-1"
+                    @click="retirerGestionnaire(compte)"
+                  >
+                    <UIcon name="i-lucide-user-minus" class="w-3.5 h-3.5" />
+                    Retirer
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 
   </div>
 </template>

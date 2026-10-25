@@ -11,7 +11,7 @@ from app.schemas.etablissement import (
 )
 from app.services.security import get_current_user
 
-from app.services.permissions import require_staff
+from app.services.permissions import peut_gerer_dossier, require_staff
 
 router = APIRouter(tags=["Etablissements"])
 
@@ -24,7 +24,7 @@ def check_dossier_ownership(dossier_id: int, user_id: int, db: Session) -> Dossi
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Dossier introuvable ou accès refusé."
         )
-    if user and (user.is_admin or (user.role == "client" and user.dossier_id == dossier_id) or (user.role == "cabinet" and dossier.utilisateur_id == user_id)):
+    if user and peut_gerer_dossier(db, user, dossier):
         return dossier
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,
@@ -40,7 +40,7 @@ def check_etablissement_ownership(etablissement_id: int, user_id: int, db: Sessi
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Établissement introuvable ou accès refusé."
         )
-    if user and (user.is_admin or (user.role == "client" and user.dossier_id == etab.dossier_id) or (user.role == "cabinet" and etab.dossier.utilisateur_id == user_id)):
+    if user and peut_gerer_dossier(db, user, etab.dossier):
         return etab
     raise HTTPException(
         status_code=status.HTTP_403_FORBIDDEN,

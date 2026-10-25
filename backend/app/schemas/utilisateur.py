@@ -2,7 +2,7 @@ from pydantic import BaseModel, EmailStr, Field
 from typing import Literal, Optional
 
 
-RoleUtilisateur = Literal["cabinet", "client", "salarie"]
+RoleUtilisateur = Literal["cabinet", "gestionnaire_paie", "client", "salarie"]
 
 
 class UtilisateurBase(BaseModel):
@@ -69,6 +69,14 @@ class CompteClientCreate(BaseModel):
     #: Laisser vide pour que le serveur génère un mot de passe aléatoire
     #: (recommandé : plus aucun mot de passe partagé par défaut).
     password: Optional[str] = Field(default=None, min_length=8, max_length=128)
+
+
+class CompteGestionnaireCreate(CompteClientCreate):
+    """Création d'un gestionnaire de paie, affecté à une société.
+
+    Même saisie qu'un compte client : mot de passe facultatif (généré et envoyé
+    par email s'il est omis).
+    """
 
 
 class CabinetSignupRequest(BaseModel):
