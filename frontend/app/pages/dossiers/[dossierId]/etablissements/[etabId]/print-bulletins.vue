@@ -74,7 +74,7 @@ const telechargerPdfLot = async () => {
     const config = useRuntimeConfig()
     const { token } = useSupabase()
     const apiBase = config.public.apiBase || 'http://localhost:8000'
-    const reponse = await fetch(`${apiBase}/api/v1/bulletins/pdf-lot`, {
+    const reponse = await fetch(`${apiBase}/bulletins/pdf-lot`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

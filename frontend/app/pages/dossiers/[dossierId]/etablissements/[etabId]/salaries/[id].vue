@@ -64,6 +64,44 @@ const onFileSelected = (event) => {
   selectedFile.value = event.target.files[0]
 }
 
+/**
+ * Télécharge une pièce jointe RH.
+ *
+ * L'URL stockée contient déjà le préfixe `/api/v1` alors que `apiBase` le
+ * contient aussi : on ne conserve que le chemin, sinon l'appel part sur
+ * `/api/v1/api/v1/...`. Le jeton est envoyé en en-tête, car un simple lien
+ * ne peut pas s'authentifier auprès de l'endpoint protégé.
+ */
+const telechargerDocument = async (url) => {
+  if (!url) return
+  const chemin = url.startsWith('/uploads/')
+    // Anciennes pièces jointes : le fichier est désormais servi par l'API.
+    ? `/salaries/documents/${url.split('/uploads/').pop()}`
+    : (url.includes('/api/v1') ? url.slice(url.indexOf('/api/v1') + '/api/v1'.length) : url)
+  try {
+    const { token } = useSupabase()
+    const reponse = await fetch(`${apiBase}${chemin}`, {
+      headers: { Authorization: `Bearer ${token.value}` }
+    })
+    if (!reponse.ok) throw new Error(`HTTP ${reponse.status}`)
+
+    const blob = await reponse.blob()
+    const nom = decodeURIComponent(chemin.split('/').pop() || 'document')
+    const lien = document.createElement('a')
+    lien.href = URL.createObjectURL(blob)
+    lien.download = nom
+    lien.click()
+    URL.revokeObjectURL(lien.href)
+  } catch (e) {
+    console.error('Téléchargement du document impossible :', e)
+    toast.add({
+      title: 'Téléchargement impossible',
+      description: 'Le document n\'a pas pu être récupéré.',
+      color: 'danger'
+    })
+  }
+}
+
 // Computed tabs list
 const tabs = computed(() => [
   { id: 'infos', label: 'État Civil / Fiche' },
@@ -1701,7 +1739,7 @@ onMounted(() => {
               <label class="block text-xs font-semibold text-slate-500 uppercase">Fichier joint</label>
               <input type="file" @change="onFileSelected" :required="!editingArchivage" class="mt-1 block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100" />
               <div v-if="formArchivage.fichier_joint" class="text-xs text-slate-500 mt-1">
-                Fichier actuel : <a :href="`${apiBase}${formArchivage.fichier_joint}`" target="_blank" class="text-navy-700 hover:underline font-medium">{{ formArchivage.fichier_joint.split('/').pop() }}</a>
+                Fichier actuel : <button type="button" @click="telechargerDocument(formArchivage.fichier_joint)" class="text-navy-700 hover:underline font-medium">{{ formArchivage.fichier_joint.split('/').pop() }}</button>
               </div>
             </div>
           </div>
@@ -1730,15 +1768,15 @@ onMounted(() => {
                 <td class="px-6 py-4 font-semibold text-slate-800">{{ item.type_document }}</td>
                 <td class="px-6 py-4 font-mono">{{ item.date_ajout }}</td>
                 <td class="px-6 py-4">
-                  <a 
+                  <button
                     v-if="item.fichier_joint"
-                    :href="`${apiBase}${item.fichier_joint}`" 
-                    target="_blank" 
+                    type="button"
                     class="inline-flex items-center gap-1 text-navy-700 hover:text-navy-900 font-semibold hover:underline"
+                    @click="telechargerDocument(item.fichier_joint)"
                   >
                     <UIcon name="i-lucide-download" class="w-3.5 h-3.5" />
                     Télécharger
-                  </a>
+                  </button>
                   <span v-else class="text-slate-400 italic">Aucun fichier</span>
                 </td>
                 <td class="px-6 py-4 text-right space-x-2">

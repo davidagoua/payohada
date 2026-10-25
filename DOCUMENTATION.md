@@ -403,6 +403,13 @@ logiciel_paie/
 - Ajout de `SECURITY.md`, d'un script de purge d'historique et d'une détection de secrets en CI.
 
 #### Fixed
+- **Exports et téléchargements en 404 (`/api/v1/api/v1/…`)** : `apiBase`
+  contient déjà le préfixe `/api/v1`. Sept URL d'export/import le répétaient —
+  export des éditions, PDF d'un bulletin, PDF d'un lot, export et import Excel
+  des variables — d'où le 404. Les liens de pièces jointes RH souffraient du
+  même doublon (et ne transmettaient pas le jeton) ; elles se téléchargent
+  désormais via un appel authentifié. Commentaire ajouté dans `nuxt.config.ts`
+  pour éviter la récidive.
 - **Calcul en lot (IDOR)** : la restriction ne portait que sur le rôle `cabinet` ; un compte client pouvait recalculer la paie de n'importe quel dossier. Réservé au cabinet propriétaire.
 - **Collision de codes de lignes** : deux absences (ou deux HS/primes) de même nature dans un mois faisaient échouer le bulletin entier (`UNIQUE constraint failed`). Les codes sont désormais suffixés (`ABS_MALADIE`, `ABS_MALADIE_2`).
 - **Bulletins validés protégés** : un recalcul écrasait silencieusement un bulletin clôturé et permettait un double remboursement de prêt. Le recalcul exige une invalidation préalable.

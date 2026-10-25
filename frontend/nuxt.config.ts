@@ -1,5 +1,8 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 const supabaseUrl = process.env.NUXT_PUBLIC_SUPABASE_URL || ''
+// Racine de l'API, préfixe `/api/v1` **compris** (voir `frontend/.env`).
+// Les appels directs utilisent donc `${apiBase}/editions/...` et jamais
+// `${apiBase}/api/v1/...` : ce doublon renvoyait un 404 sur les exports.
 const apiBase = process.env.NUXT_PUBLIC_API_BASE || 'http://localhost:8000'
 const bugsinkDsn = process.env.NUXT_PUBLIC_BUGSINK_DSN || ''
 const n8nChatWebhook = process.env.NUXT_PUBLIC_N8N_CHAT_WEBHOOK || ''

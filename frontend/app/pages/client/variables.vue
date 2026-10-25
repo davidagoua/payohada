@@ -285,7 +285,7 @@ const handleExportExcel = async () => {
       mois: String(selectedMois.value),
       annee: String(selectedAnnee.value)
     })
-    const url = `${apiBase}/api/v1/dossiers/${dossier.value.id}/export-variables-excel?${params}`
+    const url = `${apiBase}/dossiers/${dossier.value.id}/export-variables-excel?${params}`
     const response = await fetch(url, {
       headers: { Authorization: `Bearer ${token.value}` }
     })
@@ -314,7 +314,7 @@ const handleImportExcel = async (event) => {
       mois: String(selectedMois.value),
       annee: String(selectedAnnee.value)
     })
-    const url = `${apiBase}/api/v1/dossiers/${dossier.value.id}/import-variables-excel?${params}`
+    const url = `${apiBase}/dossiers/${dossier.value.id}/import-variables-excel?${params}`
     const formData = new FormData()
     formData.append('fichier', file)
     const response = await fetch(url, {

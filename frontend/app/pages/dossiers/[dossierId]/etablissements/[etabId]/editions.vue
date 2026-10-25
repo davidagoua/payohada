@@ -139,7 +139,7 @@ const telecharger = async (format) => {
     const { token } = useSupabase()
     const apiBase = config.public.apiBase || 'http://localhost:8000'
     const reponse = await fetch(
-      `${apiBase}/api/v1/editions/${codeSelectionne.value}/export?format=${format}`,
+      `${apiBase}/editions/${codeSelectionne.value}/export?format=${format}`,
       {
         method: 'POST',
         headers: {

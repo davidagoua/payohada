@@ -518,7 +518,7 @@ const telechargerPdf = async () => {
     const config = useRuntimeConfig()
     const { token } = useSupabase()
     const apiBase = config.public.apiBase || 'http://localhost:8000'
-    const reponse = await fetch(`${apiBase}/api/v1/bulletins/${bulletinId}/pdf`, {
+    const reponse = await fetch(`${apiBase}/bulletins/${bulletinId}/pdf`, {
       headers: { Authorization: `Bearer ${token.value}` }
     })
     if (!reponse.ok) throw new Error(`HTTP ${reponse.status}`)
