@@ -2,270 +2,750 @@
 definePageMeta({
   layout: false
 })
+
+const route = useRoute()
+const router = useRouter()
+const { user, login, signupCabinet, loading, getDefaultRedirect } = useSupabase()
+
+const isRegister = ref(route.query.register === 'true')
+const currentStep = ref(1) // Étape 1 : Infos Cabinet, Étape 2 : Identifiants Gestionnaire
+
+// Champs de connexion
+const loginEmail = ref('')
+const loginPassword = ref('')
+
+// Champs d'inscription Cabinet
+const cabinetNom = ref('')
+const cabinetTelephone = ref('')
+const cabinetVille = ref('')
+const cabinetPays = ref('Côte d\'Ivoire')
+
+const firstName = ref('')
+const lastName = ref('')
+const email = ref('')
+const password = ref('')
+const passwordConfirm = ref('')
+
+const showPassword = ref(false)
+const errorMsg = ref('')
+const successMsg = ref('')
+const fieldErrors = ref({})
+
+// Watch query params to toggle mode
+watch(() => route.query.register, (val) => {
+  isRegister.value = val === 'true'
+  currentStep.value = 1
+  fieldErrors.value = {}
+  errorMsg.value = ''
+  successMsg.value = ''
+})
+
+const redirectToPlatform = () => {
+  const dest = getDefaultRedirect(user.value)
+  router.push(dest)
+}
+
+const validateStep1 = () => {
+  fieldErrors.value = {}
+  errorMsg.value = ''
+  let hasError = false
+
+  if (!cabinetNom.value.trim()) {
+    fieldErrors.value.cabinetNom = 'Le nom de votre cabinet ou société est obligatoire.'
+    hasError = true
+  }
+
+  if (hasError) return false
+  return true
+}
+
+const goToStep2 = () => {
+  if (validateStep1()) {
+    currentStep.value = 2
+  }
+}
+
+const handleLogin = async () => {
+  errorMsg.value = ''
+  fieldErrors.value = {}
+
+  let hasError = false
+  if (!loginEmail.value) {
+    fieldErrors.value.loginEmail = 'Veuillez saisir votre adresse email.'
+    hasError = true
+  }
+  if (!loginPassword.value) {
+    fieldErrors.value.loginPassword = 'Veuillez saisir votre mot de passe.'
+    hasError = true
+  }
+
+  if (hasError) return
+
+  const { error } = await login(loginEmail.value, loginPassword.value)
+  if (error) {
+    errorMsg.value = error
+  } else {
+    redirectToPlatform()
+  }
+}
+
+const handleRegisterCabinet = async () => {
+  errorMsg.value = ''
+  fieldErrors.value = {}
+
+  let hasError = false
+
+  if (!cabinetNom.value.trim()) {
+    currentStep.value = 1
+    fieldErrors.value.cabinetNom = 'Le nom de votre cabinet est obligatoire.'
+    return
+  }
+
+  if (!firstName.value.trim()) {
+    fieldErrors.value.firstName = 'Veuillez renseigner votre prénom.'
+    hasError = true
+  }
+
+  if (!lastName.value.trim()) {
+    fieldErrors.value.lastName = 'Veuillez renseigner votre nom.'
+    hasError = true
+  }
+
+  if (!email.value.trim()) {
+    fieldErrors.value.email = 'Veuillez renseigner votre adresse email professionnelle.'
+    hasError = true
+  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
+    fieldErrors.value.email = 'Veuillez renseigner une adresse email valide.'
+    hasError = true
+  }
+
+  if (!password.value || password.value.length < 8) {
+    fieldErrors.value.password = 'Le mot de passe doit contenir au moins 8 caractères.'
+    hasError = true
+  }
+
+  if (password.value !== passwordConfirm.value) {
+    fieldErrors.value.passwordConfirm = 'Les mots de passe ne correspondent pas.'
+    hasError = true
+  }
+
+  if (hasError) return
+
+  const res = await signupCabinet({
+    prenom: firstName.value.trim(),
+    nom: lastName.value.trim(),
+    email: email.value.trim().toLowerCase(),
+    password: password.value,
+    cabinet_nom: cabinetNom.value.trim(),
+    cabinet_telephone: cabinetTelephone.value.trim() || undefined,
+    cabinet_ville: cabinetVille.value.trim() ? `${cabinetVille.value.trim()} (${cabinetPays.value})` : cabinetPays.value
+  })
+
+  if (res.error) {
+    errorMsg.value = res.error
+  } else {
+    successMsg.value = 'Votre espace Cabinet a été créé avec succès ! Redirection en cours...'
+    setTimeout(() => {
+      redirectToPlatform()
+    }, 1200)
+  }
+}
+
+onMounted(() => {
+  if (user.value) {
+    redirectToPlatform()
+  }
+})
 </script>
 
 <template>
-  <div class="min-h-screen bg-slate-50 text-slate-900 font-sans flex flex-col">
-    <!-- Liseré supérieur : signature bicolore de la marque -->
-    <div class="brand-accent-bar" />
-
-    <!-- Navigation Header — encre navy de la marque -->
-    <header class="sticky top-0 z-50 bg-navy-900 border-b border-white/10 shadow-flat">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-        <NuxtLink to="/" class="flex items-center shrink-0" aria-label="payohada — accueil">
-          <img
-            src="/payohada-logo-light.png"
-            alt="payohada"
-            class="h-8 w-auto object-contain"
-          >
-        </NuxtLink>
-        <div class="flex items-center gap-3">
-          <NuxtLink
-            to="/login"
-            class="px-4 py-2 text-sm font-semibold text-slate-300 hover:text-white transition-colors duration-150"
-          >
-            Connexion
-          </NuxtLink>
-          <NuxtLink
-            to="/login?register=true"
-            class="px-4 py-2 text-sm font-semibold text-white bg-green-600 hover:bg-green-700 transition-colors duration-150"
-          >
-            S'inscrire
-          </NuxtLink>
+  <AuthShell>
+    <div class="text-center lg:text-left">
+      <!-- Titre contextuel -->
+      <template v-if="isRegister">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-navy-50 border border-navy-200 text-navy-700 text-xs font-semibold mb-3">
+          <UIcon
+            name="i-lucide-building-2"
+            class="w-3.5 h-3.5 text-navy-700"
+          />
+          <span>Espace Cabinet Comptable & RH</span>
         </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-navy-900 tracking-tight">
+          Créer un compte Cabinet
+        </h1>
+        <p class="mt-2 text-sm text-slate-600 max-w-md mx-auto lg:mx-0">
+          Gérez l'ensemble de vos dossiers clients, calculez vos bulletins conformes OHADA et pilotez vos déclarations sociales en toute simplicité.
+        </p>
+      </template>
+
+      <template v-else>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-navy-900 tracking-tight">
+          Connexion à payohada
+        </h1>
+        <p class="mt-2 text-sm text-slate-600">
+          Accédez à vos dossiers d'entreprises, vos simulations et bulletins de paie.
+        </p>
+      </template>
+
+      <!-- Toggle inscription / connexion -->
+      <div class="mt-3 text-sm">
+        <span class="text-slate-500">
+          {{ isRegister ? "Vous avez déjà un compte ?" : "Vous représentez un cabinet ou un gestionnaire ?" }}
+        </span>
+        <button
+          class="ml-1.5 font-semibold text-green-700 hover:text-green-800 hover:underline transition-colors"
+          @click="isRegister = !isRegister; errorMsg = ''; successMsg = ''; fieldErrors = {}; currentStep = 1"
+        >
+          {{ isRegister ? "Connectez-vous ici" : "Inscrivez votre cabinet" }}
+        </button>
       </div>
-    </header>
+    </div>
 
-    <!-- Hero Section — l'encre navy porte le discours de marque -->
-    <section class="relative overflow-hidden bg-navy-950 text-white flex-grow flex items-center py-20">
-      <!-- Trame technique discrète -->
-      <div
-        class="absolute inset-0 pointer-events-none"
-        style="background-image: linear-gradient(to right, rgba(255,255,255,0.045) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.045) 1px, transparent 1px); background-size: 56px 56px;"
-      />
-      <!-- Halos : vert de la marque et navy plus clair -->
-      <div class="absolute -top-40 -right-40 w-[560px] h-[560px] rounded-full bg-green-600/10 blur-3xl pointer-events-none" />
-      <div class="absolute -bottom-52 -left-24 w-[420px] h-[420px] rounded-full bg-navy-600/25 blur-3xl pointer-events-none" />
-
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center w-full">
-        
-        <!-- Hero Left Content (Text & Actions) -->
-        <div class="space-y-8 animate-fade-in-up">
-          <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-green-500/10 border border-green-500/30 text-green-400 text-xs font-semibold">
-            <span class="w-1.5 h-1.5 rounded-full bg-green-400 animate-ping"></span>
-            <span>Logiciel de Paie</span>
-          </div>
-
-          <h1 class="text-4xl sm:text-5xl font-extrabold text-white leading-tight tracking-tight">
-            Gérez vos salariés et vos paies avec la <span class="text-green-400">rigueur</span>
-          </h1>
-
-          <p class="text-lg text-slate-300 leading-relaxed max-w-lg">
-            Payohada offre une structure robuste inspirée des standards d'entreprise , adaptée pour gérer vos dossiers clients, vos établissements administratifs, vos salariés et leurs contrats de travail en toute simplicité.
-          </p>
-
-          <div class="flex flex-col sm:flex-row gap-4">
-            <NuxtLink to="/login" class="px-8 py-3.5 bg-green-600 hover:bg-green-700 text-white font-semibold shadow-md hover:shadow-lg transition-all duration-200 flex items-center justify-center space-x-2">
-              <span>Accéder à l'application</span>
-              <UIcon name="i-lucide-arrow-right" class="w-5 h-5" />
-            </NuxtLink>
-            <a href="#features" class="px-8 py-3.5 bg-white/5 border border-white/20 text-white font-semibold hover:bg-white/10 transition-colors duration-200 text-center">
-              Découvrir les fonctionnalités
-            </a>
-          </div>
-
-          <div class="flex items-center space-x-6 text-slate-300 text-sm">
-            <div class="flex items-center space-x-2">
-              <UIcon name="i-lucide-check-circle" class="w-5 h-5 text-green-400" />
-              <span>Optimiser pour la securité</span>
-            </div>
-            <div class="flex items-center space-x-2">
-              <UIcon name="i-lucide-check-circle" class="w-5 h-5 text-green-400" />
-              <span>Standart du marcher</span>
-            </div>
-          </div>
+    <!-- Main Card Container -->
+    <div class="mt-6">
+      <div class="bg-white py-8 px-6 shadow-flat border border-slate-200 border-t-4 border-t-navy-900 sm:px-10 relative overflow-hidden">
+        <!-- Alerts -->
+        <div
+          v-if="errorMsg"
+          class="mb-5 p-3.5 bg-red-50/90 border border-red-200 text-red-700 rounded-xl text-sm flex items-start space-x-2.5"
+        >
+          <UIcon
+            name="i-lucide-alert-circle"
+            class="w-5 h-5 text-red-500 shrink-0 mt-0.5"
+          />
+          <span class="font-medium">{{ errorMsg }}</span>
         </div>
 
-        <!-- Hero Right Content (Visual mockup representation) -->
-        <div class="relative hidden lg:block animate-fade-in">
-          <!-- Main mock frame -->
-          <div class="relative rounded-xl bg-white border border-white/10 shadow-2xl p-6 overflow-hidden">
-            <!-- Header bar mock -->
-            <div class="flex items-center justify-between pb-4 border-b border-slate-100 mb-4">
-              <div class="flex items-center space-x-2">
-                <div class="w-3 h-3 rounded-full bg-red-400"></div>
-                <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
-                <div class="w-3 h-3 rounded-full bg-green-400"></div>
-              </div>
-              <div class="text-xs text-navy-500 bg-navy-50 px-8 py-1 border border-navy-100">
-                app.payohada.cloud/dossiers
-              </div>
-            </div>
-            <!-- Mock App Grid -->
-            <div class="space-y-4">
-              <div class="flex justify-between items-center bg-slate-50 p-3 border border-slate-100">
-                <div class="flex items-center space-x-3">
-                  <div class="w-10 h-10 bg-navy-100 flex items-center justify-center text-navy-800 font-bold text-sm">
-                    E1
-                  </div>
-                  <div>
-                    <p class="text-sm font-semibold text-slate-800">Etablissement Paris Nord</p>
-                    <p class="text-xs text-slate-500 font-mono">SIRET: 123 456 789 00012</p>
-                  </div>
-                </div>
-                <span class="text-xs px-2 py-0.5 bg-green-50 border border-green-200 text-green-700 font-medium">
-                  Actif
+        <div
+          v-if="successMsg"
+          class="mb-5 p-3.5 bg-green-50/90 border border-green-200 text-green-700 rounded-xl text-sm flex items-start space-x-2.5"
+        >
+          <UIcon
+            name="i-lucide-check-circle"
+            class="w-5 h-5 text-green-600 shrink-0 mt-0.5"
+          />
+          <span class="font-medium">{{ successMsg }}</span>
+        </div>
+
+        <!-- ============================================== -->
+        <!-- FORMULAIRE INSCRIPTION CABINET (WIZARD 2 ÉTAPES) -->
+        <!-- ============================================== -->
+        <div v-if="isRegister">
+          <!-- Stepper Indicator -->
+          <div class="mb-8">
+            <div class="flex items-center justify-between relative">
+              <div class="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 bg-slate-200 w-full z-0" />
+              <div
+                class="absolute left-0 top-1/2 -translate-y-1/2 h-0.5 bg-green-500 transition-all duration-300 z-0"
+                :style="{ width: currentStep === 1 ? '50%' : '100%' }"
+              />
+
+              <!-- Step 1 Button -->
+              <button
+                type="button"
+                class="relative z-10 flex items-center gap-2 bg-white px-3 py-1 rounded-full border transition-all text-xs font-medium"
+                :class="currentStep === 1 ? 'border-green-500 text-green-700 ring-2 ring-green-100 shadow-sm' : 'border-slate-300 text-slate-600 hover:border-slate-400'"
+                @click="currentStep = 1"
+              >
+                <span
+                  class="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold text-white"
+                  :class="currentStep === 1 ? 'bg-green-600' : 'bg-green-500'"
+                >
+                  1
                 </span>
+                <span>Votre Cabinet</span>
+              </button>
+
+              <!-- Step 2 Button -->
+              <button
+                type="button"
+                class="relative z-10 flex items-center gap-2 bg-white px-3 py-1 rounded-full border transition-all text-xs font-medium"
+                :class="currentStep === 2 ? 'border-green-500 text-green-700 ring-2 ring-green-100 shadow-sm' : 'border-slate-300 text-slate-500 hover:border-slate-400'"
+                @click="goToStep2"
+              >
+                <span
+                  class="w-5 h-5 rounded-full flex items-center justify-center text-[11px] font-bold"
+                  :class="currentStep === 2 ? 'bg-green-600 text-white' : 'bg-slate-200 text-slate-600'"
+                >
+                  2
+                </span>
+                <span>Gestionnaire Référent</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Étape 1 : Informations du Cabinet -->
+          <div
+            v-show="currentStep === 1"
+            class="space-y-5"
+          >
+            <div class="border-b border-slate-100 pb-3 mb-4">
+              <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                <UIcon
+                  name="i-lucide-briefcase"
+                  class="w-4 h-4 text-green-600"
+                />
+                Informations sur la structure
+              </h2>
+              <p class="text-xs text-slate-500 mt-0.5">
+                Renseignez les coordonnées professionnelles de votre cabinet d'expertise ou fiduciaire.
+              </p>
+            </div>
+
+            <div>
+              <label
+                for="cabinet_nom"
+                class="block text-xs font-bold uppercase tracking-wider text-slate-700"
+              >
+                Nom du Cabinet ou de la Société <span class="text-red-500">*</span>
+              </label>
+              <div class="mt-1 relative">
+                <input
+                  id="cabinet_nom"
+                  v-model="cabinetNom"
+                  type="text"
+                  required
+                  placeholder="Ex: Cabinet Audit & Paie Afrique, FIDUCO..."
+                  :class="[
+                    'block w-full px-3.5 py-2.5 border rounded-xl focus:outline-none text-sm transition-all',
+                    fieldErrors.cabinetNom ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                  ]"
+                >
               </div>
-              <!-- Employees mini list -->
-              <div class="space-y-2">
-                <div class="text-xs font-semibold text-navy-800 uppercase tracking-wider">Salariés & Contrats</div>
-                <div class="grid grid-cols-2 gap-2">
-                  <div class="bg-white border border-slate-150 p-2.5 rounded-md shadow-sm">
-                    <p class="text-xs font-bold text-slate-800">Jean Dupont</p>
-                    <p class="text-[10px] text-navy-700 font-semibold">CDI • 35h/sem</p>
-                  </div>
-                  <div class="bg-white border border-slate-150 p-2.5 rounded-md shadow-sm">
-                    <p class="text-xs font-bold text-slate-800">Sophie Martin</p>
-                    <p class="text-[10px] text-navy-700 font-semibold">CDD • Temps partiel</p>
-                  </div>
+              <p
+                v-if="fieldErrors.cabinetNom"
+                class="mt-1 text-xs text-red-600 font-medium"
+              >
+                {{ fieldErrors.cabinetNom }}
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label
+                  for="cabinet_telephone"
+                  class="block text-xs font-bold uppercase tracking-wider text-slate-700"
+                >
+                  Téléphone professionnel
+                </label>
+                <div class="mt-1 relative">
+                  <input
+                    id="cabinet_telephone"
+                    v-model="cabinetTelephone"
+                    type="tel"
+                    placeholder="Ex: +225 07 00 00 00 00"
+                    class="block w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                  >
+                </div>
+              </div>
+
+              <div>
+                <label
+                  for="cabinet_ville"
+                  class="block text-xs font-bold uppercase tracking-wider text-slate-700"
+                >
+                  Ville / Commune
+                </label>
+                <div class="mt-1 relative">
+                  <input
+                    id="cabinet_ville"
+                    v-model="cabinetVille"
+                    type="text"
+                    placeholder="Ex: Abidjan, Cocody"
+                    class="block w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
+                  >
                 </div>
               </div>
             </div>
-          </div>
-        </div>
 
-      </div>
-    </section>
-
-    <!-- Features Section -->
-    <section id="features" class="py-20 bg-white border-t border-slate-200">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        <div class="text-center max-w-2xl mx-auto mb-16">
-          <p class="text-xs font-bold uppercase tracking-widest text-navy-600 mb-3">
-            Une plateforme, quatre piliers
-          </p>
-          <h2 class="text-3xl font-bold text-navy-900 sm:text-4xl">
-            L'excellence opérationnelle, simplifiée
-          </h2>
-          <p class="mt-4 text-slate-600">
-            Payohada structure les données administratives clés de votre entreprise selon des normes standardisées et transparentes.
-          </p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <!-- Card 1 -->
-          <div class="p-6 rounded-xl bg-slate-50 border border-slate-200 border-t-2 border-t-navy-900 hover:shadow-md transition-all duration-200 group">
-            <div class="w-10 h-10 bg-navy-50 rounded-lg flex items-center justify-center text-navy-700 mb-4 group-hover:bg-navy-900 group-hover:text-white transition-colors">
-              <UIcon name="i-lucide-folder" class="w-6 h-6" />
+            <div>
+              <label
+                for="cabinet_pays"
+                class="block text-xs font-bold uppercase tracking-wider text-slate-700"
+              >
+                Zone OHADA / Pays principal
+              </label>
+              <select
+                id="cabinet_pays"
+                v-model="cabinetPays"
+                class="mt-1 block w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
+              >
+                <option value="Côte d'Ivoire">
+                  Côte d'Ivoire (Conforme CNPS / CMU / Barème IGR)
+                </option>
+                <option value="Sénégal">
+                  Sénégal (Zone UEMOA / OHADA)
+                </option>
+                <option value="Cameroun">
+                  Cameroun (Zone CEMAC / OHADA)
+                </option>
+                <option value="Bénin">
+                  Bénin (Zone UEMOA / OHADA)
+                </option>
+                <option value="Togo">
+                  Togo (Zone UEMOA / OHADA)
+                </option>
+                <option value="Mali">
+                  Mali (Zone UEMOA / OHADA)
+                </option>
+                <option value="Burkina Faso">
+                  Burkina Faso (Zone UEMOA / OHADA)
+                </option>
+                <option value="Gabon">
+                  Gabon (Zone CEMAC / OHADA)
+                </option>
+                <option value="Congo">
+                  Congo (Zone CEMAC / OHADA)
+                </option>
+                <option value="Autre">
+                  Autre pays espace OHADA
+                </option>
+              </select>
             </div>
-            <h3 class="font-bold text-navy-900 text-lg mb-2">Dossiers d'Entreprises</h3>
-            <p class="text-sm text-slate-600">
-              Gérez les informations d'identification, de contact et les liaisons NetEntreprise de vos clients et entités.
-            </p>
-          </div>
 
-          <!-- Card 2 -->
-          <div class="p-6 rounded-xl bg-slate-50 border border-slate-200 border-t-2 border-t-navy-900 hover:shadow-md transition-all duration-200 group">
-            <div class="w-10 h-10 bg-navy-50 rounded-lg flex items-center justify-center text-navy-700 mb-4 group-hover:bg-navy-900 group-hover:text-white transition-colors">
-              <UIcon name="i-lucide-building" class="w-6 h-6" />
+            <div class="pt-2">
+              <button
+                type="button"
+                class="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl shadow-md text-sm font-semibold text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all"
+                @click="goToStep2"
+              >
+                <span>Étape suivante : Identifiants administrateur</span>
+                <UIcon
+                  name="i-lucide-arrow-right"
+                  class="w-4 h-4"
+                />
+              </button>
             </div>
-            <h3 class="font-bold text-navy-900 text-lg mb-2">Établissements</h3>
-            <p class="text-sm text-slate-600">
-              Associez des adresses de facturation, des coordonnées bancaires IBAN/BIC et les caisses de cotisations sociales (URSSAF, Retraite).
-            </p>
           </div>
 
-          <!-- Card 3 -->
-          <div class="p-6 rounded-xl bg-slate-50 border border-slate-200 border-t-2 border-t-navy-900 hover:shadow-md transition-all duration-200 group">
-            <div class="w-10 h-10 bg-navy-50 rounded-lg flex items-center justify-center text-navy-700 mb-4 group-hover:bg-navy-900 group-hover:text-white transition-colors">
-              <UIcon name="i-lucide-users" class="w-6 h-6" />
-            </div>
-            <h3 class="font-bold text-navy-900 text-lg mb-2">Fiches Salariés</h3>
-            <p class="text-sm text-slate-600">
-              Suivi individuel complet : identité civile, immatriculation de sécurité sociale (NIR), et informations de versement de paie.
-            </p>
-          </div>
-
-          <!-- Card 4 -->
-          <div class="p-6 rounded-xl bg-slate-50 border border-slate-200 border-t-2 border-t-navy-900 hover:shadow-md transition-all duration-200 group">
-            <div class="w-10 h-10 bg-navy-50 rounded-lg flex items-center justify-center text-navy-700 mb-4 group-hover:bg-navy-900 group-hover:text-white transition-colors">
-              <UIcon name="i-lucide-file-text" class="w-6 h-6" />
-            </div>
-            <h3 class="font-bold text-navy-900 text-lg mb-2">Contrats de Travail</h3>
-            <p class="text-sm text-slate-600">
-              Définissez la CCN (convention collective), le salaire brut (mensuel ou horaire), le type de contrat (CDI, CDD) et la gestion des temps partiels.
-            </p>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- App CTA Section — bande navy, action verte -->
-    <section class="relative overflow-hidden bg-navy-900 text-white">
-      <div class="h-1 bg-green-600 w-full" />
-      <!-- Filigrane du logo, en rappel discret -->
-      <img
-        src="/payohada-logo-light.png"
-        alt=""
-        aria-hidden="true"
-        class="absolute -bottom-10 left-1/2 -translate-x-1/2 w-[720px] max-w-none opacity-[0.05] pointer-events-none select-none"
-      >
-      <div class="max-w-4xl mx-auto px-4 py-16 text-center space-y-6 relative z-10">
-        <h2 class="text-3xl font-extrabold text-white">Prêt à simplifier vos processus RH ?</h2>
-        <p class="text-slate-300 max-w-xl mx-auto">
-          Inscrivez-vous dès maintenant et découvrez la rigueur et la clarté pour le pilotage de votre paie.
-        </p>
-        <div class="flex justify-center pt-2">
-          <NuxtLink to="/login?register=true" class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white font-bold transition-colors">
-            Créer un compte gratuitement
-          </NuxtLink>
-        </div>
-      </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="bg-navy-950 text-slate-400 py-10 mt-auto border-t border-white/10">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div class="flex items-center">
-          <img
-            src="/payohada-logo-light.png"
-            alt="payohada"
-            class="h-7 w-auto object-contain"
+          <!-- Étape 2 : Responsable du Cabinet & Identifiants -->
+          <form
+            v-show="currentStep === 2"
+            class="space-y-4"
+            @submit.prevent="handleRegisterCabinet"
           >
+            <div class="border-b border-slate-100 pb-3 mb-2">
+              <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                <UIcon
+                  name="i-lucide-user-check"
+                  class="w-4 h-4 text-green-600"
+                />
+                Compte du Gestionnaire Référent
+              </h2>
+              <p class="text-xs text-slate-500 mt-0.5">
+                Ces accès vous permettront d'administrer votre cabinet et vos dossiers d'entreprises.
+              </p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label
+                  for="first_name"
+                  class="block text-xs font-bold uppercase tracking-wider text-slate-700"
+                >
+                  Prénom <span class="text-red-500">*</span>
+                </label>
+                <input
+                  id="first_name"
+                  v-model="firstName"
+                  type="text"
+                  required
+                  placeholder="Jean"
+                  :class="[
+                    'mt-1 block w-full px-3.5 py-2.5 border rounded-xl focus:outline-none text-sm transition-all',
+                    fieldErrors.firstName ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                  ]"
+                >
+                <p
+                  v-if="fieldErrors.firstName"
+                  class="mt-1 text-xs text-red-600 font-medium"
+                >
+                  {{ fieldErrors.firstName }}
+                </p>
+              </div>
+
+              <div>
+                <label
+                  for="last_name"
+                  class="block text-xs font-bold uppercase tracking-wider text-slate-700"
+                >
+                  Nom <span class="text-red-500">*</span>
+                </label>
+                <input
+                  id="last_name"
+                  v-model="lastName"
+                  type="text"
+                  required
+                  placeholder="Kouassi"
+                  :class="[
+                    'mt-1 block w-full px-3.5 py-2.5 border rounded-xl focus:outline-none text-sm transition-all',
+                    fieldErrors.lastName ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                  ]"
+                >
+                <p
+                  v-if="fieldErrors.lastName"
+                  class="mt-1 text-xs text-red-600 font-medium"
+                >
+                  {{ fieldErrors.lastName }}
+                </p>
+              </div>
+            </div>
+
+            <div>
+              <label
+                for="reg_email"
+                class="block text-xs font-bold uppercase tracking-wider text-slate-700"
+              >
+                Email professionnel (Identifiant de connexion) <span class="text-red-500">*</span>
+              </label>
+              <input
+                id="reg_email"
+                v-model="email"
+                type="email"
+                required
+                placeholder="direction@votre-cabinet.com"
+                :class="[
+                  'mt-1 block w-full px-3.5 py-2.5 border rounded-xl focus:outline-none text-sm transition-all',
+                  fieldErrors.email ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                ]"
+              >
+              <p
+                v-if="fieldErrors.email"
+                class="mt-1 text-xs text-red-600 font-medium"
+              >
+                {{ fieldErrors.email }}
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label
+                  for="reg_password"
+                  class="block text-xs font-bold uppercase tracking-wider text-slate-700"
+                >
+                  Mot de passe <span class="text-red-500">*</span>
+                </label>
+                <div class="mt-1 relative">
+                  <input
+                    id="reg_password"
+                    v-model="password"
+                    :type="showPassword ? 'text' : 'password'"
+                    required
+                    placeholder="8 caractères min."
+                    :class="[
+                      'block w-full px-3.5 py-2.5 pr-10 border rounded-xl focus:outline-none text-sm transition-all',
+                      fieldErrors.password ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                    ]"
+                  >
+                  <button
+                    type="button"
+                    class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                    @click="showPassword = !showPassword"
+                  >
+                    <UIcon
+                      :name="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
+                      class="w-4 h-4"
+                    />
+                  </button>
+                </div>
+                <p
+                  v-if="fieldErrors.password"
+                  class="mt-1 text-xs text-red-600 font-medium"
+                >
+                  {{ fieldErrors.password }}
+                </p>
+              </div>
+
+              <div>
+                <label
+                  for="password_confirm"
+                  class="block text-xs font-bold uppercase tracking-wider text-slate-700"
+                >
+                  Confirmer le mot de passe <span class="text-red-500">*</span>
+                </label>
+                <input
+                  id="password_confirm"
+                  v-model="passwordConfirm"
+                  :type="showPassword ? 'text' : 'password'"
+                  required
+                  placeholder="Répétez le mot de passe"
+                  :class="[
+                    'mt-1 block w-full px-3.5 py-2.5 border rounded-xl focus:outline-none text-sm transition-all',
+                    fieldErrors.passwordConfirm ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                  ]"
+                >
+                <p
+                  v-if="fieldErrors.passwordConfirm"
+                  class="mt-1 text-xs text-red-600 font-medium"
+                >
+                  {{ fieldErrors.passwordConfirm }}
+                </p>
+              </div>
+            </div>
+
+            <!-- Récapitulatif Cabinet -->
+            <div class="mt-3 p-3 bg-slate-50 border border-slate-200/80 rounded-xl flex items-center justify-between text-xs text-slate-600">
+              <div class="flex items-center gap-2">
+                <UIcon
+                  name="i-lucide-shield-check"
+                  class="w-4 h-4 text-green-600 shrink-0"
+                />
+                <span>Cabinet : <strong class="text-slate-800">{{ cabinetNom || 'Non renseigné' }}</strong></span>
+              </div>
+              <button
+                type="button"
+                class="text-green-600 hover:text-green-700 font-semibold underline"
+                @click="currentStep = 1"
+              >
+                Modifier
+              </button>
+            </div>
+
+            <div class="pt-3 flex gap-3">
+              <button
+                type="button"
+                class="w-1/3 py-2.5 px-4 border border-slate-300 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 focus:outline-none transition-colors"
+                @click="currentStep = 1"
+              >
+                Retour
+              </button>
+              <button
+                type="submit"
+                :disabled="loading"
+                class="w-2/3 flex justify-center items-center py-2.5 px-4 rounded-xl shadow-md text-sm font-semibold text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors disabled:opacity-50"
+              >
+                <UIcon
+                  v-if="loading"
+                  name="i-lucide-loader-2"
+                  class="w-5 h-5 animate-spin mr-2"
+                />
+                <span>Créer mon espace Cabinet</span>
+              </button>
+            </div>
+          </form>
         </div>
-        <p class="text-sm">
-          © {{ new Date().getFullYear() }} payohada. Tous droits réservés.
-        </p>
+
+        <!-- ============================================== -->
+        <!-- FORMULAIRE DE CONNEXION                        -->
+        <!-- ============================================== -->
+        <form
+          v-else
+          class="space-y-5"
+          @submit.prevent="handleLogin"
+        >
+          <div>
+            <label
+              for="login_email"
+              class="block text-xs font-bold uppercase tracking-wider text-slate-700"
+            >
+              Adresse Email
+            </label>
+            <input
+              id="login_email"
+              v-model="loginEmail"
+              type="email"
+              required
+              placeholder="votre@email.com"
+              :class="[
+                'mt-1 block w-full px-3.5 py-2.5 border rounded-xl focus:outline-none text-sm transition-all',
+                fieldErrors.loginEmail ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+              ]"
+            >
+            <p
+              v-if="fieldErrors.loginEmail"
+              class="mt-1 text-xs text-red-600 font-medium"
+            >
+              {{ fieldErrors.loginEmail }}
+            </p>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between">
+              <label
+                for="login_password"
+                class="block text-xs font-bold uppercase tracking-wider text-slate-700"
+              >
+                Mot de Passe
+              </label>
+              <NuxtLink
+                to="/forgot-password"
+                class="text-xs font-semibold text-green-700 hover:text-green-800 hover:underline"
+              >
+                Mot de passe oublié ?
+              </NuxtLink>
+            </div>
+            <div class="mt-1 relative">
+              <input
+                id="login_password"
+                v-model="loginPassword"
+                :type="showPassword ? 'text' : 'password'"
+                required
+                placeholder="••••••••"
+                :class="[
+                  'block w-full px-3.5 py-2.5 pr-10 border rounded-xl focus:outline-none text-sm transition-all',
+                  fieldErrors.loginPassword ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                ]"
+              >
+              <button
+                type="button"
+                class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
+                @click="showPassword = !showPassword"
+              >
+                <UIcon
+                  :name="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
+                  class="w-4 h-4"
+                />
+              </button>
+            </div>
+            <p
+              v-if="fieldErrors.loginPassword"
+              class="mt-1 text-xs text-red-600 font-medium"
+            >
+              {{ fieldErrors.loginPassword }}
+            </p>
+          </div>
+
+          <div class="pt-2">
+            <button
+              type="submit"
+              :disabled="loading"
+              class="w-full flex justify-center items-center py-2.5 px-4 rounded-xl shadow-md text-sm font-semibold text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all disabled:opacity-50"
+            >
+              <UIcon
+                v-if="loading"
+                name="i-lucide-loader-2"
+                class="w-5 h-5 animate-spin mr-2"
+              />
+              <span>Se connecter</span>
+            </button>
+          </div>
+        </form>
+
+        <!-- Bas de carte : Rappels de conformité & sécurité -->
+        <div class="mt-6 pt-5 border-t border-slate-100 text-xs text-slate-500 grid grid-cols-3 gap-2 text-center">
+          <div class="flex flex-col items-center">
+            <UIcon
+              name="i-lucide-scale"
+              class="w-4 h-4 text-green-600 mb-1"
+            />
+            <span class="font-medium">Conformité OHADA</span>
+          </div>
+          <div class="flex flex-col items-center">
+            <UIcon
+              name="i-lucide-shield-alert"
+              class="w-4 h-4 text-green-600 mb-1"
+            />
+            <span class="font-medium">Données Chiffrées</span>
+          </div>
+          <div class="flex flex-col items-center">
+            <UIcon
+              name="i-lucide-folder-git-2"
+              class="w-4 h-4 text-green-600 mb-1"
+            />
+            <span class="font-medium">Multi-entreprises</span>
+          </div>
+        </div>
       </div>
-    </footer>
-  </div>
+    </div>
+  </AuthShell>
 </template>
-
-<style scoped>
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
-.animate-fade-in-up {
-  animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-.animate-fade-in {
-  animation: fadeIn 1.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-</style>
