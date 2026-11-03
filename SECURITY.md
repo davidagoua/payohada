@@ -136,6 +136,7 @@ activer la protection de branche et l'analyse `gitleaks` (déjà câblée dans
 | Calculer la paie en lot | ✅ (son dossier) | ❌ | ❌ | ✅ |
 | Valider / invalider / supprimer un bulletin | ✅ | ❌ | ❌ | ✅ |
 | Créer un dossier, un compte client | ✅ | ❌ | ❌ | ✅ |
+| Consulter les constantes / le plan de paie | ✅ (lecture) | ❌ | ❌ | ✅ |
 | Modifier les constantes / le plan de paie | ❌ | ❌ | ❌ | ✅ |
 | Voir les membres du cabinet | ✅ (son cabinet) | ❌ | ❌ | ✅ (tous) |
 | Inviter / changer le rôle d'un membre du cabinet | ✅ (son cabinet) | ❌ | ❌ | ✅ |

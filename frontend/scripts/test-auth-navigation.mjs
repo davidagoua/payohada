@@ -106,8 +106,10 @@ verifier('cabinet accède à l\'administration du cabinet',
   deciderRedirection({ chemin: '/admin', aJeton: true, utilisateur: CABINET }), laisser)
 verifier('cabinet accède aux utilisateurs du cabinet',
   deciderRedirection({ chemin: '/admin/utilisateurs', aJeton: true, utilisateur: CABINET }), laisser)
-verifier('cabinet est renvoyé des référentiels globaux',
-  deciderRedirection({ chemin: '/admin/constantes', aJeton: true, utilisateur: CABINET }), vers('/dossiers'))
+verifier('cabinet consulte les constantes (lecture seule)',
+  deciderRedirection({ chemin: '/admin/constantes', aJeton: true, utilisateur: CABINET }), laisser)
+verifier('cabinet consulte le plan de paie (lecture seule)',
+  deciderRedirection({ chemin: '/admin/plan-paie', aJeton: true, utilisateur: CABINET }), laisser)
 verifier('gestionnaire de paie accède aux réclamations',
   deciderRedirection({ chemin: '/admin/reclamations', aJeton: true, utilisateur: GESTIONNAIRE }), laisser)
 verifier('gestionnaire de paie est renvoyé des utilisateurs du cabinet',

@@ -1,6 +1,11 @@
 <script setup>
 const { get, post, put, delete: apiDelete } = useApi()
 const toast = useToast()
+const { user } = useSupabase()
+
+// Les référentiels globaux sont consultables par le cabinet ; leur écriture
+// reste réservée à l'administrateur plateforme (l'API le vérifie aussi).
+const estAdminPlateforme = computed(() => !!user.value?.is_admin)
 
 definePageMeta({
   layout: 'default'
@@ -102,7 +107,8 @@ onMounted(() => {
         </div>
       </div>
       
-      <button 
+      <button
+        v-if="estAdminPlateforme"
         @click="openCreateModal"
         class="w-full md:w-auto px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2"
       >
@@ -112,6 +118,19 @@ onMounted(() => {
     </div>
 
     <AdminNav />
+
+    <!-- Lecture seule pour le cabinet : l'écriture est réservée à la plateforme -->
+    <div
+      v-if="!estAdminPlateforme"
+      class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs text-slate-600 flex items-start gap-2"
+    >
+      <UIcon name="i-lucide-eye" class="w-4 h-4 mt-0.5 text-slate-500 shrink-0" />
+      <p>
+        <span class="font-bold text-navy-900">Consultation seule.</span>
+        Les constantes de paie sont communes à la plateforme ; leur modification est
+        réservée à l'administrateur plateforme.
+      </p>
+    </div>
 
     <!-- Filters Section -->
     <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -142,7 +161,7 @@ onMounted(() => {
       </div>
       
       <div v-else-if="constantes.length === 0" class="p-16 text-center text-slate-500 italic text-sm">
-        Aucune constante configurée pour ce pays. Cliquez sur "Nouvelle Constante" pour commencer.
+        Aucune constante configurée pour ce pays.<template v-if="estAdminPlateforme"> Cliquez sur "Nouvelle Constante" pour commencer.</template>
       </div>
 
       <div v-else class="overflow-x-auto">
@@ -154,7 +173,7 @@ onMounted(() => {
               <th scope="col" class="px-6 py-3.5 text-right">Valeur / Montant</th>
               <th scope="col" class="px-6 py-3.5 text-center">Unité</th>
               <th scope="col" class="px-6 py-3.5 text-center">Statut</th>
-              <th scope="col" class="px-6 py-3.5 text-right">Actions</th>
+              <th v-if="estAdminPlateforme" scope="col" class="px-6 py-3.5 text-right">Actions</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-slate-150 text-slate-700">
@@ -171,7 +190,7 @@ onMounted(() => {
                   {{ item.est_actif ? 'Actif' : 'Inactif' }}
                 </span>
               </td>
-              <td class="px-6 py-4 text-right text-xs font-medium space-x-2">
+              <td v-if="estAdminPlateforme" class="px-6 py-4 text-right text-xs font-medium space-x-2">
                 <button 
                   @click="openEditModal(item)"
                   class="text-navy-700 hover:text-navy-900 hover:bg-navy-50 p-1.5 rounded transition-colors"
@@ -185,6 +204,7 @@ onMounted(() => {
                   <UIcon name="i-lucide-trash" class="w-4 h-4" />
                 </button>
               </td>
+              <td v-else class="px-6 py-4 text-right text-xs text-slate-400">—</td>
             </tr>
           </tbody>
         </table>

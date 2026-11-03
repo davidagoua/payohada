@@ -184,6 +184,7 @@ Le système est cloisonné en trois espaces dédiés avec contrôles d'accès st
   - Validation et clôture des périodes de paie.
   - Traitement des réclamations déposées par les salariés (réponse, statut `traite` ou `rejete`).
   - **Administration du cabinet** (`/admin/utilisateurs`) : inviter des collaborateurs, attribuer le rôle *administrateur du cabinet* ou *gestionnaire de paie*, activer/désactiver un compte. Le propriétaire (compte créé à l'inscription) est protégé : ni rétrogradé, ni désactivé.
+  - **Consultation des référentiels globaux** : les constantes de paie et le plan comptable sont visibles depuis l'administration du cabinet, en **lecture seule** (boutons de création, modification et suppression masqués ; l'API refuse toute écriture). Leur modification reste réservée à l'administrateur plateforme.
 
 ####  Plateforme Client (Entreprise / Dossier)
 - **Rôle** : `client` (rattaché à son entreprise via `dossier_id`).
@@ -451,10 +452,14 @@ logiciel_paie/
 - Le plafond CNPS Prestations Familiales / AT / Maternité (75 000 → 70 000 FCFA) est fourni **commenté** : il modifie le montant des cotisations et doit être validé contre les textes officiels avant activation.
 
 #### Added
-- **Administration du cabinet** : le menu « Administration » est visible pour le propriétaire du cabinet (et les co-administrateurs), pas seulement pour l'administrateur plateforme. Nouveaux onglets d'administration et page `/admin/utilisateurs` : liste des membres, invitation, changement de rôle (`cabinet` / `gestionnaire_paie`) et activation/désactivation. Les référentiels globaux (constantes, plan de paie) restent réservés à la plateforme.
+- **Administration du cabinet** : le menu « Administration » est visible pour le propriétaire du cabinet (et les co-administrateurs), pas seulement pour l'administrateur plateforme. Nouveaux onglets d'administration et page `/admin/utilisateurs` : liste des membres, invitation, changement de rôle (`cabinet` / `gestionnaire_paie`) et activation/désactivation.
+- **Référentiels globaux en lecture seule pour le cabinet** : les onglets Constantes et Plan de paie sont de nouveau visibles et consultables, avec les actions d'écriture masquées ; l'API conserve `require_admin` sur les créations, modifications et suppressions. Modification réservée à l'administrateur plateforme.
+
+![Constantes consultées par un cabinet, en lecture seule](docs/captures/admin-constantes-lecture.png)
 - Colonne `utilisateurs.cabinet_owner_id` (migration idempotente + reprise des gestionnaires existants) : un membre rattaché au propriétaire ; le rôle `cabinet` ouvre les sociétés du propriétaire, le rôle `gestionnaire_paie` reste limité aux affectations. Le propriétaire est protégé (ni rétrogradé, ni désactivé).
 - Endpoints `GET/POST /api/v1/admin/utilisateurs` et `PUT /api/v1/admin/utilisateurs/{id}`, avec isolation entre cabinets et garde-fous.
 - 13 tests (`tests/test_admin_cabinet.py`) : portée, isolation, promotion/rétrogradation, protections et désactivation.
+- 5 tests (`tests/test_referentiels_lecture_seule.py`) : lecture des constantes et du plan de paie autorisée au cabinet, écritures refusées (403).
 - Suite de tests de non-régression (moteur de paie et API) : `python -m unittest discover -s tests -t . -v`.
 
 #### Appliquer les migrations

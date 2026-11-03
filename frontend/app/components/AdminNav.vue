@@ -18,7 +18,9 @@ const onglets = computed(() => {
   if (estAdminCabinet.value) {
     items.push({ to: '/admin/utilisateurs', label: 'Utilisateurs', exact: false })
   }
-  if (estAdminPlateforme.value) {
+  if (estAdminCabinet.value) {
+    // Référentiels globaux : consultables par le cabinet, modifiables par la
+    // plateforme uniquement (l'écran masque les actions d'écriture).
     items.push({ to: '/admin/constantes', label: 'Constantes', exact: false })
     items.push({ to: '/admin/plan-paie', label: 'Plan de paie', exact: false })
   }

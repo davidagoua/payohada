@@ -25,9 +25,6 @@ export const ROUTES_PUBLIQUES = ['/', '/login', '/forgot-password', '/reset-pass
 //: gestionnaire de paie affecté à des dossiers).
 export const ROLES_PAIE = ['cabinet', 'gestionnaire_paie']
 
-/** Référentiels globaux : réservés à l'administrateur plateforme. */
-export const ROUTES_ADMIN_PLATEFORME = ['/admin/constantes', '/admin/plan-paie']
-
 /** Réclamations : accessibles à tout le personnel (cabinet et gestionnaires). */
 export const ROUTE_ADMIN_RECLAMATIONS = '/admin/reclamations'
 
@@ -91,16 +88,11 @@ export function deciderRedirection(params: {
   const estAdmin = !!utilisateur.is_admin
   const role = utilisateur.role || (utilisateur.salarie_id ? 'salarie' : 'cabinet')
 
-  // Espace /admin : deux niveaux d'administration.
-  //  - constantes et plan de paie : référentiels globaux, plateforme seulement ;
+  // Espace /admin :
   //  - réclamations : tout le personnel ;
-  //  - reste (vue d'ensemble, utilisateurs du cabinet) : administrateur
-  //    plateforme ou propriétaire/co-administrateur du cabinet.
-  if (ROUTES_ADMIN_PLATEFORME.some(
-    (route) => chemin === route || chemin.startsWith(`${route}/`)
-  )) {
-    return estAdmin ? { action: 'laisser' } : rediriger(destinationParDefaut(utilisateur))
-  }
+  //  - constantes, plan de paie et administration des membres : administrateur
+  //    plateforme ou cabinet (les référentiels globaux sont alors en lecture
+  //    seule côté interface ; l'écriture reste réservée à la plateforme).
   if (chemin === ROUTE_ADMIN_RECLAMATIONS || chemin.startsWith(`${ROUTE_ADMIN_RECLAMATIONS}/`)) {
     return estAdmin || ROLES_PAIE.includes(role)
       ? { action: 'laisser' }
