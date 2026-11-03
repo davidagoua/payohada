@@ -3,7 +3,11 @@ const { user, logout } = useSupabase()
 const { openModal: openPasswordModal, checkAndSuggest: checkPasswordSuggestion } = useChangePasswordModal()
 const { get } = useApi()
 const route = useRoute()
-const isAdmin = computed(() => !!user.value?.is_admin)
+// L'administration est ouverte à l'administrateur plateforme et au cabinet
+// (propriétaire ou co-administrateur) : elle contient la gestion des membres.
+const peutAdministrer = computed(
+  () => !!user.value?.is_admin || user.value?.role === 'cabinet'
+)
 
 // Suggestion automatique du modal de mot de passe par défaut pour client / salarié
 watch(() => user.value, (u) => {
@@ -363,7 +367,7 @@ const handleLogout = async () => {
                 Réclamations
               </NuxtLink>
               <NuxtLink
-                v-if="isAdmin"
+                v-if="peutAdministrer"
                 to="/admin"
                 class="px-4 py-3.5 whitespace-nowrap shrink-0 rounded-t-lg border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
                 active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"

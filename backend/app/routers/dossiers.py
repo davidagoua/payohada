@@ -17,8 +17,8 @@ from app.services.security import (
     get_current_user, get_password_hash, generate_password, validate_password_strength,
 )
 from app.services.permissions import (
-    ROLE_GESTIONNAIRE_PAIE, dossiers_gérés, est_affecte, get_dossier_or_403,
-    is_staff, require_staff,
+    ROLE_CABINET, ROLE_GESTIONNAIRE_PAIE, dossiers_gérés, est_affecte, get_dossier_or_403,
+    is_staff, racine_cabinet, require_staff,
 )
 import uuid
 
@@ -35,7 +35,14 @@ def _get_owned_dossier_for_write(dossier_id: int, user: Utilisateur, db: Session
     """Écriture d'un dossier : réservé au cabinet propriétaire (ou admin)."""
     require_staff(user)
     dossier = get_dossier_or_403(dossier_id, user, db)
-    if not user.is_admin and dossier.utilisateur_id != user.id:
+    # Le co-administrateur du cabinet (rôle cabinet rattaché au propriétaire)
+    # agit au même titre que le propriétaire sur ses sociétés.
+    co_admin = (
+        user.role == ROLE_CABINET
+        and user.cabinet_owner_id is not None
+        and dossier.utilisateur_id == user.cabinet_owner_id
+    )
+    if not user.is_admin and dossier.utilisateur_id != user.id and not co_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Seul le cabinet propriétaire peut modifier ce dossier.",
@@ -418,6 +425,12 @@ def create_gestionnaire(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Ce gestionnaire est déjà affecté à cette société.",
             )
+    racine = racine_cabinet(current_user)
+    if compte:
+        if compte.cabinet_owner_id is None:
+            # Base antérieure à `cabinet_owner_id` : rattachement au cabinet
+            # qui l'affecte, sans écraser un rattachement existant.
+            compte.cabinet_owner_id = racine
     else:
         if request.password:
             validate_password_strength(request.password, minimum=8)
@@ -437,6 +450,10 @@ def create_gestionnaire(
             is_admin=False,
             must_change_password=must_change,
             role=ROLE_GESTIONNAIRE_PAIE,
+            cabinet_owner_id=racine,
+            cabinet_nom=current_user.cabinet_nom,
+            cabinet_telephone=current_user.cabinet_telephone,
+            cabinet_ville=current_user.cabinet_ville,
         )
         db.add(compte)
         db.flush()

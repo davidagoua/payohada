@@ -173,8 +173,8 @@ Points d'attention :
 Le système est cloisonné en trois espaces dédiés avec contrôles d'accès stricts (RBAC) basés sur le champ `role` (`cabinet`, `client`, `salarie`) :
 
 ####  Plateforme Cabinet (Expertise Comptable / Gestionnaire de Paie)
-- **Rôle** : `cabinet` (et administrateurs).
-- **Accès** : `/dossiers`, `/simulation`, `/admin/reclamations`, `/admin`.
+- **Rôles** : `cabinet` (propriétaire ou co-administrateur du cabinet), `gestionnaire_paie` (sociétés affectées) et administrateurs plateforme.
+- **Accès** : `/dossiers`, `/simulation`, `/admin/reclamations` et `/admin` (administration du cabinet ; constantes et plan de paie réservés à l'administrateur plateforme).
 - **Fonctionnalités** :
   - Supervision et administration multi-dossiers (création, modification, archivage).
   - Gestion des comptes d'accès pour les entreprises clientes (`POST /dossiers/{id}/comptes-clients`).
@@ -183,6 +183,7 @@ Le système est cloisonné en trois espaces dédiés avec contrôles d'accès st
   - Calcul individuel et **calcul en lot** des bulletins pour toute l'entreprise (`POST /dossiers/{id}/bulletins/calculer-lot`).
   - Validation et clôture des périodes de paie.
   - Traitement des réclamations déposées par les salariés (réponse, statut `traite` ou `rejete`).
+  - **Administration du cabinet** (`/admin/utilisateurs`) : inviter des collaborateurs, attribuer le rôle *administrateur du cabinet* ou *gestionnaire de paie*, activer/désactiver un compte. Le propriétaire (compte créé à l'inscription) est protégé : ni rétrogradé, ni désactivé.
 
 ####  Plateforme Client (Entreprise / Dossier)
 - **Rôle** : `client` (rattaché à son entreprise via `dossier_id`).
@@ -338,6 +339,21 @@ Les endpoints `.../calculs/...` sont **sans effet de bord** : ils ne font que
 produire un résultat et servir de simulateur. Seul
 `solde-tout-compte/complet` écrit en base (départ + solde + détail du calcul).
 
+### Administration du cabinet (`/api/v1/admin`)
+
+| Méthode | Endpoint | Rôle |
+|---|---|---|
+| `GET` | `/api/v1/admin/utilisateurs` | Propriétaire/co-administrateur du cabinet (son cabinet) ou administrateur plateforme (tout le personnel). |
+| `POST` | `/api/v1/admin/utilisateurs` | Crée un membre du cabinet (`cabinet` ou `gestionnaire_paie`), mot de passe éventuellement généré et envoyé par email. |
+| `PUT` | `/api/v1/admin/utilisateurs/{id}` | Change le rôle et/ou l'état d'activation ; propriétaire protégé. |
+
+La portée est assurée par `utilisateurs.cabinet_owner_id` : le propriétaire du
+cabinet est sa propre racine, ses membres pointent vers lui. Un membre promu
+`cabinet` accède à toutes les sociétés du propriétaire ; un `gestionnaire_paie`
+reste limité aux sociétés affectées.
+
+![Administration des utilisateurs du cabinet](docs/captures/admin-utilisateurs.png)
+
 ### Autorisations
 La matrice complète des rôles et les règles de portée sont documentées dans
 [`SECURITY.md`](SECURITY.md#matrice-des-rôles). Ces contrôles sont appliqués
@@ -435,6 +451,10 @@ logiciel_paie/
 - Le plafond CNPS Prestations Familiales / AT / Maternité (75 000 → 70 000 FCFA) est fourni **commenté** : il modifie le montant des cotisations et doit être validé contre les textes officiels avant activation.
 
 #### Added
+- **Administration du cabinet** : le menu « Administration » est visible pour le propriétaire du cabinet (et les co-administrateurs), pas seulement pour l'administrateur plateforme. Nouveaux onglets d'administration et page `/admin/utilisateurs` : liste des membres, invitation, changement de rôle (`cabinet` / `gestionnaire_paie`) et activation/désactivation. Les référentiels globaux (constantes, plan de paie) restent réservés à la plateforme.
+- Colonne `utilisateurs.cabinet_owner_id` (migration idempotente + reprise des gestionnaires existants) : un membre rattaché au propriétaire ; le rôle `cabinet` ouvre les sociétés du propriétaire, le rôle `gestionnaire_paie` reste limité aux affectations. Le propriétaire est protégé (ni rétrogradé, ni désactivé).
+- Endpoints `GET/POST /api/v1/admin/utilisateurs` et `PUT /api/v1/admin/utilisateurs/{id}`, avec isolation entre cabinets et garde-fous.
+- 13 tests (`tests/test_admin_cabinet.py`) : portée, isolation, promotion/rétrogradation, protections et désactivation.
 - Suite de tests de non-régression (moteur de paie et API) : `python -m unittest discover -s tests -t . -v`.
 
 #### Appliquer les migrations

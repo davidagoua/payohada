@@ -41,6 +41,31 @@ class UtilisateurOut(UtilisateurBase):
         from_attributes = True
 
 
+class CabinetUtilisateurCreate(BaseModel):
+    """Création d'un membre du cabinet (gestionnaire ou co-administrateur)."""
+    email: EmailStr
+    nom: str
+    prenom: str
+    role: Literal["cabinet", "gestionnaire_paie"] = "gestionnaire_paie"
+    #: Laisser vide pour un mot de passe généré et envoyé par email.
+    password: Optional[str] = Field(default=None, min_length=8, max_length=128)
+
+
+class CabinetUtilisateurUpdate(BaseModel):
+    """Modification du rôle et/ou de l'état d'un membre du cabinet."""
+    role: Optional[Literal["cabinet", "gestionnaire_paie"]] = None
+    is_active: Optional[bool] = None
+
+
+class CabinetUtilisateurOut(UtilisateurOut):
+    """Membre du cabinet avec sa portée d'administration."""
+    cabinet_owner_id: Optional[int] = None
+    #: Vrai pour le propriétaire du cabinet (gestionnaire référent).
+    est_proprietaire: bool = False
+    #: Nombre de sociétés accessibles (possédées ou affectées).
+    nombre_societes: int = 0
+
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str

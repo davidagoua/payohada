@@ -1393,7 +1393,46 @@ CREATE INDEX IF NOT EXISTS ix_acces_dossier_dossier ON acces_dossiers (dossier_i
 COMMENT ON TABLE acces_dossiers
     IS 'Sociétés confiées à un gestionnaire de paie (rôle gestionnaire_paie)';
 
--- 11. Contrôles post-migration (à exécuter manuellement) :
+-- 11. Administration du cabinet : rattachement des membres au propriétaire.
+--     Le propriétaire (gestionnaire référent créé à l'inscription) reste à
+--     `cabinet_owner_id = NULL` ; les gestionnaires et co-administrateurs
+--     pointent vers lui. Cette colonne scope la gestion des utilisateurs et
+--     ouvre au cabinet les dossiers de son propriétaire.
+
+ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS cabinet_owner_id INTEGER DEFAULT NULL;
+
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'fk_utilisateurs_cabinet_owner'
+    ) THEN
+        ALTER TABLE utilisateurs
+            ADD CONSTRAINT fk_utilisateurs_cabinet_owner
+            FOREIGN KEY (cabinet_owner_id) REFERENCES utilisateurs(id) ON DELETE SET NULL;
+    END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS idx_utilisateurs_cabinet_owner ON utilisateurs (cabinet_owner_id);
+
+COMMENT ON COLUMN utilisateurs.cabinet_owner_id
+    IS 'Propriétaire du cabinet pour un membre ; NULL pour le propriétaire';
+
+-- Reprise des gestionnaires existants : rattachement au propriétaire d'une de
+-- leurs sociétés affectées. Ne remplit que les lignes encore vides.
+UPDATE utilisateurs u
+   SET cabinet_owner_id = (
+       SELECT d.utilisateur_id
+         FROM acces_dossiers a
+         JOIN dossiers d ON d.id = a.dossier_id
+        WHERE a.utilisateur_id = u.id
+        ORDER BY a.id
+        LIMIT 1
+   )
+ WHERE u.role = 'gestionnaire_paie'
+   AND u.cabinet_owner_id IS NULL
+   AND EXISTS (SELECT 1 FROM acces_dossiers a WHERE a.utilisateur_id = u.id);
+
+-- 12. Contrôles post-migration (à exécuter manuellement) :
 --    -- Aucun compte sans mot de passe (sinon connexion impossible) :
 --    SELECT id, email, role FROM utilisateurs WHERE hashed_password IS NULL;
 --    -- La colonne et ses valeurs par défaut :

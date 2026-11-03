@@ -111,6 +111,8 @@ onMounted(() => {
       </button>
     </div>
 
+    <AdminNav />
+
     <!-- Filters Section -->
     <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
       <div class="flex items-center space-x-2">

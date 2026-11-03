@@ -7,17 +7,17 @@ from app.models.models import Dossier, Departement, Utilisateur
 from app.schemas.departement import DepartementCreate, DepartementUpdate, DepartementOut
 from app.services.security import get_current_user
 
-from app.services.permissions import require_staff
+from app.services.permissions import peut_gerer_dossier, require_staff
 
 router = APIRouter(tags=["Départements"])
 
 
 def check_dossier_ownership(dossier_id: int, user_id: int, db: Session) -> Dossier:
-    dossier = db.query(Dossier).filter(
-        Dossier.id == dossier_id,
-        Dossier.utilisateur_id == user_id
-    ).first()
-    if not dossier:
+    """Charge un dossier accessible à l'utilisateur (propriétaire, co-admin,
+    gestionnaire affecté ou client), selon la règle commune de portée."""
+    dossier = db.query(Dossier).filter(Dossier.id == dossier_id).first()
+    user = db.query(Utilisateur).filter(Utilisateur.id == user_id).first()
+    if not dossier or not user or not peut_gerer_dossier(db, user, dossier):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Dossier introuvable ou accès refusé."

@@ -22,6 +22,7 @@ from app.models.models import (
     BulletinPaie, Contrat, DemandeAcompte, DemandeConge, Dossier, Etablissement,
     Salarie, SalarieAbsence, Utilisateur,
 )
+from app.services.permissions import dossiers_gérés
 from app.schemas.demande import (
     DecisionDemande, DemandeAcompteCreate, DemandeAcompteOut, DemandeCongeCreate,
     DemandeCongeOut, SoldeCongesOut,
@@ -99,7 +100,10 @@ def _filtrer_portee(db: Session, requete, modele, user: Utilisateur):
         .join(Dossier, Etablissement.dossier_id == Dossier.id)
     )
     if not user.is_admin:
-        requete = requete.filter(Dossier.utilisateur_id == user.id)
+        # Toutes les sociétés accessibles (propriétaire, co-administrateur ou
+        # gestionnaire affecté), et pas seulement celles dont il est propriétaire.
+        ids_dossiers = [d.id for d in dossiers_gérés(user, db).all()]
+        requete = requete.filter(Dossier.id.in_(ids_dossiers) if ids_dossiers else False)
     return requete
 
 

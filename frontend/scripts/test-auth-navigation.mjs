@@ -102,10 +102,24 @@ verifier('salarié accède à /salaries/bulletins',
   deciderRedirection({ chemin: '/salaries/bulletins', aJeton: true, utilisateur: SALARIE }), laisser)
 verifier('cabinet est renvoyé de /client vers /dossiers',
   deciderRedirection({ chemin: '/client', aJeton: true, utilisateur: CABINET }), vers('/dossiers'))
-verifier('non-admin est renvoyé de /admin vers son espace',
+verifier('cabinet accède à l\'administration du cabinet',
+  deciderRedirection({ chemin: '/admin', aJeton: true, utilisateur: CABINET }), laisser)
+verifier('cabinet accède aux utilisateurs du cabinet',
+  deciderRedirection({ chemin: '/admin/utilisateurs', aJeton: true, utilisateur: CABINET }), laisser)
+verifier('cabinet est renvoyé des référentiels globaux',
   deciderRedirection({ chemin: '/admin/constantes', aJeton: true, utilisateur: CABINET }), vers('/dossiers'))
+verifier('gestionnaire de paie accède aux réclamations',
+  deciderRedirection({ chemin: '/admin/reclamations', aJeton: true, utilisateur: GESTIONNAIRE }), laisser)
+verifier('gestionnaire de paie est renvoyé des utilisateurs du cabinet',
+  deciderRedirection({ chemin: '/admin/utilisateurs', aJeton: true, utilisateur: GESTIONNAIRE }), vers('/dossiers'))
+verifier('client est renvoyé de /admin vers /client',
+  deciderRedirection({ chemin: '/admin', aJeton: true, utilisateur: CLIENT }), vers('/client'))
 verifier('admin accède à /admin',
   deciderRedirection({ chemin: '/admin', aJeton: true, utilisateur: ADMIN }), laisser)
+verifier('admin accède aux référentiels globaux',
+  deciderRedirection({ chemin: '/admin/constantes', aJeton: true, utilisateur: ADMIN }), laisser)
+verifier('admin accède au plan de paie',
+  deciderRedirection({ chemin: '/admin/plan-paie', aJeton: true, utilisateur: ADMIN }), laisser)
 verifier('client est renvoyé de /bulletins vers /client',
   deciderRedirection({ chemin: '/bulletins', aJeton: true, utilisateur: CLIENT }), vers('/client'))
 verifier('route inconnue laissée en l\'état',
@@ -113,7 +127,7 @@ verifier('route inconnue laissée en l\'état',
 
 console.log('\nInvariant anti-boucle')
 // Aucune combinaison ne doit proposer de rediriger vers la route courante.
-const chemins = ['/', '/login', '/forgot-password', '/reset-password', '/dossiers', '/client', '/salaries/bulletins', '/admin', '/bulletins', '/simulation']
+const chemins = ['/', '/login', '/forgot-password', '/reset-password', '/dossiers', '/client', '/salaries/bulletins', '/admin', '/admin/utilisateurs', '/admin/constantes', '/admin/reclamations', '/bulletins', '/simulation']
 const profils = [null, CABINET, ADMIN, CLIENT, SALARIE]
 let boucles = 0
 for (const chemin of chemins) {

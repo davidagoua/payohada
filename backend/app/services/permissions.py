@@ -58,6 +58,64 @@ def est_affecte(db: Session, user: Utilisateur, dossier_id: int) -> bool:
     )
 
 
+def racine_cabinet(user: Utilisateur) -> int | None:
+    """Propriétaire du cabinet dont l'utilisateur fait partie.
+
+    Le propriétaire (gestionnaire référent) est sa propre racine ; un membre
+    rattaché pointe vers lui via `cabinet_owner_id`. Retourne `None` pour les
+    rôles hors cabinet.
+    """
+    if user.role == ROLE_CABINET:
+        return user.cabinet_owner_id or user.id
+    return None
+
+
+def est_admin_cabinet(user: Utilisateur) -> bool:
+    """Peut administrer le cabinet : administrateur plateforme ou rôle cabinet."""
+    return bool(user.is_admin) or user.role == ROLE_CABINET
+
+
+def membres_du_cabinet(db: Session, user: Utilisateur):
+    """Comptes du personnel du cabinet, dans la portée de l'utilisateur.
+
+    * administrateur plateforme : tous les comptes `cabinet` / `gestionnaire_paie` ;
+    * propriétaire ou co-administrateur : le propriétaire, les membres qui lui
+      sont rattachés, et — pour les bases antérieures à `cabinet_owner_id` —
+      les gestionnaires affectés à l'une de ses sociétés.
+    """
+    query = db.query(Utilisateur).filter(Utilisateur.role.in_(STAFF_ROLES))
+    if user.is_admin:
+        return query.order_by(Utilisateur.id)
+    if user.role != ROLE_CABINET:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Administration réservée au cabinet.",
+        )
+
+    racine = racine_cabinet(user)
+    affectes = (
+        db.query(AccesDossier.utilisateur_id)
+        .join(Dossier, Dossier.id == AccesDossier.dossier_id)
+        .filter(Dossier.utilisateur_id == racine)
+        .all()
+    )
+    ids_affectes = [ligne[0] for ligne in affectes]
+    return (
+        query.filter(
+            or_(
+                Utilisateur.id == racine,
+                Utilisateur.cabinet_owner_id == racine,
+                and_(
+                    Utilisateur.role == ROLE_GESTIONNAIRE_PAIE,
+                    Utilisateur.cabinet_owner_id.is_(None),
+                    Utilisateur.id.in_(ids_affectes) if ids_affectes else False,
+                ),
+            )
+        )
+        .order_by(Utilisateur.id)
+    )
+
+
 def peut_gerer_dossier(db: Session, user: Utilisateur, dossier: Dossier) -> bool:
     """Accès à un dossier, tous rôles confondus.
 
@@ -69,7 +127,12 @@ def peut_gerer_dossier(db: Session, user: Utilisateur, dossier: Dossier) -> bool
     if user.is_admin:
         return True
     if user.role in STAFF_ROLES:
-        return dossier.utilisateur_id == user.id or est_affecte(db, user, dossier.id)
+        if dossier.utilisateur_id == user.id or est_affecte(db, user, dossier.id):
+            return True
+        # Co-administrateur rattaché au propriétaire : accès à ses sociétés.
+        if user.role == ROLE_CABINET and user.cabinet_owner_id:
+            return dossier.utilisateur_id == user.cabinet_owner_id
+        return False
     if user.role == ROLE_CLIENT:
         return user.dossier_id == dossier.id
     return False
@@ -80,18 +143,20 @@ def dossiers_gérés(user: Utilisateur, db: Session):
     if user.is_admin:
         return db.query(Dossier)
     if user.role in STAFF_ROLES:
+        conditions = [
+            Dossier.utilisateur_id == user.id,
+            and_(
+                AccesDossier.utilisateur_id == user.id,
+                AccesDossier.utilisateur_id.isnot(None),
+            ),
+        ]
+        # Co-administrateur : toutes les sociétés du propriétaire du cabinet.
+        if user.role == ROLE_CABINET and user.cabinet_owner_id:
+            conditions.append(Dossier.utilisateur_id == user.cabinet_owner_id)
         return (
             db.query(Dossier)
             .outerjoin(AccesDossier, AccesDossier.dossier_id == Dossier.id)
-            .filter(
-                or_(
-                    Dossier.utilisateur_id == user.id,
-                    and_(
-                        AccesDossier.utilisateur_id == user.id,
-                        AccesDossier.utilisateur_id.isnot(None),
-                    ),
-                )
-            )
+            .filter(or_(*conditions))
             .distinct()
         )
     if user.role == ROLE_CLIENT:

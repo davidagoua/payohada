@@ -72,6 +72,11 @@ class Utilisateur(TimestampMixin, Base):
     cabinet_nom = Column(String(200), nullable=True)
     cabinet_telephone = Column(String(30), nullable=True)
     cabinet_ville = Column(String(100), nullable=True)
+    #: Propriétaire du cabinet pour un membre (gestionnaire ou co-administrateur).
+    #: `NULL` pour le propriétaire lui-même et pour les autres rôles.
+    cabinet_owner_id = Column(
+        Integer, ForeignKey("utilisateurs.id", ondelete="SET NULL"), nullable=True
+    )
 
     # Relations
     dossiers = relationship("Dossier", back_populates="proprietaire", foreign_keys="[Dossier.utilisateur_id]")

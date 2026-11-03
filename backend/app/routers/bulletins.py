@@ -14,7 +14,9 @@ from app.schemas.bulletin import (
     LigneSimulationOut, BulletinCumuls, BulletinCumulRow, LotCalculOut, ErreurCalculLot
 )
 from app.services.security import get_current_user
-from app.services.permissions import get_dossier_or_403, peut_gerer_dossier, require_staff
+from app.services.permissions import (
+    ROLE_CABINET, get_dossier_or_403, peut_gerer_dossier, require_staff,
+)
 from app.routers.contrats import check_contrat_ownership
 from app.services.conges_gratification import JOURS_CONGES_PAR_MOIS
 from app.services.bulletin_saari import (
@@ -213,7 +215,7 @@ def get_dossier_bulletins(
         query = db.query(BulletinPaie).filter(BulletinPaie.dossier_id == dossier_id)
     else:
         dossier = db.query(Dossier).filter(Dossier.id == dossier_id).first()
-        if not dossier or (not current_user.is_admin and dossier.utilisateur_id != current_user.id):
+        if not dossier or not peut_gerer_dossier(db, current_user, dossier):
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Dossier introuvable ou accès refusé."
@@ -261,7 +263,13 @@ def calculate_dossier_bulletins_lot(
     """
     dossier = get_dossier_or_403(dossier_id, current_user, db)
     require_staff(current_user)
-    if not current_user.is_admin and dossier.utilisateur_id != current_user.id:
+    # Co-administrateur du cabinet : même droit que le propriétaire.
+    co_admin = (
+        current_user.role == ROLE_CABINET
+        and current_user.cabinet_owner_id is not None
+        and dossier.utilisateur_id == current_user.cabinet_owner_id
+    )
+    if not current_user.is_admin and dossier.utilisateur_id != current_user.id and not co_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Seul le cabinet propriétaire peut calculer la paie de ce dossier.",

@@ -137,11 +137,20 @@ activer la protection de branche et l'analyse `gitleaks` (déjà câblée dans
 | Valider / invalider / supprimer un bulletin | ✅ | ❌ | ❌ | ✅ |
 | Créer un dossier, un compte client | ✅ | ❌ | ❌ | ✅ |
 | Modifier les constantes / le plan de paie | ❌ | ❌ | ❌ | ✅ |
+| Voir les membres du cabinet | ✅ (son cabinet) | ❌ | ❌ | ✅ (tous) |
+| Inviter / changer le rôle d'un membre du cabinet | ✅ (son cabinet) | ❌ | ❌ | ✅ |
+| Voir les réclamations de ses dossiers | ✅ | ✅ (son dossier) | ✅ (les siennes) | ✅ |
 | Traiter une réclamation | ✅ (ses dossiers) | ❌ | ❌ | ✅ |
 | Téléverser une pièce jointe | ✅ | ✅ (son dossier) | ✅ (la sienne) | ✅ |
 
 Ces règles sont appliquées **côté API**. Le middleware Nuxt
 (`frontend/app/middleware/auth.global.ts`) n'est qu'un confort d'interface.
+
+Le **propriétaire du cabinet** (rôle `cabinet`, `cabinet_owner_id = NULL`) et ses
+co-administrateurs (`cabinet_owner_id` renseigné) administrent les membres de
+leur cabinet via `/api/v1/admin/utilisateurs`. Un `cabinet` rattaché accède aux
+sociétés du propriétaire ; un `gestionnaire_paie` reste limité aux sociétés qui
+lui sont affectées. Le propriétaire ne peut être ni rétrogradé ni désactivé.
 
 ### Règle d'intégrité : bulletins validés
 
