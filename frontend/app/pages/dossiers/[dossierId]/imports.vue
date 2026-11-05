@@ -27,6 +27,9 @@ const executionEnCours = ref(false)
 const historique = ref([])
 const chargementHistorique = ref(false)
 const mappingSelection = ref({})
+const erreurAnalyse = ref('')
+const erreurExecution = ref('')
+const diagnostic = ref(null)
 
 const champsCourants = computed(() => typeCourant.value?.champs || [])
 
@@ -43,6 +46,37 @@ const champsManquantsAvecCle = computed(() => {
 const mappingComplet = computed(() =>
   champsManquantsAvecCle.value.every((champ) => !!mappingSelection.value[champ.cle])
 )
+
+const messageErreur = (e) => {
+  const status = e?.status || e?.response?.status
+  const detail = e?.data?.detail || e?.response?._data?.detail
+  if (Array.isArray(detail)) {
+    return detail.map((item) => item.msg || String(item)).join(' — ')
+  }
+  if (typeof detail === 'string' && detail.length < 600) return detail
+  if (status === 413) {
+    return 'Le fichier est trop volumineux pour le serveur (limite du proxy). Réduisez sa taille ou découpez-le.'
+  }
+  if (status === 502 || status === 503 || status === 504) {
+    return `Le serveur est indisponible (HTTP ${status}). Réessayez dans quelques instants ou contactez l'administrateur.`
+  }
+  if (status === 401 || status === 403) {
+    return 'Votre session ou vos droits ne permettent pas cet import. Reconnectez-vous puis réessayez.'
+  }
+  if (!status) {
+    return 'Impossible de joindre le serveur. Vérifiez votre connexion réseau.'
+  }
+  return `L'import a échoué (HTTP ${status}). Consultez les logs du serveur pour le détail.`
+}
+
+const chargerDiagnostic = async () => {
+  try {
+    diagnostic.value = await get('/imports/diagnostic')
+  } catch (e) {
+    // Endpoint absent sur une version antérieure du backend : on reste silencieux.
+    diagnostic.value = null
+  }
+}
 
 const typeCourantLabel = (code) =>
   typesImport.value.find((item) => item.code === code)?.libelle || code
@@ -185,6 +219,8 @@ const analyserFichier = async () => {
   }
   analyseEnCours.value = true
   execution.value = null
+  erreurAnalyse.value = ''
+  erreurExecution.value = ''
   try {
     const formulaire = new FormData()
     formulaire.append('dossier_id', String(dossierId))
@@ -194,6 +230,7 @@ const analyserFichier = async () => {
       formulaire.append('mapping', JSON.stringify(mappingSelection.value))
     }
     analyse.value = await apiFetch('/imports/analyser', { method: 'POST', body: formulaire })
+    await chargerDiagnostic()
     if (!analyse.value.champs_manquants?.length) {
       toast.add({
         title: 'Analyse terminée',
@@ -203,6 +240,7 @@ const analyserFichier = async () => {
     }
   } catch (e) {
     console.error('Analyse de l’import impossible :', e)
+    erreurAnalyse.value = messageErreur(e)
   } finally {
     analyseEnCours.value = false
   }
@@ -220,6 +258,7 @@ const executerImport = async (ignorerErreurs = false) => {
     if (!confirmation) return
   }
   executionEnCours.value = true
+  erreurExecution.value = ''
   try {
     execution.value = await post(`/imports/${analyse.value.job.id}/executer`, {
       ignorer_erreurs: ignorerErreurs
@@ -232,13 +271,14 @@ const executerImport = async (ignorerErreurs = false) => {
     await chargerHistorique()
   } catch (e) {
     console.error('Exécution de l’import impossible :', e)
+    erreurExecution.value = messageErreur(e)
   } finally {
     executionEnCours.value = false
   }
 }
 
 onMounted(async () => {
-  await Promise.all([chargerTypes(), chargerDossier(), chargerHistorique()])
+  await Promise.all([chargerTypes(), chargerDossier(), chargerHistorique(), chargerDiagnostic()])
 })
 </script>
 
@@ -271,6 +311,42 @@ onMounted(async () => {
           <UIcon name="i-lucide-arrow-left" class="w-4 h-4" />
           Retour au dossier
         </NuxtLink>
+      </div>
+    </div>
+
+    <!-- Diagnostic d'installation (production) -->
+    <div
+      v-if="diagnostic && (!diagnostic.table_imports || !diagnostic.ecriture_possible)"
+      class="bg-red-50 border border-red-200 rounded-xl p-4 text-xs text-red-900 flex items-start gap-2"
+    >
+      <UIcon name="i-lucide-server-crash" class="w-4 h-4 mt-0.5 shrink-0" />
+      <div class="space-y-1">
+        <p class="font-bold">Le module d'import n'est pas complètement installé sur le serveur.</p>
+        <p v-if="!diagnostic.table_imports">
+          La table <span class="font-mono">imports</span> est absente de la base. Appliquez les migrations
+          (<span class="font-mono">python apply_migrations.py</span>) puis redémarrez l'API.
+        </p>
+        <p v-if="!diagnostic.ecriture_possible">
+          Le dossier d'imports n'est pas accessible en écriture :
+          <span class="font-mono">{{ diagnostic.dossier_imports }}</span>.
+          Vérifiez les droits du volume monté sur le conteneur backend.
+        </p>
+      </div>
+    </div>
+
+    <!-- Erreur d'analyse ou d'exécution -->
+    <div v-if="erreurAnalyse" class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-900 flex items-start gap-2">
+      <UIcon name="i-lucide-triangle-alert" class="w-4 h-4 mt-0.5 shrink-0" />
+      <div>
+        <p class="font-bold">L'analyse n'a pas abouti.</p>
+        <p class="mt-0.5">{{ erreurAnalyse }}</p>
+      </div>
+    </div>
+    <div v-if="erreurExecution" class="bg-red-50 border border-red-200 rounded-xl p-4 text-xs text-red-900 flex items-start gap-2">
+      <UIcon name="i-lucide-circle-x" class="w-4 h-4 mt-0.5 shrink-0" />
+      <div>
+        <p class="font-bold">L'exécution de l'import a échoué.</p>
+        <p class="mt-0.5">{{ erreurExecution }}</p>
       </div>
     </div>
 

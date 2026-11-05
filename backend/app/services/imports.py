@@ -899,11 +899,18 @@ def generer_modele(type_import: str) -> bytes:
 # ─────────────────────────────────────────
 
 def enregistrer_fichier(nom_fichier: str, contenu: bytes) -> str:
-    DOSSIER_IMPORTS.mkdir(parents=True, exist_ok=True)
-    nom_securise = re.sub(r"[^A-Za-z0-9._-]+", "_", Path(nom_fichier).name)[:120] or "import"
-    chemin = DOSSIER_IMPORTS / f"{uuid.uuid4().hex}_{nom_securise}"
-    chemin.write_bytes(contenu)
-    return str(chemin)
+    try:
+        DOSSIER_IMPORTS.mkdir(parents=True, exist_ok=True)
+        nom_securise = re.sub(r"[^A-Za-z0-9._-]+", "_", Path(nom_fichier).name)[:120] or "import"
+        chemin = DOSSIER_IMPORTS / f"{uuid.uuid4().hex}_{nom_securise}"
+        chemin.write_bytes(contenu)
+        return str(chemin)
+    except OSError as exc:
+        raise RuntimeError(
+            "Impossible d'enregistrer le fichier sur le serveur. "
+            "Vérifiez les droits d'écriture du dossier d'imports (uploads/imports) "
+            "ou montez un volume dédié."
+        ) from exc
 
 
 def lire_fichier_job(chemin: Optional[str]) -> bytes:

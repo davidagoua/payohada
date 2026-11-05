@@ -2,10 +2,14 @@
 from __future__ import annotations
 
 import json
+import logging
 from datetime import datetime, timezone
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile, status
 from fastapi.responses import Response
+from sqlalchemy import inspect
+from sqlalchemy.exc import OperationalError, ProgrammingError
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -21,6 +25,7 @@ from app.services.permissions import get_dossier_or_403, require_staff
 from app.services.security import get_current_user
 
 router = APIRouter(prefix="/imports", tags=["Imports de données"])
+logger = logging.getLogger("app.imports")
 
 
 def _dossier_pour_import(dossier_id: int, user: Utilisateur, db: Session) -> Dossier:
@@ -92,6 +97,39 @@ def lister_types_import(current_user: Utilisateur = Depends(get_current_user)):
     ]
 
 
+@router.get("/diagnostic")
+def diagnostic_imports(
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user),
+):
+    """Vérifie l'état du module (table, dossier d'écriture) sans exposer de données.
+
+    Utile en production pour distinguer une migration manquante d'un problème
+    de droits sur le volume d'uploads.
+    """
+    require_staff(current_user)
+    try:
+        table_imports = inspect(db.get_bind()).has_table("imports")
+    except Exception:  # noqa: BLE001
+        table_imports = False
+    dossier = service.DOSSIER_IMPORTS.resolve()
+    ecriture = False
+    try:
+        dossier.mkdir(parents=True, exist_ok=True)
+        sonde = dossier / ".ecriture"
+        sonde.write_text("ok")
+        sonde.unlink(missing_ok=True)
+        ecriture = True
+    except OSError:
+        ecriture = False
+    return {
+        "table_imports": table_imports,
+        "dossier_imports": str(dossier),
+        "ecriture_possible": ecriture,
+        "taille_max_mo": service.MAX_IMPORT_BYTES // (1024 * 1024),
+    }
+
+
 @router.get("/modeles/{type_import}")
 def telecharger_modele(
     type_import: str,
@@ -136,6 +174,9 @@ async def analyser_fichier(
     except ValueError as exc:
         service.supprimer_fichier(chemin)
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+    except RuntimeError as exc:
+        service.supprimer_fichier(chemin)
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE, detail=str(exc))
 
     job = ImportJob(
         dossier_id=dossier.id,
@@ -151,9 +192,22 @@ async def analyser_fichier(
         mapping=json.dumps(analyse.mapping, ensure_ascii=False),
         rapport=json.dumps(_rapport_pour_job(analyse), ensure_ascii=False),
     )
-    db.add(job)
-    db.commit()
-    db.refresh(job)
+    try:
+        db.add(job)
+        db.commit()
+        db.refresh(job)
+    except (ProgrammingError, OperationalError):
+        db.rollback()
+        service.supprimer_fichier(chemin)
+        logger.exception("Table imports absente ou base indisponible pendant l'analyse")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=(
+                "La base de données ne contient pas encore la table des imports. "
+                "Appliquez les migrations (python apply_migrations.py) puis "
+                "redémarrez l'API."
+            ),
+        )
 
     return ImportAnalyseOut(
         job=_job_out(job),
@@ -193,7 +247,19 @@ def executer_import(
         execution = service.executer_analyse(db, job, analyse, payload.ignorer_erreurs)
     except ValueError as exc:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(exc))
+    except (ProgrammingError, OperationalError):
+        db.rollback()
+        logger.exception("Erreur de schéma/base pendant l'exécution de l'import")
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=(
+                "La base de données ne contient pas encore la table des imports. "
+                "Appliquez les migrations (python apply_migrations.py) puis "
+                "redémarrez l'API."
+            ),
+        )
     except Exception as exc:  # noqa: BLE001
+        logger.exception("Échec inattendu de l'import")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"L'import a échoué : {exc}",

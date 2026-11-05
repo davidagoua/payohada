@@ -80,6 +80,14 @@ class ImportDonneesTests(unittest.TestCase):
         self.assertIn("Code établissement *", entetes)
         self.assertIn("Instructions", classeur.sheetnames)
 
+    def test_diagnostic_du_module(self):
+        r = client.get(f"{API}/imports/diagnostic", headers=self.entetes)
+        self.assertEqual(r.status_code, 200, r.text[:300])
+        corps = r.json()
+        self.assertTrue(corps["table_imports"])
+        self.assertTrue(corps["ecriture_possible"])
+        self.assertEqual(corps["taille_max_mo"], 25)
+
     def test_les_types_d_import_sont_exposes(self):
         r = client.get(f"{API}/imports/types", headers=self.entetes)
         self.assertEqual(r.status_code, 200, r.text[:300])

@@ -454,6 +454,7 @@ logiciel_paie/
 - Le plafond CNPS Prestations Familiales / AT / Maternité (75 000 → 70 000 FCFA) est fourni **commenté** : il modifie le montant des cotisations et doit être validé contre les textes officiels avant activation.
 
 #### Added
+- **Robustesse de l'import en production** : exécution automatique des migrations au démarrage du conteneur backend (`docker-entrypoint.sh`), endpoint de diagnostic `/api/v1/imports/diagnostic`, erreurs 503 explicites si la table manque ou si le dossier d'écriture est inaccessible, et message d'erreur détaillé côté interface.
 - **Imports de données de base (Excel/CSV)** : assistant par dossier pour les établissements, salariés et contrats ; modèles Excel générés, mapping automatique ou corrigeable, analyse à blanc avec rapport d'erreurs ligne par ligne, exécution idempotente (upsert par code établissement / matricule / numéro de contrat), historique et audit. 14 tests dédiés, 414 tests backend au total.
 - **Manuel d'utilisation par rôle** ([PDF](docs/manuel-utilisation-payohada.pdf), source [DOCX](docs/manuel-utilisation-payohada.docx)) : version 1.3, 37 pages, captures d'écran, guides Cabinet / Entreprise / Salarié, import Excel/CSV détaillé (colonnes des modèles, rapport, limites, FAQ), sécurité, FAQ, matrice des rôles, glossaire et annexes (sans la partie administration plateforme). Générateur reproductible dans [`docs/manuel/`](docs/manuel/).
 - **Administration du cabinet** : le menu « Administration » est visible pour le propriétaire du cabinet (et les co-administrateurs), pas seulement pour l'administrateur plateforme. Nouveaux onglets d'administration et page `/admin/utilisateurs` : liste des membres, invitation, changement de rôle (`cabinet` / `gestionnaire_paie`) et activation/désactivation.
@@ -487,6 +488,29 @@ le résultat. Il masque le mot de passe dans ses affichages.
 
 À lancer après chaque mise à jour du code, sur la base locale comme sur
 Supabase.
+
+En déploiement Docker, l'image backend exécute désormais automatiquement
+`python apply_migrations.py` avant de démarrer `uvicorn`
+(`backend/docker-entrypoint.sh`). Il faut donc **reconstruire et redéployer
+l'image backend** pour que la table `imports` soit créée. Si le conteneur est
+démarré avec une commande personnalisée, conservez l'appel au script ou lancez
+la migration manuellement :
+
+```bash
+docker compose exec backend python apply_migrations.py
+```
+
+Vérification du module d'import en production (compte cabinet) :
+
+```bash
+curl -H "Authorization: Bearer <token>"   https://<votre-domaine>/api/v1/imports/diagnostic
+```
+
+La réponse doit contenir `"table_imports": true` et `"ecriture_possible": true`.
+Si `ecriture_possible` est faux, montez un volume inscriptible sur
+`/app/uploads/imports` (ou ajustez les droits du conteneur backend). Si un proxy
+amont (Traefik, nginx, Cloudflare) limite la taille des requêtes, autorisez au
+moins **30 Mo** pour les imports (le module accepte 25 Mo).
 
 #### Module Éditions (états de paie)
 Inspiré du menu Éditions des logiciels de paie : un **catalogue d'états**, une
@@ -602,6 +626,7 @@ deux temps :
 | `backend/tests/test_imports.py` | 14 tests : analyse sans écriture, upserts, erreurs, mapping CSV, permissions |
 
 **Endpoints** :
+- `GET /api/v1/imports/diagnostic` — état de la table `imports` et du dossier d'écriture (production) ;
 - `GET /api/v1/imports/types` — types disponibles et colonnes attendues ;
 - `GET /api/v1/imports/modeles/{type}` — modèle Excel officiel (feuille Données + Instructions) ;
 - `POST /api/v1/imports/analyser` — multipart (`dossier_id`, `type_import`, `fichier`, `mapping` optionnel) ;
