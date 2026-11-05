@@ -458,7 +458,7 @@ def add_cover(doc: Document, logo_path: str | Path) -> None:
 
     subtitle = doc.add_paragraph()
     subtitle.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = subtitle.add_run("Cabinet comptable · Entreprise · Salarié · Administrateur")
+    run = subtitle.add_run("Cabinet comptable · Entreprise · Salarié")
     run.font.size = Pt(13)
     run.font.color.rgb = SLATE
 
@@ -468,15 +468,15 @@ def add_cover(doc: Document, logo_path: str | Path) -> None:
     rule.paragraph_format.space_after = Pt(20)
     _paragraph_bottom_border(rule, color=GREEN_HEX, size=18, space=2)
 
-    roles = doc.add_table(rows=1, cols=4)
+    roles = doc.add_table(rows=1, cols=3)
     roles.alignment = WD_TABLE_ALIGNMENT.CENTER
     roles.autofit = False
     _table_layout_fixed(roles)
     _table_cell_margins(roles, top=90, bottom=90, left=60, right=60)
-    labels = ["Cabinet", "Entreprise", "Salarié", "Plateforme"]
+    labels = ["Cabinet", "Entreprise", "Salarié"]
     for index, text in enumerate(labels):
         cell = roles.rows[0].cells[index]
-        cell.width = Cm(4.15)
+        cell.width = Cm(5.5)
         _shade(cell, ZEBRA_HEX)
         _cell_borders(cell, color=BORDER_HEX, size=4)
         paragraph = cell.paragraphs[0]
@@ -492,7 +492,7 @@ def add_cover(doc: Document, logo_path: str | Path) -> None:
     info.autofit = False
     _table_layout_fixed(info)
     rows = [
-        ("Version", "1.0"),
+        ("Version", "1.1"),
         ("Édition", "Novembre 2026"),
         ("Portée", "Utilisateurs de la plateforme payohada"),
     ]

@@ -44,12 +44,11 @@ def add_sommaire(doc: Document) -> None:
             ["**3. Guide Cabinet**", "Dossiers, établissements, salariés, contrats, cycle de paie, bulletins, éditions, simulation, réclamations, administration du cabinet.", "Cabinet"],
             ["**4. Guide Entreprise**", "Saisie et transmission des variables, bulletins, personnel, demandes, réclamations.", "Entreprise"],
             ["**5. Guide Salarié**", "Bulletins, congés, acomptes, réclamations, mot de passe.", "Salarié"],
-            ["**6. Guide Administrateur plateforme**", "Constantes, plan de paie, comptes de tous les cabinets, réclamations globales.", "Plateforme"],
-            ["**7. Sécurité et confidentialité**", "Comptes, rôles, données personnelles, poste de travail, incidents.", "Tous"],
-            ["**8. Questions fréquentes**", "Réponses aux situations les plus courantes.", "Tous"],
-            ["**9. Matrice des rôles**", "Droits par action et par rôle.", "Tous"],
-            ["**10. Glossaire**", "Vocabulaire de la paie et de la plateforme.", "Tous"],
-            ["**11. Annexes**", "Calendrier type, checklist, statuts, support.", "Tous"],
+            ["**6. Sécurité et confidentialité**", "Comptes, rôles, données personnelles, poste de travail, incidents.", "Tous"],
+            ["**7. Questions fréquentes**", "Réponses aux situations les plus courantes.", "Tous"],
+            ["**8. Matrice des rôles**", "Droits par action et par rôle.", "Tous"],
+            ["**9. Glossaire**", "Vocabulaire de la paie et de la plateforme.", "Tous"],
+            ["**10. Annexes**", "Calendrier type, checklist, statuts, support.", "Tous"],
         ],
         widths=[5.4, 9.2, 2.4],
         font_size=8.8,
@@ -63,7 +62,6 @@ def add_sommaire(doc: Document) -> None:
             ["Cabinet", "cabinet, gestionnaire_paie", "/dossiers", "Produire la paie des entreprises clientes."],
             ["Entreprise", "client", "/client", "Préparer les variables et suivre les bulletins."],
             ["Salarié", "salarie", "/salaries/bulletins", "Consulter ses bulletins et ses demandes."],
-            ["Plateforme", "is_admin", "/admin", "Maintenir les référentiels globaux."],
         ],
         widths=[3.0, 4.0, 4.2, 5.8],
         font_size=8.8,
@@ -103,7 +101,7 @@ def main() -> None:
     props.subject = "Utilisation de la plateforme de paie payohada"
     props.author = "payohada"
     props.keywords = "paie, manuel, cabinet, entreprise, salarié, administration, OHADA"
-    props.comments = "Guide pratique par rôle — version 1.0"
+    props.comments = "Guide pratique par rôle — version 1.1 (sans l'administration plateforme)"
 
     k.add_cover(doc, LOGO)
     add_sommaire(doc)

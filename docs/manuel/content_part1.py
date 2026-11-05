@@ -62,15 +62,12 @@ def render(doc: Document) -> None:
             ["**Salarié**",
              "Consulte ses bulletins, demande des congés ou un acompte et dépose une réclamation.",
              "Chapitres 2 et 5"],
-            ["**Administrateur plateforme**",
-             "Maintient les référentiels globaux et supervise les comptes de tous les cabinets.",
-             "Chapitres 2, 6 et 7"],
         ],
         widths=[3.8, 8.8, 4.4],
         font_size=8.8,
     )
 
-    k.add_heading(doc, "1.3 Les quatre espaces de travail", level=2)
+    k.add_heading(doc, "1.3 Les trois espaces de travail", level=2)
     k.add_para(
         doc,
         "L'interface s'adapte automatiquement au rôle du compte connecté. Un même "
@@ -86,8 +83,6 @@ def render(doc: Document) -> None:
              "Saisir les variables du mois, transmettre la grille, consulter les bulletins, valider congés et acomptes."],
             ["Salarié", "salarie", "/salaries/bulletins",
              "Consulter ses bulletins, suivre ses congés, demander un acompte, déposer une réclamation."],
-            ["Plateforme", "Compte is_admin", "/admin",
-             "Gérer les constantes de paie, le plan comptable et les comptes de tous les cabinets."],
         ],
         widths=[2.6, 3.6, 4.2, 6.6],
         font_size=8.8,
@@ -107,11 +102,10 @@ def render(doc: Document) -> None:
         ["Votre rôle", "Lisez en priorité", "Pour aller plus loin"],
         [
             ["Propriétaire / administrateur du cabinet", "2. Premiers pas, 3.1 à 3.6, 3.15",
-             "3.8 à 3.14, 7. Sécurité, 9. Matrice des rôles"],
-            ["Gestionnaire de paie", "2. Premiers pas, 3.3 à 3.14", "3.15 (lecture), 8. FAQ"],
+             "3.8 à 3.14, 6. Sécurité, 8. Matrice des rôles"],
+            ["Gestionnaire de paie", "2. Premiers pas, 3.3 à 3.14", "3.15 (lecture), 7. FAQ"],
             ["Entreprise cliente", "2. Premiers pas, 4. Guide Entreprise", "5. Guide Salarié (pour comprendre leurs demandes)"],
-            ["Salarié", "2. Premiers pas, 5. Guide Salarié", "10. Glossaire"],
-            ["Administrateur plateforme", "2. Premiers pas, 6. Guide Administrateur", "3.15 (constantes en lecture), 7. Sécurité"],
+            ["Salarié", "2. Premiers pas, 5. Guide Salarié", "9. Glossaire"],
         ],
         widths=[4.6, 7.0, 5.4],
         font_size=8.8,
@@ -138,7 +132,7 @@ def render(doc: Document) -> None:
     k.add_para(
         doc,
         "Les termes techniques utilisés dans ce manuel sont définis dans le "
-        "**glossaire** (chapitre 10). Les plus fréquents sont : **bulletin de paie**, "
+        "**glossaire** (chapitre 9). Les plus fréquents sont : **bulletin de paie**, "
         "**brut**, **net à payer**, **ITS**, **CNPS**, **CMU**, **période de paie** et "
         "**édition**.",
     )
@@ -283,7 +277,7 @@ def render(doc: Document) -> None:
             ["« Identifiants incorrects »", "Email ou mot de passe erroné",
              "Vérifiez l'orthographe, puis utilisez **Mot de passe oublié ?**."],
             ["Compte désactivé", "L'administrateur a suspendu l'accès",
-             "Contactez le propriétaire du cabinet ou l'administrateur plateforme."],
+             "Contactez le propriétaire du cabinet ou le support payohada."],
             ["Page blanche ou erreur serveur", "Connexion interrompue",
              "Rechargez la page, vérifiez votre réseau, puis reconnectez-vous."],
             ["Aucun email de réinitialisation", "Envoi SMTP indisponible ou adresse inconnue",

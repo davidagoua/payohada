@@ -21,7 +21,6 @@ def render(doc: Document) -> None:
             "**3. Guide Cabinet** — propriétaire, administrateur et gestionnaire de paie.",
             "**4. Guide Entreprise** — saisie des variables, bulletins et demandes.",
             "**5. Guide Salarié** — bulletins, congés, acomptes et réclamations.",
-            "**6. Guide Administrateur plateforme** — référentiels globaux et comptes.",
         ],
     )
 
@@ -466,7 +465,6 @@ def render(doc: Document) -> None:
         "Le sélecteur **Rôle** de chaque ligne permet de passer d'un rôle à l'autre ; l'effet est immédiat.",
         "Le bouton **Désactiver** bloque la connexion sans supprimer l'historique. **Réactiver** rétablit l'accès.",
         "Le propriétaire ne peut être ni rétrogradé ni désactivé ; son rôle est grisé dans la liste.",
-        "Un administrateur plateforme ne peut pas être modifié depuis l'administration d'un cabinet.",
     ])
 
     k.add_heading(doc, "Consulter les constantes et le plan de paie", level=3)
@@ -474,8 +472,8 @@ def render(doc: Document) -> None:
         doc,
         "Les onglets **Constantes** et **Plan de paie** sont consultables par le cabinet, "
         "en **lecture seule**. Les boutons de création, de modification et de suppression "
-        "sont masqués, et l'API refuse toute écriture : la modification reste réservée à "
-        "l'administrateur plateforme.",
+        "sont masqués, et l'API refuse toute écriture : la modification reste réservée "
+        "au support payohada.",
     )
     k.add_figure(
         doc,
@@ -487,7 +485,7 @@ def render(doc: Document) -> None:
         "info",
         "À savoir",
         "Les constantes (SMIG, plafonds et taux CNPS, CMU, taxes, etc.) sont communes à "
-        "la plateforme. Si une valeur doit évoluer, contactez l'administrateur plateforme.",
+        "la plateforme. Si une valeur doit évoluer, contactez le support payohada.",
     )
 
     k.add_heading(doc, "3.16 Bonnes pratiques et checklist mensuelle", level=2)
@@ -783,107 +781,4 @@ def render(doc: Document) -> None:
         "Contrôlez la période, le brut, les cotisations et le net à payer.",
         "Déposez une réclamation rapidement en cas d'écart, en citant le bulletin concerné.",
         "Ne partagez pas votre mot de passe : vous êtes responsable de l'accès à vos données.",
-    ])
-
-    # ══════════════════════════════════════════════════════════════════════
-    # Chapitre 6 — Administrateur plateforme
-    # ══════════════════════════════════════════════════════════════════════
-    k.add_heading(doc, "6. Guide Administrateur plateforme", level=1, page_break=True)
-    k.add_lead(
-        doc,
-        "L'administrateur plateforme maintient les référentiels communs (constantes et "
-        "plan de paie) et supervise les comptes de tous les cabinets.",
-    )
-
-    k.add_heading(doc, "Fiche rôle — administrateur plateforme", level=2)
-    k.add_table(
-        doc,
-        ["", "Votre périmètre"],
-        [
-            ["Compte", "Compte doté de is_admin."],
-            ["Menus", "Administration · Constantes · Plan de paie · Utilisateurs · Réclamations."],
-            ["Vous pouvez", "Créer et modifier les constantes et le plan de paie ; lister et modifier les comptes de tous les cabinets ; consulter toutes les réclamations."],
-            ["Vous ne pouvez pas", "Calculer la paie à la place des cabinets ; modifier le rôle du propriétaire d'un cabinet."],
-        ],
-        widths=[4.0, 13.0],
-        font_size=8.8,
-    )
-
-    k.add_heading(doc, "6.1 Les constantes de paie", level=2)
-    k.add_para(
-        doc,
-        "Les constantes portent les valeurs de référence par pays : SMIG, plafonds et "
-        "taux CNPS, CMU, taxes assises sur les salaires, etc. Elles sont utilisées par le "
-        "moteur de paie.",
-    )
-    k.add_steps(doc, [
-        "Ouvrez **Administration > Constantes**.",
-        "Sélectionnez le pays dans le filtre.",
-        "Cliquez sur **Nouvelle Constante** pour créer une valeur, ou sur le crayon pour modifier une valeur existante.",
-        "Renseignez le code, la description, le montant, l'unité et le statut actif.",
-        "Enregistrez : la valeur est immédiatement appliquée aux prochains calculs.",
-    ])
-    k.add_callout(
-        doc,
-        "warning",
-        "Attention",
-        "Une constante modifiée n'est pas recalculée rétroactivement sur les bulletins "
-        "déjà validés. Vérifiez l'impact avant de changer un taux ou un plafond.",
-    )
-
-    k.add_heading(doc, "6.2 Le plan comptable de paie", level=2)
-    k.add_para(
-        doc,
-        "Le plan de paie décrit les postes utilisés dans les bulletins et les états : "
-        "brut, cotisations, primes, avantages, etc.",
-    )
-    k.add_steps(doc, [
-        "Ouvrez **Administration > Plan de paie**.",
-        "Sélectionnez le pays.",
-        "Créez un poste ou modifiez-en un : code, libellé, type, mode de calcul, sens (gain ou retenue), comptes de débit et de crédit.",
-        "Activez ou désactivez le poste selon son usage.",
-        "Enregistrez.",
-    ])
-    k.add_table(
-        doc,
-        ["Champ", "Rôle"],
-        [
-            ["**Type**", "Famille du poste (brut, cotisation, prime, avantage…)."],
-            ["**Mode de calcul**", "Manuel, sémi-auto ou calcul par base et taux."],
-            ["**Sens**", "Gain (ajout au salarié) ou retenue (déduction)."],
-            ["**Comptes débit / crédit**", "Imputation comptable du poste."],
-            ["**Statut**", "Actif ou inactif."],
-        ],
-        widths=[5.2, 11.8],
-        font_size=8.8,
-    )
-
-    k.add_heading(doc, "6.3 Administrer les utilisateurs de tous les cabinets", level=2)
-    k.add_para(
-        doc,
-        "Depuis **Administration > Utilisateurs**, l'administrateur plateforme voit "
-        "l'ensemble du personnel des cabinets (propriétaires et gestionnaires), tous "
-        "cabinets confondus.",
-    )
-    k.add_bullets(doc, [
-        "Le rôle affiché par ligne peut être consulté ; seul le rôle du propriétaire est figé.",
-        "Un compte peut être **désactivé** puis **réactivé** sans perte d'historique.",
-        "Les comptes d'entreprise et de salarié ne figurent pas dans cette liste : ils sont gérés depuis les dossiers.",
-        "L'isolation entre cabinets reste garantie pour les administrateurs de cabinet.",
-    ])
-
-    k.add_heading(doc, "6.4 Réclamations globales", level=2)
-    k.add_para(
-        doc,
-        "L'administrateur plateforme peut consulter les réclamations de tous les dossiers "
-        "et suivre leur traitement par les cabinets. Le traitement opérationnel reste de "
-        "la responsabilité du cabinet concerné.",
-    )
-
-    k.add_heading(doc, "6.5 Bonnes pratiques", level=2)
-    k.add_bullets(doc, [
-        "Documentez la date, la source et l'auteur de chaque changement de constante.",
-        "Testez un nouveau taux sur le simulateur avant de l'appliquer en production.",
-        "Contrôlez régulièrement les comptes inactifs et les rôles attribués.",
-        "Ne modifiez jamais un utilisateur pour « voir » à sa place : utilisez les journaux.",
     ])

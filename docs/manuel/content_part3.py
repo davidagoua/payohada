@@ -14,16 +14,16 @@ def render(doc: Document) -> None:
         "Adopter les bons réflexes, retrouver une réponse rapide et disposer des "
         "tableaux de référence au quotidien.",
         [
-            "**7. Sécurité et confidentialité** — comptes, données et bonnes pratiques.",
-            "**8. Questions fréquentes** — réponses aux situations courantes.",
-            "**9. Matrice des rôles** — qui peut faire quoi, en un tableau.",
-            "**10. Glossaire** — le vocabulaire de la paie.",
-            "**11. Annexes** — calendrier type, checklist et statuts.",
+            "**6. Sécurité et confidentialité** — comptes, données et bonnes pratiques.",
+            "**7. Questions fréquentes** — réponses aux situations courantes.",
+            "**8. Matrice des rôles** — qui peut faire quoi, en un tableau.",
+            "**9. Glossaire** — le vocabulaire de la paie.",
+            "**10. Annexes** — calendrier type, checklist et statuts.",
         ],
     )
 
     # ── Chapitre 7 ─────────────────────────────────────────────────────────
-    k.add_heading(doc, "7. Sécurité et confidentialité", level=1, page_break=True)
+    k.add_heading(doc, "6. Sécurité et confidentialité", level=1, page_break=True)
     k.add_lead(
         doc,
         "La paie manipule des données personnelles et financières sensibles : identité, "
@@ -31,7 +31,7 @@ def render(doc: Document) -> None:
         "protection repose sur des règles simples, appliquées par tous.",
     )
 
-    k.add_heading(doc, "7.1 Comptes et mots de passe", level=2)
+    k.add_heading(doc, "6.1 Comptes et mots de passe", level=2)
     k.add_bullets(doc, [
         "Un compte nominatif par utilisateur : jamais de compte partagé ni de compte générique.",
         "Mot de passe d'au moins **8 caractères**, mélangeant lettres et chiffres ; évitez les mots courants.",
@@ -40,7 +40,7 @@ def render(doc: Document) -> None:
         "L'administrateur peut désactiver un compte immédiatement en cas de départ ou d'incident.",
     ])
 
-    k.add_heading(doc, "7.2 Rôles et moindre privilège", level=2)
+    k.add_heading(doc, "6.2 Rôles et moindre privilège", level=2)
     k.add_para(
         doc,
         "Chaque rôle ne donne accès qu'à ce qui lui est nécessaire. Attribuez le rôle le "
@@ -61,7 +61,7 @@ def render(doc: Document) -> None:
         font_size=8.8,
     )
 
-    k.add_heading(doc, "7.3 Données personnelles et confidentielles", level=2)
+    k.add_heading(doc, "6.3 Données personnelles et confidentielles", level=2)
     k.add_bullets(doc, [
         "Ne consultez que les dossiers et salariés nécessaires à votre mission.",
         "Ne communiquez pas les bulletins à un tiers non autorisé (hors obligations légales).",
@@ -70,7 +70,7 @@ def render(doc: Document) -> None:
         "Respectez la durée de conservation définie par votre organisation.",
     ])
 
-    k.add_heading(doc, "7.4 Poste de travail et session", level=2)
+    k.add_heading(doc, "6.4 Poste de travail et session", level=2)
     k.add_bullets(doc, [
         "Verrouillez votre poste dès que vous vous absentez.",
         "Déconnectez-vous explicitement en fin de journée, surtout sur un poste partagé.",
@@ -78,7 +78,7 @@ def render(doc: Document) -> None:
         "Privilégiez un réseau de confiance ; évitez les Wi-Fi publics pour manipuler des bulletins.",
     ])
 
-    k.add_heading(doc, "7.5 Pièces jointes et téléchargements", level=2)
+    k.add_heading(doc, "6.5 Pièces jointes et téléchargements", level=2)
     k.add_bullets(doc, [
         "Les pièces jointes sont contrôlées par la plateforme : extensions autorisées et taille limitée.",
         "N'ouvrez que les documents attendus ; en cas de doute, vérifiez l'expéditeur.",
@@ -86,10 +86,10 @@ def render(doc: Document) -> None:
         "Supprimez les fichiers téléchargés qui ne sont plus utiles.",
     ])
 
-    k.add_heading(doc, "7.6 Incident ou suspicion de compromission", level=2)
+    k.add_heading(doc, "6.6 Incident ou suspicion de compromission", level=2)
     k.add_steps(doc, [
         "Changez immédiatement votre mot de passe.",
-        "Signalez l'incident à votre administrateur (cabinet) ou à l'administrateur plateforme.",
+        "Signalez l'incident à votre administrateur (cabinet) ou au support payohada.",
         "Précisez la date, l'action constatée et, si possible, l'écran ou le message affiché.",
         "N'effacez pas les traces : ne supprimez pas les emails ni les fichiers concernés avant instruction.",
     ])
@@ -102,7 +102,7 @@ def render(doc: Document) -> None:
     )
 
     # ── Chapitre 8 ─────────────────────────────────────────────────────────
-    k.add_heading(doc, "8. Questions fréquentes", level=1, page_break=True)
+    k.add_heading(doc, "7. Questions fréquentes", level=1, page_break=True)
     k.add_lead(
         doc,
         "Les réponses ci-dessous couvrent les situations les plus fréquentes. Si le "
@@ -112,14 +112,14 @@ def render(doc: Document) -> None:
 
     faq = [
         ("Je ne vois pas le menu Administration.",
-         "Le menu n'est visible que pour le propriétaire et les administrateurs du cabinet, "
-         "ou pour l'administrateur plateforme. Un gestionnaire de paie ne le voit pas. "
+         "Le menu n'est visible que pour le propriétaire et les administrateurs du cabinet. "
+         "Un gestionnaire de paie ne le voit pas. "
          "Si vous êtes propriétaire et ne le voyez pas, rechargez la page ou vérifiez que "
          "vous êtes bien connecté avec le bon compte."),
         ("Les constantes et le plan de paie sont en lecture seule.",
          "C'est le fonctionnement prévu : le cabinet peut consulter les référentiels "
-         "globaux, mais leur modification est réservée à l'administrateur plateforme. "
-         "Contactez-le si une valeur doit évoluer."),
+         "globaux, mais leur modification est réservée au support payohada. "
+         "Contactez le support si une valeur doit évoluer."),
         ("Un salarié n'apparaît pas dans la grille de variables.",
          "Vérifiez qu'il a une fiche salarié active dans l'établissement et un contrat "
          "actif sur la période. Un salarié sans contrat n'est pas proposé à la saisie."),
@@ -159,7 +159,7 @@ def render(doc: Document) -> None:
         k.add_para(doc, answer)
 
     # ── Chapitre 9 ─────────────────────────────────────────────────────────
-    k.add_heading(doc, "9. Matrice des rôles", level=1, page_break=True)
+    k.add_heading(doc, "8. Matrice des rôles", level=1, page_break=True)
     k.add_lead(
         doc,
         "Ce tableau récapitule les droits par action. Il reflète les règles appliquées "
@@ -167,28 +167,29 @@ def render(doc: Document) -> None:
     )
     k.add_table(
         doc,
-        ["Action", "Propriétaire / admin cabinet", "Gestionnaire de paie", "Entreprise", "Salarié", "Admin plateforme"],
+        ["Action", "Propriétaire / admin cabinet", "Gestionnaire de paie", "Entreprise", "Salarié"],
         [
-            ["Créer un dossier", "Oui", "Oui", "Non", "Non", "Oui"],
-            ["Créer un établissement", "Oui", "Oui (sociétés affectées)", "Non", "Non", "Non"],
-            ["Créer un salarié / contrat", "Oui", "Oui (sociétés affectées)", "Non", "Non", "Non"],
-            ["Saisir les variables", "Oui", "Oui (sociétés affectées)", "Oui", "Non", "Non"],
-            ["Calculer les bulletins", "Oui", "Oui (sociétés affectées)", "Non", "Non", "Non"],
-            ["Valider les bulletins", "Oui", "Oui (sociétés affectées)", "Non", "Non", "Non"],
-            ["Consulter les bulletins", "Oui", "Oui (sociétés affectées)", "Oui (son dossier)", "Oui (les siens)", "Oui"],
-            ["Consulter les constantes / plan de paie", "Oui (lecture)", "Oui (lecture)", "Non", "Non", "Oui (modification)"],
-            ["Gérer les utilisateurs du cabinet", "Oui", "Non", "Non", "Non", "Oui (tous)"],
-            ["Traiter une réclamation", "Oui", "Oui (sociétés affectées)", "Non", "Non", "Oui"],
-            ["Déposer une réclamation", "Non", "Non", "Non", "Oui", "Non"],
-            ["Valider un congé / acompte", "Non", "Non", "Oui", "Non", "Non"],
+            ["Créer un dossier", "Oui", "Oui", "Non", "Non"],
+            ["Créer un établissement", "Oui", "Oui (sociétés affectées)", "Non", "Non"],
+            ["Créer un salarié / contrat", "Oui", "Oui (sociétés affectées)", "Non", "Non"],
+            ["Saisir les variables", "Oui", "Oui (sociétés affectées)", "Oui", "Non"],
+            ["Calculer les bulletins", "Oui", "Oui (sociétés affectées)", "Non", "Non"],
+            ["Valider les bulletins", "Oui", "Oui (sociétés affectées)", "Non", "Non"],
+            ["Consulter les bulletins", "Oui", "Oui (sociétés affectées)", "Oui (son dossier)", "Oui (les siens)"],
+            ["Consulter les constantes / plan de paie", "Oui (lecture)", "Oui (lecture)", "Non", "Non"],
+            ["Gérer les utilisateurs du cabinet", "Oui", "Non", "Non", "Non"],
+            ["Traiter une réclamation", "Oui", "Oui (sociétés affectées)", "Non", "Non"],
+            ["Déposer une réclamation", "Non", "Non", "Non", "Oui"],
+            ["Valider un congé / acompte", "Non", "Non", "Oui", "Non"],
         ],
-        widths=[5.0, 3.4, 3.0, 2.2, 1.8, 2.4],
+        widths=[5.6, 3.8, 3.4, 2.4, 2.2],
         font_size=8.2,
         align_center=True,
     )
+    k.add_para(doc, "La modification des constantes et du plan de paie relève du support payohada ; les cabinets y accèdent uniquement en lecture.", space_after=6)
 
-    # ── Chapitre 10 ────────────────────────────────────────────────────────
-    k.add_heading(doc, "10. Glossaire", level=1, page_break=True)
+    # ── Chapitre 9 ────────────────────────────────────────────────────────
+    k.add_heading(doc, "9. Glossaire", level=1, page_break=True)
     k.add_lead(
         doc,
         "Les termes ci-dessous sont utilisés dans l'application et dans ce manuel.",
@@ -228,8 +229,8 @@ def render(doc: Document) -> None:
         font_size=8.6,
     )
 
-    # ── Chapitre 11 ────────────────────────────────────────────────────────
-    k.add_heading(doc, "11. Annexes", level=1, page_break=True)
+    # ── Chapitre 10 ────────────────────────────────────────────────────────
+    k.add_heading(doc, "10. Annexes", level=1, page_break=True)
     k.add_lead(
         doc,
         "Calendrier type, checklist de clôture et rappel des statuts : à imprimer ou à "
@@ -298,7 +299,6 @@ def render(doc: Document) -> None:
         ["Interlocuteur", "Quand le contacter"],
         [
             ["**Administrateur du cabinet**", "Comptes, rôles, affectations, accès aux dossiers."],
-            ["**Administrateur plateforme**", "Référentiels globaux (constantes, plan de paie), incidents techniques majeurs."],
             ["**Support payohada**", "Anomalie reproductible, message d'erreur, problème d'export ou d'email."],
         ],
         widths=[5.4, 11.6],
