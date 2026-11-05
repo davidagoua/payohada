@@ -842,15 +842,6 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div class="relative w-full md:w-80 md:ml-4">
-        <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-        <input
-          v-model="recherche"
-          type="search"
-          placeholder="Rechercher par nom ou matricule…"
-          class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
-        />
-      </div>
     </div>
 
 
@@ -1049,6 +1040,22 @@ onMounted(async () => {
 
       <!-- Employees & Bulletins List Table Card -->
       <div class="bg-white border-2 border-slate-200 shadow-flat overflow-hidden border-t-4 border-t-navy-900">
+        <!-- Recherche : sous les statistiques, juste au-dessus de l'en-tête du tableau -->
+        <div v-if="!loadingData && contracts.length > 0" class="px-5 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div class="relative w-full sm:w-96">
+            <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+            <input
+              v-model="recherche"
+              type="search"
+              placeholder="Rechercher par nom ou matricule…"
+              class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+          </div>
+          <span class="text-xs text-slate-500 whitespace-nowrap">
+            {{ contractsFiltres.length }} / {{ contracts.length }} salarié(s)
+          </span>
+        </div>
+
         <div v-if="loadingData" class="flex flex-col items-center justify-center py-20 space-y-4">
           <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-green-600" />
           <span class="text-sm text-slate-500 font-medium">Chargement des fiches de paye...</span>
