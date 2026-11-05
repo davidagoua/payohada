@@ -29,7 +29,7 @@ const handleSubmit = async () => {
 
   submitting.value = true
   try {
-    const apiBase = config.public.apiBase || 'http://localhost:8000'
+    const apiBase = resoudreApiBase(config.public.apiBase)
     // Appel direct (sans useApi) : cette page est publique, une réponse 401
     // ne doit pas déclencher de déconnexion.
     const reponse = await $fetch<any>(`${apiBase}/auth/forgot-password`, {

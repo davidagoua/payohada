@@ -75,7 +75,7 @@ export const useSupabase = () => {
     dernierEnrichissement = { jeton: accessToken, date: maintenant }
 
     try {
-      const apiBase = config.public.apiBase || 'http://localhost:8000'
+      const apiBase = resoudreApiBase(config.public.apiBase)
       const profile = await $fetch<any>(`${apiBase}/auth/me`, {
         headers: { Authorization: `Bearer ${accessToken}` }
       })
@@ -218,7 +218,7 @@ export const useSupabase = () => {
     try {
       // 1. Essayer de se connecter via notre backend local
       try {
-        const apiBase = config.public.apiBase || 'http://localhost:8000'
+        const apiBase = resoudreApiBase(config.public.apiBase)
         const response = await $fetch<any>(`${apiBase}/auth/login`, {
           method: 'POST',
           body: { email, password }
@@ -288,7 +288,7 @@ export const useSupabase = () => {
   }) => {
     loading.value = true
     try {
-      const apiBase = config.public.apiBase || 'http://localhost:8000'
+      const apiBase = resoudreApiBase(config.public.apiBase)
       const response = await $fetch<any>(`${apiBase}/auth/signup-cabinet`, {
         method: 'POST',
         body: formData
@@ -376,7 +376,7 @@ export const useSupabase = () => {
   const changePassword = async (oldPassword: string, newPassword: string) => {
     loading.value = true
     try {
-      const apiBase = config.public.apiBase || 'http://localhost:8000'
+      const apiBase = resoudreApiBase(config.public.apiBase)
       const headers: Record<string, string> = {}
       if (token.value) {
         headers.Authorization = `Bearer ${token.value}`

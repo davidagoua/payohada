@@ -35,7 +35,7 @@ export const useApi = () => {
   const toast = useToast()
 
   const apiFetch = async (path: string, options: any = {}) => {
-    const apiBase = config.public.apiBase || 'http://localhost:8000'
+    const apiBase = resoudreApiBase(config.public.apiBase)
     const url = `${apiBase}${path}`
 
     // Cloner et injecter les en-têtes d'authentification

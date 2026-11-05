@@ -137,7 +137,7 @@ const telecharger = async (format) => {
   try {
     const config = useRuntimeConfig()
     const { token } = useSupabase()
-    const apiBase = config.public.apiBase || 'http://localhost:8000'
+    const apiBase = resoudreApiBase(config.public.apiBase)
     const reponse = await fetch(
       `${apiBase}/editions/${codeSelectionne.value}/export?format=${format}`,
       {

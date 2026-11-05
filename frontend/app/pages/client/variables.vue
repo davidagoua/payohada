@@ -3,7 +3,7 @@ const { user, token } = useSupabase()
 const { get, post, del } = useApi()
 const toast = useToast()
 const config = useRuntimeConfig()
-const apiBase = config.public.apiBase || 'http://localhost:8000'
+const apiBase = resoudreApiBase(config.public.apiBase)
 
 const loading = ref(true)
 const dossier = ref(null)

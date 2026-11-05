@@ -180,7 +180,7 @@ const deposerFichier = (event) => {
 const telechargerModele = async () => {
   try {
     const reponse = await fetch(
-      `${config.public.apiBase}/imports/modeles/${typeSelectionne.value}`,
+      `${resoudreApiBase(config.public.apiBase)}/imports/modeles/${typeSelectionne.value}`,
       { headers: { Authorization: `Bearer ${token.value}` } }
     )
     if (!reponse.ok) throw new Error('Téléchargement impossible')

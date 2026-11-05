@@ -58,7 +58,7 @@ const formArchivage = ref({ type_document: '', fichier_joint: '', date_ajout: ''
 // File upload state
 const selectedFile = ref(null)
 const config = useRuntimeConfig()
-const apiBase = config.public.apiBase || 'http://localhost:8000'
+const apiBase = resoudreApiBase(config.public.apiBase)
 
 const onFileSelected = (event) => {
   selectedFile.value = event.target.files[0]

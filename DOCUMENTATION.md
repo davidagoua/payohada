@@ -455,6 +455,8 @@ logiciel_paie/
 
 #### Added
 - **Robustesse de l'import en production** : exécution automatique des migrations au démarrage du conteneur backend (`docker-entrypoint.sh`), endpoint de diagnostic `/api/v1/imports/diagnostic`, erreurs 503 explicites si la table manque ou si le dossier d'écriture est inaccessible, et message d'erreur détaillé côté interface.
+- **API base de production** : arguments de build Docker pour `NUXT_PUBLIC_API_BASE` et repli automatique sur `/api/v1` de l'origine courante si la build contient `localhost`, afin qu'une build locale déployée en production ne pointe pas vers le poste de l'utilisateur.
+- **Robustesse de l'import en production** : exécution automatique des migrations au démarrage du conteneur backend (`docker-entrypoint.sh`), endpoint de diagnostic `/api/v1/imports/diagnostic`, erreurs 503 explicites si la table manque ou si le dossier d'écriture est inaccessible, et message d'erreur détaillé côté interface.
 - **Imports de données de base (Excel/CSV)** : assistant par dossier pour les établissements, salariés et contrats ; modèles Excel générés, mapping automatique ou corrigeable, analyse à blanc avec rapport d'erreurs ligne par ligne, exécution idempotente (upsert par code établissement / matricule / numéro de contrat), historique et audit. 14 tests dédiés, 414 tests backend au total.
 - **Manuel d'utilisation par rôle** ([PDF](docs/manuel-utilisation-payohada.pdf), source [DOCX](docs/manuel-utilisation-payohada.docx)) : version 1.3, 37 pages, captures d'écran, guides Cabinet / Entreprise / Salarié, import Excel/CSV détaillé (colonnes des modèles, rapport, limites, FAQ), sécurité, FAQ, matrice des rôles, glossaire et annexes (sans la partie administration plateforme). Générateur reproductible dans [`docs/manuel/`](docs/manuel/).
 - **Administration du cabinet** : le menu « Administration » est visible pour le propriétaire du cabinet (et les co-administrateurs), pas seulement pour l'administrateur plateforme. Nouveaux onglets d'administration et page `/admin/utilisateurs` : liste des membres, invitation, changement de rôle (`cabinet` / `gestionnaire_paie`) et activation/désactivation.
@@ -507,6 +509,14 @@ curl -H "Authorization: Bearer <token>"   https://<votre-domaine>/api/v1/imports
 ```
 
 La réponse doit contenir `"table_imports": true` et `"ecriture_possible": true`.
+
+Le frontend statique doit être reconstruit avec l'URL d'API de production
+(`NUXT_PUBLIC_API_BASE`, par exemple `https://<votre-domaine>/api/v1`). Une build
+faite localement avec `http://localhost:8000/api/v1` ne doit pas être copiée telle
+quelle sur le serveur : le navigateur appellerait le poste de l'utilisateur.
+`app/utils/apiBase.ts` bascule désormais automatiquement sur `/api/v1` de
+l'origine courante lorsque la build contient une valeur `localhost` et que la
+page n'est pas servie depuis localhost.
 Si `ecriture_possible` est faux, montez un volume inscriptible sur
 `/app/uploads/imports` (ou ajustez les droits du conteneur backend). Si un proxy
 amont (Traefik, nginx, Cloudflare) limite la taille des requêtes, autorisez au

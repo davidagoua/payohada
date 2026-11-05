@@ -646,7 +646,7 @@ const handleExportExcel = async () => {
   try {
     const config = useRuntimeConfig()
     const { token } = useSupabase()
-    const apiBase = config.public.apiBase || 'http://localhost:8000'
+    const apiBase = resoudreApiBase(config.public.apiBase)
     const params = new URLSearchParams({
       mois: String(selectedMois.value),
       annee: String(selectedAnnee.value)
@@ -688,7 +688,7 @@ const handleImportExcel = async (event) => {
   try {
     const config = useRuntimeConfig()
     const { token } = useSupabase()
-    const apiBase = config.public.apiBase || 'http://localhost:8000'
+    const apiBase = resoudreApiBase(config.public.apiBase)
     const params = new URLSearchParams({
       mois: String(selectedMois.value),
       annee: String(selectedAnnee.value)

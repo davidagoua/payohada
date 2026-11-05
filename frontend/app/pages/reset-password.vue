@@ -7,7 +7,7 @@ const config = useRuntimeConfig()
 const route = useRoute()
 const router = useRouter()
 
-const apiBase = computed(() => config.public.apiBase || 'http://localhost:8000')
+const apiBase = computed(() => resoudreApiBase(config.public.apiBase))
 const token = computed(() => (route.query.token as string) || '')
 
 const verification = ref<'en_cours' | 'valide' | 'invalide'>('en_cours')
