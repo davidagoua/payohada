@@ -144,6 +144,7 @@ class ImportDonneesTests(unittest.TestCase):
         analyse = self._analyser("etablissements", contenu).json()
         self.assertEqual(analyse["job"]["lignes_erreurs"], 2)
         self.assertEqual(len(analyse["erreurs"]), 2)
+        self.assertIn("déjà utilisé ligne 2", analyse["erreurs"][0]["message"])
         refus = self._executer(analyse["job"]["id"])
         self.assertEqual(refus.status_code, 400, refus.text[:300])
 

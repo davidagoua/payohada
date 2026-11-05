@@ -498,7 +498,7 @@ def _normaliser_ligne(type_import: str, ligne: list[Any], mapping: dict[str, int
 def _valider_etablissements(db: Session, dossier: Dossier, lignes: list[dict], mapping: dict[str, int]) -> tuple[list[dict], list[dict]]:
     erreurs: list[dict] = []
     valides: list[dict] = []
-    codes_vus: set[str] = set()
+    codes_vus: dict[str, int] = {}
     for index, ligne in enumerate(lignes, start=2):
         avant = len(erreurs)
         donnees = _normaliser_ligne("etablissements", ligne, mapping, index, erreurs)
@@ -506,9 +506,14 @@ def _valider_etablissements(db: Session, dossier: Dossier, lignes: list[dict], m
             continue
         code = str(donnees["code"]).strip()
         if code in codes_vus:
-            erreurs.append(_erreur(index, "Code établissement", "Code en double dans le fichier.", code))
+            erreurs.append(_erreur(
+                index,
+                "Code établissement",
+                f"Code en double dans le fichier : déjà utilisé ligne {codes_vus[code]}.",
+                code,
+            ))
             continue
-        codes_vus.add(code)
+        codes_vus[code] = index
         if "taux_at" in donnees and donnees["taux_at"] is not None and donnees["taux_at"] < 0:
             erreurs.append(_erreur(index, "Taux AT (%)", "Le taux ne peut pas être négatif.", donnees["taux_at"]))
             continue
@@ -523,7 +528,7 @@ def _valider_salaries(db: Session, dossier: Dossier, lignes: list[dict], mapping
         etab.code: etab
         for etab in db.query(Etablissement).filter(Etablissement.dossier_id == dossier.id).all()
     }
-    cles_vues: set[tuple[str, str]] = set()
+    cles_vues: dict[tuple[str, str], int] = {}
     for index, ligne in enumerate(lignes, start=2):
         avant = len(erreurs)
         donnees = _normaliser_ligne("salaries", ligne, mapping, index, erreurs)
@@ -538,9 +543,14 @@ def _valider_salaries(db: Session, dossier: Dossier, lignes: list[dict], mapping
             continue
         cle = (code_etab, matricule)
         if cle in cles_vues:
-            erreurs.append(_erreur(index, "Matricule", "Matricule en double dans le fichier pour cet établissement.", matricule))
+            erreurs.append(_erreur(
+                index,
+                "Matricule",
+                f"Matricule en double pour cet établissement : déjà utilisé ligne {cles_vues[cle]}.",
+                matricule,
+            ))
             continue
-        cles_vues.add(cle)
+        cles_vues[cle] = index
         if donnees.get("enfants_charge") is not None and donnees["enfants_charge"] < 0:
             erreurs.append(_erreur(index, "Enfants à charge", "Le nombre d'enfants ne peut pas être négatif.", donnees["enfants_charge"]))
             continue
@@ -559,7 +569,7 @@ def _valider_contrats(db: Session, dossier: Dossier, lignes: list[dict], mapping
         (salarie.etablissement.code, salarie.matricule): salarie
         for salarie in db.query(Salarie).join(Etablissement).filter(Etablissement.dossier_id == dossier.id).all()
     }
-    numeros_vus: set[str] = set()
+    numeros_vus: dict[str, int] = {}
     for index, ligne in enumerate(lignes, start=2):
         avant = len(erreurs)
         donnees = _normaliser_ligne("contrats", ligne, mapping, index, erreurs)
@@ -577,9 +587,14 @@ def _valider_contrats(db: Session, dossier: Dossier, lignes: list[dict], mapping
             erreurs.append(_erreur(index, "Matricule salarié", "Salarié introuvable : importez d'abord les salariés.", matricule))
             continue
         if numero in numeros_vus:
-            erreurs.append(_erreur(index, "N° contrat", "Numéro de contrat en double dans le fichier.", numero))
+            erreurs.append(_erreur(
+                index,
+                "N° contrat",
+                f"Numéro de contrat en double dans le fichier : déjà utilisé ligne {numeros_vus[numero]}.",
+                numero,
+            ))
             continue
-        numeros_vus.add(numero)
+        numeros_vus[numero] = index
         debut = donnees.get("date_debut_contrat")
         fin = donnees.get("date_fin_previsionnelle_contrat")
         if debut and fin and fin < debut:
