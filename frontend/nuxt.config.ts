@@ -17,6 +17,7 @@ const origine = (url: string): string => {
   }
 }
 
+const apiOrigin = origine(apiBase)
 const bugsinkOrigin = origine(bugsinkDsn)
 const n8nOrigin = origine(n8nChatWebhook)
 
@@ -28,7 +29,9 @@ const connectSrc = [
   'https://api.iconify.design',
   supabaseUrl,
   supabaseUrl ? supabaseUrl.replace(/^http/, 'ws') : '',
-  apiBase,
+  // Origine seule : une source CSP contenant un chemin ne couvre pas ses
+  // sous-chemins (`/api/v1` ne couvre pas `/api/v1/dossiers`).
+  apiOrigin || apiBase,
   'http://localhost:8000',
   bugsinkOrigin,
   n8nOrigin
