@@ -490,6 +490,22 @@ onMounted(() => {
 
   <div v-else-if="dossier" class="space-y-6">
 
+    <!-- Accès rapide : import de données de base -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+      <p class="text-xs text-slate-500">
+        Dossier <span class="font-bold text-navy-900">{{ dossier.code }}</span>
+        <span class="mx-1 text-slate-300">·</span>
+        {{ dossier.nom_dossier }}
+      </p>
+      <NuxtLink
+        :to="`/dossiers/${dossierId}/imports`"
+        class="inline-flex items-center gap-2 px-3 py-2 border border-navy-200 text-navy-800 hover:bg-navy-50 text-xs font-bold uppercase tracking-wider transition-colors self-start"
+      >
+        <UIcon name="i-lucide-upload" class="w-4 h-4" />
+        Importer des données (Excel/CSV)
+      </NuxtLink>
+    </div>
+
     <!-- Onglets horizontaux -->
     <div class="border-b-2 border-navy-900">
       <nav class="flex space-x-8" aria-label="Tabs">

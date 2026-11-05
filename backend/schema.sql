@@ -1432,7 +1432,37 @@ UPDATE utilisateurs u
    AND u.cabinet_owner_id IS NULL
    AND EXISTS (SELECT 1 FROM acces_dossiers a WHERE a.utilisateur_id = u.id);
 
--- 12. Contrôles post-migration (à exécuter manuellement) :
+-- 12. Imports de données de base (Excel / CSV).
+--     Chaque dépôt crée un job : analyse à blanc, puis exécution. Le rapport
+--     JSON conserve les erreurs et le résultat, pour l'audit et la reprise.
+
+CREATE TABLE IF NOT EXISTS imports (
+    id SERIAL PRIMARY KEY,
+    dossier_id INTEGER NOT NULL REFERENCES dossiers(id) ON DELETE CASCADE,
+    utilisateur_id INTEGER REFERENCES utilisateurs(id) ON DELETE SET NULL,
+    type_import VARCHAR(30) NOT NULL,
+    fichier_nom VARCHAR(255) NOT NULL,
+    fichier_chemin VARCHAR(500),
+    fichier_taille INTEGER DEFAULT 0,
+    statut VARCHAR(20) NOT NULL DEFAULT 'analyse',
+    total_lignes INTEGER DEFAULT 0,
+    lignes_valides INTEGER DEFAULT 0,
+    lignes_erreurs INTEGER DEFAULT 0,
+    mapping TEXT,
+    rapport TEXT,
+    execute_le TIMESTAMP WITH TIME ZONE,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS ix_imports_dossier ON imports (dossier_id);
+CREATE INDEX IF NOT EXISTS ix_imports_statut ON imports (statut);
+CREATE INDEX IF NOT EXISTS ix_imports_dossier_date ON imports (dossier_id, created_at);
+
+COMMENT ON TABLE imports
+    IS 'Jobs d''import Excel/CSV (établissements, salariés, contrats)';
+
+-- 13. Contrôles post-migration (à exécuter manuellement) :
 --    -- Aucun compte sans mot de passe (sinon connexion impossible) :
 --    SELECT id, email, role FROM utilisateurs WHERE hashed_password IS NULL;
 --    -- La colonne et ses valeurs par défaut :

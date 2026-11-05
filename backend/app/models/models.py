@@ -1233,3 +1233,38 @@ class AccesDossier(TimestampMixin, Base):
         UniqueConstraint("utilisateur_id", "dossier_id", name="uq_acces_dossier"),
         Index("ix_acces_dossier_dossier", "dossier_id"),
     )
+
+# ─────────────────────────────────────────
+#  IMPORT DE DONNÉES (Excel / CSV)
+# ─────────────────────────────────────────
+
+class ImportJob(TimestampMixin, Base):
+    """Job d'import de données de base (établissements, salariés, contrats).
+
+    Le fichier est conservé le temps de l'analyse puis de l'exécution. Le
+    rapport JSON contient les compteurs, les erreurs ligne par ligne et le
+    résultat de l'exécution ; il sert aussi de journal d'audit.
+    """
+    __tablename__ = "imports"
+
+    id = Column(Integer, primary_key=True, index=True)
+    dossier_id = Column(Integer, ForeignKey("dossiers.id", ondelete="CASCADE"), nullable=False, index=True)
+    utilisateur_id = Column(Integer, ForeignKey("utilisateurs.id", ondelete="SET NULL"), nullable=True)
+    type_import = Column(String(30), nullable=False)   # etablissements | salaries | contrats
+    fichier_nom = Column(String(255), nullable=False)
+    fichier_chemin = Column(String(500), nullable=True)
+    fichier_taille = Column(Integer, default=0)
+    statut = Column(String(20), nullable=False, default="analyse", index=True)
+    total_lignes = Column(Integer, default=0)
+    lignes_valides = Column(Integer, default=0)
+    lignes_erreurs = Column(Integer, default=0)
+    mapping = Column(Text)      # JSON : colonne canonique -> colonne du fichier
+    rapport = Column(Text)      # JSON : erreurs, aperçu, compteurs d'exécution
+    execute_le = Column(DateTime(timezone=True), nullable=True)
+
+    dossier = relationship("Dossier")
+    utilisateur = relationship("Utilisateur")
+
+    __table_args__ = (
+        Index("ix_imports_dossier_date", "dossier_id", "created_at"),
+    )
