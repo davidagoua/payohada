@@ -3,7 +3,7 @@
 ##  Vue d'ensemble
 **PayOHADA** est une solution moderne de gestion de la paie et des ressources humaines conforme aux normes juridiques, fiscales et sociales de l'espace **OHADA** (notamment la Côte d'Ivoire et les pays de la zone UEMOA). La solution repose sur un backend **FastAPI (Python)** avec base de données relationnelle (PostgreSQL / SQLite) et un frontend **Nuxt 4 / Vue 3** propulsé par TailwindCSS et `@nuxt/ui`.
 
-> 📘 **Manuel utilisateur par rôle** : [manuel-utilisation-payohada.pdf](docs/manuel-utilisation-payohada.pdf) — version 1.2, 35 pages, guides Cabinet, Entreprise et Salarié (source DOCX et générateur dans [`docs/manuel/`](docs/manuel/)).
+> 📘 **Manuel utilisateur par rôle** : [manuel-utilisation-payohada.pdf](docs/manuel-utilisation-payohada.pdf) — version 1.3, 37 pages, guides Cabinet, Entreprise et Salarié (source DOCX et générateur dans [`docs/manuel/`](docs/manuel/)).
 
 ##  Démarrage rapide
 
@@ -455,7 +455,7 @@ logiciel_paie/
 
 #### Added
 - **Imports de données de base (Excel/CSV)** : assistant par dossier pour les établissements, salariés et contrats ; modèles Excel générés, mapping automatique ou corrigeable, analyse à blanc avec rapport d'erreurs ligne par ligne, exécution idempotente (upsert par code établissement / matricule / numéro de contrat), historique et audit. 14 tests dédiés, 414 tests backend au total.
-- **Manuel d'utilisation par rôle** ([PDF](docs/manuel-utilisation-payohada.pdf), source [DOCX](docs/manuel-utilisation-payohada.docx)) : version 1.2, 35 pages, captures d'écran, guides Cabinet / Entreprise / Salarié, import Excel/CSV, sécurité, FAQ, matrice des rôles, glossaire et annexes (sans la partie administration plateforme). Générateur reproductible dans [`docs/manuel/`](docs/manuel/).
+- **Manuel d'utilisation par rôle** ([PDF](docs/manuel-utilisation-payohada.pdf), source [DOCX](docs/manuel-utilisation-payohada.docx)) : version 1.3, 37 pages, captures d'écran, guides Cabinet / Entreprise / Salarié, import Excel/CSV détaillé (colonnes des modèles, rapport, limites, FAQ), sécurité, FAQ, matrice des rôles, glossaire et annexes (sans la partie administration plateforme). Générateur reproductible dans [`docs/manuel/`](docs/manuel/).
 - **Administration du cabinet** : le menu « Administration » est visible pour le propriétaire du cabinet (et les co-administrateurs), pas seulement pour l'administrateur plateforme. Nouveaux onglets d'administration et page `/admin/utilisateurs` : liste des membres, invitation, changement de rôle (`cabinet` / `gestionnaire_paie`) et activation/désactivation.
 - **Référentiels globaux en lecture seule pour le cabinet** : les onglets Constantes et Plan de paie sont de nouveau visibles et consultables, avec les actions d'écriture masquées ; l'API conserve `require_admin` sur les créations, modifications et suppressions. Modification réservée à l'administrateur plateforme.
 

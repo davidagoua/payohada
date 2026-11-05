@@ -101,7 +101,7 @@ def main() -> None:
     props.subject = "Utilisation de la plateforme de paie payohada"
     props.author = "payohada"
     props.keywords = "paie, manuel, cabinet, entreprise, salarié, administration, OHADA"
-    props.comments = "Guide pratique par rôle — version 1.2 (sans l'administration plateforme)"
+    props.comments = "Guide pratique par rôle — version 1.3 (sans l'administration plateforme)"
 
     k.add_cover(doc, LOGO)
     add_sommaire(doc)

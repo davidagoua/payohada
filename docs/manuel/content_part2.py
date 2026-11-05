@@ -521,6 +521,64 @@ def render(doc: Document) -> None:
         widths=[3.6, 8.4, 5.0],
         font_size=8.8,
     )
+
+    k.add_heading(doc, "Contenu des modèles", level=3)
+    k.add_table(
+        doc,
+        ["Type", "Colonnes obligatoires", "Colonnes fréquentes"],
+        [
+            ["**Établissements**", "Code établissement, Raison sociale",
+             "Sigle, N° RCCM, Activité, Commune, Pays, Téléphone, Email, Taux AT, Matricule CNPS, Compte contribuable, Date de création."],
+            ["**Salariés**", "Code établissement, Matricule, Nom, Prénom",
+             "Civilité, Date et lieu de naissance, N° sécurité sociale, Situation matrimoniale, Enfants à charge, Email, Téléphone, Adresse, Ville, Pays, IBAN, BIC, Expatrié, Actif."],
+            ["**Contrats**", "Code établissement, Matricule, N° contrat, Type de contrat, Statut professionnel, Date de début",
+             "Date de fin, Date d'ancienneté, Salaire mensuel ou horaire, Type de salaire, Unité de temps, Sursalaire, Indemnité de transport, Dotation téléphonique, CCN, Poste."],
+        ],
+        widths=[3.2, 5.4, 8.4],
+        font_size=8.6,
+    )
+    k.add_para(
+        doc,
+        "Les modèles téléchargeables contiennent ces colonnes et une feuille "
+        "**Instructions** avec les codes attendus : 10/29/18/28 pour les contrats, "
+        "1/2/3 pour le statut professionnel, Heures/Jours pour l'unité de temps. "
+        "Les dates s'écrivent **AAAA-MM-JJ** (ou JJ/MM/AAAA) et les montants en FCFA, "
+        "sans espace ni devise.",
+    )
+
+    k.add_heading(doc, "Comprendre le rapport d'analyse", level=3)
+    k.add_para(
+        doc,
+        "Après le dépôt, l'assistant affiche quatre compteurs — lignes, valides, en "
+        "erreur, colonnes — puis le détail. Le rapport distingue trois situations :",
+    )
+    k.add_bullets(doc, [
+        "**Colonnes manquantes** : le fichier ne contient pas un champ obligatoire. L'assistant propose d'associer une colonne existante, puis de relancer l'analyse.",
+        "**Lignes en erreur** : chaque ligne fautive est listée avec le numéro de ligne, le champ, le message et la valeur. Le fichier peut être corrigé puis redéposé.",
+        "**Lignes valides** : elles sont importables. Un aperçu permet de les relire avant l'exécution.",
+    ])
+    k.add_callout(
+        doc,
+        "info",
+        "À savoir",
+        "L'analyse ne modifie jamais la base. L'exécution est l'étape d'écriture : "
+        "elle crée ou met à jour les enregistrements, puis affiche le nombre de "
+        "créations, de mises à jour et de lignes ignorées.",
+    )
+
+    k.add_heading(doc, "Ce que l'import ne fait pas encore", level=3)
+    k.add_table(
+        doc,
+        ["Point", "Statut"],
+        [
+            ["Cumuls de paie (brut, cotisations, ITS) de l'année en cours", "Non couvert : import d'ouverture à prévoir pour une bascule en cours d'année."],
+            ["Soldes de congés, prêts, absences et bulletins antérieurs", "Non couvert dans cette version."],
+            ["API/ETL pour des imports récurrents ou très volumineux", "Non couvert : l'assistant traite un fichier à la fois (25 Mo maximum)."],
+            ["Traitement asynchrone avec reprise après incident", "Non couvert : l'exécution est synchrone, adaptée à quelques milliers de lignes."],
+        ],
+        widths=[8.2, 8.8],
+        font_size=8.6,
+    )
     k.add_callout(
         doc,
         "success",
@@ -545,6 +603,7 @@ def render(doc: Document) -> None:
         "Calculez d'abord en brouillon, relisez les écarts, puis validez.",
         "Exportez les états de paie et conservez-les avec les bulletins de la période.",
         "Ne réutilisez jamais un compte nominatif : créez un compte par utilisateur.",
+        "Après un import, contrôlez l'effectif et un échantillon de contrats avant le premier calcul.",
     ])
     k.add_table(
         doc,

@@ -153,6 +153,24 @@ def render(doc: Document) -> None:
          "L'interface est optimisée pour ordinateur. Sur mobile, certaines grilles et "
          "tableaux restent lisibles mais l'expérience est limitée ; privilégiez un "
          "ordinateur pour la saisie et la validation."),
+        ("L'import signale des lignes en erreur : que faire ?",
+         "Téléchargez le rapport, corrigez les lignes concernées dans le fichier source "
+         "en suivant le numéro de ligne et le message, puis redéposez le fichier. "
+         "L'analyse ne modifie rien : vous pouvez itérer autant que nécessaire. Si des "
+         "erreurs subsistent, le bouton **Importer les lignes valides** permet de ne "
+         "charger que les lignes correctes."),
+        ("Puis-je réimporter le même fichier ?",
+         "Oui. L'import est idempotent : le même code établissement, le même matricule "
+         "ou le même numéro de contrat met à jour l'enregistrement existant au lieu de "
+         "créer un doublon. Vérifiez toutefois le rapport avant d'exécuter."),
+        ("L'import reprend-il les cumuls de paie et les soldes de congés ?",
+         "Pas encore : l'assistant charge les données de base (établissements, salariés, "
+         "contrats). Les cumuls, soldes de congés, prêts et absences antérieurs relèvent "
+         "d'un import d'ouverture distinct, à prévoir pour une bascule en cours d'année."),
+        ("Combien de lignes puis-je importer ?",
+         "Le fichier est limité à 25 Mo et l'exécution est synchrone : l'assistant est "
+         "adapté à quelques milliers de lignes. Pour des volumes plus importants ou "
+         "récurrents, découpez le fichier par établissement ou utilisez l'API/ETL."),
     ]
     for question, answer in faq:
         k.add_heading(doc, question, level=3)
@@ -282,6 +300,7 @@ def render(doc: Document) -> None:
             ["Demande d'acompte", "En attente · Validée · Refusée"],
             ["Réclamation", "À traiter · Traitée · Rejetée"],
             ["Compte utilisateur", "Actif · Désactivé"],
+            ["Import de données", "Analyse · Prêt · Mapping requis · Terminé · Échec"],
         ],
         widths=[4.4, 12.6],
         font_size=8.8,
