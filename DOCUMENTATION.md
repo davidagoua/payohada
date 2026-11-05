@@ -357,6 +357,33 @@ reste limité aux sociétés affectées.
 
 ![Administration des utilisateurs du cabinet](docs/captures/admin-utilisateurs.png)
 
+### Administration plateforme (`/api/v1/platform`)
+
+Espace réservé aux comptes `is_admin` (créés avec `create_admin.py`). Il gère les
+cabinets, indépendamment de leurs dossiers clients.
+
+| Méthode | Endpoint | Rôle |
+|---|---|---|
+| `GET` | `/api/v1/platform/cabinets` | Liste les cabinets, leurs administrateurs, membres, sociétés et statut. |
+| `POST` | `/api/v1/platform/cabinets` | Crée un cabinet et son administrateur propriétaire (mot de passe fourni ou généré/envoyé). |
+| `GET` | `/api/v1/platform/cabinets/{id}` | Détail d'un cabinet. |
+| `POST` | `/api/v1/platform/cabinets/{id}/administrateurs` | Ajoute un co-administrateur au cabinet. |
+| `PUT` | `/api/v1/platform/cabinets/{id}/statut` | Suspend (`suspendu: true`) ou réactive (`false`) le cabinet. |
+
+**Modèle.** Un cabinet n'est pas une table séparée : il est représenté par son
+propriétaire (`utilisateurs.role = cabinet`, `cabinet_owner_id IS NULL`) ; les
+co-administrateurs pointent vers lui via `cabinet_owner_id`.
+
+**Suspension.** La colonne `utilisateurs.cabinet_suspendu` est portée par le
+propriétaire et propagée à ses membres. `get_current_user` et `POST /auth/login`
+refusent alors l'accès (403) au propriétaire comme à ses administrateurs et
+gestionnaires, y compris avec un jeton déjà émis. Les données, sociétés et
+bulletins sont conservés ; la réactivation rétablit l'accès.
+
+**Constantes et plan de paie.** Les onglets Constantes et Plan de paie de
+l'administration plateforme restent modifiables par `is_admin` ; les cabinets
+n'y ont qu'un accès en lecture.
+
 ### Autorisations
 La matrice complète des rôles et les règles de portée sont documentées dans
 [`SECURITY.md`](SECURITY.md#matrice-des-rôles). Ces contrôles sont appliqués
@@ -454,6 +481,7 @@ logiciel_paie/
 - Le plafond CNPS Prestations Familiales / AT / Maternité (75 000 → 70 000 FCFA) est fourni **commenté** : il modifie le montant des cotisations et doit être validé contre les textes officiels avant activation.
 
 #### Added
+- **Espace plateforme « Cabinets »** : création d'un cabinet et de son administrateur propriétaire, ajout de co-administrateurs, liste avec compteurs de membres/sociétés, suspension et réactivation. Nouvelle colonne `utilisateurs.cabinet_suspendu` ; la suspension bloque la connexion et l'API de tous les membres. 7 tests dédiés, 426 tests backend au total.
 - **Recherche dans les listes** : champs de recherche par **nom, prénom, matricule** (et numéro de contrat) sur les listes de salariés, de contrats et de bulletins de paie ; la sélection « tout » ne porte que sur les lignes visibles et un état vide dédié s'affiche quand aucun résultat ne correspond.
 - **Robustesse de l'import en production** : exécution automatique des migrations au démarrage du conteneur backend (`docker-entrypoint.sh`), endpoint de diagnostic `/api/v1/imports/diagnostic`, erreurs 503 explicites si la table manque ou si le dossier d'écriture est inaccessible, et message d'erreur détaillé côté interface.
 - **API base de production** : arguments de build Docker pour `NUXT_PUBLIC_API_BASE` et repli automatique sur `/api/v1` de l'origine courante si la build contient `localhost`, afin qu'une build locale déployée en production ne pointe pas vers le poste de l'utilisateur.
