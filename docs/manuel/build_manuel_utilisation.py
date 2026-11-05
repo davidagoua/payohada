@@ -41,7 +41,7 @@ def add_sommaire(doc: Document) -> None:
         [
             ["**1. Introduction**", "Objet du manuel, espaces de travail, conventions de lecture.", "Tous"],
             ["**2. Premiers pas**", "Connexion, inscription cabinet, mot de passe, navigation.", "Tous"],
-            ["**3. Guide Cabinet**", "Dossiers, établissements, salariés, contrats, cycle de paie, bulletins, éditions, simulation, réclamations, administration du cabinet.", "Cabinet"],
+            ["**3. Guide Cabinet**", "Dossiers, établissements, salariés, contrats, import Excel/CSV, cycle de paie, bulletins, éditions, simulation, réclamations, administration du cabinet.", "Cabinet"],
             ["**4. Guide Entreprise**", "Saisie et transmission des variables, bulletins, personnel, demandes, réclamations.", "Entreprise"],
             ["**5. Guide Salarié**", "Bulletins, congés, acomptes, réclamations, mot de passe.", "Salarié"],
             ["**6. Sécurité et confidentialité**", "Comptes, rôles, données personnelles, poste de travail, incidents.", "Tous"],
@@ -85,7 +85,7 @@ def validate(path: Path) -> None:
     print(f"  mots     : {words}")
     assert len(headings) >= 60, "trop peu de titres"
     assert tables >= 30, "trop peu de tableaux"
-    assert images == 9, f"images attendues : 9, trouvées : {images}"
+    assert images == 10, f"images attendues : 10, trouvées : {images}"
     if len(headings) < 80:
         print("  (avertissement : nombre de titres plus faible que prévu)")
 
@@ -101,7 +101,7 @@ def main() -> None:
     props.subject = "Utilisation de la plateforme de paie payohada"
     props.author = "payohada"
     props.keywords = "paie, manuel, cabinet, entreprise, salarié, administration, OHADA"
-    props.comments = "Guide pratique par rôle — version 1.1 (sans l'administration plateforme)"
+    props.comments = "Guide pratique par rôle — version 1.2 (sans l'administration plateforme)"
 
     k.add_cover(doc, LOGO)
     add_sommaire(doc)

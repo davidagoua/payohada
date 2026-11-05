@@ -488,7 +488,57 @@ def render(doc: Document) -> None:
         "la plateforme. Si une valeur doit évoluer, contactez le support payohada.",
     )
 
-    k.add_heading(doc, "3.16 Bonnes pratiques et checklist mensuelle", level=2)
+    k.add_heading(doc, "3.16 Importer des données en masse", level=2)
+    k.add_para(
+        doc,
+        "Pour une entreprise qui possède déjà des milliers de salariés, la création "
+        "manuelle n'est pas envisageable. L'assistant d'import charge les données de "
+        "base depuis un fichier **Excel** ou **CSV**, les valide à blanc, puis les "
+        "crée ou les met à jour de façon idempotente.",
+    )
+    k.add_figure(
+        doc,
+        IMAGES / "09-imports.png",
+        "Figure 6 — Assistant d'import des données de base (Excel / CSV).",
+    )
+    k.add_steps(doc, [
+        "Ouvrez le dossier, puis cliquez sur **Importer des données (Excel/CSV)**.",
+        "Choisissez le type : **Établissements**, **Salariés** ou **Contrats**.",
+        "Téléchargez le **modèle Excel** et remplissez-le sans modifier la ligne d'en-tête.",
+        "Déposez le fichier, puis cliquez sur **Analyser le fichier** : aucune donnée n'est écrite à ce stade.",
+        "Lisez le rapport : lignes valides, lignes en erreur, colonnes manquantes. Corrigez le fichier ou associez les colonnes, puis relancez l'analyse.",
+        "Cliquez sur **Exécuter l'import** (ou **Importer les lignes valides** si des erreurs subsistent).",
+        "Consultez l'**historique des imports** pour retrouver le résultat et les compteurs.",
+    ])
+    k.add_table(
+        doc,
+        ["Type", "À importer", "Prérequis"],
+        [
+            ["**Établissements**", "Sites, sièges, filiales : code, raison sociale, adresse, paramètres de base.", "Aucun ; à importer en premier."],
+            ["**Salariés**", "Identité, situation familiale, coordonnées, IBAN.", "Le code établissement doit exister."],
+            ["**Contrats**", "Classification, dates, rémunération, transport, téléphone.", "L'établissement et le salarié doivent exister."],
+        ],
+        widths=[3.6, 8.4, 5.0],
+        font_size=8.8,
+    )
+    k.add_callout(
+        doc,
+        "success",
+        "Astuce",
+        "Respectez l'ordre **établissements → salariés → contrats**. Un réimport du même "
+        "fichier met à jour les enregistrements existants (même code établissement, même "
+        "matricule, même numéro de contrat) au lieu de créer des doublons.",
+    )
+    k.add_callout(
+        doc,
+        "warning",
+        "Attention",
+        "L'analyse à blanc ne modifie rien, mais l'exécution est réelle. Vérifiez le "
+        "rapport avant de cliquer sur **Exécuter l'import**. Les fichiers sont limités à "
+        "25 Mo et supprimés après exécution.",
+    )
+
+    k.add_heading(doc, "3.17 Bonnes pratiques et checklist mensuelle", level=2)
     k.add_bullets(doc, [
         "Vérifiez les contrats actifs et les dates de début/fin avant chaque calcul.",
         "Contrôlez les variables transmises par l'entreprise : heures, absences, primes, acomptes.",
@@ -539,7 +589,7 @@ def render(doc: Document) -> None:
     k.add_figure(
         doc,
         IMAGES / "04-client.png",
-        "Figure 6 — Tableau de bord de l'entreprise pour la période en cours.",
+        "Figure 7 — Tableau de bord de l'entreprise pour la période en cours.",
     )
     k.add_para(
         doc,
@@ -557,7 +607,7 @@ def render(doc: Document) -> None:
     k.add_figure(
         doc,
         IMAGES / "05-variables.png",
-        "Figure 7 — Grille de saisie des variables mensuelles.",
+        "Figure 8 — Grille de saisie des variables mensuelles.",
     )
     k.add_para(
         doc,
@@ -712,7 +762,7 @@ def render(doc: Document) -> None:
     k.add_figure(
         doc,
         IMAGES / "06-salarie.png",
-        "Figure 8 — Espace salarié : bulletins et suivi des réclamations.",
+        "Figure 9 — Espace salarié : bulletins et suivi des réclamations.",
     )
     k.add_steps(doc, [
         "Ouvrez **Mes Bulletins**.",

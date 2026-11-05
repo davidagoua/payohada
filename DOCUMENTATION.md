@@ -3,7 +3,7 @@
 ##  Vue d'ensemble
 **PayOHADA** est une solution moderne de gestion de la paie et des ressources humaines conforme aux normes juridiques, fiscales et sociales de l'espace **OHADA** (notamment la Côte d'Ivoire et les pays de la zone UEMOA). La solution repose sur un backend **FastAPI (Python)** avec base de données relationnelle (PostgreSQL / SQLite) et un frontend **Nuxt 4 / Vue 3** propulsé par TailwindCSS et `@nuxt/ui`.
 
-> 📘 **Manuel utilisateur par rôle** : [manuel-utilisation-payohada.pdf](docs/manuel-utilisation-payohada.pdf) — version 1.1, 34 pages, guides Cabinet, Entreprise et Salarié (source DOCX et générateur dans [`docs/manuel/`](docs/manuel/)).
+> 📘 **Manuel utilisateur par rôle** : [manuel-utilisation-payohada.pdf](docs/manuel-utilisation-payohada.pdf) — version 1.2, 35 pages, guides Cabinet, Entreprise et Salarié (source DOCX et générateur dans [`docs/manuel/`](docs/manuel/)).
 
 ##  Démarrage rapide
 
@@ -454,7 +454,8 @@ logiciel_paie/
 - Le plafond CNPS Prestations Familiales / AT / Maternité (75 000 → 70 000 FCFA) est fourni **commenté** : il modifie le montant des cotisations et doit être validé contre les textes officiels avant activation.
 
 #### Added
-- **Manuel d'utilisation par rôle** ([PDF](docs/manuel-utilisation-payohada.pdf), source [DOCX](docs/manuel-utilisation-payohada.docx)) : version 1.1, 34 pages, captures d'écran, guides Cabinet / Entreprise / Salarié, sécurité, FAQ, matrice des rôles, glossaire et annexes (sans la partie administration plateforme). Générateur reproductible dans [`docs/manuel/`](docs/manuel/).
+- **Imports de données de base (Excel/CSV)** : assistant par dossier pour les établissements, salariés et contrats ; modèles Excel générés, mapping automatique ou corrigeable, analyse à blanc avec rapport d'erreurs ligne par ligne, exécution idempotente (upsert par code établissement / matricule / numéro de contrat), historique et audit. 14 tests dédiés, 414 tests backend au total.
+- **Manuel d'utilisation par rôle** ([PDF](docs/manuel-utilisation-payohada.pdf), source [DOCX](docs/manuel-utilisation-payohada.docx)) : version 1.2, 35 pages, captures d'écran, guides Cabinet / Entreprise / Salarié, import Excel/CSV, sécurité, FAQ, matrice des rôles, glossaire et annexes (sans la partie administration plateforme). Générateur reproductible dans [`docs/manuel/`](docs/manuel/).
 - **Administration du cabinet** : le menu « Administration » est visible pour le propriétaire du cabinet (et les co-administrateurs), pas seulement pour l'administrateur plateforme. Nouveaux onglets d'administration et page `/admin/utilisateurs` : liste des membres, invitation, changement de rôle (`cabinet` / `gestionnaire_paie`) et activation/désactivation.
 - **Référentiels globaux en lecture seule pour le cabinet** : les onglets Constantes et Plan de paie sont de nouveau visibles et consultables, avec les actions d'écriture masquées ; l'API conserve `require_admin` sur les créations, modifications et suppressions. Modification réservée à l'administrateur plateforme.
 
@@ -579,6 +580,53 @@ l'extraction sera à remplacer.
 - **Tests** : 11 tests ajoutés (CSV relisible par un tableur, libellé des totaux
   dans les trois formats, bandeau sans doublon, établissement obligatoire,
   formatage des montants), soit 43 tests pour le module.
+
+#### Module Imports de données de base (Excel / CSV)
+
+Pour les entreprises qui arrivent avec des milliers de salariés déjà saisis dans un
+autre outil, l'import manuel est impossible. Le module charge les **données de
+base** — établissements, salariés, contrats — depuis un fichier Excel ou CSV, en
+deux temps :
+
+1. **analyse à blanc** : lecture, rapprochement des colonnes, validation ligne par
+   ligne, rapport d'erreurs ; aucune écriture en base ;
+2. **exécution** : création ou mise à jour des seules lignes valides, avec des
+   clés métier naturelles (code établissement, matricule, numéro de contrat).
+
+| Fichier | Rôle |
+|---|---|
+| `backend/app/services/imports.py` | Modèles, lecture XLSX/CSV, mapping, validation, upserts, génération des modèles Excel |
+| `backend/app/routers/imports.py` | Endpoints d'analyse, d'exécution, d'historique et de modèles |
+| `backend/app/models/models.py` (`ImportJob`) | Job d'import, compteurs, mapping et rapport JSON |
+| `frontend/app/pages/dossiers/[dossierId]/imports.vue` | Assistant : type, modèle, dépôt, rapport, exécution, historique |
+| `backend/tests/test_imports.py` | 14 tests : analyse sans écriture, upserts, erreurs, mapping CSV, permissions |
+
+**Endpoints** :
+- `GET /api/v1/imports/types` — types disponibles et colonnes attendues ;
+- `GET /api/v1/imports/modeles/{type}` — modèle Excel officiel (feuille Données + Instructions) ;
+- `POST /api/v1/imports/analyser` — multipart (`dossier_id`, `type_import`, `fichier`, `mapping` optionnel) ;
+- `POST /api/v1/imports/{job_id}/executer` — exécution, `ignorer_erreurs` pour n'importer que les lignes valides ;
+- `GET /api/v1/imports?dossier_id=…` — historique (50 derniers) ;
+- `GET /api/v1/imports/{job_id}` — détail et rapport.
+
+**Mapping et validation.** Le mapping est automatique à partir des en-têtes
+(accents, casse, synonymes) et peut être corrigé côté API/assistant pour les
+fichiers dont les colonnes diffèrent. La validation vérifie les champs
+obligatoires, les doublons dans le fichier, les références (établissement et
+salarié existants), les dates, les montants, les emails, l'IBAN et les codes
+(type de contrat, statut professionnel). Les erreurs sont conservées dans le
+rapport JSON du job, avec le numéro de ligne, le champ, le message et la valeur.
+
+**Idempotence et audit.** Un réimport met à jour l'enregistrement existant au lieu
+de le dupliquer. L'historique expose le fichier, le type, les compteurs et le
+statut ; le fichier est supprimé après exécution pour limiter la conservation de
+données personnelles. L'accès est réservé au personnel du cabinet et vérifié par
+dossier (`require_staff` + `get_dossier_or_403`).
+
+**Limites de cette première version** : traitement synchrone (adapté à quelques
+milliers de lignes), 25 Mo par fichier, et pas encore de reprise des cumuls de
+paie ni des soldes de congés — ces éléments relèvent d'un import d'ouverture
+distinct. Un client peut déposer, mais le cabinet reste seul à exécuter l'import.
 
 #### Identifiants du compte client envoyés par email
 Le cabinet créait l'accès du client, mais aucun canal ne transmettait le mot de
