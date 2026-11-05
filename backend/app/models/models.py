@@ -77,6 +77,9 @@ class Utilisateur(TimestampMixin, Base):
     cabinet_owner_id = Column(
         Integer, ForeignKey("utilisateurs.id", ondelete="SET NULL"), nullable=True
     )
+    #: Le cabinet est suspendu par l'administrateur plateforme : aucun membre
+    #: ne peut se connecter ni utiliser l'API. Porté par le propriétaire.
+    cabinet_suspendu = Column(Boolean, default=False, nullable=False)
 
     # Relations
     dossiers = relationship("Dossier", back_populates="proprietaire", foreign_keys="[Dossier.utilisateur_id]")

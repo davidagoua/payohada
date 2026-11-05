@@ -47,6 +47,7 @@ ATTENDUS_TABLES = (
 ATTENDUS_COLONNES = (
     ("utilisateurs", "must_change_password"),
     ("utilisateurs", "cabinet_owner_id"),
+    ("utilisateurs", "cabinet_suspendu"),
     ("dossiers", "rccm"),
     ("dossiers", "jour_virement"),
     ("etablissements", "dfe_code_cdi"),

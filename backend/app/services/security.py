@@ -73,7 +73,29 @@ def get_current_user(
             detail="Ce compte est désactivé.",
         )
 
+    if cabinet_est_suspendu(db, user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Le cabinet est suspendu. Contactez l'administrateur de la plateforme.",
+        )
+
     return user
+
+
+def cabinet_est_suspendu(db: Session, user: "Utilisateur") -> bool:
+    """Un membre de cabinet est-il bloqué par une suspension de son cabinet ?"""
+    if user.is_admin or user.role not in ("cabinet", "gestionnaire_paie"):
+        return False
+    if getattr(user, "cabinet_suspendu", False):
+        return True
+    if user.cabinet_owner_id:
+        proprietaire = (
+            db.query(Utilisateur)
+            .filter(Utilisateur.id == user.cabinet_owner_id)
+            .first()
+        )
+        return bool(proprietaire and proprietaire.cabinet_suspendu)
+    return False
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:

@@ -11,7 +11,7 @@ from app.schemas.utilisateur import (
 )
 from app.services.security import (
     get_current_user, verify_password, get_password_hash, create_access_token,
-    validate_password_strength,
+    validate_password_strength, cabinet_est_suspendu,
 )
 from app.services.rate_limit import (
     compte_rate_limiter, ip_rate_limiter, client_ip,
@@ -116,6 +116,12 @@ def login(request: LoginRequest, http_request: Request, db: Session = Depends(ge
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Ce compte est désactivé. Contactez votre administrateur.",
+        )
+
+    if cabinet_est_suspendu(db, user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Le cabinet est suspendu. Contactez l'administrateur de la plateforme.",
         )
 
     compte_rate_limiter.reset(f"login:email:{email}")

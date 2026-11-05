@@ -15,7 +15,9 @@ const estAdminCabinet = computed(
 
 const onglets = computed(() => {
   const items = [{ to: '/admin', label: "Vue d'ensemble", exact: true }]
-  if (estAdminCabinet.value) {
+  if (estAdminPlateforme.value) {
+    items.push({ to: '/admin/cabinets', label: 'Cabinets', exact: false })
+  } else if (estAdminCabinet.value) {
     items.push({ to: '/admin/utilisateurs', label: 'Utilisateurs', exact: false })
   }
   if (estAdminCabinet.value) {

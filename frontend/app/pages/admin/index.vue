@@ -12,7 +12,7 @@ const estAdminCabinet = computed(
 
 const sousTitre = computed(() =>
   estAdminPlateforme.value
-    ? 'Administrez votre cabinet et les référentiels globaux de la paie.'
+    ? 'Administrez les cabinets et les référentiels globaux de la paie.'
     : 'Gérez les membres de votre cabinet et consultez les référentiels globaux.'
 )
 </script>
@@ -42,9 +42,32 @@ const sousTitre = computed(() =>
     <!-- Cartes d'administration -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
+      <!-- Cabinets (plateforme) -->
+      <NuxtLink
+        v-if="estAdminPlateforme"
+        to="/admin/cabinets"
+        class="block bg-white border border-slate-200 rounded-xl p-6 shadow-sm hover:border-navy-500 hover:shadow-md transition-all duration-200 group"
+      >
+        <div class="flex items-start space-x-4">
+          <div class="w-12 h-12 bg-navy-50 text-navy-700 rounded-xl flex items-center justify-center group-hover:bg-navy-900 group-hover:text-white transition-colors duration-200">
+            <UIcon name="i-lucide-building-2" class="w-6 h-6" />
+          </div>
+          <div class="space-y-1">
+            <h2 class="text-lg font-bold text-navy-900 group-hover:text-navy-700 transition-colors">Cabinets</h2>
+            <p class="text-xs text-slate-500 leading-relaxed">
+              Ajoutez des cabinets et leurs administrateurs, suspendez un cabinet ou réactivez-le.
+            </p>
+          </div>
+        </div>
+        <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-navy-700">
+          <span>Gérer les cabinets</span>
+          <UIcon name="i-lucide-chevron-right" class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+        </div>
+      </NuxtLink>
+
       <!-- Utilisateurs du cabinet -->
       <NuxtLink
-        v-if="estAdminCabinet"
+        v-if="!estAdminPlateforme && estAdminCabinet"
         to="/admin/utilisateurs"
         class="block bg-white border border-slate-200 rounded-xl p-6 shadow-sm hover:border-navy-500 hover:shadow-md transition-all duration-200 group"
       >

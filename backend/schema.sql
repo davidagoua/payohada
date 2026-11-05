@@ -1462,7 +1462,16 @@ CREATE INDEX IF NOT EXISTS ix_imports_dossier_date ON imports (dossier_id, creat
 COMMENT ON TABLE imports
     IS 'Jobs d''import Excel/CSV (établissements, salariés, contrats)';
 
--- 13. Contrôles post-migration (à exécuter manuellement) :
+-- 13. Suspension d'un cabinet par l'administrateur plateforme.
+--     Portée par le propriétaire (`cabinet_owner_id IS NULL`) ; les membres
+--     sont bloqués via leur propriétaire.
+
+ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS cabinet_suspendu BOOLEAN NOT NULL DEFAULT FALSE;
+
+COMMENT ON COLUMN utilisateurs.cabinet_suspendu
+    IS 'Cabinet suspendu par la plateforme : connexion et API bloquées pour tous ses membres';
+
+-- 14. Contrôles post-migration (à exécuter manuellement) :
 --    -- Aucun compte sans mot de passe (sinon connexion impossible) :
 --    SELECT id, email, role FROM utilisateurs WHERE hashed_password IS NULL;
 --    -- La colonne et ses valeurs par défaut :
