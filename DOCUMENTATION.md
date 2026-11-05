@@ -3,7 +3,7 @@
 ##  Vue d'ensemble
 **PayOHADA** est une solution moderne de gestion de la paie et des ressources humaines conforme aux normes juridiques, fiscales et sociales de l'espace **OHADA** (notamment la Côte d'Ivoire et les pays de la zone UEMOA). La solution repose sur un backend **FastAPI (Python)** avec base de données relationnelle (PostgreSQL / SQLite) et un frontend **Nuxt 4 / Vue 3** propulsé par TailwindCSS et `@nuxt/ui`.
 
-> 📘 **Manuel utilisateur par rôle** : [manuel-utilisation-payohada.pdf](docs/manuel-utilisation-payohada.pdf) — version 1.4, 37 pages, guides Cabinet, Entreprise et Salarié (source DOCX et générateur dans [`docs/manuel/`](docs/manuel/)).
+> 📘 **Manuel utilisateur par rôle** : [manuel-utilisation-payohada.pdf](docs/manuel-utilisation-payohada.pdf) — version 1.5, 38 pages, guides Cabinet, Entreprise et Salarié (source DOCX et générateur dans [`docs/manuel/`](docs/manuel/)).
 
 ##  Démarrage rapide
 
@@ -454,11 +454,12 @@ logiciel_paie/
 - Le plafond CNPS Prestations Familiales / AT / Maternité (75 000 → 70 000 FCFA) est fourni **commenté** : il modifie le montant des cotisations et doit être validé contre les textes officiels avant activation.
 
 #### Added
+- **Recherche dans les listes** : champs de recherche par **nom, prénom, matricule** (et numéro de contrat) sur les listes de salariés, de contrats et de bulletins de paie ; la sélection « tout » ne porte que sur les lignes visibles et un état vide dédié s'affiche quand aucun résultat ne correspond.
 - **Robustesse de l'import en production** : exécution automatique des migrations au démarrage du conteneur backend (`docker-entrypoint.sh`), endpoint de diagnostic `/api/v1/imports/diagnostic`, erreurs 503 explicites si la table manque ou si le dossier d'écriture est inaccessible, et message d'erreur détaillé côté interface.
 - **API base de production** : arguments de build Docker pour `NUXT_PUBLIC_API_BASE` et repli automatique sur `/api/v1` de l'origine courante si la build contient `localhost`, afin qu'une build locale déployée en production ne pointe pas vers le poste de l'utilisateur.
 - **Robustesse de l'import en production** : exécution automatique des migrations au démarrage du conteneur backend (`docker-entrypoint.sh`), endpoint de diagnostic `/api/v1/imports/diagnostic`, erreurs 503 explicites si la table manque ou si le dossier d'écriture est inaccessible, et message d'erreur détaillé côté interface.
 - **Imports de données de base (Excel/CSV)** : assistant par dossier pour les établissements, salariés, contrats et **cumuls de reprise** ; modèles Excel générés, mapping automatique ou corrigeable, analyse à blanc avec rapport d'erreurs ligne par ligne, exécution idempotente (upsert par code établissement / matricule / numéro de contrat, puis par contrat + code + année pour les cumuls), historique et audit. 19 tests dédiés, 419 tests backend au total.
-- **Manuel d'utilisation par rôle** ([PDF](docs/manuel-utilisation-payohada.pdf), source [DOCX](docs/manuel-utilisation-payohada.docx)) : version 1.4, 37 pages, captures d'écran, guides Cabinet / Entreprise / Salarié, import Excel/CSV détaillé (colonnes des modèles, rapport, limites, FAQ), sécurité, FAQ, matrice des rôles, glossaire et annexes (sans la partie administration plateforme). Générateur reproductible dans [`docs/manuel/`](docs/manuel/).
+- **Manuel d'utilisation par rôle** ([PDF](docs/manuel-utilisation-payohada.pdf), source [DOCX](docs/manuel-utilisation-payohada.docx)) : version 1.5, 38 pages, captures d'écran, guides Cabinet / Entreprise / Salarié, import Excel/CSV détaillé, recherche dans les listes (colonnes des modèles, rapport, limites, FAQ), sécurité, FAQ, matrice des rôles, glossaire et annexes (sans la partie administration plateforme). Générateur reproductible dans [`docs/manuel/`](docs/manuel/).
 - **Administration du cabinet** : le menu « Administration » est visible pour le propriétaire du cabinet (et les co-administrateurs), pas seulement pour l'administrateur plateforme. Nouveaux onglets d'administration et page `/admin/utilisateurs` : liste des membres, invitation, changement de rôle (`cabinet` / `gestionnaire_paie`) et activation/désactivation.
 - **Référentiels globaux en lecture seule pour le cabinet** : les onglets Constantes et Plan de paie sont de nouveau visibles et consultables, avec les actions d'écriture masquées ; l'API conserve `require_admin` sur les créations, modifications et suppressions. Modification réservée à l'administrateur plateforme.
 

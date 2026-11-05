@@ -492,7 +492,7 @@ def add_cover(doc: Document, logo_path: str | Path) -> None:
     info.autofit = False
     _table_layout_fixed(info)
     rows = [
-        ("Version", "1.4"),
+        ("Version", "1.5"),
         ("Édition", "Novembre 2026"),
         ("Portée", "Utilisateurs de la plateforme payohada"),
     ]

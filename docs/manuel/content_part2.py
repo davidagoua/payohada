@@ -170,6 +170,12 @@ def render(doc: Document) -> None:
         "Ajoutez les coordonnées et le IBAN de versement du salaire.",
         "Enregistrez : la fiche du salarié est créée, ses onglets complémentaires sont disponibles.",
     ])
+    k.add_para(
+        doc,
+        "La liste des salariés dispose d'un champ **Rechercher par nom ou matricule** : "
+        "il filtre immédiatement la liste sans changer d'établissement. Le compteur "
+        "de résultats se met à jour à la saisie.",
+    )
     k.add_table(
         doc,
         ["Onglet de la fiche salarié", "Contenu"],
@@ -211,6 +217,11 @@ def render(doc: Document) -> None:
         "Renseignez le salaire de base, le sursalaire éventuel, l'indemnité de transport et la dotation téléphonique.",
         "Ajoutez la convention collective (CCN) si elle s'applique, puis enregistrez.",
     ])
+    k.add_para(
+        doc,
+        "Dans l'onglet **Contrats**, le champ de recherche filtre les contrats par "
+        "**nom, prénom, matricule ou numéro de contrat**.",
+    )
     k.add_table(
         doc,
         ["Champ", "Exemple / valeur", "Remarque"],
@@ -341,6 +352,12 @@ def render(doc: Document) -> None:
     )
 
     k.add_heading(doc, "3.11 Consulter, imprimer et envoyer les bulletins", level=2)
+    k.add_para(
+        doc,
+        "Sur la liste des bulletins de la période, le champ **Rechercher par nom ou "
+        "matricule** filtre les salariés ; la sélection « tout » ne porte que sur les "
+        "lignes visibles.",
+    )
     k.add_bullets(doc, [
         "**Visualiser** ouvre le bulletin au format officiel (modèle Sage Saari) dans un nouvel onglet.",
         "Le bouton **PDF** télécharge le bulletin du salarié.",
