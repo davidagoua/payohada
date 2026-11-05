@@ -16,6 +16,29 @@ const selectedAnnee = ref(new Date().getFullYear())
 const dossiers = ref([])
 const contracts = ref([])
 const bulletinsMap = ref({})
+const salariesMap = ref({})
+const recherche = ref('')
+
+const normaliserRecherche = (valeur) =>
+  String(valeur ?? '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+
+const getSalarieName = (salarieId) => {
+  const salarie = salariesMap.value[salarieId]
+  if (!salarie) return ''
+  return `${salarie.nom.toUpperCase()} ${salarie.prenom}`
+}
+
+const contractsFiltres = computed(() => {
+  const terme = normaliserRecherche(recherche.value).trim()
+  if (!terme) return contracts.value
+  return contracts.value.filter((contrat) =>
+    [getSalarieName(contrat.salarie_id), contrat.matricule_salarie, contrat.numero_contrat]
+      .some((valeur) => normaliserRecherche(valeur).includes(terme))
+  )
+})
 const loadingDossiers = ref(true)
 const loadingData = ref(false)
 
@@ -27,12 +50,14 @@ const bulkTotal = ref(0)
 const selectedBulletins = ref([])
 
 const allBulletinsSelected = computed({
-  get: () => contracts.value.length > 0 && selectedBulletins.value.length === contracts.value.length,
+  get: () => contractsFiltres.value.length > 0
+    && contractsFiltres.value.every((contrat) => selectedBulletins.value.includes(contrat.id)),
   set: (val) => {
     if (val) {
-      selectedBulletins.value = contracts.value.map(c => c.id)
+      selectedBulletins.value = [...new Set([...selectedBulletins.value, ...contractsFiltres.value.map(c => c.id)])]
     } else {
-      selectedBulletins.value = []
+      const ids = new Set(contractsFiltres.value.map(c => c.id))
+      selectedBulletins.value = selectedBulletins.value.filter(id => !ids.has(id))
     }
   }
 })
@@ -162,6 +187,25 @@ const fetchDossierData = async () => {
     // 1. Fetch contracts of this dossier
     const cts = await get(`/dossiers/${selectedDossierId.value}/contrats`)
     contracts.value = cts || []
+
+    // Noms des salariés : nécessaires à l'affichage et à la recherche par nom.
+    salariesMap.value = {}
+    const etablissementIds = [...new Set(contracts.value.map(c => c.etablissement_id))]
+    const listesSalaries = await Promise.all(
+      etablissementIds.map(async (etablissementId) => {
+        try {
+          return await get(`/etablissements/${etablissementId}/salaries`)
+        } catch (e) {
+          console.error(`Salariés de l'établissement ${etablissementId} indisponibles :`, e)
+          return []
+        }
+      })
+    )
+    const mapSalaries = {}
+    listesSalaries.flat().forEach((salarie) => {
+      mapSalaries[salarie.id] = salarie
+    })
+    salariesMap.value = mapSalaries
 
     // 2. Fetch all generated bulletins of this dossier for the selected period
     const bList = await get(`/dossiers/${selectedDossierId.value}/bulletins`, {
@@ -797,6 +841,16 @@ onMounted(async () => {
           />
         </div>
       </div>
+
+      <div class="relative w-full md:w-80 md:ml-4">
+        <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+        <input
+          v-model="recherche"
+          type="search"
+          placeholder="Rechercher par nom ou matricule…"
+          class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
+        />
+      </div>
     </div>
 
 
@@ -1016,6 +1070,12 @@ onMounted(async () => {
           </NuxtLink>
         </div>
 
+        <div v-else-if="contractsFiltres.length === 0" class="text-center py-16 px-4 bg-white space-y-2">
+          <UIcon name="i-lucide-search-x" class="w-6 h-6 text-slate-400 mx-auto" />
+          <h4 class="font-bold text-navy-900">Aucun salarié ne correspond à la recherche</h4>
+          <p class="text-xs text-slate-500">Recherche : « {{ recherche }} »</p>
+        </div>
+
         <div v-else class="overflow-x-auto">
           <table class="min-w-full divide-y divide-slate-200 text-sm">
             <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
@@ -1033,7 +1093,7 @@ onMounted(async () => {
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-150 bg-white">
-              <tr v-for="c in contracts" :key="c.id" class="hover:bg-slate-50/50 transition-colors">
+              <tr v-for="c in contractsFiltres" :key="c.id" class="hover:bg-slate-50/50 transition-colors">
                 <td class="px-4 py-4" @click.stop>
                   <input type="checkbox" :value="c.id" v-model="selectedBulletins" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
                 </td>
@@ -1046,10 +1106,11 @@ onMounted(async () => {
                     </div>
                     <div>
                       <span class="block font-bold text-slate-900 leading-tight">
-                        {{ c.matricule_salarie }}
+                        {{ getSalarieName(c.salarie_id) || c.matricule_salarie }}
                       </span>
-                      <span class="text-xs text-slate-500">
-                        Type : {{ c.unite_temps === 'Jours' ? 'Journalier (Jours)' : 'Horaire (Heures)' }}
+                      <span class="text-xs text-slate-500 font-mono">
+                        {{ c.matricule_salarie }}
+                        <span class="font-sans"> · {{ c.unite_temps === 'Jours' ? 'Journalier (Jours)' : 'Horaire (Heures)' }}</span>
                       </span>
                     </div>
                   </div>

@@ -18,6 +18,44 @@ const activeTab = ref(route.query.tab || 'sals')
 const selectedCaisses = ref([])
 const selectedSalaries = ref([])
 const selectedContracts = ref([])
+
+// Recherche locale dans les listes (nom, prénom, matricule, n° de contrat).
+const rechercheSalarie = ref('')
+const rechercheContrat = ref('')
+const rechercheBulletin = ref('')
+
+const normaliserRecherche = (valeur) =>
+  String(valeur ?? '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+
+const salariesFiltres = computed(() => {
+  const terme = normaliserRecherche(rechercheSalarie.value).trim()
+  if (!terme) return salaries.value
+  return salaries.value.filter((salarie) =>
+    [salarie.nom, salarie.prenom, salarie.matricule]
+      .some((valeur) => normaliserRecherche(valeur).includes(terme))
+  )
+})
+
+const contratsFiltres = computed(() => {
+  const terme = normaliserRecherche(rechercheContrat.value).trim()
+  if (!terme) return contracts.value
+  return contracts.value.filter((contrat) =>
+    [getSalarieName(contrat.salarie_id), contrat.matricule_salarie, contrat.numero_contrat, contrat.emploi]
+      .some((valeur) => normaliserRecherche(valeur).includes(terme))
+  )
+})
+
+const contratsBulletinsFiltres = computed(() => {
+  const terme = normaliserRecherche(rechercheBulletin.value).trim()
+  if (!terme) return contracts.value
+  return contracts.value.filter((contrat) =>
+    [getSalarieName(contrat.salarie_id), contrat.matricule_salarie, contrat.numero_contrat]
+      .some((valeur) => normaliserRecherche(valeur).includes(terme))
+  )
+})
 const selectedBulletins = ref([])
 
 const allCaissesSelected = computed({
@@ -32,34 +70,40 @@ const allCaissesSelected = computed({
 })
 
 const allSalariesSelected = computed({
-  get: () => salaries.value.length > 0 && selectedSalaries.value.length === salaries.value.length,
+  get: () => salariesFiltres.value.length > 0
+    && salariesFiltres.value.every((salarie) => selectedSalaries.value.includes(salarie.id)),
   set: (val) => {
     if (val) {
-      selectedSalaries.value = salaries.value.map(s => s.id)
+      selectedSalaries.value = [...new Set([...selectedSalaries.value, ...salariesFiltres.value.map(s => s.id)])]
     } else {
-      selectedSalaries.value = []
+      const ids = new Set(salariesFiltres.value.map(s => s.id))
+      selectedSalaries.value = selectedSalaries.value.filter(id => !ids.has(id))
     }
   }
 })
 
 const allContractsSelected = computed({
-  get: () => contracts.value.length > 0 && selectedContracts.value.length === contracts.value.length,
+  get: () => contratsFiltres.value.length > 0
+    && contratsFiltres.value.every((contrat) => selectedContracts.value.includes(contrat.id)),
   set: (val) => {
     if (val) {
-      selectedContracts.value = contracts.value.map(c => c.id)
+      selectedContracts.value = [...new Set([...selectedContracts.value, ...contratsFiltres.value.map(c => c.id)])]
     } else {
-      selectedContracts.value = []
+      const ids = new Set(contratsFiltres.value.map(c => c.id))
+      selectedContracts.value = selectedContracts.value.filter(id => !ids.has(id))
     }
   }
 })
 
 const allBulletinsSelected = computed({
-  get: () => contracts.value.length > 0 && selectedBulletins.value.length === contracts.value.length,
+  get: () => contratsBulletinsFiltres.value.length > 0
+    && contratsBulletinsFiltres.value.every((contrat) => selectedBulletins.value.includes(contrat.id)),
   set: (val) => {
     if (val) {
-      selectedBulletins.value = contracts.value.map(c => c.id)
+      selectedBulletins.value = [...new Set([...selectedBulletins.value, ...contratsBulletinsFiltres.value.map(c => c.id)])]
     } else {
-      selectedBulletins.value = []
+      const ids = new Set(contratsBulletinsFiltres.value.map(c => c.id))
+      selectedBulletins.value = selectedBulletins.value.filter(id => !ids.has(id))
     }
   }
 })
@@ -1899,18 +1943,29 @@ onMounted(async () => {
     <div v-show="activeTab === 'sals'" class="space-y-6">
       <div class="bg-white border-2 border-slate-200 rounded-lg p-6 shadow-flat border-t-4 border-t-navy-900">
 
-        <div class="flex justify-between items-center border-b border-slate-200 pb-4 mb-4">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 border-b border-slate-200 pb-4 mb-4">
           <div>
             <h3 class="text-lg font-bold text-navy-900 uppercase tracking-wider">Salariés de l'Établissement</h3>
             <p class="text-xs text-slate-500">Liste des fiches civiles des salariés déclarés dans cet établissement.</p>
           </div>
-          <button
-            @click="router.push(`/dossiers/${dossierId}/etablissements/${etabId}/salaries/new`)"
-            class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg text-xs transition-colors flex items-center gap-1.5 shadow-flat uppercase tracking-wider cursor-pointer"
-          >
-            <UIcon name="i-lucide-user-plus" class="w-3.5 h-3.5" />
-            Ajouter un Salarié
-          </button>
+          <div class="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
+            <div class="relative w-full sm:w-72">
+              <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              <input
+                v-model="rechercheSalarie"
+                type="search"
+                placeholder="Rechercher par nom ou matricule…"
+                class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+            <button
+              @click="router.push(`/dossiers/${dossierId}/etablissements/${etabId}/salaries/new`)"
+              class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow-flat uppercase tracking-wider cursor-pointer whitespace-nowrap"
+            >
+              <UIcon name="i-lucide-user-plus" class="w-3.5 h-3.5" />
+              Ajouter un Salarié
+            </button>
+          </div>
         </div>
 
         <!-- Bulk Actions Bar -->
@@ -1931,6 +1986,9 @@ onMounted(async () => {
         <div v-if="salaries.length === 0" class="text-center py-12 text-slate-500 italic text-sm">
           Aucun salarié enregistré dans cet établissement.
         </div>
+        <div v-else-if="salariesFiltres.length === 0" class="text-center py-12 text-slate-500 italic text-sm">
+          Aucun salarié ne correspond à « {{ rechercheSalarie }} ».
+        </div>
         <div v-else class="overflow-x-auto">
           <table class="min-w-full divide-y divide-slate-200 text-sm">
             <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
@@ -1949,7 +2007,7 @@ onMounted(async () => {
             </thead>
             <tbody class="divide-y divide-slate-150 bg-white">
               <tr
-                v-for="sal in salaries"
+                v-for="sal in salariesFiltres"
                 :key="sal.id"
                 @click="router.push(`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${sal.id}`)"
                 class="hover:bg-slate-50/55 cursor-pointer group"
@@ -2009,10 +2067,24 @@ onMounted(async () => {
     <div v-show="activeTab === 'contrats'" class="space-y-6">
       <div class="bg-white border-2 border-slate-200 rounded-lg p-6 shadow-flat border-t-4 border-t-navy-900">
 
-        <div class="flex justify-between items-center border-b border-slate-200 pb-4 mb-4">
+        <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3 border-b border-slate-200 pb-4 mb-4">
           <div>
             <h3 class="text-lg font-bold text-navy-900 uppercase tracking-wider">Contrats de l'Établissement</h3>
             <p class="text-xs text-slate-500">Historique des contrats de travail rattachés à cet établissement.</p>
+          </div>
+          <div class="flex items-center gap-3 w-full sm:w-auto">
+            <div class="relative w-full sm:w-72">
+              <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              <input
+                v-model="rechercheContrat"
+                type="search"
+                placeholder="Rechercher par nom ou matricule…"
+                class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+            </div>
+            <span v-if="rechercheContrat" class="text-xs text-slate-500 whitespace-nowrap">
+              {{ contratsFiltres.length }} / {{ contracts.length }}
+            </span>
           </div>
         </div>
 
@@ -2034,6 +2106,9 @@ onMounted(async () => {
         <div v-if="contracts.length === 0" class="text-center py-12 text-slate-500 italic text-sm">
           Aucun contrat enregistré dans cet établissement.
         </div>
+        <div v-else-if="contratsFiltres.length === 0" class="text-center py-12 text-slate-500 italic text-sm">
+          Aucun contrat ne correspond à « {{ rechercheContrat }} ».
+        </div>
         <div v-else class="overflow-x-auto">
           <table class="min-w-full divide-y divide-slate-200 text-sm">
             <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
@@ -2052,7 +2127,7 @@ onMounted(async () => {
             </thead>
             <tbody class="divide-y divide-slate-150 bg-white">
               <tr
-                v-for="c in contracts"
+                v-for="c in contratsFiltres"
                 :key="c.id"
                 @click="router.push(`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${c.salarie_id}/contrats/${c.id}`)"
                 class="hover:bg-slate-50 cursor-pointer group"
@@ -2135,6 +2210,22 @@ onMounted(async () => {
             Calculer les bulletins
           </button>
         </div>
+      </div>
+
+      <!-- Recherche dans les bulletins -->
+      <div class="bg-white border-2 border-slate-200 p-4 shadow-flat flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div class="relative w-full sm:w-96">
+          <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+          <input
+            v-model="rechercheBulletin"
+            type="search"
+            placeholder="Rechercher un salarié par nom ou matricule…"
+            class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
+          />
+        </div>
+        <span v-if="rechercheBulletin" class="text-xs text-slate-500 whitespace-nowrap">
+          {{ contratsBulletinsFiltres.length }} / {{ contracts.length }} salarié(s)
+        </span>
       </div>
 
       <!-- Bulk action progress -->
@@ -2266,6 +2357,12 @@ onMounted(async () => {
           </p>
         </div>
 
+        <div v-else-if="contratsBulletinsFiltres.length === 0" class="text-center py-16 px-4 bg-white space-y-2">
+          <UIcon name="i-lucide-search-x" class="w-6 h-6 text-slate-400 mx-auto" />
+          <h4 class="font-bold text-navy-900">Aucun salarié ne correspond à la recherche</h4>
+          <p class="text-xs text-slate-500">Recherche : « {{ rechercheBulletin }} »</p>
+        </div>
+
         <div v-else class="overflow-x-auto">
           <table class="min-w-full divide-y divide-slate-200 text-sm">
             <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
@@ -2281,7 +2378,7 @@ onMounted(async () => {
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-150 bg-white">
-              <tr v-for="c in contracts" :key="c.id" class="hover:bg-slate-50/50 transition-colors">
+              <tr v-for="c in contratsBulletinsFiltres" :key="c.id" class="hover:bg-slate-50/50 transition-colors">
                 <td class="px-4 py-4" @click.stop>
                   <input type="checkbox" :value="c.id" v-model="selectedBulletins" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
                 </td>
