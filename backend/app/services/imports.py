@@ -36,11 +36,30 @@ from app.models.models import (
     Horaires,
     JoursHebdomadaires,
     Salarie,
+    VariableRepriseDossier,
 )
 
 MAX_IMPORT_BYTES = 25 * 1024 * 1024
 EXTENSIONS_AUTORISEES = {".xlsx", ".xlsm", ".csv"}
 DOSSIER_IMPORTS = Path("uploads") / "imports"
+
+#: Codes de cumuls de reprise acceptés par le moteur de paie
+#: (voir `reprise_map` dans `routers/bulletins.py`).
+CODES_CUMUL_REPRISE = (
+    "CUMUL_BRUT",
+    "CUMUL_BRUT_IMPOSABLE",
+    "CUMUL_BRUT_CNPS",
+    "CUMUL_BRUT_CONGES",
+    "CUMUL_IBS",
+    "CUMUL_RICF",
+    "CUMUL_CMU",
+    "CUMUL_RETRAITE",
+    "CUMUL_CNPS_RETRAITE",
+    "CUMUL_HEURES",
+    "CUMUL_JOURS",
+    "CUMUL_HEURES_SUPP",
+    "CUMUL_ABSENCES",
+)
 
 NAVY = "01173A"
 GREEN = "177B36"
@@ -120,18 +139,29 @@ CHAMPS: dict[str, tuple[Champ, ...]] = {
         Champ("ccn", "CCN (IDCC)", False, "0", _aliases("CCN (IDCC)", "ccn", "idcc")),
         Champ("emploi", "Poste / emploi", False, "Comptable", _aliases("Poste / emploi", "poste", "emploi")),
     ),
+    "cumuls": (
+        Champ("etablissement_code", "Code établissement", True, "ETB01", _aliases("Code établissement", "code etablissement", "code etb", "etablissement")),
+        Champ("matricule", "Matricule salarié", True, "M0001", _aliases("Matricule salarié", "matricule", "matricule salarie")),
+        Champ("numero_contrat", "N° contrat (facultatif)", False, "C0001", _aliases("N° contrat (facultatif)", "numero contrat", "contrat")),
+        Champ("annee", "Année", True, "2026", _aliases("Année", "annee", "exercice")),
+        Champ("code", "Code cumul", True, "CUMUL_BRUT", _aliases("Code cumul", "code", "cumul"), "CUMUL_BRUT, CUMUL_BRUT_IMPOSABLE, CUMUL_BRUT_CNPS, CUMUL_BRUT_CONGES, CUMUL_IBS, CUMUL_RICF, CUMUL_CMU, CUMUL_RETRAITE, CUMUL_HEURES, CUMUL_JOURS, CUMUL_HEURES_SUPP, CUMUL_ABSENCES"),
+        Champ("valeur", "Valeur", True, "3500000", _aliases("Valeur", "montant", "cumul valeur")),
+        Champ("libelle", "Libellé (facultatif)", False, "Cumul brut 2025", _aliases("Libellé (facultatif)", "libelle", "libellé")),
+    ),
 }
 
 TYPES_LIBELLES = {
     "etablissements": "Établissements",
     "salaries": "Salariés",
     "contrats": "Contrats",
+    "cumuls": "Cumuls de reprise",
 }
 
 TYPES_DESCRIPTIONS = {
     "etablissements": "Sites, sièges et filiales de l'entreprise (code, raison sociale, adresse, paramètres de base).",
     "salaries": "Fiches du personnel : identité, situation familiale, coordonnées, IBAN. L'établissement doit exister.",
     "contrats": "Contrats de travail : classification, dates, rémunération. Le salarié et l'établissement doivent exister.",
+    "cumuls": "Cumuls de paie repris de l'ancien logiciel pour une bascule en cours d'année (brut, CNPS, ITS, congés, heures…).",
 }
 
 
@@ -338,6 +368,9 @@ PARSEURS_CHAMPS = {
         "is_active": "booleen",
         "civilite": "civilite",
         "situation_matrimoniale": "situation",
+    },
+    "cumuls": {
+        "valeur": "decimal",
     },
     "contrats": {
         "type_contrat_travail": "type_contrat",
@@ -612,10 +645,104 @@ def _valider_contrats(db: Session, dossier: Dossier, lignes: list[dict], mapping
     return valides, erreurs
 
 
+def _contrats_du_dossier(db: Session, dossier: Dossier) -> list[Contrat]:
+    return (
+        db.query(Contrat)
+        .filter(Contrat.dossier_id == dossier.id)
+        .order_by(Contrat.id.desc())
+        .all()
+    )
+
+
+def _trouver_contrat_cumul(contrats: list[Contrat], code_etab: str, matricule: str,
+                           numero: Optional[str] = None) -> Optional[Contrat]:
+    candidats = [
+        contrat for contrat in contrats
+        if contrat.code_etablissement == code_etab
+        and contrat.matricule_salarie == matricule
+        and (not numero or contrat.numero_contrat == numero)
+    ]
+    if not candidats:
+        return None
+    candidats.sort(
+        key=lambda contrat: (
+            contrat.statut == "actif",
+            contrat.date_debut_contrat or "",
+            contrat.id,
+        ),
+        reverse=True,
+    )
+    return candidats[0]
+
+
+def _valider_cumuls(db: Session, dossier: Dossier, lignes: list[dict], mapping: dict[str, int]) -> tuple[list[dict], list[dict]]:
+    erreurs: list[dict] = []
+    valides: list[dict] = []
+    contrats = _contrats_du_dossier(db, dossier)
+    vus: dict[tuple[int, str, str], int] = {}
+    for index, ligne in enumerate(lignes, start=2):
+        avant = len(erreurs)
+        donnees = _normaliser_ligne("cumuls", ligne, mapping, index, erreurs)
+        if len(erreurs) > avant:
+            continue
+        code_etab = str(donnees.get("etablissement_code") or "").strip()
+        matricule = str(donnees.get("matricule") or "").strip()
+        numero = str(donnees.get("numero_contrat") or "").strip() or None
+        annee = str(donnees.get("annee") or "").strip()
+        code_cumul = str(donnees.get("code") or "").strip().upper()
+        valeur = donnees.get("valeur")
+
+        if not re.fullmatch(r"\d{4}", annee):
+            erreurs.append(_erreur(index, "Année", "Année invalide (attendu AAAA).", annee))
+            continue
+        if not 2000 <= int(annee) <= 2100:
+            erreurs.append(_erreur(index, "Année", "Année hors plage attendue (2000-2100).", annee))
+            continue
+        if code_cumul not in CODES_CUMUL_REPRISE:
+            erreurs.append(_erreur(
+                index,
+                "Code cumul",
+                "Code cumul inconnu. Utilisez un code de la feuille Instructions.",
+                code_cumul,
+            ))
+            continue
+        if valeur is None:
+            erreurs.append(_erreur(index, "Valeur", "Valeur obligatoire.", None))
+            continue
+        if valeur < 0:
+            erreurs.append(_erreur(index, "Valeur", "La valeur ne peut pas être négative.", valeur))
+            continue
+        contrat = _trouver_contrat_cumul(contrats, code_etab, matricule, numero)
+        if contrat is None:
+            erreurs.append(_erreur(
+                index,
+                "Matricule salarié",
+                "Contrat introuvable pour ce salarié (vérifiez le matricule et le n° de contrat).",
+                matricule,
+            ))
+            continue
+        cle = (contrat.id, code_cumul, annee)
+        if cle in vus:
+            erreurs.append(_erreur(
+                index,
+                "Code cumul",
+                f"Ce cumul est déjà présent dans le fichier (ligne {vus[cle]}).",
+                code_cumul,
+            ))
+            continue
+        vus[cle] = index
+        donnees["annee"] = annee
+        donnees["code"] = code_cumul
+        donnees["_contrat_id"] = contrat.id
+        valides.append(donnees)
+    return valides, erreurs
+
+
 VALIDATEURS = {
     "etablissements": _valider_etablissements,
     "salaries": _valider_salaries,
     "contrats": _valider_contrats,
+    "cumuls": _valider_cumuls,
 }
 
 
@@ -670,7 +797,7 @@ def analyser_contenu(
         {
             cle: (valeur.isoformat() if isinstance(valeur, date) else valeur)
             for cle, valeur in ligne.items()
-            if cle != "_ligne"
+            if not cle.startswith("_")
         }
         for ligne in valides[:8]
     ]
@@ -816,10 +943,47 @@ def _appliquer_contrat(db: Session, dossier: Dossier, donnees: dict) -> bool:
     return cree
 
 
+def _appliquer_cumul(db: Session, dossier: Dossier, donnees: dict) -> bool:
+    contrats = _contrats_du_dossier(db, dossier)
+    contrat = _trouver_contrat_cumul(
+        contrats,
+        str(donnees["etablissement_code"]).strip(),
+        str(donnees["matricule"]).strip(),
+        str(donnees.get("numero_contrat") or "").strip() or None,
+    )
+    if contrat is None:
+        raise ValueError("Contrat introuvable.")
+    code = str(donnees["code"]).strip().upper()
+    annee = str(donnees["annee"]).strip()
+    reprise = (
+        db.query(VariableRepriseDossier)
+        .filter(
+            VariableRepriseDossier.contrat_id == contrat.id,
+            VariableRepriseDossier.code == code,
+            VariableRepriseDossier.annee == annee,
+        )
+        .first()
+    )
+    cree = reprise is None
+    if reprise is None:
+        reprise = VariableRepriseDossier(
+            contrat_id=contrat.id,
+            code=code,
+            annee=annee,
+            valeur=0.0,
+        )
+        db.add(reprise)
+        db.flush()
+    reprise.valeur = float(donnees.get("valeur") or 0)
+    reprise.libelle = donnees.get("libelle") or reprise.libelle
+    return cree
+
+
 APPLIQUER = {
     "etablissements": _appliquer_etablissement,
     "salaries": _appliquer_salarie,
     "contrats": _appliquer_contrat,
+    "cumuls": _appliquer_cumul,
 }
 
 

@@ -92,7 +92,7 @@ class ImportDonneesTests(unittest.TestCase):
         r = client.get(f"{API}/imports/types", headers=self.entetes)
         self.assertEqual(r.status_code, 200, r.text[:300])
         codes = {item["code"] for item in r.json()}
-        self.assertEqual(codes, {"etablissements", "salaries", "contrats"})
+        self.assertEqual(codes, {"etablissements", "salaries", "contrats", "cumuls"})
 
     # ── établissements ───────────────────────────────────────────────────
 
@@ -243,6 +243,70 @@ class ImportDonneesTests(unittest.TestCase):
         analyse = self._analyser("contrats", contenu).json()
         self.assertEqual(analyse["job"]["lignes_erreurs"], 1)
         self.assertIn("Salarié introuvable", analyse["erreurs"][0]["message"])
+
+    # ── cumuls de reprise ────────────────────────────────────────────────
+
+    def test_import_des_cumuls_de_reprise(self):
+        entetes = ["Code établissement", "Matricule salarié", "N° contrat",
+                   "Année", "Code cumul", "Valeur", "Libellé"]
+        contenu = fichier_xlsx(entetes, [
+            [self.etab.code, self.t["salarie"].matricule, self.t["contrat"].numero_contrat,
+             "2026", "CUMUL_BRUT", 3500000, "Cumul brut 2025"],
+            [self.etab.code, self.t["salarie"].matricule, self.t["contrat"].numero_contrat,
+             "2026", "CUMUL_IBS", 125000, "ITS 2025"],
+        ])
+        analyse = self._analyser("cumuls", contenu)
+        self.assertEqual(analyse.status_code, 201, analyse.text[:500])
+        self.assertEqual(analyse.json()["job"]["lignes_valides"], 2)
+        r = self._executer(analyse.json()["job"]["id"])
+        self.assertEqual(r.status_code, 200, r.text[:500])
+        self.assertEqual(r.json()["crees"], 2)
+        reprises = self.db.query(M.VariableRepriseDossier).all()
+        self.assertEqual(len(reprises), 2)
+        brut = next(item for item in reprises if item.code == "CUMUL_BRUT")
+        self.assertEqual(brut.valeur, 3500000)
+        self.assertEqual(brut.annee, "2026")
+
+        # Réimport : mise à jour, pas de doublon.
+        contenu2 = fichier_xlsx(entetes, [
+            [self.etab.code, self.t["salarie"].matricule, self.t["contrat"].numero_contrat,
+             "2026", "CUMUL_BRUT", 3600000, "Cumul corrigé"],
+        ])
+        analyse2 = self._analyser("cumuls", contenu2).json()
+        r2 = self._executer(analyse2["job"]["id"])
+        self.assertEqual(r2.status_code, 200, r2.text[:300])
+        self.assertEqual(r2.json()["mis_a_jour"], 1)
+        self.assertEqual(self.db.query(M.VariableRepriseDossier).count(), 2)
+        self.db.refresh(brut)
+        self.assertEqual(brut.valeur, 3600000)
+
+    def test_cumul_sans_numero_de_contrat(self):
+        contenu = fichier_xlsx(
+            ["Code établissement", "Matricule salarié", "Année", "Code cumul", "Valeur"],
+            [[self.etab.code, self.t["salarie"].matricule, "2026", "CUMUL_CMU", 5000]],
+        )
+        analyse = self._analyser("cumuls", contenu).json()
+        self.assertEqual(analyse["job"]["lignes_valides"], 1)
+        r = self._executer(analyse["job"]["id"])
+        self.assertEqual(r.status_code, 200, r.text[:300])
+        self.assertEqual(r.json()["crees"], 1)
+
+    def test_cumul_avec_code_inconnu_est_refuse(self):
+        contenu = fichier_xlsx(
+            ["Code établissement", "Matricule salarié", "Année", "Code cumul", "Valeur"],
+            [[self.etab.code, self.t["salarie"].matricule, "2026", "CUMUL_INCONNU", 1000]],
+        )
+        analyse = self._analyser("cumuls", contenu).json()
+        self.assertEqual(analyse["job"]["lignes_erreurs"], 1)
+        self.assertIn("Code cumul inconnu", analyse["erreurs"][0]["message"])
+
+    def test_modele_cumuls_contient_les_colonnes(self):
+        r = client.get(f"{API}/imports/modeles/cumuls", headers=self.entetes)
+        self.assertEqual(r.status_code, 200, r.text[:300])
+        classeur = load_workbook(io.BytesIO(r.content), read_only=True)
+        entetes = [cellule.value for cellule in next(classeur["Données"].iter_rows(max_row=1))]
+        self.assertIn("Code cumul *", entetes)
+        self.assertIn("Année *", entetes)
 
     # ── mapping et CSV ───────────────────────────────────────────────────
 

@@ -378,7 +378,7 @@ onMounted(async () => {
     <!-- Choix du type -->
     <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
       <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider mb-4">Type de données</h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
         <button
           v-for="type in typesImport"
           :key="type.code"
