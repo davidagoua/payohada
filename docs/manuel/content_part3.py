@@ -164,9 +164,10 @@ def render(doc: Document) -> None:
          "ou le même numéro de contrat met à jour l'enregistrement existant au lieu de "
          "créer un doublon. Vérifiez toutefois le rapport avant d'exécuter."),
         ("L'import reprend-il les cumuls de paie et les soldes de congés ?",
-         "Pas encore : l'assistant charge les données de base (établissements, salariés, "
-         "contrats). Les cumuls, soldes de congés, prêts et absences antérieurs relèvent "
-         "d'un import d'ouverture distinct, à prévoir pour une bascule en cours d'année."),
+         "Oui pour les cumuls de paie : choisissez le type **Cumuls de reprise** et "
+         "chargez le brut, les cotisations, l'ITS, les congés et les heures repris de "
+         "l'ancien logiciel. Les soldes de congés d'ouverture, prêts et absences "
+         "antérieurs ne sont pas encore couverts : à traiter séparément."),
         ("Combien de lignes puis-je importer ?",
          "Le fichier est limité à 25 Mo et l'exécution est synchrone : l'assistant est "
          "adapté à quelques milliers de lignes. Pour des volumes plus importants ou "

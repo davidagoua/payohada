@@ -2,7 +2,7 @@
 
 Source du manuel utilisateur par rôle, livré en PDF :
 
-- `docs/manuel-utilisation-payohada.pdf` — version finale 1.3 (37 pages, avec l'assistant d'import, sans la partie administration plateforme) ;
+- `docs/manuel-utilisation-payohada.pdf` — version finale 1.4 (37 pages, avec l'assistant d'import et les cumuls de reprise, sans la partie administration plateforme) ;
 - `docs/manuel-utilisation-payohada.docx` — source éditable.
 
 ## Régénérer le manuel

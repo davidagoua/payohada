@@ -3,7 +3,7 @@
 ##  Vue d'ensemble
 **PayOHADA** est une solution moderne de gestion de la paie et des ressources humaines conforme aux normes juridiques, fiscales et sociales de l'espace **OHADA** (notamment la Côte d'Ivoire et les pays de la zone UEMOA). La solution repose sur un backend **FastAPI (Python)** avec base de données relationnelle (PostgreSQL / SQLite) et un frontend **Nuxt 4 / Vue 3** propulsé par TailwindCSS et `@nuxt/ui`.
 
-> 📘 **Manuel utilisateur par rôle** : [manuel-utilisation-payohada.pdf](docs/manuel-utilisation-payohada.pdf) — version 1.3, 37 pages, guides Cabinet, Entreprise et Salarié (source DOCX et générateur dans [`docs/manuel/`](docs/manuel/)).
+> 📘 **Manuel utilisateur par rôle** : [manuel-utilisation-payohada.pdf](docs/manuel-utilisation-payohada.pdf) — version 1.4, 37 pages, guides Cabinet, Entreprise et Salarié (source DOCX et générateur dans [`docs/manuel/`](docs/manuel/)).
 
 ##  Démarrage rapide
 
@@ -457,8 +457,8 @@ logiciel_paie/
 - **Robustesse de l'import en production** : exécution automatique des migrations au démarrage du conteneur backend (`docker-entrypoint.sh`), endpoint de diagnostic `/api/v1/imports/diagnostic`, erreurs 503 explicites si la table manque ou si le dossier d'écriture est inaccessible, et message d'erreur détaillé côté interface.
 - **API base de production** : arguments de build Docker pour `NUXT_PUBLIC_API_BASE` et repli automatique sur `/api/v1` de l'origine courante si la build contient `localhost`, afin qu'une build locale déployée en production ne pointe pas vers le poste de l'utilisateur.
 - **Robustesse de l'import en production** : exécution automatique des migrations au démarrage du conteneur backend (`docker-entrypoint.sh`), endpoint de diagnostic `/api/v1/imports/diagnostic`, erreurs 503 explicites si la table manque ou si le dossier d'écriture est inaccessible, et message d'erreur détaillé côté interface.
-- **Imports de données de base (Excel/CSV)** : assistant par dossier pour les établissements, salariés et contrats ; modèles Excel générés, mapping automatique ou corrigeable, analyse à blanc avec rapport d'erreurs ligne par ligne, exécution idempotente (upsert par code établissement / matricule / numéro de contrat), historique et audit. 14 tests dédiés, 414 tests backend au total.
-- **Manuel d'utilisation par rôle** ([PDF](docs/manuel-utilisation-payohada.pdf), source [DOCX](docs/manuel-utilisation-payohada.docx)) : version 1.3, 37 pages, captures d'écran, guides Cabinet / Entreprise / Salarié, import Excel/CSV détaillé (colonnes des modèles, rapport, limites, FAQ), sécurité, FAQ, matrice des rôles, glossaire et annexes (sans la partie administration plateforme). Générateur reproductible dans [`docs/manuel/`](docs/manuel/).
+- **Imports de données de base (Excel/CSV)** : assistant par dossier pour les établissements, salariés, contrats et **cumuls de reprise** ; modèles Excel générés, mapping automatique ou corrigeable, analyse à blanc avec rapport d'erreurs ligne par ligne, exécution idempotente (upsert par code établissement / matricule / numéro de contrat, puis par contrat + code + année pour les cumuls), historique et audit. 19 tests dédiés, 419 tests backend au total.
+- **Manuel d'utilisation par rôle** ([PDF](docs/manuel-utilisation-payohada.pdf), source [DOCX](docs/manuel-utilisation-payohada.docx)) : version 1.4, 37 pages, captures d'écran, guides Cabinet / Entreprise / Salarié, import Excel/CSV détaillé (colonnes des modèles, rapport, limites, FAQ), sécurité, FAQ, matrice des rôles, glossaire et annexes (sans la partie administration plateforme). Générateur reproductible dans [`docs/manuel/`](docs/manuel/).
 - **Administration du cabinet** : le menu « Administration » est visible pour le propriétaire du cabinet (et les co-administrateurs), pas seulement pour l'administrateur plateforme. Nouveaux onglets d'administration et page `/admin/utilisateurs` : liste des membres, invitation, changement de rôle (`cabinet` / `gestionnaire_paie`) et activation/désactivation.
 - **Référentiels globaux en lecture seule pour le cabinet** : les onglets Constantes et Plan de paie sont de nouveau visibles et consultables, avec les actions d'écriture masquées ; l'API conserve `require_admin` sur les créations, modifications et suppressions. Modification réservée à l'administrateur plateforme.
 
@@ -619,13 +619,14 @@ l'extraction sera à remplacer.
 
 Pour les entreprises qui arrivent avec des milliers de salariés déjà saisis dans un
 autre outil, l'import manuel est impossible. Le module charge les **données de
-base** — établissements, salariés, contrats — depuis un fichier Excel ou CSV, en
-deux temps :
+base** — établissements, salariés, contrats et **cumuls de reprise** — depuis un
+fichier Excel ou CSV, en deux temps :
 
 1. **analyse à blanc** : lecture, rapprochement des colonnes, validation ligne par
    ligne, rapport d'erreurs ; aucune écriture en base ;
 2. **exécution** : création ou mise à jour des seules lignes valides, avec des
-   clés métier naturelles (code établissement, matricule, numéro de contrat).
+   clés métier naturelles (code établissement, matricule, numéro de contrat ; pour
+les cumuls, contrat + code + année).
 
 | Fichier | Rôle |
 |---|---|
@@ -633,7 +634,7 @@ deux temps :
 | `backend/app/routers/imports.py` | Endpoints d'analyse, d'exécution, d'historique et de modèles |
 | `backend/app/models/models.py` (`ImportJob`) | Job d'import, compteurs, mapping et rapport JSON |
 | `frontend/app/pages/dossiers/[dossierId]/imports.vue` | Assistant : type, modèle, dépôt, rapport, exécution, historique |
-| `backend/tests/test_imports.py` | 14 tests : analyse sans écriture, upserts, erreurs, mapping CSV, permissions |
+| `backend/tests/test_imports.py` | 19 tests : analyse sans écriture, upserts, erreurs, mapping CSV, cumuls, permissions |
 
 **Endpoints** :
 - `GET /api/v1/imports/diagnostic` — état de la table `imports` et du dossier d'écriture (production) ;
@@ -651,6 +652,17 @@ obligatoires, les doublons dans le fichier, les références (établissement et
 salarié existants), les dates, les montants, les emails, l'IBAN et les codes
 (type de contrat, statut professionnel). Les erreurs sont conservées dans le
 rapport JSON du job, avec le numéro de ligne, le champ, le message et la valeur.
+
+**Cumuls de reprise.** Le quatrième type alimente `variables_reprise_dossier`,
+utilisée par `compute_bulletin_cumuls` pour additionner les cumuls annuels repris
+de l'ancien logiciel aux bulletins de l'année. Colonnes : code établissement,
+matricule, année, code cumul, valeur, et facultativement n° de contrat et libellé.
+Codes acceptés : `CUMUL_BRUT`, `CUMUL_BRUT_IMPOSABLE`, `CUMUL_BRUT_CNPS`,
+`CUMUL_BRUT_CONGES`, `CUMUL_IBS`, `CUMUL_RICF`, `CUMUL_CMU`, `CUMUL_RETRAITE`,
+`CUMUL_HEURES`, `CUMUL_JOURS`, `CUMUL_HEURES_SUPP`, `CUMUL_ABSENCES`. Le n° de
+contrat est facultatif : sans lui, le contrat actif le plus récent du salarié est
+retenu. Un réimport remplace la valeur existante pour le même contrat, le même
+code et la même année.
 
 **Idempotence et audit.** Un réimport met à jour l'enregistrement existant au lieu
 de le dupliquer. L'historique expose le fichier, le type, les compteurs et le

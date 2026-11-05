@@ -517,6 +517,7 @@ def render(doc: Document) -> None:
             ["**Établissements**", "Sites, sièges, filiales : code, raison sociale, adresse, paramètres de base.", "Aucun ; à importer en premier."],
             ["**Salariés**", "Identité, situation familiale, coordonnées, IBAN.", "Le code établissement doit exister."],
             ["**Contrats**", "Classification, dates, rémunération, transport, téléphone.", "L'établissement et le salarié doivent exister."],
+            ["**Cumuls de reprise**", "Cumuls de l'ancien logiciel : brut, CNPS, ITS, congés, heures, absences.", "Le contrat doit exister ; à faire avant le premier bulletin."],
         ],
         widths=[3.6, 8.4, 5.0],
         font_size=8.8,
@@ -533,6 +534,8 @@ def render(doc: Document) -> None:
              "Civilité, Date et lieu de naissance, N° sécurité sociale, Situation matrimoniale, Enfants à charge, Email, Téléphone, Adresse, Ville, Pays, IBAN, BIC, Expatrié, Actif."],
             ["**Contrats**", "Code établissement, Matricule, N° contrat, Type de contrat, Statut professionnel, Date de début",
              "Date de fin, Date d'ancienneté, Salaire mensuel ou horaire, Type de salaire, Unité de temps, Sursalaire, Indemnité de transport, Dotation téléphonique, CCN, Poste."],
+            ["**Cumuls de reprise**", "Code établissement, Matricule, Année, Code cumul, Valeur",
+             "N° contrat (facultatif), Libellé (facultatif). Codes acceptés : CUMUL_BRUT, CUMUL_BRUT_IMPOSABLE, CUMUL_BRUT_CNPS, CUMUL_BRUT_CONGES, CUMUL_IBS, CUMUL_RICF, CUMUL_CMU, CUMUL_RETRAITE, CUMUL_HEURES, CUMUL_JOURS, CUMUL_HEURES_SUPP, CUMUL_ABSENCES."],
         ],
         widths=[3.2, 5.4, 8.4],
         font_size=8.6,
@@ -571,8 +574,7 @@ def render(doc: Document) -> None:
         doc,
         ["Point", "Statut"],
         [
-            ["Cumuls de paie (brut, cotisations, ITS) de l'année en cours", "Non couvert : import d'ouverture à prévoir pour une bascule en cours d'année."],
-            ["Soldes de congés, prêts, absences et bulletins antérieurs", "Non couvert dans cette version."],
+            ["Soldes de congés d'ouverture, prêts, absences et bulletins antérieurs", "Non couvert dans cette version."],
             ["API/ETL pour des imports récurrents ou très volumineux", "Non couvert : l'assistant traite un fichier à la fois (25 Mo maximum)."],
             ["Traitement asynchrone avec reprise après incident", "Non couvert : l'exécution est synchrone, adaptée à quelques milliers de lignes."],
         ],
@@ -583,7 +585,7 @@ def render(doc: Document) -> None:
         doc,
         "success",
         "Astuce",
-        "Respectez l'ordre **établissements → salariés → contrats**. Un réimport du même "
+        "Respectez l'ordre **établissements → salariés → contrats → cumuls de reprise**. Un réimport du même "
         "fichier met à jour les enregistrements existants (même code établissement, même "
         "matricule, même numéro de contrat) au lieu de créer des doublons.",
     )
