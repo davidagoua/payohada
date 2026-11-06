@@ -1,21 +1,24 @@
-fastapi
-uvicorn[standard]>=0.29.0
-sqlalchemy>=2.0.30
-alembic>=1.13.1
-pydantic>=2.9.0
-pydantic-settings>=2.5.0
-python-jose[cryptography]==3.3.0
-passlib[bcrypt]==1.7.4
-python-multipart==0.0.9
+# Versions figées : ce sont celles sur lesquelles la suite de tests passe.
+# Pour monter une version, la modifier ici puis relancer les tests.
+fastapi==0.139.0
+uvicorn[standard]==0.51.0
+sqlalchemy==2.0.51
+alembic==1.18.5
+pydantic==2.13.4
+pydantic-settings==2.14.2
+# Jetons JWT (remplace python-jose, non maintenu et sujet aux CVE-2024-33663/33664).
+PyJWT==2.13.0
+python-multipart==0.0.32
 httpx==0.27.0
-email-validator>=2.0.0
-psycopg2-binary
-psycopg[binary]>=3.1.0
-supabase
-sentry-sdk[fastapi]
-openpyxl>=3.1.0
-xlrd>=2.0.1
+email-validator==2.3.0
+psycopg2-binary==2.9.12
+# Pilote de secours utilisé par alter_db.py lorsque psycopg2 est absent.
+psycopg[binary]==3.3.8
+supabase==2.31.0
+sentry-sdk[fastapi]==2.65.0
+openpyxl==3.1.5
+xlrd==2.0.2
 # Génération des bulletins de paie en PDF. xhtml2pdf s'appuie sur reportlab
 # et reste purement Python : WeasyPrint exigerait pango, cairo et harfbuzz,
 # absents de l'image de déploiement.
-xhtml2pdf>=0.2.16
+xhtml2pdf==0.2.23
