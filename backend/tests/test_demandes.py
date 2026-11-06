@@ -149,7 +149,7 @@ class SoldeCongesTests(DemandesBase):
 
     def test_le_solde_de_l_api_est_celui_du_bulletin(self):
         """L'espace salarié et la paie doivent afficher le même solde."""
-        from app.routers.bulletins import compute_bulletin_cumuls
+        from app.services.bulletin_cumuls import compute_bulletin_cumuls
 
         aujourdhui = date.today()
         bulletin = calculate_payslip(

@@ -20,7 +20,7 @@ from app.services.bulletin_saari import (
     nom_fichier_bulletin,
 )
 from app.services.email import _construire_message
-from app.routers.bulletins import compute_bulletin_cumuls
+from app.services.bulletin_cumuls import compute_bulletin_cumuls
 from app.services.payroll import calculate_payslip
 
 
@@ -362,7 +362,7 @@ class BulletinSaariPdfTests(unittest.TestCase):
         mois, au lieu de `annuel.conges_acquis`, qui est le cumul depuis
         l'embauche.
         """
-        from app.routers.bulletins import compute_bulletin_cumuls
+        from app.services.bulletin_cumuls import compute_bulletin_cumuls
         from app.services.bulletin_saari import construire_html_saari
 
         self.contrat.date_debut_contrat = "2025-01-01"

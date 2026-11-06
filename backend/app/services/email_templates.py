@@ -175,3 +175,123 @@ def email_acces_cree(
         f"vous. Il permet de {html.escape(espace_usage)}."
     )
     return sujet, _habillage("Votre accès à payohada", intro, corps, pied)
+
+
+MOIS_FR = (
+    "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
+    "Juillet", "Août", "Septembre", "Octobre", "Novembre", "Décembre",
+)
+
+
+def _periode_bulletin(bulletin) -> str:
+    return f"{MOIS_FR[bulletin.mois - 1]} {bulletin.annee}"
+
+
+def email_bulletin_employe(bulletin, salarie, avec_piece_jointe: bool) -> tuple[str, str]:
+    """Sujet et corps HTML de l'envoi d'un bulletin au salarié."""
+    periode_lbl = _periode_bulletin(bulletin)
+    subject = f"Votre bulletin de paie de {periode_lbl}"
+    # Les données d'état civil proviennent de la base : on les échappe avant
+    # interpolation dans le corps HTML du message.
+    salarie_nom_echappe = html.escape(
+        f"{salarie.civilite or ''} {salarie.prenom or ''} {salarie.nom or ''}".strip()
+    )
+    mention_piece_jointe = (
+        "<p>Vous trouverez votre bulletin de paie <strong>au format PDF</strong> "
+        "en pièce jointe de ce message.</p>"
+        if avec_piece_jointe else
+        "<p>Vous pouvez consulter le détail de votre bulletin de paie depuis "
+        "votre espace de gestion.</p>"
+    )
+
+    html_content = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333333;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0;">
+            <div style="background-color: #16a34a; padding: 15px; text-align: center; color: white;">
+                <h1 style="margin: 0; font-size: 20px; text-transform: uppercase;">payohada paie</h1>
+            </div>
+            <div style="padding: 20px;">
+                <p>Bonjour <strong>{salarie_nom_echappe}</strong>,</p>
+                <p>Votre bulletin de paie pour la période de <strong>{periode_lbl}</strong> a été généré et est disponible.</p>
+                
+                <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                    <tr style="background-color: #f8fafc;">
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold;">Salaire Brut</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-family: monospace; text-align: right;">{int(bulletin.salaire_brut):,} FCFA</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold;">Cotisations Salariales</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-family: monospace; text-align: right;">{int(bulletin.cotisations_salariales):,} FCFA</td>
+                    </tr>
+                    <tr style="background-color: #f0fdf4; font-weight: bold; font-size: 1.1em; color: #166534;">
+                        <td style="padding: 12px; border: 1px solid #cbd5e1;">Net à Payer</td>
+                        <td style="padding: 12px; border: 1px solid #cbd5e1; font-family: monospace; text-align: right;">{int(bulletin.net_a_payer):,} FCFA</td>
+                    </tr>
+                </table>
+                
+                <p>Le règlement sera effectué par <strong>virement bancaire</strong>.</p>
+                {mention_piece_jointe}
+                <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+                <p style="font-size: 11px; color: #64748b; font-style: italic; text-align: center;">
+                    Ce message a été généré automatiquement par payohada. Conservez vos bulletins sans limite de durée.
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    return subject, html_content
+
+
+def email_bulletin_gestionnaire(bulletin, salarie, avec_piece_jointe: bool) -> tuple[str, str]:
+    """Sujet et corps HTML de l'envoi d'un bulletin au gestionnaire du dossier."""
+    periode_lbl = _periode_bulletin(bulletin)
+    salarie_name_brut = f"{salarie.prenom or ''} {salarie.nom.upper() if salarie.nom else ''}".strip()
+    salarie_name = html.escape(salarie_name_brut)
+    mention_piece_jointe = (
+        "<p>Le bulletin de paie est joint à ce message "
+        "<strong>au format PDF</strong>.</p>"
+        if avec_piece_jointe else
+        "<p>Ce bulletin est disponible dans l'onglet Bulletins de "
+        "l'établissement du dossier.</p>"
+    )
+    subject = f"Bulletin de paie {periode_lbl} - {salarie_name_brut}"
+
+    html_content = f"""
+    <html>
+    <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333333;">
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e2e8f0;">
+            <div style="background-color: #475569; padding: 15px; text-align: center; color: white;">
+                <h1 style="margin: 0; font-size: 20px; text-transform: uppercase;">payohada gestion</h1>
+            </div>
+            <div style="padding: 20px;">
+                <p>Bonjour,</p>
+                <p>Le bulletin de paie de <strong>{salarie_name}</strong> pour la période de <strong>{periode_lbl}</strong> a été calculé et validé.</p>
+                
+                <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+                    <tr style="background-color: #f8fafc;">
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold;">Salarié</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1;">{salarie_name}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold;">Salaire Brut</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-family: monospace; text-align: right;">{int(bulletin.salaire_brut):,} FCFA</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-weight: bold;">Net à Payer</td>
+                        <td style="padding: 10px; border: 1px solid #cbd5e1; font-family: monospace; text-align: right;">{int(bulletin.net_a_payer):,} FCFA</td>
+                    </tr>
+                </table>
+                
+                {mention_piece_jointe}
+                <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 20px 0;" />
+                <p style="font-size: 11px; color: #64748b; font-style: italic; text-align: center;">
+                    Ce message a été généré automatiquement par payohada.
+                </p>
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    return subject, html_content

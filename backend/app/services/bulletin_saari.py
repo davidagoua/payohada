@@ -270,7 +270,7 @@ def _corps_bulletin(
     Séparé de `construire_html_saari` afin de pouvoir enchaîner plusieurs
     bulletins dans un même document PDF.
 
-    `cumuls` est fourni par l'appelant (`compute_bulletin_cumuls`) afin que ce
+    `cumuls` est fourni par l'appelant (`services/bulletin_cumuls.compute_bulletin_cumuls`) afin que ce
     module reste sans dépendance au routeur ni à la session de base de données.
     """
     lignes = list(getattr(bulletin, "lignes", None) or [])

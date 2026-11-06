@@ -488,7 +488,7 @@ class DatesDeReferenceContratApiTests(unittest.TestCase):
 
     def test_la_modification_change_le_cumul_de_conges(self):
         """Bout en bout : la date corrigée se répercute sur le bulletin."""
-        from app.routers.bulletins import compute_bulletin_cumuls
+        from app.services.bulletin_cumuls import compute_bulletin_cumuls
 
         self._maj(date_debut_contrat="2025-01-01", date_anciennete=None)
         bulletin = calculate_payslip(self.db, self.contrat_id, 6, 2025)
@@ -506,7 +506,7 @@ class DatesDeReferenceContratApiTests(unittest.TestCase):
 
     def test_date_invalide_refusee_ou_acceptee_en_l_etat(self):
         """Une date non exploitable ne doit pas casser le calcul des congés."""
-        from app.routers.bulletins import compute_bulletin_cumuls
+        from app.services.bulletin_cumuls import compute_bulletin_cumuls
 
         reponse = self._maj(date_debut_contrat="pas-une-date")
         if reponse.status_code == 200:

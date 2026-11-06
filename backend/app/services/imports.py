@@ -44,7 +44,7 @@ EXTENSIONS_AUTORISEES = {".xlsx", ".xlsm", ".csv"}
 DOSSIER_IMPORTS = Path("uploads") / "imports"
 
 #: Codes de cumuls de reprise acceptés par le moteur de paie
-#: (voir `reprise_map` dans `routers/bulletins.py`).
+#: (voir `reprise_map` dans `services/bulletin_cumuls.py`).
 CODES_CUMUL_REPRISE = (
     "CUMUL_BRUT",
     "CUMUL_BRUT_IMPOSABLE",

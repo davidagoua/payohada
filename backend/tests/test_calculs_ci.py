@@ -32,7 +32,7 @@ from app.services.conges_gratification import (
     jours_service_annuels,
     majoration_anciennete,
 )
-from app.routers.bulletins import compute_bulletin_cumuls
+from app.services.bulletin_cumuls import compute_bulletin_cumuls
 from app.services.payroll import calculate_payslip
 from app.services.indemnites_rupture import (
     TAUX_FIN_CDD,
