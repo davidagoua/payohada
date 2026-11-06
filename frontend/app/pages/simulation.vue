@@ -77,15 +77,6 @@ const result = ref(null)
 const loading = ref(false)
 
 // Formatting helper
-const formatXOF = (value) => {
-  if (value === null || value === undefined) return '-'
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'XOF',
-    maximumFractionDigits: 0
-  }).format(value).replace('XOF', 'FCFA')
-}
-
 // Format percent
 const formatPercent = (value) => {
   if (!value) return '0 %'

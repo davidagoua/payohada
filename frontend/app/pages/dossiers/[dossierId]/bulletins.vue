@@ -303,15 +303,6 @@ const handleValidateAll = async () => {
   await fetchDossierData()
 }
 
-const formatXOF = (value) => {
-  if (value === null || value === undefined) return '-'
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'XOF',
-    maximumFractionDigits: 0
-  }).format(value).replace('XOF', 'FCFA')
-}
-
 const getPeriodLabel = (mois, annee) => {
   const months = [
     'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',

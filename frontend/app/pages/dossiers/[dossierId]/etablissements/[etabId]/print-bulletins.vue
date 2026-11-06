@@ -40,15 +40,6 @@ const loadAllData = async () => {
 }
 
 // Helpers
-const formatXOF = (value) => {
-  if (value === null || value === undefined) return '-'
-  return new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'XOF',
-    maximumFractionDigits: 0
-  }).format(value).replace('XOF', 'FCFA')
-}
-
 const formatPercent = (value) => {
   if (!value) return '-'
   return `${value.toFixed(2)} %`
