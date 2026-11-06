@@ -403,12 +403,15 @@ logiciel_paie/
 │   │   │   ├── auth.py            # Authentification et enrichissement de profil (rôles)
 │   │   │   ├── dossiers.py        # Gestion des dossiers et comptes clients
 │   │   │   ├── variables.py       # Saisie des variables individuelles et collectives, statut des périodes
-│   │   │   ├── bulletins.py       # Calcul unitaire et en lot, consultation multi-rôles
+│   │   │   ├── bulletins.py       # Routes : calcul unitaire et en lot, PDF, envois, simulation
 │   │   │   ├── import_export_excel.py # Export/import matrice QPXL1501
 │   │   │   └── reclamations.py    # Dépôt et traitement des réclamations
 │   │   ├── schemas/               # Modèles Pydantic pour validation
 │   │   └── services/
 │   │       ├── payroll.py         # Moteur de calcul de paie OHADA / UEMOA
+│   │       ├── bulletin_cumuls.py # Cumuls mensuels et annuels d'un bulletin
+│   │       ├── simulation_paie.py # Simulateur de bulletin en mémoire (brut, net→brut)
+│   │       ├── email_templates.py # Gabarits des emails (accès, mot de passe, bulletins)
 │   │       ├── security.py        # JWT, hachage, génération de mots de passe
 │   │       ├── permissions.py     # Rôles et portée multi-tenant
 │   │       └── rate_limit.py      # Anti brute-force sur l'authentification
@@ -418,7 +421,9 @@ logiciel_paie/
 │   └── schema.sql                 # Schéma SQL de référence complet
 ├── frontend/
 │   ├── app/
-│   │   ├── composables/           # useSupabase.ts (session & rôles), useApi.ts
+│   │   ├── components/            # BulletinVariablesModales, etablissement/ (onglets Infos, Bulletins), salarie/ (rubriques RH)
+│   │   ├── composables/           # useSupabase.ts (session & rôles), useApi.ts, useRessourceRh.ts (rubriques RH)
+│   │   ├── utils/format.ts        # formatXOF, getPeriodLabel, normaliserRecherche (auto-importés)
 │   │   ├── middleware/auth.global.ts # Garde de navigation par rôle (confort, pas sécurité)
 │   │   ├── layouts/default.vue    # Layout adaptatif avec barre de navigation par plateforme
 │   │   └── pages/
@@ -435,6 +440,27 @@ logiciel_paie/
 ---
 
 ##  Changelog
+
+### [Unreleased] — Dépendances, découpage du code et ménage
+
+#### Security
+- **`python-jose` remplacé par `PyJWT`** (`app/services/security.py`) : `python-jose` n'est plus maintenu et reste exposé aux CVE-2024-33663 et CVE-2024-33664. Les jetons (HS256, `aud` non vérifié pour Supabase) sont inchangés.
+- **`passlib` retiré** : il n'était importé nulle part, le hachage PBKDF2 étant implémenté directement.
+- `datetime.utcnow()` (déprécié) remplacé par `datetime.now(timezone.utc)` pour l'expiration des jetons.
+
+#### Changed
+- **Dépendances figées** dans `backend/requirements.txt` (versions exactes, celles validées par la suite de tests ; résolution vérifiée sous Python 3.11, celui de l'image Docker et de la CI).
+- **`routers/bulletins.py` allégé** (1 355 → 612 lignes) : les cumuls passent dans `services/bulletin_cumuls.py` (`compute_bulletin_cumuls`), le simulateur et sa recherche net→brut dans `services/simulation_paie.py` (`simuler_bulletin`), les emails d'envoi de bulletin dans `services/email_templates.py`. Les routes et leurs réponses ne changent pas.
+- **Pages frontend découpées** :
+  - page établissement (2 781 → 491 lignes) : onglets `EtablissementInfos` et `EtablissementBulletins` ;
+  - fiche salarié (1 795 → 618 lignes) : les huit rubriques RH dans `SalarieRubriquesRh`, sur le composable `useRessourceRh` qui remplace huit copies du même code ;
+  - modales de saisie des variables (heures sup., absence, prime, acompte) mutualisées dans `BulletinVariablesModales`, partagées par la page établissement et la gestion des bulletins (`bulletins.vue`, 1 588 → 1 148 lignes) ;
+  - `formatXOF`, `getPeriodLabel` et `normaliserRecherche` regroupés dans `utils/format.ts` au lieu d'être recopiés dans chaque page.
+
+#### Removed
+- `backend/frontend/index.html` : ancienne page vitrine statique de la première version, référencée nulle part.
+- `QPXL1501.xls` n'est plus suivi par Git (il était listé dans `.gitignore` mais avait été commité) ; le fichier reste en local.
+- `.DS_Store` ajouté au `.gitignore`.
 
 ### [Unreleased] — Correctifs d'audit sécurité & intégrité
 
