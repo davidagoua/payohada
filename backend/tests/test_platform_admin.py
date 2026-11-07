@@ -1,7 +1,13 @@
 """Administration plateforme : cabinets, administrateurs et suspension."""
 import unittest
 
-from tests.base import API, SessionLocal, auth_headers, client, make_user, reset_database
+from datetime import date
+
+from tests.base import (
+    API, SessionLocal, auth_headers, client, make_salarie, make_tenant, make_user,
+    reset_database,
+)
+from app.services.payroll import calculate_payslip
 
 from app.models import models as M
 
@@ -168,6 +174,89 @@ class PlateformeCabinetsTests(unittest.TestCase):
             self._connexion("genere@cabinet-test.ci", corps["mot_de_passe_initial"]).status_code,
             200,
         )
+
+
+
+class PlateformeSaasTests(unittest.TestCase):
+    """L'administrateur pilote le SaaS sans accéder à la paie des cabinets."""
+
+    def setUp(self):
+        reset_database()
+        self.db = SessionLocal()
+        self.admin = make_user(
+            self.db, "plateforme@payohada.ci", role="cabinet", is_admin=True,
+        )
+        self.entetes = auth_headers(self.admin)
+        self.t = make_tenant(self.db, "cabinet-saas")
+        self.t["user"].cabinet_nom = "Cabinet SaaS"
+        make_salarie(self.db, self.t["etablissement"], matricule="M2")
+        self.db.commit()
+        aujourd_hui = date.today()
+        self.bulletin = calculate_payslip(
+            self.db, self.t["contrat"].id, aujourd_hui.month, aujourd_hui.year
+        )
+
+    def tearDown(self):
+        self.db.close()
+
+    def test_tableau_de_bord_agrege_l_usage_par_cabinet(self):
+        r = client.get(f"{API}/platform/tableau-de-bord", headers=self.entetes)
+        self.assertEqual(r.status_code, 200, r.text[:500])
+        corps = r.json()
+        self.assertEqual(corps["cabinets"]["total"], 1)
+        self.assertEqual(corps["cabinets"]["actifs"], 1)
+        self.assertEqual(corps["cabinets"]["nouveaux_30_jours"], 1)
+        self.assertEqual(corps["societes"], 1)
+        self.assertEqual(corps["salaries_actifs"], 2)
+        self.assertEqual(corps["bulletins_mois_courant"], 1)
+        self.assertEqual(len(corps["activite"]), 6)
+        self.assertEqual(corps["activite"][-1]["bulletins"], 1)
+        self.assertNotIn("plateforme@payohada.ci", str(corps))
+
+        usage = corps["usage_cabinets"][0]
+        self.assertEqual(usage["cabinet_nom"], "Cabinet SaaS")
+        self.assertEqual(usage["societes"], 1)
+        self.assertEqual(usage["salaries_actifs"], 2)
+        self.assertEqual(usage["bulletins_mois_courant"], 1)
+
+    def test_tableau_de_bord_reserve_a_la_plateforme(self):
+        r = client.get(
+            f"{API}/platform/tableau-de-bord", headers=auth_headers(self.t["user"])
+        )
+        self.assertEqual(r.status_code, 403)
+
+    def test_l_admin_ne_voit_pas_les_dossiers_des_cabinets(self):
+        dossier = self.t["dossier"]
+        self.assertEqual(client.get(f"{API}/dossiers", headers=self.entetes).json(), [])
+        for chemin in (
+            f"/dossiers/{dossier.id}",
+            f"/dossiers/{dossier.id}/bulletins",
+            f"/etablissements/{self.t['etablissement'].id}",
+            f"/salaries/{self.t['salarie'].id}",
+            f"/contrats/{self.t['contrat'].id}",
+            f"/bulletins/{self.bulletin.id}",
+        ):
+            r = client.get(f"{API}{chemin}", headers=self.entetes)
+            self.assertIn(r.status_code, (403, 404), f"{chemin} : {r.status_code}")
+
+    def test_l_admin_ne_peut_ni_creer_ni_calculer_de_paie(self):
+        r = client.post(
+            f"{API}/dossiers", headers=self.entetes,
+            json={"code": "ADM01", "nom_dossier": "Dossier admin"},
+        )
+        self.assertEqual(r.status_code, 403, r.text[:200])
+        aujourd_hui = date.today()
+        r = client.post(
+            f"{API}/bulletins/calculer", headers=self.entetes,
+            json={"contrat_id": self.t["contrat"].id, "mois": aujourd_hui.month,
+                  "annee": aujourd_hui.year},
+        )
+        self.assertEqual(r.status_code, 403, r.text[:200])
+
+    def test_l_admin_ne_voit_pas_les_reclamations(self):
+        r = client.get(f"{API}/reclamations", headers=self.entetes)
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json(), [])
 
 
 if __name__ == "__main__":

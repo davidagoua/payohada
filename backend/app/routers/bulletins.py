@@ -72,7 +72,7 @@ def get_dossier_bulletins(
             Contrat.salarie_id == current_user.salarie_id
         )
     elif current_user.role == "client":
-        if current_user.dossier_id != dossier_id and not current_user.is_admin:
+        if current_user.dossier_id != dossier_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Accès refusé à ce dossier."
@@ -134,7 +134,7 @@ def calculate_dossier_bulletins_lot(
         and current_user.cabinet_owner_id is not None
         and dossier.utilisateur_id == current_user.cabinet_owner_id
     )
-    if not current_user.is_admin and dossier.utilisateur_id != current_user.id and not co_admin:
+    if dossier.utilisateur_id != current_user.id and not co_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Seul le cabinet propriétaire peut calculer la paie de ce dossier.",

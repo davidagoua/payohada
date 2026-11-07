@@ -237,27 +237,22 @@ class AdministrationCabinetTests(unittest.TestCase):
 
     # ── administrateur plateforme ────────────────────────────────────────
 
-    def test_l_administrateur_plateforme_voit_tout_le_personnel(self):
+    def test_l_administrateur_plateforme_n_administre_pas_les_membres(self):
+        """Il gère les cabinets depuis /platform, pas leurs comptes internes."""
         self._creer_membre()
-        autre = make_tenant(self.db, "cabinet-plateforme")
         admin = make_user(self.db, "admin@plateforme.ci", role="cabinet", is_admin=True)
         self.db.commit()
 
-        membres = self._liste(auth_headers(admin)).json()
-        emails = {m["email"] for m in membres}
-        self.assertIn(self.proprietaire.email, emails)
-        self.assertIn("membre@cabinet.ci", emails)
-
-        # Il peut modifier l'état d'un membre d'un autre cabinet.
+        self.assertEqual(self._liste(auth_headers(admin)).status_code, 403)
         cible = self._compte()
         r = client.put(
             f"{API}/admin/utilisateurs/{cible.id}",
             headers=auth_headers(admin),
             json={"is_active": False},
         )
-        self.assertEqual(r.status_code, 200, r.text[:300])
-        self.assertFalse(r.json()["is_active"])
-
+        self.assertEqual(r.status_code, 403, r.text[:300])
+        self.db.refresh(cible)
+        self.assertTrue(cible.is_active)
 
 if __name__ == "__main__":
     unittest.main()

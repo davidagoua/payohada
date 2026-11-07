@@ -93,17 +93,16 @@ def _filtrer_portee(db: Session, requete, modele, user: Utilisateur):
             .join(Etablissement, Salarie.etablissement_id == Etablissement.id)
             .filter(Etablissement.dossier_id == user.dossier_id)
         )
-    # Cabinet : les demandes de ses dossiers ; l'administrateur voit tout.
+    # Cabinet : les demandes de ses dossiers.
     requete = (
         requete.join(Salarie, modele.salarie_id == Salarie.id)
         .join(Etablissement, Salarie.etablissement_id == Etablissement.id)
         .join(Dossier, Etablissement.dossier_id == Dossier.id)
     )
-    if not user.is_admin:
-        # Toutes les sociétés accessibles (propriétaire, co-administrateur ou
-        # gestionnaire affecté), et pas seulement celles dont il est propriétaire.
-        ids_dossiers = [d.id for d in dossiers_gérés(user, db).all()]
-        requete = requete.filter(Dossier.id.in_(ids_dossiers) if ids_dossiers else False)
+    # Toutes les sociétés accessibles (propriétaire, co-administrateur ou
+    # gestionnaire affecté), et pas seulement celles dont il est propriétaire.
+    ids_dossiers = [d.id for d in dossiers_gérés(user, db).all()]
+    requete = requete.filter(Dossier.id.in_(ids_dossiers) if ids_dossiers else False)
     return requete
 
 

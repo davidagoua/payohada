@@ -75,8 +75,8 @@ def list_reclamations(
             .filter(BulletinPaie.dossier_id == current_user.dossier_id)\
             .order_by(Reclamation.created_at.desc()).all()
     elif current_user.is_admin:
-        reclamations = db.query(Reclamation)\
-            .order_by(Reclamation.created_at.desc()).all()
+        # L'administrateur plateforme n'accède pas aux bulletins des cabinets.
+        reclamations = []
     else:
         # Gestionnaires : réclamations liées aux dossiers qu'ils possèdent
         reclamations = db.query(Reclamation)\
@@ -120,8 +120,7 @@ def update_reclamation(
         .join(BulletinPaie, BulletinPaie.id == Reclamation.bulletin_id)\
         .join(Dossier, Dossier.id == BulletinPaie.dossier_id)\
         .filter(Reclamation.id == reclamation_id)
-    if not current_user.is_admin:
-        query = query.filter(Dossier.utilisateur_id == current_user.id)
+    query = query.filter(Dossier.utilisateur_id == current_user.id)
     reclamation = query.first()
 
     if not reclamation:

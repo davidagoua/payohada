@@ -5,6 +5,11 @@ tous (`check_etablissement_ownership`, `check_salarie_ownership`,
 `check_contrat_ownership`, l'accès aux bulletins…). Auparavant la même condition
 de rôle était recopiée dans cinq fichiers : ajouter un rôle demandait de
 retrouver chaque copie, et une seule oubliée ouvrait une brèche.
+
+L'administrateur plateforme (`is_admin`) gère le SaaS — cabinets, référentiels,
+indicateurs agrégés — mais n'a **aucun accès** aux sociétés, salariés et
+bulletins des cabinets : il n'est ni « staff » ni propriétaire d'un dossier,
+même si son compte porte le rôle `cabinet`.
 """
 from fastapi import HTTPException, status
 from sqlalchemy import and_, or_
@@ -24,12 +29,15 @@ STAFF_ROLES = (ROLE_CABINET, ROLE_GESTIONNAIRE_PAIE)
 
 
 def is_staff(user: Utilisateur) -> bool:
-    """Un gestionnaire de paie : cabinet, gestionnaire affecté ou administrateur."""
-    return bool(user.is_admin) or user.role in STAFF_ROLES
+    """Un gestionnaire de paie : cabinet ou gestionnaire affecté.
+
+    L'administrateur plateforme en est exclu : il ne produit pas la paie.
+    """
+    return not user.is_admin and user.role in STAFF_ROLES
 
 
 def require_staff(user: Utilisateur) -> None:
-    """Réserve une action au cabinet / gestionnaire de paie / administrateur."""
+    """Réserve une action au cabinet / gestionnaire de paie."""
     if not is_staff(user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -71,22 +79,19 @@ def racine_cabinet(user: Utilisateur) -> int | None:
 
 
 def est_admin_cabinet(user: Utilisateur) -> bool:
-    """Peut administrer le cabinet : administrateur plateforme ou rôle cabinet."""
-    return bool(user.is_admin) or user.role == ROLE_CABINET
+    """Peut administrer les membres d'un cabinet : rôle cabinet, hors plateforme."""
+    return not user.is_admin and user.role == ROLE_CABINET
 
 
 def membres_du_cabinet(db: Session, user: Utilisateur):
     """Comptes du personnel du cabinet, dans la portée de l'utilisateur.
 
-    * administrateur plateforme : tous les comptes `cabinet` / `gestionnaire_paie` ;
     * propriétaire ou co-administrateur : le propriétaire, les membres qui lui
       sont rattachés, et — pour les bases antérieures à `cabinet_owner_id` —
       les gestionnaires affectés à l'une de ses sociétés.
     """
     query = db.query(Utilisateur).filter(Utilisateur.role.in_(STAFF_ROLES))
-    if user.is_admin:
-        return query.order_by(Utilisateur.id)
-    if user.role != ROLE_CABINET:
+    if not est_admin_cabinet(user):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Administration réservée au cabinet.",
@@ -119,13 +124,13 @@ def membres_du_cabinet(db: Session, user: Utilisateur):
 def peut_gerer_dossier(db: Session, user: Utilisateur, dossier: Dossier) -> bool:
     """Accès à un dossier, tous rôles confondus.
 
-    * administrateur : tout ;
+    * administrateur plateforme : aucun ;
     * cabinet / gestionnaire de paie : propriétaire du dossier ou affecté ;
     * client : son entreprise ;
     * salarié : aucun accès au dossier (il passe par ses propres bulletins).
     """
     if user.is_admin:
-        return True
+        return False
     if user.role in STAFF_ROLES:
         if dossier.utilisateur_id == user.id or est_affecte(db, user, dossier.id):
             return True
@@ -141,7 +146,7 @@ def peut_gerer_dossier(db: Session, user: Utilisateur, dossier: Dossier) -> bool
 def dossiers_gérés(user: Utilisateur, db: Session):
     """Requête des dossiers visibles pour l'utilisateur, selon son rôle."""
     if user.is_admin:
-        return db.query(Dossier)
+        return db.query(Dossier).filter(False)
     if user.role in STAFF_ROLES:
         conditions = [
             Dossier.utilisateur_id == user.id,

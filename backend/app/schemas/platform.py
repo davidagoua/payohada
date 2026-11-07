@@ -62,3 +62,40 @@ class CabinetCreationOut(CabinetOut):
     mot_de_passe_initial: Optional[str] = None
     email_envoye: Optional[bool] = None
     email_message: Optional[str] = None
+
+
+# ─── Tableau de bord SaaS (indicateurs agrégés, aucune donnée de paie) ───
+
+class IndicateursCabinets(BaseModel):
+    total: int = 0
+    actifs: int = 0
+    suspendus: int = 0
+    nouveaux_30_jours: int = 0
+
+
+class ActiviteMensuelle(BaseModel):
+    mois: int
+    annee: int
+    bulletins: int = 0
+    bulletins_valides: int = 0
+
+
+class UsageCabinet(BaseModel):
+    id: int
+    cabinet_nom: Optional[str] = None
+    suspendu: bool = False
+    utilisateurs: int = 0
+    societes: int = 0
+    salaries_actifs: int = 0
+    bulletins_mois_courant: int = 0
+    derniere_activite: Optional[datetime] = None
+
+
+class TableauDeBordPlateforme(BaseModel):
+    cabinets: IndicateursCabinets
+    utilisateurs_par_role: dict[str, int] = Field(default_factory=dict)
+    societes: int = 0
+    salaries_actifs: int = 0
+    bulletins_mois_courant: int = 0
+    activite: list[ActiviteMensuelle] = Field(default_factory=list)
+    usage_cabinets: list[UsageCabinet] = Field(default_factory=list)

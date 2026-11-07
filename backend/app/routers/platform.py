@@ -1,20 +1,25 @@
-"""Administration de la plateforme : cabinets et leurs administrateurs.
+"""Administration de la plateforme : gestion du SaaS.
 
 Espace réservé aux comptes `is_admin`. Un cabinet est représenté par son
 propriétaire (`role = cabinet`, `cabinet_owner_id IS NULL`) ; les autres
 administrateurs pointent vers lui. Suspendre un cabinet bloque la connexion et
 les appels API de tous ses membres, sans supprimer leurs données.
+
+L'administrateur ne voit des cabinets que des indicateurs agrégés (nombre de
+sociétés, de salariés, de bulletins) : jamais leurs dossiers ni leurs données
+de paie.
 """
 from __future__ import annotations
 
 import uuid
+from datetime import date, datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import func
+from sqlalchemy import case, func
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models.models import Dossier, Utilisateur
+from app.models.models import BulletinPaie, Dossier, Etablissement, Salarie, Utilisateur
 from app.schemas.platform import (
     CabinetAdminCreate,
     CabinetAdminCreationOut,
@@ -23,6 +28,10 @@ from app.schemas.platform import (
     CabinetCreationOut,
     CabinetOut,
     CabinetStatutUpdate,
+    ActiviteMensuelle,
+    IndicateursCabinets,
+    TableauDeBordPlateforme,
+    UsageCabinet,
 )
 from app.services.email import send_email
 from app.services.email_templates import email_acces_cree, lien_connexion
@@ -324,3 +333,159 @@ def changer_statut_cabinet(
     db.commit()
     db.refresh(proprietaire)
     return _presenter_cabinet(db, proprietaire)
+
+
+def _derniers_mois(nombre: int, reference: date) -> list[tuple[int, int]]:
+    """Les `nombre` derniers mois (mois, année), du plus ancien au courant."""
+    mois, annee = reference.month, reference.year
+    periodes = []
+    for _ in range(nombre):
+        periodes.append((mois, annee))
+        mois, annee = (12, annee - 1) if mois == 1 else (mois - 1, annee)
+    return list(reversed(periodes))
+
+
+@router.get("/tableau-de-bord", response_model=TableauDeBordPlateforme)
+def tableau_de_bord(
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user),
+):
+    """Indicateurs d'usage du SaaS, agrégés par cabinet.
+
+    Seuls des effectifs sont renvoyés : aucun nom de société, de salarié ni
+    montant de paie.
+    """
+    require_admin(current_user)
+    aujourd_hui = date.today()
+
+    proprietaires = (
+        db.query(Utilisateur)
+        .filter(
+            Utilisateur.role == ROLE_CABINET,
+            Utilisateur.cabinet_owner_id.is_(None),
+            Utilisateur.is_admin.is_(False),
+        )
+        .all()
+    )
+    limite_nouveaux = datetime.now(timezone.utc) - timedelta(days=30)
+
+    def _est_recent(moment):
+        if moment is None:
+            return False
+        if moment.tzinfo is None:
+            moment = moment.replace(tzinfo=timezone.utc)
+        return moment >= limite_nouveaux
+
+    cabinets = IndicateursCabinets(
+        total=len(proprietaires),
+        actifs=sum(1 for p in proprietaires if not p.cabinet_suspendu),
+        suspendus=sum(1 for p in proprietaires if p.cabinet_suspendu),
+        nouveaux_30_jours=sum(1 for p in proprietaires if _est_recent(p.created_at)),
+    )
+
+    utilisateurs_par_role = {
+        role or "inconnu": total
+        for role, total in (
+            db.query(Utilisateur.role, func.count(Utilisateur.id))
+            .filter(Utilisateur.is_admin.is_(False))
+            .group_by(Utilisateur.role)
+            .all()
+        )
+    }
+
+    # Chaque société est rattachée au cabinet de son créateur (le propriétaire
+    # lui-même ou un membre qui pointe vers lui).
+    racine = func.coalesce(Utilisateur.cabinet_owner_id, Utilisateur.id)
+    societes_par_cabinet = dict(
+        db.query(racine, func.count(Dossier.id))
+        .join(Utilisateur, Utilisateur.id == Dossier.utilisateur_id)
+        .group_by(racine)
+        .all()
+    )
+    salaries_par_cabinet = dict(
+        db.query(racine, func.count(Salarie.id))
+        .join(Etablissement, Etablissement.id == Salarie.etablissement_id)
+        .join(Dossier, Dossier.id == Etablissement.dossier_id)
+        .join(Utilisateur, Utilisateur.id == Dossier.utilisateur_id)
+        .filter(Salarie.is_active.isnot(False))
+        .group_by(racine)
+        .all()
+    )
+    bulletins_par_cabinet = {
+        cabinet: (total, derniere)
+        for cabinet, total, derniere in (
+            db.query(
+                racine,
+                func.sum(case(
+                    (
+                        (BulletinPaie.mois == aujourd_hui.month)
+                        & (BulletinPaie.annee == aujourd_hui.year),
+                        1,
+                    ),
+                    else_=0,
+                )),
+                func.max(BulletinPaie.updated_at),
+            )
+            .join(Dossier, Dossier.id == BulletinPaie.dossier_id)
+            .join(Utilisateur, Utilisateur.id == Dossier.utilisateur_id)
+            .group_by(racine)
+            .all()
+        )
+    }
+    utilisateurs_par_cabinet = dict(
+        db.query(racine, func.count(Utilisateur.id))
+        .filter(Utilisateur.is_admin.is_(False), Utilisateur.role.in_((ROLE_CABINET, "gestionnaire_paie")))
+        .group_by(racine)
+        .all()
+    )
+
+    usage = []
+    for proprietaire in proprietaires:
+        total_mois, derniere = bulletins_par_cabinet.get(proprietaire.id, (0, None))
+        usage.append(UsageCabinet(
+            id=proprietaire.id,
+            cabinet_nom=proprietaire.cabinet_nom,
+            suspendu=bool(proprietaire.cabinet_suspendu),
+            utilisateurs=utilisateurs_par_cabinet.get(proprietaire.id, 0),
+            societes=societes_par_cabinet.get(proprietaire.id, 0),
+            salaries_actifs=salaries_par_cabinet.get(proprietaire.id, 0),
+            bulletins_mois_courant=int(total_mois or 0),
+            derniere_activite=derniere,
+        ))
+    usage.sort(key=lambda u: (-u.salaries_actifs, (u.cabinet_nom or "").lower()))
+
+    periodes = _derniers_mois(6, aujourd_hui)
+    annees = {annee for _, annee in periodes}
+    comptes = {
+        (mois, annee): (total, valides)
+        for mois, annee, total, valides in (
+            db.query(
+                BulletinPaie.mois,
+                BulletinPaie.annee,
+                func.count(BulletinPaie.id),
+                func.sum(case((BulletinPaie.statut == "valide", 1), else_=0)),
+            )
+            .filter(BulletinPaie.annee.in_(annees))
+            .group_by(BulletinPaie.mois, BulletinPaie.annee)
+            .all()
+        )
+    }
+    activite = [
+        ActiviteMensuelle(
+            mois=mois,
+            annee=annee,
+            bulletins=comptes.get((mois, annee), (0, 0))[0],
+            bulletins_valides=int(comptes.get((mois, annee), (0, 0))[1] or 0),
+        )
+        for mois, annee in periodes
+    ]
+
+    return TableauDeBordPlateforme(
+        cabinets=cabinets,
+        utilisateurs_par_role=utilisateurs_par_role,
+        societes=sum(societes_par_cabinet.values()),
+        salaries_actifs=sum(salaries_par_cabinet.values()),
+        bulletins_mois_courant=activite[-1].bulletins,
+        activite=activite,
+        usage_cabinets=usage,
+    )

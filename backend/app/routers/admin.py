@@ -2,8 +2,8 @@
 
 Deux niveaux d'administration coexistent :
 
-* l'**administrateur plateforme** (`is_admin`) voit tous les comptes du
-  personnel (cabinet et gestionnaire de paie) ;
+* l'**administrateur plateforme** (`is_admin`) n'y a pas accès : il gère les
+  cabinets depuis `/platform` ;
 * le **cabinet** (rôle `cabinet`) administre ses propres membres : le
   propriétaire (gestionnaire référent, `cabinet_owner_id = NULL`) et les
   comptes qui lui sont rattachés.
@@ -249,7 +249,7 @@ def modifier_utilisateur(
         cible.role = payload.role
         # Un membre reste rattaché au cabinet ; la promotion à « cabinet » lui
         # ouvre simplement toutes les sociétés du propriétaire.
-        if not current_user.is_admin and racine is not None:
+        if racine is not None:
             cible.cabinet_owner_id = racine
 
     if payload.is_active is not None:

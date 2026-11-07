@@ -270,12 +270,15 @@ class AutorisationsEcritureTests(unittest.TestCase):
         self.db.refresh(self.contrat)
         self.assertAlmostEqual(self.contrat.salaire_mensuel, 350_000.0, places=2)
 
-    def test_l_admin_conserve_ses_droits(self):
+    def test_l_admin_plateforme_n_accede_pas_aux_salaries(self):
+        """L'administrateur plateforme gère le SaaS, pas la paie des cabinets."""
         r = client.put(
             f"{API}/salaries/{self.salarie.id}", headers=self.entetes_admin,
             json={"enfants_charge": 3},
         )
-        self.assertEqual(r.status_code, 200, r.text[:200])
+        self.assertEqual(r.status_code, 403, r.text[:200])
+        r = client.get(f"{API}/salaries/{self.salarie.id}", headers=self.entetes_admin)
+        self.assertEqual(r.status_code, 403, r.text[:200])
 
     def test_le_salarie_conserve_l_acces_en_lecture(self):
         """La restriction porte sur l'écriture : consulter reste permis."""

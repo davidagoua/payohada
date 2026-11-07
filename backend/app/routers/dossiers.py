@@ -42,7 +42,7 @@ def _get_owned_dossier_for_write(dossier_id: int, user: Utilisateur, db: Session
         and user.cabinet_owner_id is not None
         and dossier.utilisateur_id == user.cabinet_owner_id
     )
-    if not user.is_admin and dossier.utilisateur_id != user.id and not co_admin:
+    if dossier.utilisateur_id != user.id and not co_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Seul le cabinet propriétaire peut modifier ce dossier.",
@@ -73,7 +73,7 @@ def create_dossier(
 
     Le contrôle ne visait auparavant que le rôle « client » : un salarié
     authentifié pouvait donc créer des dossiers. `require_staff` n'autorise que
-    le cabinet et l'administrateur.
+    le cabinet et le gestionnaire de paie.
     """
     require_staff(current_user)
 
