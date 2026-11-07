@@ -129,20 +129,28 @@ activer la protection de branche et l'analyse `gitleaks` (déjà câblée dans
 
 ### Matrice des rôles
 
-| Action | cabinet | client | salarié | admin |
+| Action | cabinet | client | salarié | admin plateforme |
 |---|:--:|:--:|:--:|:--:|
-| Voir les bulletins de son périmètre | ✅ | ✅ (son dossier) | ✅ (les siens) | ✅ |
-| Calculer / recalculer un bulletin | ✅ | ❌ | ❌ | ✅ |
-| Calculer la paie en lot | ✅ (son dossier) | ❌ | ❌ | ✅ |
-| Valider / invalider / supprimer un bulletin | ✅ | ❌ | ❌ | ✅ |
-| Créer un dossier, un compte client | ✅ | ❌ | ❌ | ✅ |
+| Voir les bulletins de son périmètre | ✅ | ✅ (son dossier) | ✅ (les siens) | ❌ |
+| Calculer / recalculer un bulletin | ✅ | ❌ | ❌ | ❌ |
+| Calculer la paie en lot | ✅ (son dossier) | ❌ | ❌ | ❌ |
+| Valider / invalider / supprimer un bulletin | ✅ | ❌ | ❌ | ❌ |
+| Créer un dossier, un compte client | ✅ | ❌ | ❌ | ❌ |
 | Consulter les constantes / le plan de paie | ✅ (lecture) | ❌ | ❌ | ✅ |
 | Modifier les constantes / le plan de paie | ❌ | ❌ | ❌ | ✅ |
-| Voir les membres du cabinet | ✅ (son cabinet) | ❌ | ❌ | ✅ (tous) |
-| Inviter / changer le rôle d'un membre du cabinet | ✅ (son cabinet) | ❌ | ❌ | ✅ |
-| Voir les réclamations de ses dossiers | ✅ | ✅ (son dossier) | ✅ (les siennes) | ✅ |
-| Traiter une réclamation | ✅ (ses dossiers) | ❌ | ❌ | ✅ |
-| Téléverser une pièce jointe | ✅ | ✅ (son dossier) | ✅ (la sienne) | ✅ |
+| Voir les membres du cabinet | ✅ (son cabinet) | ❌ | ❌ | ❌ |
+| Inviter / changer le rôle d'un membre du cabinet | ✅ (son cabinet) | ❌ | ❌ | ❌ |
+| Voir les réclamations de ses dossiers | ✅ | ✅ (son dossier) | ✅ (les siennes) | ❌ |
+| Traiter une réclamation | ✅ (ses dossiers) | ❌ | ❌ | ❌ |
+| Téléverser une pièce jointe | ✅ | ✅ (son dossier) | ✅ (la sienne) | ❌ |
+| Créer, suspendre, réactiver un cabinet | ❌ | ❌ | ❌ | ✅ |
+| Tableau de bord SaaS (effectifs agrégés par cabinet) | ❌ | ❌ | ❌ | ✅ |
+
+L'**administrateur plateforme** (`is_admin`) gère le SaaS et n'a accès à aucune
+donnée de paie des cabinets (sociétés, salariés, contrats, bulletins,
+demandes, réclamations), même si son compte porte le rôle `cabinet`. Le
+tableau de bord `/api/v1/platform/tableau-de-bord` ne lui renvoie que des
+effectifs (sociétés, salariés, bulletins), sans nom ni montant.
 
 Ces règles sont appliquées **côté API**. Le middleware Nuxt
 (`frontend/app/middleware/auth.global.ts`) n'est qu'un confort d'interface.

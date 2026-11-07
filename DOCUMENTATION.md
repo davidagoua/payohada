@@ -359,11 +359,15 @@ reste limité aux sociétés affectées.
 
 ### Administration plateforme (`/api/v1/platform`)
 
-Espace réservé aux comptes `is_admin` (créés avec `create_admin.py`). Il gère les
-cabinets, indépendamment de leurs dossiers clients.
+Espace réservé aux comptes `is_admin` (créés avec `create_admin.py`). C'est la
+console de gestion du SaaS : cabinets, référentiels de paie et indicateurs
+d'usage. L'administrateur **n'a accès à aucun dossier des cabinets** (sociétés,
+salariés, bulletins, demandes, réclamations) : l'API lui répond 403, et
+l'interface le ramène sur son tableau de bord (`/admin`).
 
 | Méthode | Endpoint | Rôle |
 |---|---|---|
+| `GET` | `/api/v1/platform/tableau-de-bord` | Indicateurs agrégés : cabinets (actifs, suspendus, nouveaux sur 30 j), comptes par rôle, sociétés, salariés actifs, bulletins des 6 derniers mois et usage par cabinet. Aucun nom de société ou de salarié, aucun montant. |
 | `GET` | `/api/v1/platform/cabinets` | Liste les cabinets, leurs administrateurs, membres, sociétés et statut. |
 | `POST` | `/api/v1/platform/cabinets` | Crée un cabinet et son administrateur propriétaire (mot de passe fourni ou généré/envoyé). |
 | `GET` | `/api/v1/platform/cabinets/{id}` | Détail d'un cabinet. |
@@ -383,6 +387,12 @@ bulletins sont conservés ; la réactivation rétablit l'accès.
 **Constantes et plan de paie.** Les onglets Constantes et Plan de paie de
 l'administration plateforme restent modifiables par `is_admin` ; les cabinets
 n'y ont qu'un accès en lecture.
+
+**Interface.** L'administrateur dispose de son propre espace « Plateforme SaaS »
+(barre de navigation : Tableau de bord, Cabinets, Constantes, Plan de paie,
+Simulateur). Les espaces Entreprises, Bulletins, Réclamations et Utilisateurs
+du cabinet lui sont fermés (`ROUTES_PLATEFORME` dans
+`frontend/app/utils/authNavigation.ts`).
 
 ### Autorisations
 La matrice complète des rôles et les règles de portée sont documentées dans
@@ -440,6 +450,17 @@ logiciel_paie/
 ---
 
 ##  Changelog
+
+### [Unreleased] — Espace plateforme orienté gestion du SaaS
+
+#### Changed
+- **L'administrateur plateforme n'accède plus aux dossiers des cabinets.** `is_staff`, `peut_gerer_dossier` et `dossiers_gérés` (`app/services/permissions.py`) l'excluent, et les contournements `is_admin` des routeurs bulletins, dossiers, demandes, réclamations et administration du cabinet ont été retirés. Un compte `is_admin` reçoit 403 (ou une liste vide) sur toute donnée de paie, même avec le rôle `cabinet`.
+- L'administration des membres (`/api/v1/admin/utilisateurs`) est réservée au cabinet ; la plateforme gère les cabinets depuis `/api/v1/platform`.
+
+#### Added
+- `GET /api/v1/platform/tableau-de-bord` : indicateurs d'usage agrégés par cabinet.
+- Espace « Plateforme SaaS » côté interface : tableau de bord (`PlateformeTableauDeBord`) avec indicateurs clés, activité de paie sur six mois, comptes par rôle et usage par cabinet ; navigation dédiée ; redirection de l'admin vers `/admin` hors de ses rubriques.
+- Tests : isolation de l'admin (dossiers, salariés, contrats, bulletins, réclamations, création et calcul refusés), tableau de bord, et règles de navigation de l'espace plateforme.
 
 ### [Unreleased] — Dépendances, découpage du code et ménage
 

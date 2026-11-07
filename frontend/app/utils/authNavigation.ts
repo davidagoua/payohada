@@ -36,8 +36,17 @@ export const ESPACES = [
   { prefixe: '/salaries', roles: ['salarie'], adminSeulement: false }
 ]
 
+/**
+ * Routes ouvertes à l'administrateur plateforme. Il pilote le SaaS (cabinets,
+ * référentiels, indicateurs) et n'accède à aucun espace de paie des cabinets.
+ */
+export const ROUTES_PLATEFORME = ['/admin', '/admin/cabinets', '/admin/constantes', '/admin/plan-paie', '/simulation']
+
 /** Espace d'accueil d'un utilisateur selon son rôle. */
 export function destinationParDefaut(utilisateur: UtilisateurAuth): string {
+  if (utilisateur.is_admin) {
+    return '/admin'
+  }
   if (utilisateur.role === 'salarie' || utilisateur.salarie_id) {
     return '/salaries/bulletins'
   }
@@ -88,18 +97,25 @@ export function deciderRedirection(params: {
   const estAdmin = !!utilisateur.is_admin
   const role = utilisateur.role || (utilisateur.salarie_id ? 'salarie' : 'cabinet')
 
-  // Espace /admin :
+  if (estAdmin) {
+    const autorisee = ROUTES_PLATEFORME.some(
+      route => chemin === route || (route !== '/admin' && chemin.startsWith(`${route}/`))
+    )
+    return autorisee ? { action: 'laisser' } : rediriger(destinationParDefaut(utilisateur))
+  }
+
+  // Espace /admin (hors plateforme) :
   //  - réclamations : tout le personnel ;
-  //  - constantes, plan de paie et administration des membres : administrateur
-  //    plateforme ou cabinet (les référentiels globaux sont alors en lecture
-  //    seule côté interface ; l'écriture reste réservée à la plateforme).
+  //  - constantes, plan de paie et administration des membres : cabinet (les
+  //    référentiels globaux y sont en lecture seule ; l'écriture reste réservée
+  //    à la plateforme).
   if (chemin === ROUTE_ADMIN_RECLAMATIONS || chemin.startsWith(`${ROUTE_ADMIN_RECLAMATIONS}/`)) {
-    return estAdmin || ROLES_PAIE.includes(role)
+    return ROLES_PAIE.includes(role)
       ? { action: 'laisser' }
       : rediriger(destinationParDefaut(utilisateur))
   }
   if (chemin === '/admin' || chemin.startsWith('/admin/')) {
-    return estAdmin || role === 'cabinet'
+    return role === 'cabinet' && !chemin.startsWith('/admin/cabinets')
       ? { action: 'laisser' }
       : rediriger(destinationParDefaut(utilisateur))
   }
@@ -108,10 +124,10 @@ export function deciderRedirection(params: {
     if (!chemin.startsWith(espace.prefixe)) continue
 
     if (espace.adminSeulement) {
-      return estAdmin ? { action: 'laisser' } : rediriger(destinationParDefaut(utilisateur))
+      return rediriger(destinationParDefaut(utilisateur))
     }
 
-    if (!estAdmin && !espace.roles.includes(role)) {
+    if (!espace.roles.includes(role)) {
       return rediriger(destinationParDefaut(utilisateur))
     }
     return { action: 'laisser' }

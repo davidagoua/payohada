@@ -2,25 +2,21 @@
 /**
  * Onglets de l'espace Administration.
  *
- * Deux niveaux : le cabinet (vue d'ensemble, utilisateurs) et l'administration
- * plateforme (constantes et plan de paie, référentiels globaux).
+ * Réservés au cabinet (vue d'ensemble, utilisateurs, référentiels en lecture).
+ * L'administrateur plateforme navigue par la barre principale du layout.
  */
 const { user } = useSupabase()
 const route = useRoute()
 
 const estAdminPlateforme = computed(() => !!user.value?.is_admin)
 const estAdminCabinet = computed(
-  () => estAdminPlateforme.value || user.value?.role === 'cabinet'
+  () => !estAdminPlateforme.value && user.value?.role === 'cabinet'
 )
 
 const onglets = computed(() => {
   const items = [{ to: '/admin', label: "Vue d'ensemble", exact: true }]
-  if (estAdminPlateforme.value) {
-    items.push({ to: '/admin/cabinets', label: 'Cabinets', exact: false })
-  } else if (estAdminCabinet.value) {
-    items.push({ to: '/admin/utilisateurs', label: 'Utilisateurs', exact: false })
-  }
   if (estAdminCabinet.value) {
+    items.push({ to: '/admin/utilisateurs', label: 'Utilisateurs', exact: false })
     // Référentiels globaux : consultables par le cabinet, modifiables par la
     // plateforme uniquement (l'écran masque les actions d'écriture).
     items.push({ to: '/admin/constantes', label: 'Constantes', exact: false })
@@ -37,6 +33,7 @@ const estActif = (onglet) => {
 
 <template>
   <nav
+    v-if="!estAdminPlateforme"
     class="flex items-center gap-1 overflow-x-auto no-scrollbar border-b border-slate-200"
     aria-label="Navigation de l'administration"
   >

@@ -124,6 +124,22 @@ verifier('admin accède au plan de paie',
   deciderRedirection({ chemin: '/admin/plan-paie', aJeton: true, utilisateur: ADMIN }), laisser)
 verifier('admin accède à la gestion des cabinets',
   deciderRedirection({ chemin: '/admin/cabinets', aJeton: true, utilisateur: ADMIN }), laisser)
+verifier('admin plateforme est renvoyé des dossiers vers son tableau de bord',
+  deciderRedirection({ chemin: '/dossiers', aJeton: true, utilisateur: ADMIN }), vers('/admin'))
+verifier('admin plateforme n\'ouvre pas une société',
+  deciderRedirection({ chemin: '/dossiers/12/etablissements/3', aJeton: true, utilisateur: ADMIN }), vers('/admin'))
+verifier('admin plateforme n\'ouvre pas la gestion des bulletins',
+  deciderRedirection({ chemin: '/bulletins', aJeton: true, utilisateur: ADMIN }), vers('/admin'))
+verifier('admin plateforme n\'administre pas les membres d\'un cabinet',
+  deciderRedirection({ chemin: '/admin/utilisateurs', aJeton: true, utilisateur: ADMIN }), vers('/admin'))
+verifier('admin plateforme ne voit pas les réclamations des salariés',
+  deciderRedirection({ chemin: '/admin/reclamations', aJeton: true, utilisateur: ADMIN }), vers('/admin'))
+verifier('admin plateforme garde le simulateur',
+  deciderRedirection({ chemin: '/simulation', aJeton: true, utilisateur: ADMIN }), laisser)
+verifier('cabinet n\'ouvre pas la gestion des cabinets',
+  deciderRedirection({ chemin: '/admin/cabinets', aJeton: true, utilisateur: CABINET }), vers('/dossiers'))
+verifier('admin connecté quittant /login va sur son tableau de bord',
+  deciderRedirection({ chemin: '/login', aJeton: true, utilisateur: ADMIN }), vers('/admin'))
 verifier('client est renvoyé de /bulletins vers /client',
   deciderRedirection({ chemin: '/bulletins', aJeton: true, utilisateur: CLIENT }), vers('/client'))
 verifier('route inconnue laissée en l\'état',
@@ -148,6 +164,7 @@ console.log('\nEspace d\'accueil par défaut')
 verifier('destinationParDefaut(cabinet)', destinationParDefaut(CABINET), '/dossiers')
 verifier('destinationParDefaut(client)', destinationParDefaut(CLIENT), '/client')
 verifier('destinationParDefaut(salarié)', destinationParDefaut(SALARIE), '/salaries/bulletins')
+verifier('destinationParDefaut(admin plateforme)', destinationParDefaut(ADMIN), '/admin')
 
 rmSync(dossier, { recursive: true, force: true })
 

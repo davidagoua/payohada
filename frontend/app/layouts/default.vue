@@ -3,11 +3,15 @@ const { user, logout } = useSupabase()
 const { openModal: openPasswordModal, checkAndSuggest: checkPasswordSuggestion } = useChangePasswordModal()
 const { get } = useApi()
 const route = useRoute()
-// L'administration est ouverte à l'administrateur plateforme et au cabinet
-// (propriétaire ou co-administrateur) : elle contient la gestion des membres.
+// L'administrateur plateforme pilote le SaaS : il a son propre espace et
+// n'accède pas aux sociétés des cabinets.
+const estAdminPlateforme = computed(() => !!user.value?.is_admin)
+// L'administration du cabinet (propriétaire ou co-administrateur) contient la
+// gestion de ses membres.
 const peutAdministrer = computed(
-  () => !!user.value?.is_admin || user.value?.role === 'cabinet'
+  () => !estAdminPlateforme.value && user.value?.role === 'cabinet'
 )
+const accueil = computed(() => (estAdminPlateforme.value ? '/admin' : '/dossiers'))
 
 // Suggestion automatique du modal de mot de passe par défaut pour client / salarié
 watch(() => user.value, (u) => {
@@ -21,6 +25,7 @@ const isSalarieRoute = computed(() => route.path.startsWith('/salaries'))
 const userRole = computed(() => user.value?.role || (user.value?.salarie_id ? 'salarie' : 'cabinet'))
 
 const activeSpace = computed(() => {
+  if (estAdminPlateforme.value) return 'plateforme'
   if (isClientRoute.value || userRole.value === 'client') return 'client'
   if (isSalarieRoute.value || userRole.value === 'salarie') return 'salarie'
   return 'cabinet'
@@ -89,6 +94,7 @@ watch(() => routeInfo.value, async (newVal) => {
 }, { immediate: true })
 
 const contextName = computed(() => {
+  if (activeSpace.value === 'plateforme') return 'Plateforme SaaS'
   if (activeSpace.value === 'client') {
     return user.value?.nom_dossier || currentDossier.value?.nom_dossier || 'Espace Entreprise'
   }
@@ -104,10 +110,24 @@ const contextName = computed(() => {
   return 'Espace Cabinet'
 })
 
+/** Navigation de l'espace plateforme. */
+const RUBRIQUES_PLATEFORME = [
+  { label: 'Tableau de bord', to: '/admin', exact: true },
+  { label: 'Cabinets', to: '/admin/cabinets' },
+  { label: 'Constantes', to: '/admin/constantes' },
+  { label: 'Plan de paie', to: '/admin/plan-paie' },
+  { label: 'Simulateur de paie', to: '/simulation' }
+]
+
 // Reactive breadcrumbs computed from route meta or path segments
 const breadcrumbs = computed(() => {
   const paths = route.path.split('/').filter(Boolean)
-  const items = [{ label: 'Accueil', to: '/dossiers', icon: 'i-lucide-home' }]
+  const items = [{ label: 'Accueil', to: accueil.value, icon: 'i-lucide-home' }]
+  if (activeSpace.value === 'plateforme') {
+    const rubrique = RUBRIQUES_PLATEFORME.find(r => r.to !== '/admin' && route.path.startsWith(r.to))
+    if (rubrique) items.push({ label: rubrique.label, to: rubrique.to })
+    return items
+  }
 
   if (paths.length > 0) {
     if (paths[0] === 'dossiers') {
@@ -164,7 +184,7 @@ const handleLogout = async () => {
           <!-- Left: Logo & Breadcrumbs -->
           <div class="flex items-center space-x-6">
             <NuxtLink
-              to="/dossiers"
+              :to="accueil"
               class="flex items-center space-x-3 shrink-0 group"
             >
               <!-- Official Payohada Logo (variante claire pour fond navy) -->
@@ -272,8 +292,22 @@ const handleLogout = async () => {
       <div class="bg-navy-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-12 flex items-center justify-start overflow-x-auto no-scrollbar">
           <nav class="flex items-center space-x-1 h-12 shrink-0">
+            <!-- 0. ESPACE PLATEFORME (administrateur du SaaS) -->
+            <template v-if="activeSpace === 'plateforme'">
+              <NuxtLink
+                v-for="rubrique in RUBRIQUES_PLATEFORME"
+                :key="rubrique.to"
+                :to="rubrique.to"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 rounded-t-lg border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
+                :active-class="rubrique.exact ? '' : 'border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold'"
+                exact-active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"
+              >
+                {{ rubrique.label }}
+              </NuxtLink>
+            </template>
+
             <!-- 1. ESPACE SALARIÉ -->
-            <template v-if="activeSpace === 'salarie'">
+            <template v-else-if="activeSpace === 'salarie'">
               <NuxtLink
                 to="/salaries/bulletins"
                 class="px-4 py-3.5 whitespace-nowrap shrink-0 rounded-t-lg border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
