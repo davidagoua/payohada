@@ -838,7 +838,6 @@ onMounted(async () => {
 
     <BulletinVariablesModales
       ref="modalesVariables"
-      :contracts="contracts"
       :bulletins-map="bulletinsMap"
       :mois="selectedMois"
       :annee="selectedAnnee"

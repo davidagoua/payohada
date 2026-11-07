@@ -5,20 +5,31 @@
  * puis émet `recalcule` pour que la liste se rafraîchisse.
  */
 const props = defineProps({
-  contracts: { type: Array, required: true },
   bulletinsMap: { type: Object, required: true },
   mois: { type: [String, Number], required: true },
   annee: { type: [String, Number], required: true }
 })
 const emit = defineEmits(['recalcule'])
-const { contracts, bulletinsMap, mois, annee } = toRefs(props)
+const { bulletinsMap, mois, annee } = toRefs(props)
 
 const { get, post } = useApi()
 const toast = useToast()
 
-// Active context for modal actions
-const activeContrat = ref(null)
-const activeBulletin = ref(null)
+// Contrats visés par la saisie : un seul depuis le menu d'une ligne,
+// plusieurs depuis la barre d'actions groupées.
+const cibles = ref([])
+const enGroupe = computed(() => cibles.value.length > 1)
+const enCours = ref(false)
+const libelleCibles = computed(() => enGroupe.value ? ` — ${cibles.value.length} salariés` : '')
+
+const definirCibles = (contratIds) => {
+  cibles.value = [].concat(contratIds)
+}
+
+const acompteActuel = (contratId) => {
+  const ligne = (bulletinsMap.value[contratId]?.lignes || []).find(l => l.code === 'ACOMPTE')
+  return ligne?.montant_cs || 0
+}
 
 // Add Heure Supp state
 const hsModalOpen = ref(false)
@@ -88,10 +99,9 @@ watch(primeModalOpen, (isOpen) => {
   }
 })
 
-// Modal quick open handlers
-const openPrimeModal = (contratId) => {
-  activeContrat.value = contracts.value.find(c => c.id === contratId)
-  activeBulletin.value = bulletinsMap.value[contratId]
+// Ouverture des modales : `contratIds` est un identifiant ou une liste.
+const openPrimeModal = (contratIds) => {
+  definirCibles(contratIds)
   if (primesDisponibles.value.length > 0) {
     primeCode.value = primesDisponibles.value[0].code
     primeLibelle.value = primesDisponibles.value[0].libelle
@@ -107,9 +117,8 @@ const openPrimeModal = (contratId) => {
   primeModalOpen.value = true
 }
 
-const openAbsModal = (contratId) => {
-  activeContrat.value = contracts.value.find(c => c.id === contratId)
-  activeBulletin.value = bulletinsMap.value[contratId]
+const openAbsModal = (contratIds) => {
+  definirCibles(contratIds)
   absCode.value = 'CONGES'
   absDateDebut.value = ''
   absDateFin.value = ''
@@ -118,49 +127,62 @@ const openAbsModal = (contratId) => {
   absModalOpen.value = true
 }
 
-const openHsModal = (contratId) => {
-  activeContrat.value = contracts.value.find(c => c.id === contratId)
-  activeBulletin.value = bulletinsMap.value[contratId]
+const openHsModal = (contratIds) => {
+  definirCibles(contratIds)
   hsCode.value = 'HS_15'
   hsNombre.value = 0
   hsModalOpen.value = true
 }
 
-const openAcompteModal = (contratId) => {
-  const b = bulletinsMap.value[contratId]
-  activeContrat.value = contracts.value.find(c => c.id === contratId)
-  activeBulletin.value = b
-  if (b) {
-    const acompteLine = (b.lignes || []).find(l => l.code === 'ACOMPTE')
-    acompteMontant.value = acompteLine ? acompteLine.montant_cs : 0
-  } else {
-    acompteMontant.value = 0
-  }
+const openAcompteModal = (contratIds) => {
+  definirCibles(contratIds)
+  // En groupe, les acomptes existants diffèrent : on part d'un montant vide.
+  acompteMontant.value = enGroupe.value ? 0 : acompteActuel(cibles.value[0])
   acompteModalOpen.value = true
 }
 
-// Recalculate helper
-const handleRecalculateForContrat = async (contratId, acompteVal = 0) => {
+/**
+ * Applique la saisie à chaque contrat visé puis recalcule son bulletin.
+ * `enregistrer(contratId)` envoie la variable ; `acompte(contratId)` donne
+ * l'acompte à conserver lors du recalcul.
+ */
+const appliquerAuxCibles = async (enregistrer, acompte = acompteActuel) => {
+  enCours.value = true
+  let reussis = 0
   try {
-    const payload = {
-      contrat_id: contratId,
-      mois: Number(mois.value),
-      annee: Number(annee.value),
-      acompte: Number(acompteVal),
-      commentaire: "Recalculé suite à modification des variables"
+    for (const contratId of cibles.value) {
+      try {
+        if (enregistrer) await enregistrer(contratId)
+        await post('/bulletins/calculer', {
+          contrat_id: contratId,
+          mois: Number(mois.value),
+          annee: Number(annee.value),
+          acompte: Number(acompte(contratId)),
+          commentaire: 'Recalculé suite à modification des variables'
+        })
+        reussis++
+      } catch (e) {
+        console.error(`Saisie impossible pour le contrat ${contratId} :`, e)
+      }
     }
-    const res = await post('/bulletins/calculer', payload)
-    if (res) {
-      toast.add({
-        title: 'Bulletin Recalculé',
-        description: 'Les modifications ont été prises en compte.',
-        color: 'success'
-      })
-      emit('recalcule')
-    }
-  } catch (e) {
-    console.error(e)
+  } finally {
+    enCours.value = false
   }
+
+  const echecs = cibles.value.length - reussis
+  if (reussis > 0) {
+    toast.add({
+      title: reussis > 1 ? 'Bulletins recalculés' : 'Bulletin recalculé',
+      description: echecs
+        ? `${reussis} bulletin(s) mis à jour, ${echecs} en échec.`
+        : reussis > 1
+          ? `${reussis} bulletins mis à jour.`
+          : 'Les modifications ont été prises en compte.',
+      color: echecs ? 'warning' : 'success'
+    })
+    emit('recalcule')
+  }
+  return reussis > 0
 }
 
 // Modal submits
@@ -169,25 +191,15 @@ const handleAddHeureSupp = async () => {
     toast.add({ title: 'Validation', description: 'Le nombre d\'heures doit être supérieur à 0.', color: 'warning' })
     return
   }
-  try {
-    const payload = {
-      code: hsCode.value,
-      nombre: Number(hsNombre.value),
-      mois: Number(mois.value),
-      annee: String(annee.value)
-    }
-    await post(`/contrats/${activeContrat.value.id}/heures-supplementaires`, payload)
+  const payload = {
+    code: hsCode.value,
+    nombre: Number(hsNombre.value),
+    mois: Number(mois.value),
+    annee: String(annee.value)
+  }
+  if (await appliquerAuxCibles(id => post(`/contrats/${id}/heures-supplementaires`, payload))) {
     hsModalOpen.value = false
     hsNombre.value = 0
-
-    let currentAcompte = 0
-    if (activeBulletin.value) {
-      const acompteLine = (activeBulletin.value.lignes || []).find(l => l.code === 'ACOMPTE')
-      if (acompteLine) currentAcompte = acompteLine.montant_cs || 0
-    }
-    await handleRecalculateForContrat(activeContrat.value.id, currentAcompte)
-  } catch (e) {
-    console.error(e)
   }
 }
 
@@ -196,31 +208,21 @@ const handleAddAbsence = async () => {
     toast.add({ title: 'Validation', description: 'Les dates de début et de fin sont obligatoires.', color: 'warning' })
     return
   }
-  try {
-    const payload = {
-      code: absCode.value,
-      date_debut: new Date(absDateDebut.value).toISOString(),
-      date_fin: new Date(absDateFin.value).toISOString(),
-      nbr_heure_by_user: Number(absNbrHeure.value),
-      nbr_jour_by_user: Number(absNbrJour.value),
-      mois: Number(mois.value),
-      annee: String(annee.value)
-    }
-    await post(`/contrats/${activeContrat.value.id}/absences`, payload)
+  const payload = {
+    code: absCode.value,
+    date_debut: new Date(absDateDebut.value).toISOString(),
+    date_fin: new Date(absDateFin.value).toISOString(),
+    nbr_heure_by_user: Number(absNbrHeure.value),
+    nbr_jour_by_user: Number(absNbrJour.value),
+    mois: Number(mois.value),
+    annee: String(annee.value)
+  }
+  if (await appliquerAuxCibles(id => post(`/contrats/${id}/absences`, payload))) {
     absModalOpen.value = false
     absDateDebut.value = ''
     absDateFin.value = ''
     absNbrHeure.value = 0
     absNbrJour.value = 0
-
-    let currentAcompte = 0
-    if (activeBulletin.value) {
-      const acompteLine = (activeBulletin.value.lignes || []).find(l => l.code === 'ACOMPTE')
-      if (acompteLine) currentAcompte = acompteLine.montant_cs || 0
-    }
-    await handleRecalculateForContrat(activeContrat.value.id, currentAcompte)
-  } catch (e) {
-    console.error(e)
   }
 }
 
@@ -229,39 +231,30 @@ const handleAddPrime = async () => {
     toast.add({ title: 'Validation', description: 'Le montant de la prime doit être supérieur à 0.', color: 'warning' })
     return
   }
-  try {
-    const payload = {
-      code: primeCode.value,
-      libelle: primeLibelle.value || primeCode.value,
-      montant: Number(primeMontant.value),
-      base: primeMode.value === 'calcul' ? (Number(primeBase.value) || null) : null,
-      taux: primeMode.value === 'calcul' ? (Number(primeTaux.value) || null) : null,
-      mois: Number(mois.value),
-      annee: String(annee.value),
-      est_persistant: primeEstPersistant.value
-    }
-    await post(`/contrats/${activeContrat.value.id}/primes`, payload)
+  const payload = {
+    code: primeCode.value,
+    libelle: primeLibelle.value || primeCode.value,
+    montant: Number(primeMontant.value),
+    base: primeMode.value === 'calcul' ? (Number(primeBase.value) || null) : null,
+    taux: primeMode.value === 'calcul' ? (Number(primeTaux.value) || null) : null,
+    mois: Number(mois.value),
+    annee: String(annee.value),
+    est_persistant: primeEstPersistant.value
+  }
+  if (await appliquerAuxCibles(id => post(`/contrats/${id}/primes`, payload))) {
     primeModalOpen.value = false
     primeLibelle.value = ''
     primeMontant.value = 0
     primeBase.value = 0
     primeTaux.value = 0
     primeEstPersistant.value = false
-
-    let currentAcompte = 0
-    if (activeBulletin.value) {
-      const acompteLine = (activeBulletin.value.lignes || []).find(l => l.code === 'ACOMPTE')
-      if (acompteLine) currentAcompte = acompteLine.montant_cs || 0
-    }
-    await handleRecalculateForContrat(activeContrat.value.id, currentAcompte)
-  } catch (e) {
-    console.error(e)
   }
 }
 
 const handleSaveAcompte = async () => {
-  acompteModalOpen.value = false
-  await handleRecalculateForContrat(activeContrat.value.id, acompteMontant.value)
+  if (await appliquerAuxCibles(null, () => acompteMontant.value)) {
+    acompteModalOpen.value = false
+  }
 }
 
 defineExpose({ openPrimeModal, openAbsModal, openHsModal, openAcompteModal })
@@ -277,7 +270,7 @@ onMounted(fetchPlanPaie)
   <UModal v-model:open="hsModalOpen" title="Saisir des Heures Supplémentaires">
     <template #content>
       <div class="p-6 space-y-4 rounded-xl bg-white border border-slate-200">
-        <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Heure Supp.</h2>
+        <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Heure Supp.{{ libelleCibles }}</h2>
 
         <div class="space-y-4">
           <div>
@@ -298,8 +291,8 @@ onMounted(fetchPlanPaie)
           <button type="button" @click="hsModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-lg hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
             Annuler
           </button>
-          <button type="button" @click="handleAddHeureSupp" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
-            Enregistrer et Recalculer
+          <button type="button" @click="handleAddHeureSupp" :disabled="enCours" class="disabled:opacity-60 disabled:cursor-wait px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
+            {{ enCours ? 'Recalcul…' : 'Enregistrer et Recalculer' }}
           </button>
         </div>
       </div>
@@ -310,7 +303,7 @@ onMounted(fetchPlanPaie)
   <UModal v-model:open="absModalOpen" title="Saisir une Absence / Congé">
     <template #content>
       <div class="p-6 space-y-4 rounded-xl bg-white border border-slate-200">
-        <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Saisir Absence</h2>
+        <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Saisir Absence{{ libelleCibles }}</h2>
 
         <div class="space-y-4">
           <div class="grid grid-cols-2 gap-4">
@@ -350,8 +343,8 @@ onMounted(fetchPlanPaie)
           <button type="button" @click="absModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-lg hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
             Annuler
           </button>
-          <button type="button" @click="handleAddAbsence" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
-            Enregistrer et Recalculer
+          <button type="button" @click="handleAddAbsence" :disabled="enCours" class="disabled:opacity-60 disabled:cursor-wait px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
+            {{ enCours ? 'Recalcul…' : 'Enregistrer et Recalculer' }}
           </button>
         </div>
       </div>
@@ -362,7 +355,7 @@ onMounted(fetchPlanPaie)
   <UModal v-model:open="primeModalOpen" title="Saisir une Prime">
     <template #content>
       <div class="p-6 space-y-4 rounded-xl bg-white border border-slate-200">
-        <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Prime</h2>
+        <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Prime{{ libelleCibles }}</h2>
 
         <div class="space-y-4">
           <div class="grid grid-cols-2 gap-4">
@@ -416,8 +409,8 @@ onMounted(fetchPlanPaie)
           <button type="button" @click="primeModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-lg hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
             Annuler
           </button>
-          <button type="button" @click="handleAddPrime" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
-            Enregistrer et Recalculer
+          <button type="button" @click="handleAddPrime" :disabled="enCours" class="disabled:opacity-60 disabled:cursor-wait px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
+            {{ enCours ? 'Recalcul…' : 'Enregistrer et Recalculer' }}
           </button>
         </div>
       </div>
@@ -428,13 +421,14 @@ onMounted(fetchPlanPaie)
   <UModal v-model:open="acompteModalOpen" title="Définir un Acompte">
     <template #content>
       <div class="p-6 space-y-4 rounded-xl bg-white border border-slate-200">
-        <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Acompte sur salaire</h2>
+        <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Acompte sur salaire{{ libelleCibles }}</h2>
 
         <div class="space-y-4">
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Montant de l'acompte (FCFA)</label>
             <input v-model="acompteMontant" type="number" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
             <p class="text-[10px] text-slate-500 mt-1">Sera déduit directement du salaire net à payer.</p>
+            <p v-if="enGroupe" class="text-[10px] text-slate-500 mt-1">Le même montant remplacera l'acompte de chaque salarié sélectionné.</p>
           </div>
         </div>
 
@@ -442,8 +436,8 @@ onMounted(fetchPlanPaie)
           <button type="button" @click="acompteModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-lg hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
             Annuler
           </button>
-          <button type="button" @click="handleSaveAcompte" class="px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
-            Enregistrer et Recalculer
+          <button type="button" @click="handleSaveAcompte" :disabled="enCours" class="disabled:opacity-60 disabled:cursor-wait px-4 py-2 text-sm font-bold bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-flat transition-colors uppercase tracking-wider cursor-pointer">
+            {{ enCours ? 'Recalcul…' : 'Enregistrer et Recalculer' }}
           </button>
         </div>
       </div>
