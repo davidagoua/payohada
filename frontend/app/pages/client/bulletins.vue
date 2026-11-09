@@ -171,6 +171,13 @@ const handlePrint = () => {
             class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-4 py-1.5 text-xs text-slate-800"
           />
         </div>
+        <NuxtLink
+          to="/client/variables"
+          class="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg transition-colors"
+        >
+          <UIcon name="i-lucide-list-plus" class="w-3.5 h-3.5" />
+          Saisir des variables
+        </NuxtLink>
       </div>
 
       <div v-if="loading" class="p-12 text-center text-slate-400">

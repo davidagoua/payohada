@@ -45,6 +45,15 @@ def require_staff(user: Utilisateur) -> None:
         )
 
 
+def require_saisie_variables(user: Utilisateur) -> None:
+    """Réserve la saisie des variables au cabinet, au gestionnaire et à l'entreprise."""
+    if not is_staff(user) and (user.is_admin or user.role != ROLE_CLIENT):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Saisie des variables non autorisée.",
+        )
+
+
 def require_admin(user: Utilisateur) -> None:
     if not user.is_admin:
         raise HTTPException(

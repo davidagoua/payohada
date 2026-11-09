@@ -132,6 +132,7 @@ activer la protection de branche et l'analyse `gitleaks` (déjà câblée dans
 | Action | cabinet | client | salarié | admin plateforme |
 |---|:--:|:--:|:--:|:--:|
 | Voir les bulletins de son périmètre | ✅ | ✅ (son dossier) | ✅ (les siens) | ❌ |
+| Saisir une variable (prime, absence, heures sup) | ✅ | ✅ (son dossier, tant que la période n'est pas transmise) | ❌ | ❌ |
 | Calculer / recalculer un bulletin | ✅ | ❌ | ❌ | ❌ |
 | Calculer la paie en lot | ✅ (son dossier) | ❌ | ❌ | ❌ |
 | Valider / invalider / supprimer un bulletin | ✅ | ❌ | ❌ | ❌ |

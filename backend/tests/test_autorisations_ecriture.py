@@ -8,7 +8,9 @@ servaient de protection unique en **écriture**. Un salarié authentifié pouvai
 donc modifier son propre contrat, s'octroyer une prime ou changer sa situation
 familiale, donc son assiette d'impôt.
 
-Chaque route d'écriture doit désormais refuser ces deux rôles.
+Chaque route d'écriture doit désormais refuser ces deux rôles. Seule exception :
+l'entreprise (« client ») saisit les variables de sa propre paie tant que la
+période n'est pas transmise au cabinet.
 """
 import unittest
 
@@ -98,6 +100,52 @@ class AutorisationsEcritureTests(unittest.TestCase):
         self.assertEqual(r.status_code, 403)
 
     # ── Variables de paie ─────────────────────────────────────────────
+
+    def _prime(self, entetes, contrat_id=None):
+        return client.post(
+            f"{API}/contrats/{contrat_id or self.contrat.id}/primes", headers=entetes,
+            json={"code": "PRIME_RENDEMENT", "montant": 25_000.0,
+                  "mois": 6, "annee": "2025"},
+        )
+
+    def test_variables_saisies_par_l_entreprise(self):
+        self.assertEqual(self._prime(self.entetes_client).status_code, 200)
+        r = client.post(
+            f"{API}/contrats/{self.contrat.id}/heures-supplementaires",
+            headers=self.entetes_client,
+            json={"code": "HS_15", "nombre": 4.0, "mois": 6, "annee": "2025"},
+        )
+        self.assertEqual(r.status_code, 200)
+        r = client.post(
+            f"{API}/contrats/{self.contrat.id}/absences", headers=self.entetes_client,
+            json={"code": "CP", "date_debut": "2025-06-02", "date_fin": "2025-06-03",
+                  "mois": 6, "annee": "2025", "nbr_heure_by_user": 8.0},
+        )
+        self.assertEqual(r.status_code, 200)
+
+    def test_variable_refusee_a_une_autre_entreprise(self):
+        autre = make_tenant(self.db, "autre-entreprise")
+        self.assertEqual(
+            self._prime(self.entetes_client, autre["contrat"].id).status_code, 403
+        )
+
+    def test_variable_refusee_a_l_entreprise_apres_transmission(self):
+        r = client.post(
+            f"{API}/dossiers/{self.dossier.id}/periodes/2025/6/transmettre",
+            headers=self.entetes_client,
+        )
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(self._prime(self.entetes_client).status_code, 409)
+        # Le cabinet peut encore compléter la période.
+        self.assertEqual(self._prime(self.entetes_cabinet).status_code, 200)
+
+    def test_variable_saisie_par_le_gestionnaire_affecte(self):
+        gestionnaire = make_user(
+            self.db, "gestionnaire-variables@exemple.ci", role="gestionnaire_paie",
+        )
+        self.db.add(M.AccesDossier(utilisateur_id=gestionnaire.id, dossier_id=self.dossier.id))
+        self.db.commit()
+        self.assertEqual(self._prime(auth_headers(gestionnaire)).status_code, 200)
 
     def test_prime_refusee_au_salarie(self):
         """L'exploit mesuré : une prime de 500 000 F créée par le salarié."""

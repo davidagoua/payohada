@@ -21,7 +21,18 @@ const primeModalOpen = ref(false)
 const transmitModalOpen = ref(false)
 const excelImportModalOpen = ref(false)
 
-const selectedContract = ref(null)
+// Salariés visés par la modale ouverte : un seul depuis sa ligne, plusieurs
+// depuis la barre d'actions groupées.
+const cibles = ref([])
+const libelleCibles = computed(() => {
+  if (cibles.value.length > 1) return `${cibles.value.length} salariés sélectionnés`
+  const ligne = cibles.value[0]
+  return ligne ? `Salarié : ${ligne.nom} ${ligne.prenom} (${ligne.matricule})` : ''
+})
+const enregistrementEnCours = ref(false)
+
+// Contrats cochés dans la grille
+const selection = ref([])
 
 // Form states
 const hsForm = ref({ code: 'HS_15', nombre: 1 })
@@ -108,6 +119,8 @@ onMounted(() => {
   fetchDossierAndVariables()
 })
 
+const periodeModifiable = computed(() => (periodeStatut.value?.statut ?? 'saisie_en_cours') === 'saisie_en_cours')
+
 const filteredRows = computed(() => {
   if (!searchQuery.value) return salariesRows.value
   const q = searchQuery.value.toLowerCase()
@@ -126,15 +139,42 @@ const formatFCFA = (amount) => {
     .replace('XOF', 'FCFA')
 }
 
+// Un bulletin validé n'est plus modifiable : son salarié n'est pas sélectionnable.
+const lignesSelectionnables = computed(() => filteredRows.value.filter(row => row.bulletin_statut !== 'valide'))
+
+const toutSelectionner = computed({
+  get: () => lignesSelectionnables.value.length > 0
+    && lignesSelectionnables.value.every(row => selection.value.includes(row.contrat_id)),
+  set: (valeur) => {
+    const ids = lignesSelectionnables.value.map(row => row.contrat_id)
+    selection.value = valeur
+      ? [...new Set([...selection.value, ...ids])]
+      : selection.value.filter(id => !ids.includes(id))
+  }
+})
+
+// Une sélection ne survit pas à un changement de période.
+watch([selectedMois, selectedAnnee], () => {
+  selection.value = []
+})
+
+const lignesSelectionnees = () => salariesRows.value.filter(row => selection.value.includes(row.contrat_id))
+
+const menuSaisieGroupee = computed(() => [[
+  { label: 'Ajouter une prime', icon: 'i-lucide-gift', onSelect: () => openPrimeModal(lignesSelectionnees()) },
+  { label: 'Déclarer une absence', icon: 'i-lucide-calendar-x', onSelect: () => openAbsenceModal(lignesSelectionnees()) },
+  { label: 'Ajouter des heures sup', icon: 'i-lucide-clock', onSelect: () => openHsModal(lignesSelectionnees()) }
+]])
+
 // ── Modals Triggers ──
-const openHsModal = (row) => {
-  selectedContract.value = row
+const openHsModal = (lignes) => {
+  cibles.value = [].concat(lignes)
   hsForm.value = { code: 'HS_15', nombre: 1 }
   hsModalOpen.value = true
 }
 
-const openAbsenceModal = (row) => {
-  selectedContract.value = row
+const openAbsenceModal = (lignes) => {
+  cibles.value = [].concat(lignes)
   const today = new Date().toISOString().split('T')[0]
   absenceForm.value = {
     code: 'CP',
@@ -146,73 +186,87 @@ const openAbsenceModal = (row) => {
   absenceModalOpen.value = true
 }
 
-const openPrimeModal = (row) => {
-  selectedContract.value = row
+const openPrimeModal = (lignes) => {
+  cibles.value = [].concat(lignes)
   primeForm.value = {
     code: 'PRIME_RENDEMENT',
-    montant: 25000,
+    // En groupe, pas de montant suggéré : il s'appliquerait à tous les salariés.
+    montant: cibles.value.length > 1 ? 0 : 25000,
     libelle: 'Prime de rendement'
   }
   primeModalOpen.value = true
 }
 
 // ── Save Handlers ──
-const submitHs = async () => {
-  if (!selectedContract.value) return
-  try {
-    await post(`/contrats/${selectedContract.value.contrat_id}/heures-supplementaires`, {
-      code: hsForm.value.code,
-      nombre: parseFloat(hsForm.value.nombre),
-      mois: Number(selectedMois.value),
-      annee: String(selectedAnnee.value)
-    })
-    toast.add({ title: "Succès", description: "Heures supplémentaires ajoutées.", color: "success" })
-    hsModalOpen.value = false
-    await fetchDossierAndVariables()
-  } catch (e) {
-    toast.add({ title: "Erreur", description: "Impossible d'ajouter les heures sup.", color: "danger" })
+/** Enregistre la variable pour chaque salarié visé ; renvoie vrai si au moins une a abouti. */
+const enregistrerPourCibles = async (segment, payload, libelle) => {
+  enregistrementEnCours.value = true
+  let reussis = 0
+  let detailErreur = ''
+  for (const ligne of cibles.value) {
+    try {
+      await post(`/contrats/${ligne.contrat_id}/${segment}`, {
+        ...payload,
+        mois: Number(selectedMois.value),
+        annee: String(selectedAnnee.value)
+      })
+      reussis++
+    } catch (e) {
+      console.error(`Saisie impossible pour le contrat ${ligne.contrat_id} :`, e)
+      detailErreur = e?.data?.detail || detailErreur
+    }
   }
+  enregistrementEnCours.value = false
+
+  const echecs = cibles.value.length - reussis
+  if (reussis === 0) {
+    toast.add({ title: "Erreur", description: detailErreur || `${libelle} : enregistrement impossible.`, color: "danger" })
+    return false
+  }
+  toast.add({
+    title: echecs ? "Saisie partielle" : "Succès",
+    description: echecs
+      ? `${libelle} : ${reussis} salarié(s) enregistré(s), ${echecs} en échec.`
+      : `${libelle} : ${reussis} salarié(s) enregistré(s).`,
+    color: echecs ? "warning" : "success"
+  })
+  selection.value = []
+  await fetchDossierAndVariables()
+  return true
+}
+
+const submitHs = async () => {
+  const ok = await enregistrerPourCibles('heures-supplementaires', {
+    code: hsForm.value.code,
+    nombre: parseFloat(hsForm.value.nombre)
+  }, 'Heures supplémentaires')
+  if (ok) hsModalOpen.value = false
 }
 
 const submitAbsence = async () => {
-  if (!selectedContract.value) return
-  try {
-    const dDebut = absenceForm.value.date_debut ? new Date(absenceForm.value.date_debut).toISOString() : new Date().toISOString()
-    const dFin = absenceForm.value.date_fin ? new Date(absenceForm.value.date_fin).toISOString() : new Date().toISOString()
-    
-    await post(`/contrats/${selectedContract.value.contrat_id}/absences`, {
-      code: absenceForm.value.code,
-      date_debut: dDebut,
-      date_fin: dFin,
-      nbr_jour_by_user: parseFloat(absenceForm.value.nbr_jour_by_user || 0),
-      nbr_heure_by_user: parseFloat(absenceForm.value.nbr_heure_by_user || 0),
-      mois: Number(selectedMois.value),
-      annee: String(selectedAnnee.value)
-    })
-    toast.add({ title: "Succès", description: "Absence / congé enregistré.", color: "success" })
-    absenceModalOpen.value = false
-    await fetchDossierAndVariables()
-  } catch (e) {
-    toast.add({ title: "Erreur", description: "Impossible d'enregistrer l'absence.", color: "danger" })
-  }
+  const dDebut = absenceForm.value.date_debut ? new Date(absenceForm.value.date_debut).toISOString() : new Date().toISOString()
+  const dFin = absenceForm.value.date_fin ? new Date(absenceForm.value.date_fin).toISOString() : new Date().toISOString()
+  const ok = await enregistrerPourCibles('absences', {
+    code: absenceForm.value.code,
+    date_debut: dDebut,
+    date_fin: dFin,
+    nbr_jour_by_user: parseFloat(absenceForm.value.nbr_jour_by_user || 0),
+    nbr_heure_by_user: parseFloat(absenceForm.value.nbr_heure_by_user || 0)
+  }, 'Absence / congé')
+  if (ok) absenceModalOpen.value = false
 }
 
 const submitPrime = async () => {
-  if (!selectedContract.value) return
-  try {
-    await post(`/contrats/${selectedContract.value.contrat_id}/primes`, {
-      code: primeForm.value.code,
-      montant: parseFloat(primeForm.value.montant || 0),
-      libelle: primeForm.value.libelle || primeForm.value.code,
-      mois: Number(selectedMois.value),
-      annee: String(selectedAnnee.value)
-    })
-    toast.add({ title: "Succès", description: "Prime enregistrée.", color: "success" })
-    primeModalOpen.value = false
-    await fetchDossierAndVariables()
-  } catch (e) {
-    toast.add({ title: "Erreur", description: "Impossible d'enregistrer la prime.", color: "danger" })
+  if (!(parseFloat(primeForm.value.montant) > 0)) {
+    toast.add({ title: "Validation", description: "Le montant de la prime doit être supérieur à 0.", color: "warning" })
+    return
   }
+  const ok = await enregistrerPourCibles('primes', {
+    code: primeForm.value.code,
+    montant: parseFloat(primeForm.value.montant),
+    libelle: primeForm.value.libelle || primeForm.value.code
+  }, 'Prime')
+  if (ok) primeModalOpen.value = false
 }
 
 // ── Delete Handlers ──
@@ -481,6 +535,24 @@ const handleImportExcel = async (event) => {
       </div>
     </div>
 
+    <!-- Actions groupées -->
+    <div
+      v-if="selection.length > 0 && periodeModifiable"
+      class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex flex-col sm:flex-row justify-between items-center gap-3 text-xs"
+    >
+      <span class="font-bold text-slate-700">{{ selection.length }} salarié(s) sélectionné(s)</span>
+      <UDropdownMenu :items="menuSaisieGroupee">
+        <button
+          type="button"
+          class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+        >
+          <UIcon name="i-lucide-list-plus" class="w-3.5 h-3.5" />
+          Ajouter des variables
+          <UIcon name="i-lucide-chevron-down" class="w-3.5 h-3.5" />
+        </button>
+      </UDropdownMenu>
+    </div>
+
     <!-- Tableau de saisie collective -->
     <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
       <div v-if="loading" class="p-12 text-center text-slate-400">
@@ -498,6 +570,15 @@ const handleImportExcel = async (event) => {
         <table class="min-w-full divide-y divide-slate-200 text-left">
           <thead class="bg-slate-50 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
             <tr>
+              <th scope="col" class="px-4 py-3 w-10">
+                <input
+                  v-model="toutSelectionner"
+                  type="checkbox"
+                  :disabled="!periodeModifiable"
+                  aria-label="Sélectionner tous les salariés"
+                  class="rounded border-slate-300 text-green-600 focus:ring-green-500 h-4 w-4 disabled:opacity-40"
+                />
+              </th>
               <th scope="col" class="px-4 py-3">Salarié</th>
               <th scope="col" class="px-4 py-3">Salaire de Base</th>
               <th scope="col" class="px-4 py-3">Heures Supplémentaires</th>
@@ -508,6 +589,17 @@ const handleImportExcel = async (event) => {
           </thead>
           <tbody class="divide-y divide-slate-150 text-xs">
             <tr v-for="row in filteredRows" :key="row.contrat_id" class="hover:bg-slate-50/70 transition-colors">
+              <td class="px-4 py-3.5">
+                <input
+                  v-model="selection"
+                  type="checkbox"
+                  :value="row.contrat_id"
+                  :disabled="!periodeModifiable || row.bulletin_statut === 'valide'"
+                  :aria-label="`Sélectionner ${row.nom} ${row.prenom}`"
+                  class="rounded border-slate-300 text-green-600 focus:ring-green-500 h-4 w-4 disabled:opacity-40"
+                />
+              </td>
+
               <!-- Salarié Info -->
               <td class="px-4 py-3.5">
                 <div class="font-bold text-slate-900 flex items-center gap-1.5">
@@ -545,6 +637,7 @@ const handleImportExcel = async (event) => {
 
                   <!-- Bouton + HS -->
                   <button 
+                    v-if="periodeModifiable"
                     type="button" 
                     class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[11px] font-semibold text-amber-700 hover:bg-amber-100 border border-dashed border-amber-300 transition-colors cursor-pointer"
                     @click="openHsModal(row)"
@@ -576,6 +669,7 @@ const handleImportExcel = async (event) => {
 
                   <!-- Bouton + Absence -->
                   <button 
+                    v-if="periodeModifiable"
                     type="button" 
                     class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[11px] font-semibold text-red-700 hover:bg-red-100 border border-dashed border-red-300 transition-colors cursor-pointer"
                     @click="openAbsenceModal(row)"
@@ -607,6 +701,7 @@ const handleImportExcel = async (event) => {
 
                   <!-- Bouton + Prime -->
                   <button 
+                    v-if="periodeModifiable"
                     type="button" 
                     class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[11px] font-semibold text-navy-700 hover:bg-navy-100 border border-dashed border-navy-300 transition-colors cursor-pointer"
                     @click="openPrimeModal(row)"
@@ -642,7 +737,7 @@ const handleImportExcel = async (event) => {
       <template #body>
         <div class="space-y-4">
           <div class="bg-slate-50 p-3 rounded-lg border text-xs text-slate-600">
-            Salarié : <strong>{{ selectedContract?.nom }} {{ selectedContract?.prenom }}</strong> ({{ selectedContract?.matricule }})
+            <strong>{{ libelleCibles }}</strong>
           </div>
 
           <div>
@@ -671,7 +766,7 @@ const handleImportExcel = async (event) => {
       <template #footer>
         <div class="flex justify-end gap-2">
           <UButton color="neutral" variant="ghost" @click="hsModalOpen = false">Annuler</UButton>
-          <UButton color="primary" class="bg-green-600 hover:bg-green-700 text-white font-bold" @click="submitHs">
+          <UButton color="primary" class="bg-green-600 hover:bg-green-700 text-white font-bold" :loading="enregistrementEnCours" @click="submitHs">
             Enregistrer
           </UButton>
         </div>
@@ -683,7 +778,7 @@ const handleImportExcel = async (event) => {
       <template #body>
         <div class="space-y-4">
           <div class="bg-slate-50 p-3 rounded-lg border text-xs text-slate-600">
-            Salarié : <strong>{{ selectedContract?.nom }} {{ selectedContract?.prenom }}</strong>
+            <strong>{{ libelleCibles }}</strong>
           </div>
 
           <div>
@@ -725,7 +820,7 @@ const handleImportExcel = async (event) => {
       <template #footer>
         <div class="flex justify-end gap-2">
           <UButton color="neutral" variant="ghost" @click="absenceModalOpen = false">Annuler</UButton>
-          <UButton color="primary" class="bg-red-600 hover:bg-red-700 text-white font-bold" @click="submitAbsence">
+          <UButton color="primary" class="bg-red-600 hover:bg-red-700 text-white font-bold" :loading="enregistrementEnCours" @click="submitAbsence">
             Enregistrer
           </UButton>
         </div>
@@ -737,7 +832,7 @@ const handleImportExcel = async (event) => {
       <template #body>
         <div class="space-y-4">
           <div class="bg-slate-50 p-3 rounded-lg border text-xs text-slate-600">
-            Salarié : <strong>{{ selectedContract?.nom }} {{ selectedContract?.prenom }}</strong>
+            <strong>{{ libelleCibles }}</strong>
           </div>
 
           <div>
@@ -766,7 +861,7 @@ const handleImportExcel = async (event) => {
       <template #footer>
         <div class="flex justify-end gap-2">
           <UButton color="neutral" variant="ghost" @click="primeModalOpen = false">Annuler</UButton>
-          <UButton color="primary" class="bg-green-600 hover:bg-green-700 text-white font-bold" @click="submitPrime">
+          <UButton color="primary" class="bg-green-600 hover:bg-green-700 text-white font-bold" :loading="enregistrementEnCours" @click="submitPrime">
             Enregistrer
           </UButton>
         </div>

@@ -18,12 +18,37 @@ from app.schemas.variables import (
     STATUTS_PERIODE
 )
 from app.services.security import get_current_user
-from app.services.permissions import require_staff
+from app.services.permissions import ROLE_CLIENT, require_saisie_variables, require_staff
 from app.routers.contrats import check_contrat_ownership
 from app.routers.dossiers import check_dossier_ownership
 
 router = APIRouter(prefix="/contrats", tags=["Variables de Paie"])
 dossier_variables_router = APIRouter(prefix="/dossiers", tags=["Variables Collectives & Périodes"])
+
+
+def _autoriser_saisie(
+    contrat_id: int, mois: int, annee: str,
+    current_user: Utilisateur, db: Session
+) -> None:
+    """Contrôle commun à la saisie d'une variable.
+
+    Une fois la période transmise au cabinet, l'entreprise ne peut plus y
+    ajouter de variable : le cabinet travaille sur des données figées.
+    """
+    require_saisie_variables(current_user)
+    contrat = check_contrat_ownership(contrat_id, current_user.id, db)
+    if current_user.role != ROLE_CLIENT:
+        return
+    periode = db.query(PeriodePaie).filter(
+        PeriodePaie.dossier_id == contrat.dossier_id,
+        PeriodePaie.annee == str(annee),
+        PeriodePaie.mois == mois
+    ).first()
+    if periode and periode.statut != "saisie_en_cours":
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Cette période a été transmise au cabinet : la saisie est close."
+        )
 
 
 # ─────────────────────────────────────────
@@ -49,8 +74,7 @@ def create_absence(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """Saisit une absence pour un contrat."""
-    require_staff(current_user)
-    check_contrat_ownership(contrat_id, current_user.id, db)
+    _autoriser_saisie(contrat_id, absence_in.mois, absence_in.annee, current_user, db)
 
     absence = Absence(**absence_in.model_dump(), contrat_id=contrat_id)
     db.add(absence)
@@ -82,8 +106,7 @@ def create_heure_supplementaire(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """Saisit des heures supplémentaires pour un contrat."""
-    require_staff(current_user)
-    check_contrat_ownership(contrat_id, current_user.id, db)
+    _autoriser_saisie(contrat_id, hs_in.mois, hs_in.annee, current_user, db)
 
     hs = HeureSupplementaire(**hs_in.model_dump(), contrat_id=contrat_id)
     db.add(hs)
@@ -115,8 +138,7 @@ def create_prime(
     current_user: Utilisateur = Depends(get_current_user)
 ):
     """Saisit une prime pour un contrat."""
-    require_staff(current_user)
-    check_contrat_ownership(contrat_id, current_user.id, db)
+    _autoriser_saisie(contrat_id, prime_in.mois, prime_in.annee, current_user, db)
 
     prime = Prime(**prime_in.model_dump(), contrat_id=contrat_id)
     db.add(prime)
