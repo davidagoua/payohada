@@ -102,40 +102,6 @@ const handleCalculateSelected = async () => {
   await fetchDossierData()
 }
 
-// Saisie groupée de variables : un bulletin validé n'est plus modifiable,
-// ses salariés sont donc écartés de la sélection.
-const saisieGroupeeCibles = computed(() =>
-  selectedBulletins.value.filter(cId => bulletinsMap.value[cId]?.statut !== 'valide')
-)
-
-const ouvrirSaisieGroupee = (ouvrir) => {
-  const cibles = saisieGroupeeCibles.value
-  if (cibles.length === 0) {
-    toast.add({
-      title: 'Info',
-      description: 'Les bulletins sélectionnés sont tous validés : aucune variable ne peut y être ajoutée.',
-      color: 'warning'
-    })
-    return
-  }
-  const ecartes = selectedBulletins.value.length - cibles.length
-  if (ecartes > 0) {
-    toast.add({
-      title: 'Sélection ajustée',
-      description: `${ecartes} bulletin(s) validé(s) écarté(s) de la saisie.`,
-      color: 'info'
-    })
-  }
-  ouvrir(cibles)
-}
-
-const menuSaisieGroupee = computed(() => [[
-  { label: 'Ajouter une prime', icon: 'i-lucide-gift', onSelect: () => ouvrirSaisieGroupee(ids => modalesVariables.value?.openPrimeModal(ids)) },
-  { label: 'Déclarer une absence', icon: 'i-lucide-calendar-x', onSelect: () => ouvrirSaisieGroupee(ids => modalesVariables.value?.openAbsModal(ids)) },
-  { label: 'Ajouter des heures sup', icon: 'i-lucide-clock', onSelect: () => ouvrirSaisieGroupee(ids => modalesVariables.value?.openHsModal(ids)) },
-  { label: 'Saisir un acompte', icon: 'i-lucide-banknote', onSelect: () => ouvrirSaisieGroupee(ids => modalesVariables.value?.openAcompteModal(ids)) }
-]])
-
 const handleValidateSelected = async () => {
   const drafts = selectedBulletins.value
     .map(cId => bulletinsMap.value[cId])
@@ -792,7 +758,7 @@ onMounted(async () => {
             <UIcon name="i-lucide-calculator" class="w-3.5 h-3.5" />
             Calculer la sélection
           </button>
-          <UDropdownMenu :items="menuSaisieGroupee">
+          <UDropdownMenu :items="modalesVariables?.menuSaisieGroupee(selectedBulletins) ?? []">
             <button
               class="px-3 py-1.5 border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-semibold rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
             >

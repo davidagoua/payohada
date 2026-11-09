@@ -257,7 +257,38 @@ const handleSaveAcompte = async () => {
   }
 }
 
-defineExpose({ openPrimeModal, openAbsModal, openHsModal, openAcompteModal })
+// Saisie groupée : un bulletin validé n'est plus modifiable, ses salariés sont
+// donc écartés de la sélection.
+const ouvrirPourSelection = (selection, ouvrir) => {
+  const modifiables = selection.filter(contratId => bulletinsMap.value[contratId]?.statut !== 'valide')
+  if (modifiables.length === 0) {
+    toast.add({
+      title: 'Info',
+      description: 'Les bulletins sélectionnés sont tous validés : aucune variable ne peut y être ajoutée.',
+      color: 'warning'
+    })
+    return
+  }
+  const ecartes = selection.length - modifiables.length
+  if (ecartes > 0) {
+    toast.add({
+      title: 'Sélection ajustée',
+      description: `${ecartes} bulletin(s) validé(s) écarté(s) de la saisie.`,
+      color: 'info'
+    })
+  }
+  ouvrir(modifiables)
+}
+
+/** Entrées du menu « Ajouter des variables » d'une barre d'actions groupées. */
+const menuSaisieGroupee = selection => [[
+  { label: 'Ajouter une prime', icon: 'i-lucide-gift', onSelect: () => ouvrirPourSelection(selection, openPrimeModal) },
+  { label: 'Déclarer une absence', icon: 'i-lucide-calendar-x', onSelect: () => ouvrirPourSelection(selection, openAbsModal) },
+  { label: 'Ajouter des heures sup', icon: 'i-lucide-clock', onSelect: () => ouvrirPourSelection(selection, openHsModal) },
+  { label: 'Saisir un acompte', icon: 'i-lucide-banknote', onSelect: () => ouvrirPourSelection(selection, openAcompteModal) }
+]]
+
+defineExpose({ openPrimeModal, openAbsModal, openHsModal, openAcompteModal, menuSaisieGroupee })
 
 onMounted(fetchPlanPaie)
 </script>
