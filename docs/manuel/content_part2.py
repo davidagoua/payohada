@@ -318,10 +318,39 @@ def render(doc: Document) -> None:
         font_size=8.8,
     )
     k.add_bullets(doc, [
-        "Utilisez les boutons **+ HS**, **+ Absence** et **+ Prime** sur la ligne du salarié.",
+        "Pour un salarié, ouvrez le menu **Saisies** sur sa ligne : prime, absence, heures supplémentaires ou acompte.",
         "Le bouton **Import / Export Variables de Paie** permet de travailler dans Excel puis de réimporter la grille.",
         "Contrôlez toujours les totaux affichés avant de calculer les bulletins.",
     ])
+
+    k.add_heading(doc, "Saisir une variable pour plusieurs salariés", level=3)
+    k.add_para(
+        doc,
+        "Lorsqu'une même variable concerne plusieurs salariés, par exemple une prime "
+        "exceptionnelle, une seule saisie suffit depuis l'onglet **Bulletins de Salaire** "
+        "de l'établissement.",
+    )
+    k.add_steps(doc, [
+        "Sélectionnez le **mois** et l'**année** de la période.",
+        "Cochez les salariés concernés, ou la case de l'en-tête pour toute la liste.",
+        "Dans la barre qui apparaît au-dessus du tableau, cliquez sur **Ajouter des variables**.",
+        "Choisissez **Ajouter une prime**, **Déclarer une absence**, **Ajouter des heures sup** ou **Saisir un acompte**.",
+        "Renseignez la fenêtre, dont le titre indique le nombre de salariés concernés, puis cliquez sur **Enregistrer et Recalculer**.",
+    ])
+    k.add_para(
+        doc,
+        "La variable est ajoutée à chaque salarié et son bulletin est recalculé ; un "
+        "bulletin qui n'avait pas encore été calculé l'est à cette occasion. Un message "
+        "final indique le nombre de bulletins mis à jour et, le cas échéant, les échecs.",
+    )
+    k.add_callout(
+        doc,
+        "warning",
+        "Attention",
+        "Les bulletins **validés** sont écartés de la saisie : invalidez-les d'abord si "
+        "une correction est nécessaire. Pour un **acompte**, le montant saisi remplace "
+        "l'acompte de chaque salarié sélectionné.",
+    )
 
     k.add_heading(doc, "3.10 Calculer, valider et corriger les bulletins", level=2)
     k.add_steps(doc, [
