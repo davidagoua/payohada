@@ -257,20 +257,9 @@ const handleSaveAcompte = async () => {
   }
 }
 
-// Popup « Ajouter des variables » : choix du type, puis formulaire correspondant.
-const choixModalOpen = ref(false)
-const selectionChoix = ref([])
-const bulletinsEcartes = ref(0)
-
-const typesVariables = [
-  { label: 'Prime', description: 'Prime ou gratification du mois', icon: 'i-lucide-gift', ouvrir: openPrimeModal },
-  { label: 'Absence', description: 'Congés, maladie, accident ou sans solde', icon: 'i-lucide-calendar-x', ouvrir: openAbsModal },
-  { label: 'Heures supplémentaires', description: 'Heures majorées à 15, 25 ou 50 %', icon: 'i-lucide-clock', ouvrir: openHsModal },
-  { label: 'Acompte', description: 'Montant déduit du net à payer', icon: 'i-lucide-banknote', ouvrir: openAcompteModal }
-]
-
-// Un bulletin validé n'est plus modifiable : ses salariés sont écartés de la saisie.
-const ouvrirChoixVariables = (selection) => {
+// Saisie groupée : un bulletin validé n'est plus modifiable, ses salariés sont
+// donc écartés de la sélection.
+const ouvrirPourSelection = (selection, ouvrir) => {
   const modifiables = selection.filter(contratId => bulletinsMap.value[contratId]?.statut !== 'valide')
   if (modifiables.length === 0) {
     toast.add({
@@ -280,63 +269,32 @@ const ouvrirChoixVariables = (selection) => {
     })
     return
   }
-  selectionChoix.value = modifiables
-  bulletinsEcartes.value = selection.length - modifiables.length
-  choixModalOpen.value = true
+  const ecartes = selection.length - modifiables.length
+  if (ecartes > 0) {
+    toast.add({
+      title: 'Sélection ajustée',
+      description: `${ecartes} bulletin(s) validé(s) écarté(s) de la saisie.`,
+      color: 'info'
+    })
+  }
+  ouvrir(modifiables)
 }
 
-const choisirVariable = async (type) => {
-  choixModalOpen.value = false
-  await nextTick()
-  type.ouvrir(selectionChoix.value)
-}
+/** Menu « Saisies » de la barre d'actions groupées : le même que sur chaque ligne. */
+const menuSaisieGroupee = selection => [[
+  { label: 'Ajouter une prime', icon: 'i-lucide-gift', onSelect: () => ouvrirPourSelection(selection, openPrimeModal) },
+  { label: 'Déclarer une absence', icon: 'i-lucide-calendar-x', onSelect: () => ouvrirPourSelection(selection, openAbsModal) },
+  { label: 'Ajouter des heures sup', icon: 'i-lucide-clock', onSelect: () => ouvrirPourSelection(selection, openHsModal) },
+  { label: 'Saisir un acompte', icon: 'i-lucide-banknote', onSelect: () => ouvrirPourSelection(selection, openAcompteModal) }
+]]
 
-defineExpose({ openPrimeModal, openAbsModal, openHsModal, openAcompteModal, ouvrirChoixVariables })
+defineExpose({ openPrimeModal, openAbsModal, openHsModal, openAcompteModal, menuSaisieGroupee })
 
 onMounted(fetchPlanPaie)
 </script>
 
 <template>
   <div>
-  <!-- Modal: choix du type de variable -->
-  <UModal v-model:open="choixModalOpen" title="Ajouter des variables">
-    <template #content>
-      <div class="p-6 space-y-4 rounded-xl bg-white border border-slate-200">
-        <div class="border-b border-slate-200 pb-2">
-          <h2 class="text-lg font-bold text-navy-900 uppercase tracking-wider">Ajouter des variables</h2>
-          <p class="text-xs text-slate-500 mt-1">
-            Quel type de variable voulez-vous saisir pour {{ selectionChoix.length }} salarié(s) ?
-          </p>
-          <p v-if="bulletinsEcartes > 0" class="text-xs text-yellow-700 mt-1">
-            {{ bulletinsEcartes }} bulletin(s) validé(s) écarté(s) de la saisie.
-          </p>
-        </div>
-
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <button
-            v-for="type in typesVariables"
-            :key="type.label"
-            type="button"
-            class="flex items-start gap-3 p-4 text-left border border-slate-200 rounded-lg hover:border-green-600 hover:bg-green-50 transition-colors cursor-pointer"
-            @click="choisirVariable(type)"
-          >
-            <UIcon :name="type.icon" class="w-5 h-5 mt-0.5 shrink-0 text-green-700" />
-            <span>
-              <span class="block text-sm font-bold text-navy-900">{{ type.label }}</span>
-              <span class="block text-xs text-slate-500 mt-0.5">{{ type.description }}</span>
-            </span>
-          </button>
-        </div>
-
-        <div class="flex justify-end pt-4 border-t border-slate-200">
-          <button type="button" @click="choixModalOpen = false" class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-lg hover:bg-slate-50 text-slate-700 transition-colors uppercase tracking-wider cursor-pointer">
-            Annuler
-          </button>
-        </div>
-      </div>
-    </template>
-  </UModal>
-
   <!-- Modals for adding variables -->
 
   <!-- Modal: Overtime -->

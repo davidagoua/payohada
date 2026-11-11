@@ -765,13 +765,15 @@ onMounted(async () => {
             <UIcon name="i-lucide-check-circle-2" class="w-3.5 h-3.5" />
             Valider la sélection
           </button>
-          <button
-            @click="modalesVariables?.ouvrirChoixVariables(selectedBulletins)"
-            class="px-3 py-1.5 bg-navy-800 hover:bg-navy-700 text-white font-semibold rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
-          >
-            <UIcon name="i-lucide-list-plus" class="w-3.5 h-3.5" />
-            Ajouter des variables
-          </button>
+          <UDropdownMenu :items="modalesVariables?.menuSaisieGroupee(selectedBulletins) ?? []">
+            <button
+              class="px-3 py-1.5 bg-navy-800 hover:bg-navy-700 text-white font-semibold rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+            >
+              <UIcon name="i-lucide-list-plus" class="w-3.5 h-3.5" />
+              Saisies
+              <UIcon name="i-lucide-chevron-down" class="w-3.5 h-3.5" />
+            </button>
+          </UDropdownMenu>
         </div>
       </div>
 
