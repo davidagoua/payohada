@@ -21,6 +21,7 @@ from app.services import password_reset
 from app.services.email import send_email
 from app.services.email_templates import email_reinitialisation_mot_de_passe
 from app.models.models import Utilisateur
+from app.services.permissions import accueil_cabinet_entreprise, type_cabinet
 from app.database import get_db
 import uuid
 
@@ -44,8 +45,22 @@ def _find_user_by_email(db: Session, email: str) -> Utilisateur | None:
     )
 
 
-def _build_user_payload(user: Utilisateur, nom_dossier: str | None = None) -> dict:
+def _infos_cabinet(db: Session, user: Utilisateur) -> dict:
+    """Type de cabinet et, pour une entreprise, sa page d'arrivée."""
+    dossier_id, etablissement_id = accueil_cabinet_entreprise(db, user)
     return {
+        "type_cabinet": type_cabinet(db, user),
+        "accueil_dossier_id": dossier_id,
+        "accueil_etablissement_id": etablissement_id,
+    }
+
+
+def _build_user_payload(
+    user: Utilisateur, nom_dossier: str | None = None, db: Session | None = None
+) -> dict:
+    infos_cabinet = _infos_cabinet(db, user) if db is not None else {}
+    return {
+        **infos_cabinet,
         "id": user.id,
         "email": user.email,
         "nom": user.nom,
@@ -66,9 +81,14 @@ def _build_user_payload(user: Utilisateur, nom_dossier: str | None = None) -> di
 
 
 @router.get("/me", response_model=UtilisateurOut)
-def read_current_user(current_user: Utilisateur = Depends(get_current_user)):
+def read_current_user(
+    current_user: Utilisateur = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
     """Récupère le profil de l'utilisateur actuellement connecté."""
     user_out = UtilisateurOut.model_validate(current_user)
+    for champ, valeur in _infos_cabinet(db, current_user).items():
+        setattr(user_out, champ, valeur)
     if current_user.dossier_id and current_user.dossier_client:
         user_out.nom_dossier = current_user.dossier_client.nom_dossier
     user_out.is_default_password = bool(current_user.must_change_password)
@@ -137,7 +157,7 @@ def login(request: LoginRequest, http_request: Request, db: Session = Depends(ge
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "user": _build_user_payload(user, nom_dossier),
+        "user": _build_user_payload(user, nom_dossier, db),
     }
 
 
@@ -374,5 +394,5 @@ def signup_cabinet(
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "user": _build_user_payload(new_user),
+        "user": _build_user_payload(new_user, db=db),
     }

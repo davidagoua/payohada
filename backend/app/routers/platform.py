@@ -41,7 +41,12 @@ from app.services.security import (
     get_password_hash,
     validate_password_strength,
 )
-from app.services.permissions import require_admin
+from app.services.permissions import (
+    TYPE_CABINET,
+    TYPE_CABINET_ENTREPRISE,
+    creer_societe_entreprise,
+    require_admin,
+)
 
 router = APIRouter(prefix="/platform", tags=["Administration plateforme"])
 
@@ -129,6 +134,7 @@ def _presenter_cabinet(db: Session, proprietaire: Utilisateur) -> CabinetOut:
         nom=proprietaire.nom or "",
         telephone=proprietaire.cabinet_telephone,
         ville=proprietaire.cabinet_ville,
+        type_cabinet=proprietaire.type_cabinet or TYPE_CABINET,
         suspendu=bool(proprietaire.cabinet_suspendu),
         is_active=bool(proprietaire.is_active),
         membres=membres + 1,
@@ -149,6 +155,7 @@ def _creer_admin(
     cabinet_nom: str | None,
     cabinet_telephone: str | None,
     cabinet_ville: str | None,
+    type_cabinet: str = TYPE_CABINET,
 ) -> tuple[Utilisateur, str | None, bool, str | None]:
     email = donnees.email.strip().lower()
     if _email_deja_pris(db, email):
@@ -183,8 +190,13 @@ def _creer_admin(
         cabinet_ville=cabinet_ville,
         cabinet_suspendu=False,
     )
+    # Le type n'est porté que par le propriétaire ; les membres en héritent.
+    if cabinet_owner_id is None:
+        compte.type_cabinet = type_cabinet
     db.add(compte)
     db.flush()
+
+    entreprise = type_cabinet == TYPE_CABINET_ENTREPRISE
 
     sujet, contenu = email_acces_cree(
         compte.prenom,
@@ -194,8 +206,12 @@ def _creer_admin(
         None,
         lien_connexion(),
         changement_requis=must_change,
-        espace_libelle="Espace Cabinet",
-        espace_usage="administrer la paie des sociétés du cabinet",
+        espace_libelle="Espace Entreprise" if entreprise else "Espace Cabinet",
+        espace_usage=(
+            "gérer la paie de votre entreprise"
+            if entreprise
+            else "administrer la paie des sociétés du cabinet"
+        ),
     )
     envoye, motif = send_email(compte.email, sujet, contenu)
     return compte, mot_de_passe_initial, envoye, motif
@@ -261,9 +277,13 @@ def creer_cabinet(
         cabinet_nom=nom_cabinet,
         cabinet_telephone=payload.cabinet_telephone,
         cabinet_ville=payload.cabinet_ville,
+        type_cabinet=payload.type_cabinet,
     )
     # Le compte vient d'être créé : il devient sa propre racine.
     proprietaire.cabinet_owner_id = None
+    # Une entreprise arrive directement sur sa société : on la crée avec le compte.
+    if payload.type_cabinet == TYPE_CABINET_ENTREPRISE:
+        creer_societe_entreprise(db, proprietaire)
     db.commit()
     db.refresh(proprietaire)
 
@@ -297,6 +317,7 @@ def ajouter_administrateur(
         cabinet_nom=proprietaire.cabinet_nom,
         cabinet_telephone=proprietaire.cabinet_telephone,
         cabinet_ville=proprietaire.cabinet_ville,
+        type_cabinet=proprietaire.type_cabinet or TYPE_CABINET,
     )
     db.commit()
     db.refresh(compte)

@@ -18,7 +18,7 @@ from app.services.security import (
 )
 from app.services.permissions import (
     ROLE_CABINET, ROLE_GESTIONNAIRE_PAIE, dossiers_gérés, est_affecte, get_dossier_or_403,
-    is_staff, racine_cabinet, require_staff,
+    interdire_second_dossier, is_staff, racine_cabinet, require_staff,
 )
 import uuid
 
@@ -73,9 +73,11 @@ def create_dossier(
 
     Le contrôle ne visait auparavant que le rôle « client » : un salarié
     authentifié pouvait donc créer des dossiers. `require_staff` n'autorise que
-    le cabinet et le gestionnaire de paie.
+    le cabinet et le gestionnaire de paie. Un compte entreprise, limité à sa
+    société créée avec le compte, ne peut pas en ajouter.
     """
     require_staff(current_user)
+    interdire_second_dossier(db, current_user)
 
     # Vérifier si le code existe déjà
     existing = db.query(Dossier).filter(Dossier.code == dossier_in.code).first()
@@ -139,8 +141,12 @@ def delete_dossier(
     db: Session = Depends(get_db),
     current_user: Utilisateur = Depends(get_current_user)
 ):
-    """Supprime un dossier (cabinet propriétaire uniquement)."""
+    """Supprime un dossier (cabinet propriétaire uniquement).
+
+    Un compte entreprise ne peut pas supprimer sa seule société.
+    """
     dossier = _get_owned_dossier_for_write(dossier_id, current_user, db)
+    interdire_second_dossier(db, current_user)
 
     db.delete(dossier)
     db.commit()

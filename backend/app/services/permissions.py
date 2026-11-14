@@ -202,3 +202,110 @@ def get_dossier_or_403(dossier_id: int, user: Utilisateur, db: Session) -> Dossi
             detail="Accès non autorisé à ce dossier.",
         )
     return dossier
+
+
+# ─────────────────────────────────────────
+#  Cabinet de type « entreprise »
+# ─────────────────────────────────────────
+#: Cabinet classique : il tient la paie de plusieurs sociétés.
+TYPE_CABINET = "cabinet"
+#: Entreprise qui gère elle-même sa paie : un cabinet limité à une seule
+#: société, créée avec le compte. Ses membres arrivent directement sur
+#: l'établissement, sans passer par la liste des dossiers.
+TYPE_CABINET_ENTREPRISE = "entreprise"
+TYPES_CABINET = (TYPE_CABINET, TYPE_CABINET_ENTREPRISE)
+
+#: Longueurs imposées par le schéma (`dossiers.nom_dossier`, `dossiers.code`).
+_NOM_DOSSIER_MAX = 50
+
+
+def proprietaire_cabinet(db: Session, user: Utilisateur) -> Utilisateur | None:
+    """Compte propriétaire du cabinet de l'utilisateur (lui-même s'il l'est)."""
+    if user.is_admin or user.role not in STAFF_ROLES:
+        return None
+    if user.cabinet_owner_id:
+        return db.query(Utilisateur).filter(Utilisateur.id == user.cabinet_owner_id).first()
+    return user if user.role == ROLE_CABINET else None
+
+
+def type_cabinet(db: Session, user: Utilisateur) -> str | None:
+    """Type du cabinet de l'utilisateur, hérité du propriétaire ; `None` hors cabinet."""
+    proprietaire = proprietaire_cabinet(db, user)
+    if proprietaire is None:
+        return None
+    return proprietaire.type_cabinet or TYPE_CABINET
+
+
+def est_cabinet_entreprise(db: Session, user: Utilisateur) -> bool:
+    return type_cabinet(db, user) == TYPE_CABINET_ENTREPRISE
+
+
+def accueil_cabinet_entreprise(db: Session, user: Utilisateur) -> tuple[int | None, int | None]:
+    """Société et établissement d'arrivée d'un membre de cabinet entreprise.
+
+    Retourne `(None, None)` pour tout autre compte. Le premier établissement
+    créé est l'établissement d'accueil.
+    """
+    if not est_cabinet_entreprise(db, user):
+        return None, None
+    proprietaire = proprietaire_cabinet(db, user)
+    dossier = (
+        db.query(Dossier)
+        .filter(Dossier.utilisateur_id == proprietaire.id)
+        .order_by(Dossier.id)
+        .first()
+    )
+    if dossier is None:
+        return None, None
+    etablissement = (
+        db.query(Etablissement)
+        .filter(Etablissement.dossier_id == dossier.id)
+        .order_by(Etablissement.id)
+        .first()
+    )
+    return dossier.id, etablissement.id if etablissement else None
+
+
+def interdire_second_dossier(db: Session, user: Utilisateur) -> None:
+    """Un cabinet entreprise ne gère qu'une société : pas de création ni de suppression."""
+    if est_cabinet_entreprise(db, user):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Un compte entreprise gère une seule société : action non disponible.",
+        )
+
+
+def _code_dossier_libre(db: Session) -> str:
+    """Code de dossier unique (10 caractères maximum), de la forme ENT00001."""
+    numero = db.query(Dossier).count() + 1
+    while True:
+        code = f"ENT{numero:05d}"
+        if not db.query(Dossier.id).filter(Dossier.code == code).first():
+            return code
+        numero += 1
+
+
+def creer_societe_entreprise(db: Session, proprietaire: Utilisateur) -> tuple[Dossier, Etablissement]:
+    """Crée la société d'un cabinet entreprise : un dossier et son établissement.
+
+    Les deux portent le nom du cabinet (tronqué pour le dossier). L'appelant
+    valide la transaction.
+    """
+    nom = (proprietaire.cabinet_nom or "").strip() or "Mon entreprise"
+    dossier = Dossier(
+        code=_code_dossier_libre(db),
+        nom_dossier=nom[:_NOM_DOSSIER_MAX],
+        utilisateur_id=proprietaire.id,
+        pays="Côte d'Ivoire",
+    )
+    db.add(dossier)
+    db.flush()
+    etablissement = Etablissement(
+        dossier_id=dossier.id,
+        code="ETAB0001",
+        raison_sociale=nom,
+        etablissement_principal=True,
+    )
+    db.add(etablissement)
+    db.flush()
+    return dossier, etablissement

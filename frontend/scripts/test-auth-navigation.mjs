@@ -31,6 +31,14 @@ const ADMIN = { role: 'cabinet', is_admin: true }
 const CLIENT = { role: 'client', dossier_id: 1, is_admin: false }
 const SALARIE = { role: 'salarie', salarie_id: 7, is_admin: false }
 const GESTIONNAIRE = { role: 'gestionnaire_paie', is_admin: false }
+const ENTREPRISE = {
+  role: 'cabinet', is_admin: false, type_cabinet: 'entreprise',
+  accueil_dossier_id: 4, accueil_etablissement_id: 9
+}
+// Société créée mais établissement supprimé : l'accueil retombe sur le dossier.
+const ENTREPRISE_SANS_ETAB = { ...ENTREPRISE, accueil_etablissement_id: null }
+// Profil incomplet (ancien cache) : aucune redirection possible, pas de boucle.
+const ENTREPRISE_SANS_SOCIETE = { ...ENTREPRISE, accueil_dossier_id: null, accueil_etablissement_id: null }
 
 let echecs = 0
 let total = 0
@@ -145,10 +153,33 @@ verifier('client est renvoyé de /bulletins vers /client',
 verifier('route inconnue laissée en l\'état',
   deciderRedirection({ chemin: '/une/route/libre', aJeton: true, utilisateur: CABINET }), laisser)
 
+console.log('\nCompte entreprise (cabinet limité à sa société)')
+verifier('/login mène directement à son établissement',
+  deciderRedirection({ chemin: '/login', aJeton: true, utilisateur: ENTREPRISE }),
+  vers('/dossiers/4/etablissements/9'))
+verifier('la liste des dossiers renvoie vers son établissement',
+  deciderRedirection({ chemin: '/dossiers', aJeton: true, utilisateur: ENTREPRISE }),
+  vers('/dossiers/4/etablissements/9'))
+verifier('la création de dossier renvoie vers son établissement',
+  deciderRedirection({ chemin: '/dossiers/new', aJeton: true, utilisateur: ENTREPRISE }),
+  vers('/dossiers/4/etablissements/9'))
+verifier('son établissement est accessible',
+  deciderRedirection({ chemin: '/dossiers/4/etablissements/9', aJeton: true, utilisateur: ENTREPRISE }), laisser)
+verifier('sa société (liste de ses établissements) reste accessible',
+  deciderRedirection({ chemin: '/dossiers/4', aJeton: true, utilisateur: ENTREPRISE }), laisser)
+verifier('il garde l\'administration de ses membres',
+  deciderRedirection({ chemin: '/admin/utilisateurs', aJeton: true, utilisateur: ENTREPRISE }), laisser)
+verifier('sans établissement, l\'accueil est sa société',
+  deciderRedirection({ chemin: '/dossiers', aJeton: true, utilisateur: ENTREPRISE_SANS_ETAB }), vers('/dossiers/4'))
+verifier('sans société connue, /dossiers est laissé (pas de boucle)',
+  deciderRedirection({ chemin: '/dossiers', aJeton: true, utilisateur: ENTREPRISE_SANS_SOCIETE }), laisser)
+verifier('un cabinet classique garde la liste des dossiers',
+  deciderRedirection({ chemin: '/dossiers', aJeton: true, utilisateur: { ...CABINET, type_cabinet: 'cabinet' } }), laisser)
+
 console.log('\nInvariant anti-boucle')
 // Aucune combinaison ne doit proposer de rediriger vers la route courante.
-const chemins = ['/', '/login', '/forgot-password', '/reset-password', '/dossiers', '/client', '/salaries/bulletins', '/admin', '/admin/utilisateurs', '/admin/constantes', '/admin/cabinets', '/admin/reclamations', '/bulletins', '/simulation']
-const profils = [null, CABINET, ADMIN, CLIENT, SALARIE]
+const chemins = ['/', '/login', '/dossiers/new', '/dossiers/4', '/dossiers/4/etablissements/9', '/forgot-password', '/reset-password', '/dossiers', '/client', '/salaries/bulletins', '/admin', '/admin/utilisateurs', '/admin/constantes', '/admin/cabinets', '/admin/reclamations', '/bulletins', '/simulation']
+const profils = [null, CABINET, ADMIN, CLIENT, SALARIE, ENTREPRISE, ENTREPRISE_SANS_ETAB, ENTREPRISE_SANS_SOCIETE]
 let boucles = 0
 for (const chemin of chemins) {
   for (const utilisateur of profils) {
@@ -165,6 +196,7 @@ verifier('destinationParDefaut(cabinet)', destinationParDefaut(CABINET), '/dossi
 verifier('destinationParDefaut(client)', destinationParDefaut(CLIENT), '/client')
 verifier('destinationParDefaut(salarié)', destinationParDefaut(SALARIE), '/salaries/bulletins')
 verifier('destinationParDefaut(admin plateforme)', destinationParDefaut(ADMIN), '/admin')
+verifier('destinationParDefaut(entreprise)', destinationParDefaut(ENTREPRISE), '/dossiers/4/etablissements/9')
 
 rmSync(dossier, { recursive: true, force: true })
 

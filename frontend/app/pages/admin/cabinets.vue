@@ -26,6 +26,7 @@ const adminCible = ref(null)
 const compteCree = ref(null)
 
 const creation = ref({
+  type_cabinet: 'cabinet',
   cabinet_nom: '',
   cabinet_telephone: '',
   cabinet_ville: '',
@@ -62,7 +63,7 @@ const charger = async () => {
 
 const reinitialiserCreation = () => {
   creation.value = {
-    cabinet_nom: '', cabinet_telephone: '', cabinet_ville: '',
+    type_cabinet: 'cabinet', cabinet_nom: '', cabinet_telephone: '', cabinet_ville: '',
     prenom: '', nom: '', email: '', password: ''
   }
 }
@@ -84,6 +85,7 @@ const creerCabinet = async () => {
       cabinet_nom: creation.value.cabinet_nom.trim(),
       cabinet_telephone: creation.value.cabinet_telephone || null,
       cabinet_ville: creation.value.cabinet_ville || null,
+      type_cabinet: creation.value.type_cabinet,
       administrateur: {
         prenom: creation.value.prenom.trim(),
         nom: creation.value.nom.trim(),
@@ -92,7 +94,9 @@ const creerCabinet = async () => {
       }
     })
     compteCree.value = {
-      titre: `Cabinet « ${cree.cabinet_nom} » créé`,
+      titre: cree.type_cabinet === 'entreprise'
+        ? `Entreprise « ${cree.cabinet_nom} » créée, avec son dossier et son établissement`
+        : `Cabinet « ${cree.cabinet_nom} » créé`,
       email: cree.email,
       motDePasse: cree.mot_de_passe_initial,
       emailEnvoye: cree.email_envoye
@@ -241,8 +245,29 @@ onMounted(() => {
       <div v-if="formulaireOuvert" class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
         <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider mb-4">Nouveau cabinet et son administrateur</h2>
         <form class="grid grid-cols-1 md:grid-cols-2 gap-4" @submit.prevent="creerCabinet">
+          <fieldset class="md:col-span-2">
+            <legend class="block text-xs font-bold uppercase tracking-wider text-slate-500">Type de compte</legend>
+            <div class="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <label class="flex items-start gap-3 p-3 border rounded-lg cursor-pointer"
+                :class="creation.type_cabinet === 'cabinet' ? 'border-green-600 bg-green-50' : 'border-slate-200'">
+                <input v-model="creation.type_cabinet" type="radio" value="cabinet" class="mt-0.5">
+                <span>
+                  <span class="block text-sm font-bold text-navy-900">Cabinet de paie</span>
+                  <span class="block text-xs text-slate-500">Gère la paie de plusieurs entreprises.</span>
+                </span>
+              </label>
+              <label class="flex items-start gap-3 p-3 border rounded-lg cursor-pointer"
+                :class="creation.type_cabinet === 'entreprise' ? 'border-green-600 bg-green-50' : 'border-slate-200'">
+                <input v-model="creation.type_cabinet" type="radio" value="entreprise" class="mt-0.5">
+                <span>
+                  <span class="block text-sm font-bold text-navy-900">Entreprise</span>
+                  <span class="block text-xs text-slate-500">Gère sa propre paie : son dossier et son établissement sont créés avec le compte.</span>
+                </span>
+              </label>
+            </div>
+          </fieldset>
           <div class="md:col-span-2">
-            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500" for="cabinet_nom">Nom du cabinet</label>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500" for="cabinet_nom">{{ creation.type_cabinet === 'entreprise' ? 'Nom de l’entreprise' : 'Nom du cabinet' }}</label>
             <input id="cabinet_nom" v-model="creation.cabinet_nom" type="text" required placeholder="Cabinet Audit & Paie"
               class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500">
           </div>
@@ -371,7 +396,11 @@ onMounted(() => {
                       {{ (cabinet.cabinet_nom || cabinet.email || '?').charAt(0).toUpperCase() }}
                     </div>
                     <div>
-                      <p class="font-bold text-navy-900">{{ cabinet.cabinet_nom || 'Cabinet sans nom' }}</p>
+                      <p class="font-bold text-navy-900">
+                        {{ cabinet.cabinet_nom || 'Cabinet sans nom' }}
+                        <span v-if="cabinet.type_cabinet === 'entreprise'"
+                          class="ml-1 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-green-50 text-green-700 border border-green-200 rounded">Entreprise</span>
+                      </p>
                       <p class="text-xs text-slate-500">{{ cabinet.email }}</p>
                       <p class="text-[11px] text-slate-400 mt-0.5">
                         {{ cabinet.ville || '—' }} · créé le {{ formaterDate(cabinet.created_at) }}

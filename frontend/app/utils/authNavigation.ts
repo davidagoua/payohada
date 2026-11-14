@@ -11,6 +11,10 @@ export interface UtilisateurAuth {
   role?: string | null
   salarie_id?: number | null
   is_admin?: boolean | null
+  /** `entreprise` : cabinet limité à sa seule société (voir `estCompteEntreprise`). */
+  type_cabinet?: string | null
+  accueil_dossier_id?: number | null
+  accueil_etablissement_id?: number | null
 }
 
 export type Decision =
@@ -42,6 +46,28 @@ export const ESPACES = [
  */
 export const ROUTES_PLATEFORME = ['/admin', '/admin/cabinets', '/admin/constantes', '/admin/plan-paie', '/simulation']
 
+/**
+ * Compte entreprise : un cabinet qui gère la paie de sa seule société. Il
+ * travaille dans son établissement et ne voit ni la liste des dossiers ni la
+ * création de dossier.
+ */
+export function estCompteEntreprise(utilisateur: UtilisateurAuth | null | undefined): boolean {
+  return !!utilisateur && !utilisateur.is_admin && utilisateur.type_cabinet === 'entreprise'
+}
+
+/** Page d'arrivée d'un compte entreprise : son établissement, sinon sa société. */
+export function accueilEntreprise(utilisateur: UtilisateurAuth): string | null {
+  const dossier = utilisateur.accueil_dossier_id
+  if (!dossier) return null
+  const etablissement = utilisateur.accueil_etablissement_id
+  return etablissement
+    ? `/dossiers/${dossier}/etablissements/${etablissement}`
+    : `/dossiers/${dossier}`
+}
+
+/** Pages de cabinet multi-sociétés, fermées au compte entreprise. */
+export const ROUTES_MULTI_DOSSIERS = ['/dossiers', '/dossiers/new']
+
 /** Espace d'accueil d'un utilisateur selon son rôle. */
 export function destinationParDefaut(utilisateur: UtilisateurAuth): string {
   if (utilisateur.is_admin) {
@@ -52,6 +78,9 @@ export function destinationParDefaut(utilisateur: UtilisateurAuth): string {
   }
   if (utilisateur.role === 'client') {
     return '/client'
+  }
+  if (estCompteEntreprise(utilisateur)) {
+    return accueilEntreprise(utilisateur) ?? '/dossiers'
   }
   return '/dossiers'
 }
@@ -118,6 +147,13 @@ export function deciderRedirection(params: {
     return role === 'cabinet' && !chemin.startsWith('/admin/cabinets')
       ? { action: 'laisser' }
       : rediriger(destinationParDefaut(utilisateur))
+  }
+
+  // Compte entreprise : la liste des dossiers et la création de dossier sont
+  // remplacées par sa propre société (sans boucle s'il n'en a pas encore).
+  if (estCompteEntreprise(utilisateur) && ROUTES_MULTI_DOSSIERS.includes(chemin)) {
+    const accueil = accueilEntreprise(utilisateur)
+    return accueil ? rediriger(accueil) : { action: 'laisser' }
   }
 
   for (const espace of ESPACES) {

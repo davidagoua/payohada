@@ -1471,7 +1471,27 @@ ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS cabinet_suspendu BOOLEAN NOT N
 COMMENT ON COLUMN utilisateurs.cabinet_suspendu
     IS 'Cabinet suspendu par la plateforme : connexion et API bloquées pour tous ses membres';
 
--- 14. Contrôles post-migration (à exécuter manuellement) :
+-- 14. Type de cabinet : un cabinet « entreprise » gère la paie de sa seule
+--     société. Porté par le propriétaire ; les membres en héritent. Les
+--     comptes existants restent des cabinets classiques.
+
+ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS type_cabinet VARCHAR(20) NOT NULL DEFAULT 'cabinet';
+
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint WHERE conname = 'ck_utilisateurs_type_cabinet'
+    ) THEN
+        ALTER TABLE utilisateurs
+            ADD CONSTRAINT ck_utilisateurs_type_cabinet
+            CHECK (type_cabinet IN ('cabinet', 'entreprise'));
+    END IF;
+END $$;
+
+COMMENT ON COLUMN utilisateurs.type_cabinet
+    IS 'cabinet : plusieurs sociétés ; entreprise : une seule société, créée avec le compte';
+
+-- 15. Contrôles post-migration (à exécuter manuellement) :
 --    -- Aucun compte sans mot de passe (sinon connexion impossible) :
 --    SELECT id, email, role FROM utilisateurs WHERE hashed_password IS NULL;
 --    -- La colonne et ses valeurs par défaut :

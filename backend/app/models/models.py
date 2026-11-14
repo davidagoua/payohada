@@ -80,6 +80,9 @@ class Utilisateur(TimestampMixin, Base):
     #: Le cabinet est suspendu par l'administrateur plateforme : aucun membre
     #: ne peut se connecter ni utiliser l'API. Porté par le propriétaire.
     cabinet_suspendu = Column(Boolean, default=False, nullable=False)
+    #: `cabinet` (plusieurs sociétés) ou `entreprise` (une seule société, créée
+    #: avec le compte). Porté par le propriétaire ; les membres en héritent.
+    type_cabinet = Column(String(20), default="cabinet", nullable=False, server_default="cabinet")
 
     # Relations
     dossiers = relationship("Dossier", back_populates="proprietaire", foreign_keys="[Dossier.utilisateur_id]")

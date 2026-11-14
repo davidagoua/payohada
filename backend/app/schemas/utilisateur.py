@@ -27,6 +27,12 @@ class UtilisateurOut(UtilisateurBase):
     cabinet_nom: Optional[str] = None
     cabinet_telephone: Optional[str] = None
     cabinet_ville: Optional[str] = None
+    #: Type du cabinet (`cabinet` ou `entreprise`), hérité du propriétaire ;
+    #: `None` hors cabinet.
+    type_cabinet: Optional[str] = None
+    #: Compte entreprise : société et établissement sur lesquels il arrive.
+    accueil_dossier_id: Optional[int] = None
+    accueil_etablissement_id: Optional[int] = None
     #: `True` lorsque l'utilisateur doit définir son propre mot de passe.
     is_default_password: Optional[bool] = False
     #: Mot de passe généré, renvoyé UNE SEULE FOIS à la création du compte.

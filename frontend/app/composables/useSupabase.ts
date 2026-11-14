@@ -90,6 +90,9 @@ export const useSupabase = () => {
           cabinet_nom: profile.cabinet_nom,
           cabinet_telephone: profile.cabinet_telephone,
           cabinet_ville: profile.cabinet_ville,
+          type_cabinet: profile.type_cabinet,
+          accueil_dossier_id: profile.accueil_dossier_id,
+          accueil_etablissement_id: profile.accueil_etablissement_id,
           is_admin: profile.is_admin,
           is_active: profile.is_active,
           is_default_password: !!profile.is_default_password,
@@ -241,6 +244,9 @@ export const useSupabase = () => {
             cabinet_nom: response.user.cabinet_nom,
             cabinet_telephone: response.user.cabinet_telephone,
             cabinet_ville: response.user.cabinet_ville,
+            type_cabinet: response.user.type_cabinet,
+            accueil_dossier_id: response.user.accueil_dossier_id,
+            accueil_etablissement_id: response.user.accueil_etablissement_id,
             is_default_password: !!response.user.is_default_password
           }
           dernierEnrichissement = { jeton: response.access_token, date: Date.now() }

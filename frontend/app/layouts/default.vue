@@ -1,4 +1,6 @@
 <script setup>
+import { accueilEntreprise, estCompteEntreprise } from '~/utils/authNavigation'
+
 const { user, logout } = useSupabase()
 const { openModal: openPasswordModal, checkAndSuggest: checkPasswordSuggestion } = useChangePasswordModal()
 const { get } = useApi()
@@ -11,7 +13,13 @@ const estAdminPlateforme = computed(() => !!user.value?.is_admin)
 const peutAdministrer = computed(
   () => !estAdminPlateforme.value && user.value?.role === 'cabinet'
 )
-const accueil = computed(() => (estAdminPlateforme.value ? '/admin' : '/dossiers'))
+// Compte entreprise : une seule société, son accueil est son établissement.
+const compteEntreprise = computed(() => estCompteEntreprise(user.value))
+const accueil = computed(() => {
+  if (estAdminPlateforme.value) return '/admin'
+  if (compteEntreprise.value) return accueilEntreprise(user.value) ?? '/dossiers'
+  return '/dossiers'
+})
 
 // Suggestion automatique du modal de mot de passe par défaut pour client / salarié
 watch(() => user.value, (u) => {
@@ -380,6 +388,7 @@ const handleLogout = async () => {
             <!-- 3. ESPACE CABINET -->
             <template v-else-if="!routeInfo.isEtabSelected">
               <NuxtLink
+                v-if="!compteEntreprise"
                 to="/dossiers"
                 class="px-4 py-3.5 whitespace-nowrap shrink-0 rounded-t-lg border-b-2 border-transparent text-xs font-bold uppercase tracking-wider text-slate-300 hover:text-white hover:bg-white/5 transition-all"
                 active-class="border-b-2! border-b-green-600! text-navy-900! bg-white! font-bold"

@@ -1,6 +1,6 @@
 """Schémas de l'administration plateforme (cabinets)."""
 from datetime import datetime
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -16,6 +16,9 @@ class CabinetCreate(BaseModel):
     cabinet_nom: str = Field(min_length=1, max_length=200)
     cabinet_telephone: Optional[str] = Field(default=None, max_length=30)
     cabinet_ville: Optional[str] = Field(default=None, max_length=100)
+    #: `entreprise` : une seule société, créée avec le compte (dossier et
+    #: établissement au nom du cabinet).
+    type_cabinet: Literal["cabinet", "entreprise"] = "cabinet"
     administrateur: CabinetAdminCreate
 
 
@@ -50,6 +53,7 @@ class CabinetOut(BaseModel):
     nom: str
     telephone: Optional[str] = None
     ville: Optional[str] = None
+    type_cabinet: str = "cabinet"
     suspendu: bool = False
     is_active: bool = True
     membres: int = 0
