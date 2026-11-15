@@ -225,7 +225,7 @@ const handleLogout = async () => {
                     :to="item.to"
                     class="hover:text-white font-medium transition-colors duration-150 flex items-center"
                   >
-                    <UIcon
+                    <Icon
                       v-if="item.icon"
                       :name="item.icon"
                       class="w-4 h-4 mr-1 text-white/40"
@@ -264,7 +264,7 @@ const handleLogout = async () => {
               </div>
 
               <!-- Profile Dropdown -->
-              <UDropdownMenu
+              <AppMenu
                 :items="[[
                   {
                     label: 'Mon Profil',
@@ -283,14 +283,13 @@ const handleLogout = async () => {
                   }
                 ]]"
               >
-                <UButton
-                  color="neutral"
-                  variant="ghost"
-                  class="rounded-full w-9 h-9 p-0 bg-green-500 text-navy-950 hover:bg-green-400 flex items-center justify-center font-bold"
-                >
-                  {{ user.email?.[0].toUpperCase() }}
-                </UButton>
-              </UDropdownMenu>
+                <Button
+                  rounded
+                  :label="user.email?.[0].toUpperCase()"
+                  aria-label="Menu du profil"
+                  class="w-9 h-9 p-0 !bg-green-500 !border-green-500 !text-navy-950 hover:!bg-green-400 font-bold"
+                />
+              </AppMenu>
             </div>
           </div>
         </div>

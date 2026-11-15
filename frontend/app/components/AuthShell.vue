@@ -57,7 +57,7 @@ const garanties = [
             class="flex items-center gap-3 text-sm text-slate-200"
           >
             <span class="flex h-7 w-7 items-center justify-center border border-green-500/30 bg-green-500/10 text-green-400">
-              <UIcon :name="g.icone" class="h-4 w-4" />
+              <Icon :name="g.icone" class="h-4 w-4" />
             </span>
             {{ g.libelle }}
           </li>

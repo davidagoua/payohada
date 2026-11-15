@@ -8,6 +8,11 @@
   "packageRules": [{
     "matchDepTypes": ["resolutions"],
     "enabled": false
+  }, {
+    "description": "PrimeVue 5 et ses thèmes 3 exigent une clé de licence PrimeUI : on reste sur PrimeVue 4 (MIT).",
+    "matchPackageNames": ["primevue", "@primevue/nuxt-module", "@primeuix/themes"],
+    "matchUpdateTypes": ["major"],
+    "enabled": false
   }],
   "postUpdateOptions": ["pnpmDedupe"]
 }

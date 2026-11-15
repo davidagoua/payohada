@@ -69,7 +69,7 @@ const formatFCFA = (amount) => {
       <div>
         <div class="flex items-center gap-2">
           <NuxtLink to="/client" class="text-xs text-slate-500 hover:text-navy-700 font-semibold flex items-center gap-1">
-            <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
+            <Icon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
             Tableau de bord
           </NuxtLink>
         </div>
@@ -83,10 +83,15 @@ const formatFCFA = (amount) => {
 
       <div class="flex items-center gap-3">
         <NuxtLink to="/client/variables">
-          <UButton color="primary" size="sm" class="bg-green-600 hover:bg-green-700 text-white font-bold">
-            <UIcon name="i-lucide-edit-3" class="w-4 h-4 mr-1.5" />
-            Saisir les variables du mois
-          </UButton>
+          <Button
+            size="small"
+            label="Saisir les variables du mois"
+            class="font-bold"
+          >
+            <template #icon>
+              <Icon name="i-lucide-edit-3" class="w-4 h-4" />
+            </template>
+          </Button>
         </NuxtLink>
       </div>
     </div>
@@ -95,7 +100,7 @@ const formatFCFA = (amount) => {
     <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
       <div class="p-4 border-b border-slate-200 flex items-center justify-between gap-4">
         <div class="relative w-full max-w-sm">
-          <UIcon name="i-lucide-search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+          <Icon name="i-lucide-search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
           <input 
             v-model="searchQuery" 
             type="text" 
@@ -109,12 +114,12 @@ const formatFCFA = (amount) => {
       </div>
 
       <div v-if="loading" class="p-12 text-center text-slate-400">
-        <UIcon name="i-lucide-loader-2" class="w-8 h-8 mx-auto animate-spin mb-2" />
+        <Icon name="i-lucide-loader-2" class="w-8 h-8 mx-auto animate-spin mb-2" />
         <p class="text-xs">Chargement de l'effectif...</p>
       </div>
 
       <div v-else-if="filteredSalaries.length === 0" class="p-12 text-center text-slate-500">
-        <UIcon name="i-lucide-users" class="w-10 h-10 mx-auto text-slate-300 mb-2" />
+        <Icon name="i-lucide-users" class="w-10 h-10 mx-auto text-slate-300 mb-2" />
         <p class="text-sm font-bold text-navy-900">Aucun salarié trouvé</p>
       </div>
 

@@ -164,7 +164,7 @@ onMounted(() => {
       <!-- Titre contextuel -->
       <template v-if="isRegister">
         <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-navy-50 border border-navy-200 text-navy-700 text-xs font-semibold mb-3">
-          <UIcon
+          <Icon
             name="i-lucide-building-2"
             class="w-3.5 h-3.5 text-navy-700"
           />
@@ -209,7 +209,7 @@ onMounted(() => {
           v-if="errorMsg"
           class="mb-5 p-3.5 bg-red-50/90 border border-red-200 text-red-700 rounded-xl text-sm flex items-start space-x-2.5"
         >
-          <UIcon
+          <Icon
             name="i-lucide-alert-circle"
             class="w-5 h-5 text-red-500 shrink-0 mt-0.5"
           />
@@ -220,7 +220,7 @@ onMounted(() => {
           v-if="successMsg"
           class="mb-5 p-3.5 bg-green-50/90 border border-green-200 text-green-700 rounded-xl text-sm flex items-start space-x-2.5"
         >
-          <UIcon
+          <Icon
             name="i-lucide-check-circle"
             class="w-5 h-5 text-green-600 shrink-0 mt-0.5"
           />
@@ -281,7 +281,7 @@ onMounted(() => {
           >
             <div class="border-b border-slate-100 pb-3 mb-4">
               <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                <UIcon
+                <Icon
                   name="i-lucide-briefcase"
                   class="w-4 h-4 text-green-600"
                 />
@@ -410,7 +410,7 @@ onMounted(() => {
                 @click="goToStep2"
               >
                 <span>Étape suivante : Identifiants administrateur</span>
-                <UIcon
+                <Icon
                   name="i-lucide-arrow-right"
                   class="w-4 h-4"
                 />
@@ -426,7 +426,7 @@ onMounted(() => {
           >
             <div class="border-b border-slate-100 pb-3 mb-2">
               <h2 class="text-base font-bold text-slate-800 flex items-center gap-2">
-                <UIcon
+                <Icon
                   name="i-lucide-user-check"
                   class="w-4 h-4 text-green-600"
                 />
@@ -542,7 +542,7 @@ onMounted(() => {
                     class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
                     @click="showPassword = !showPassword"
                   >
-                    <UIcon
+                    <Icon
                       :name="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
                       class="w-4 h-4"
                     />
@@ -586,7 +586,7 @@ onMounted(() => {
             <!-- Récapitulatif Cabinet -->
             <div class="mt-3 p-3 bg-slate-50 border border-slate-200/80 rounded-xl flex items-center justify-between text-xs text-slate-600">
               <div class="flex items-center gap-2">
-                <UIcon
+                <Icon
                   name="i-lucide-shield-check"
                   class="w-4 h-4 text-green-600 shrink-0"
                 />
@@ -614,7 +614,7 @@ onMounted(() => {
                 :disabled="loading"
                 class="w-2/3 flex justify-center items-center py-2.5 px-4 rounded-xl shadow-md text-sm font-semibold text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors disabled:opacity-50"
               >
-                <UIcon
+                <Icon
                   v-if="loading"
                   name="i-lucide-loader-2"
                   class="w-5 h-5 animate-spin mr-2"
@@ -691,7 +691,7 @@ onMounted(() => {
                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
                 @click="showPassword = !showPassword"
               >
-                <UIcon
+                <Icon
                   :name="showPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'"
                   class="w-4 h-4"
                 />
@@ -711,7 +711,7 @@ onMounted(() => {
               :disabled="loading"
               class="w-full flex justify-center items-center py-2.5 px-4 rounded-xl shadow-md text-sm font-semibold text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-all disabled:opacity-50"
             >
-              <UIcon
+              <Icon
                 v-if="loading"
                 name="i-lucide-loader-2"
                 class="w-5 h-5 animate-spin mr-2"
@@ -724,21 +724,21 @@ onMounted(() => {
         <!-- Bas de carte : Rappels de conformité & sécurité -->
         <div class="mt-6 pt-5 border-t border-slate-100 text-xs text-slate-500 grid grid-cols-3 gap-2 text-center">
           <div class="flex flex-col items-center">
-            <UIcon
+            <Icon
               name="i-lucide-scale"
               class="w-4 h-4 text-green-600 mb-1"
             />
             <span class="font-medium">Conformité OHADA</span>
           </div>
           <div class="flex flex-col items-center">
-            <UIcon
+            <Icon
               name="i-lucide-shield-alert"
               class="w-4 h-4 text-green-600 mb-1"
             />
             <span class="font-medium">Données Chiffrées</span>
           </div>
           <div class="flex flex-col items-center">
-            <UIcon
+            <Icon
               name="i-lucide-folder-git-2"
               class="w-4 h-4 text-green-600 mb-1"
             />

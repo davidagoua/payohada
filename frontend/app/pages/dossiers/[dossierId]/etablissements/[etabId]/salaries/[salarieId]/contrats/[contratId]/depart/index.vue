@@ -315,7 +315,7 @@ onMounted(async () => {
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
       <div>
         <button class="text-xs font-semibold text-slate-500 hover:text-navy-700 inline-flex items-center gap-1.5 mb-1" @click="router.back()">
-          <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
+          <Icon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
           Retour au contrat
         </button>
         <h1 class="text-lg font-bold text-navy-900">Départ et solde de tout compte</h1>
@@ -325,13 +325,13 @@ onMounted(async () => {
       </div>
       <div class="flex flex-wrap items-center gap-2">
         <button class="px-3 py-2 border border-slate-300 text-slate-700 text-xs font-bold rounded-lg inline-flex items-center gap-1.5 hover:bg-slate-50" @click="imprimer('stc')">
-          <UIcon name="i-lucide-receipt" class="w-4 h-4" /> Reçu STC
+          <Icon name="i-lucide-receipt" class="w-4 h-4" /> Reçu STC
         </button>
         <button class="px-3 py-2 border border-slate-300 text-slate-700 text-xs font-bold rounded-lg inline-flex items-center gap-1.5 hover:bg-slate-50" @click="imprimer('certificat')">
-          <UIcon name="i-lucide-file-badge" class="w-4 h-4" /> Certificat
+          <Icon name="i-lucide-file-badge" class="w-4 h-4" /> Certificat
         </button>
         <button class="px-3 py-2 border border-slate-300 text-slate-700 text-xs font-bold rounded-lg inline-flex items-center gap-1.5 hover:bg-slate-50" @click="imprimer('attestation')">
-          <UIcon name="i-lucide-file-text" class="w-4 h-4" /> Attestation
+          <Icon name="i-lucide-file-text" class="w-4 h-4" /> Attestation
         </button>
         <button v-if="departExistant" class="px-3 py-2 border border-red-200 text-red-600 text-xs font-bold rounded-lg hover:bg-red-50" @click="annulerDepart">
           Annuler le départ
@@ -340,7 +340,7 @@ onMounted(async () => {
     </div>
 
     <div v-if="departExistant" class="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-start gap-2">
-      <UIcon name="i-lucide-info" class="w-4 h-4 shrink-0 mt-0.5" />
+      <Icon name="i-lucide-info" class="w-4 h-4 shrink-0 mt-0.5" />
       <span>
         Un départ est déjà enregistré pour ce contrat le
         <strong>{{ departExistant.date_sortie }}</strong>. Un nouvel enregistrement remplacera le solde de tout compte.
@@ -365,7 +365,7 @@ onMounted(async () => {
               ]"
               @click="form.motif_fin_contrat = motif.valeur"
             >
-              <UIcon :name="motif.icone" class="w-4 h-4 mb-1" :class="form.motif_fin_contrat === motif.valeur ? 'text-green-700' : 'text-slate-400'" />
+              <Icon :name="motif.icone" class="w-4 h-4 mb-1" :class="form.motif_fin_contrat === motif.valeur ? 'text-green-700' : 'text-slate-400'" />
               <div class="text-xs font-bold" :class="form.motif_fin_contrat === motif.valeur ? 'text-green-900' : 'text-slate-700'">
                 {{ motif.libelle }}
               </div>
@@ -527,7 +527,7 @@ onMounted(async () => {
             <div class="bg-navy-900 px-4 py-3 flex items-center justify-between">
               <h2 class="text-xs font-bold text-white uppercase tracking-wider">Solde estimé</h2>
               <button :disabled="calculEnCours" class="text-[10px] font-bold text-slate-200 hover:text-white inline-flex items-center gap-1" @click="simuler">
-                <UIcon :name="calculEnCours ? 'i-lucide-loader-2' : 'i-lucide-refresh-cw'" class="w-3.5 h-3.5" :class="{ 'animate-spin': calculEnCours }" />
+                <Icon :name="calculEnCours ? 'i-lucide-loader-2' : 'i-lucide-refresh-cw'" class="w-3.5 h-3.5" :class="{ 'animate-spin': calculEnCours }" />
                 Recalculer
               </button>
             </div>
@@ -632,7 +632,7 @@ onMounted(async () => {
             class="w-full px-4 py-3 bg-green-600 hover:bg-green-700 disabled:bg-slate-300 text-white text-sm font-bold rounded-xl inline-flex items-center justify-center gap-2"
             @click="enregistrer"
           >
-            <UIcon :name="enregistrement ? 'i-lucide-loader-2' : 'i-lucide-save'" class="w-4 h-4" :class="{ 'animate-spin': enregistrement }" />
+            <Icon :name="enregistrement ? 'i-lucide-loader-2' : 'i-lucide-save'" class="w-4 h-4" :class="{ 'animate-spin': enregistrement }" />
             {{ enregistrement ? 'Enregistrement…' : 'Calculer et enregistrer le STC' }}
           </button>
           <p class="text-[10px] text-slate-400 text-center">

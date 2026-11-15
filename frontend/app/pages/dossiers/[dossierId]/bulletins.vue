@@ -323,7 +323,7 @@ onMounted(() => {
     <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div class="flex items-center space-x-4">
         <div class="w-12 h-12 bg-navy-50 text-navy-700 rounded-lg flex items-center justify-center font-bold text-xl border border-navy-200">
-          <UIcon name="i-lucide-files" class="w-6 h-6" />
+          <Icon name="i-lucide-files" class="w-6 h-6" />
         </div>
         <div>
           <h1 class="text-2xl font-bold text-navy-900 leading-tight">Traitement de la Paie Globale</h1>
@@ -340,7 +340,7 @@ onMounted(() => {
           :disabled="loading || bulkProcessing"
           class="px-4 py-2 border border-slate-200 text-sm font-semibold rounded-lg hover:bg-slate-50 text-slate-700 transition-colors flex items-center gap-1.5 disabled:opacity-50"
         >
-          <UIcon name="i-lucide-check-circle-2" class="w-4 h-4 text-green-600" />
+          <Icon name="i-lucide-check-circle-2" class="w-4 h-4 text-green-600" />
           Valider la période
         </button>
         <button
@@ -348,7 +348,7 @@ onMounted(() => {
           :disabled="loading || bulkProcessing"
           class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg shadow-sm transition-colors flex items-center gap-1.5 disabled:opacity-50"
         >
-          <UIcon name="i-lucide-calculator" class="w-4 h-4" />
+          <Icon name="i-lucide-calculator" class="w-4 h-4" />
           Calculer les bulletins
         </button>
       </div>
@@ -396,14 +396,14 @@ onMounted(() => {
           @click="handleCalculateSelected"
           class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
         >
-          <UIcon name="i-lucide-calculator" class="w-3.5 h-3.5" />
+          <Icon name="i-lucide-calculator" class="w-3.5 h-3.5" />
           Calculer la sélection
         </button>
         <button
           @click="handleValidateSelected"
           class="px-3 py-1.5 bg-yellow-500 hover:bg-yellow-650 text-slate-900 font-semibold rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
         >
-          <UIcon name="i-lucide-check-circle-2" class="w-3.5 h-3.5" />
+          <Icon name="i-lucide-check-circle-2" class="w-3.5 h-3.5" />
           Valider la sélection
         </button>
       </div>
@@ -412,7 +412,7 @@ onMounted(() => {
     <!-- Employees & Bulletins List Table -->
     <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
       <div v-if="loading" class="flex flex-col items-center justify-center py-20 space-y-4">
-        <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-green-600" />
+        <Icon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-green-600" />
         <span class="text-sm text-slate-500 font-medium">Chargement des fiches paie...</span>
       </div>
 
@@ -505,7 +505,7 @@ onMounted(() => {
                     :to="`/dossiers/${dossierId}/etablissements/${c.etablissement_id}/salaries/${c.salarie_id}/contrats/${c.id}/bulletins/${bulletinsMap[c.id].id}`"
                     class="px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1"
                   >
-                    <UIcon name="i-lucide-eye" class="w-3.5 h-3.5" />
+                    <Icon name="i-lucide-eye" class="w-3.5 h-3.5" />
                     Voir
                   </NuxtLink>
                   <button
@@ -513,7 +513,7 @@ onMounted(() => {
                     @click="handleCalculateSingle(c.id)"
                     class="px-2.5 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-semibold transition-colors flex items-center gap-1"
                   >
-                    <UIcon name="i-lucide-calculator" class="w-3.5 h-3.5" />
+                    <Icon name="i-lucide-calculator" class="w-3.5 h-3.5" />
                     Calculer
                   </button>
                 </div>

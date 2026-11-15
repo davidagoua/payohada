@@ -236,7 +236,7 @@ onMounted(() => {
 
 <template>
   <div v-if="loading" class="flex flex-col items-center justify-center py-20 space-y-4">
-    <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-green-600" />
+    <Icon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-green-600" />
     <span class="text-sm text-slate-500 font-medium">Chargement du salarié...</span>
   </div>
 
@@ -260,7 +260,7 @@ onMounted(() => {
           @click="handleDeleteSalarie"
           class="px-4 py-2 border border-red-200 text-sm font-semibold rounded-lg hover:bg-red-50 text-red-600 transition-colors flex items-center gap-1.5"
         >
-          <UIcon name="i-lucide-trash-2" class="w-4 h-4" />
+          <Icon name="i-lucide-trash-2" class="w-4 h-4" />
           Supprimer la Fiche
         </button>
       </div>
@@ -426,7 +426,7 @@ onMounted(() => {
                 class="mt-2 text-xs font-semibold text-navy-700 hover:text-navy-900 disabled:text-slate-400 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
                 @click="envoyerIdentifiants"
               >
-                <UIcon
+                <Icon
                   :name="envoiIdentifiantsEnCours ? 'i-lucide-loader-2' : 'i-lucide-mail'"
                   class="w-3.5 h-3.5"
                   :class="{ 'animate-spin': envoiIdentifiantsEnCours }"
@@ -536,7 +536,7 @@ onMounted(() => {
             @click="router.push(`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}/contrats/new`)"
             class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg text-xs transition-colors flex items-center gap-1.5 shadow-sm"
           >
-            <UIcon name="i-lucide-file-plus" class="w-3.5 h-3.5" />
+            <Icon name="i-lucide-file-plus" class="w-3.5 h-3.5" />
             Nouveau Contrat
           </button>
         </div>
@@ -595,7 +595,7 @@ onMounted(() => {
                 <td class="px-6 py-4 text-right">
                   <span class="text-navy-700 group-hover:underline text-xs font-semibold flex items-center justify-end gap-1">
                     Gérer le Contrat
-                    <UIcon name="i-lucide-chevron-right" class="w-4 h-4" />
+                    <Icon name="i-lucide-chevron-right" class="w-4 h-4" />
                   </span>
                 </td>
               </tr>

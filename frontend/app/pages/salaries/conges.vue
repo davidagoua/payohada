@@ -218,7 +218,7 @@ onMounted(charger)
               :disabled="envoiEnCours"
               class="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-slate-300 text-white text-xs font-bold uppercase tracking-wider shadow-flat inline-flex items-center gap-1.5"
             >
-              <UIcon
+              <Icon
                 :name="envoiEnCours ? 'i-lucide-loader-2' : 'i-lucide-send'"
                 class="w-4 h-4"
                 :class="{ 'animate-spin': envoiEnCours }"

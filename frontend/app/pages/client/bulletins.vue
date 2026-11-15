@@ -102,7 +102,7 @@ const handlePrint = () => {
       <div>
         <div class="flex items-center gap-2">
           <NuxtLink to="/client" class="text-xs text-slate-500 hover:text-navy-700 font-semibold flex items-center gap-1">
-            <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
+            <Icon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
             Tableau de bord
           </NuxtLink>
         </div>
@@ -163,7 +163,7 @@ const handlePrint = () => {
     <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
       <div class="p-4 border-b border-slate-200 flex items-center justify-between gap-4">
         <div class="relative w-full max-w-sm">
-          <UIcon name="i-lucide-search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+          <Icon name="i-lucide-search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
           <input 
             v-model="searchQuery" 
             type="text" 
@@ -175,24 +175,24 @@ const handlePrint = () => {
           to="/client/variables"
           class="shrink-0 inline-flex items-center gap-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg transition-colors"
         >
-          <UIcon name="i-lucide-list-plus" class="w-3.5 h-3.5" />
+          <Icon name="i-lucide-list-plus" class="w-3.5 h-3.5" />
           Saisir des variables
         </NuxtLink>
       </div>
 
       <div v-if="loading" class="p-12 text-center text-slate-400">
-        <UIcon name="i-lucide-loader-2" class="w-8 h-8 mx-auto animate-spin mb-2" />
+        <Icon name="i-lucide-loader-2" class="w-8 h-8 mx-auto animate-spin mb-2" />
         <p class="text-xs">Chargement des bulletins...</p>
       </div>
 
       <div v-else-if="filteredBulletins.length === 0" class="p-12 text-center text-slate-500">
-        <UIcon name="i-lucide-file-x" class="w-10 h-10 mx-auto text-slate-300 mb-2" />
+        <Icon name="i-lucide-file-x" class="w-10 h-10 mx-auto text-slate-300 mb-2" />
         <p class="text-sm font-bold text-navy-900">Aucun bulletin calculé</p>
         <p class="text-xs text-slate-500 mt-1">
           Les bulletins de cette période n'ont pas encore été calculés par le cabinet. Assurez-vous d'avoir transmis vos variables.
         </p>
         <NuxtLink to="/client/variables" class="inline-flex items-center gap-1 mt-4 text-xs font-bold text-navy-700 hover:underline">
-          <UIcon name="i-lucide-edit-3" class="w-4 h-4" />
+          <Icon name="i-lucide-edit-3" class="w-4 h-4" />
           Accéder à la saisie des variables
         </NuxtLink>
       </div>
@@ -240,15 +240,17 @@ const handlePrint = () => {
                 </span>
               </td>
               <td class="px-4 py-3.5 text-right">
-                <UButton 
-                  color="neutral" 
-                  variant="ghost" 
-                  size="xs"
+                <Button
+                  severity="secondary"
+                  text
+                  size="small"
                   @click="handlePreview(b)"
+                  label="Visualiser"
                 >
-                  <UIcon name="i-lucide-eye" class="w-4 h-4 mr-1 text-slate-500" />
-                  Visualiser
-                </UButton>
+                  <template #icon>
+                    <Icon name="i-lucide-eye" class="w-4 h-4 text-slate-500" />
+                  </template>
+                </Button>
               </td>
             </tr>
           </tbody>
@@ -257,8 +259,8 @@ const handlePrint = () => {
     </div>
 
     <!-- Modal Visualisation Bulletin -->
-    <UModal v-model:open="previewModalOpen" :title="`Bulletin de Paie • ${selectedBulletin?.salarie_nom || ''} ${selectedBulletin?.salarie_prenom || ''}`">
-      <template #body>
+    <Dialog v-model:visible="previewModalOpen" :header="`Bulletin de Paie • ${selectedBulletin?.salarie_nom || ''} ${selectedBulletin?.salarie_prenom || ''}`" modal :draggable="false" dismissable-mask class="w-[32rem] max-w-[calc(100vw-2rem)]">
+      <template #default>
         <div v-if="selectedBulletin" class="space-y-4 text-xs">
           <!-- Infos entête -->
           <div class="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-200">
@@ -302,15 +304,26 @@ const handlePrint = () => {
       </template>
       <template #footer>
         <div class="flex justify-between w-full">
-          <UButton color="neutral" variant="outline" size="sm" @click="handlePrint">
-            <UIcon name="i-lucide-printer" class="w-4 h-4 mr-1" />
-            Imprimer
-          </UButton>
-          <UButton color="neutral" variant="ghost" size="sm" @click="previewModalOpen = false">
-            Fermer
-          </UButton>
+          <Button
+            severity="secondary"
+            outlined
+            size="small"
+            @click="handlePrint"
+            label="Imprimer"
+          >
+            <template #icon>
+              <Icon name="i-lucide-printer" class="w-4 h-4" />
+            </template>
+          </Button>
+          <Button
+            severity="secondary"
+            text
+            size="small"
+            @click="previewModalOpen = false"
+            label="Fermer"
+          />
         </div>
       </template>
-    </UModal>
+    </Dialog>
   </div>
 </template>

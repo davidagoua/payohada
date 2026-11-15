@@ -45,7 +45,7 @@ onMounted(() => {
 
 <template>
   <div v-if="loading" class="flex flex-col items-center justify-center min-h-screen space-y-4">
-    <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-green-600" />
+    <Icon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-green-600" />
     <span class="text-sm text-slate-500 font-medium">Chargement du document...</span>
   </div>
 
@@ -57,14 +57,14 @@ onMounted(() => {
         @click="router.back()"
         class="px-3 py-1.5 border border-slate-200 text-slate-700 font-semibold rounded-lg text-xs hover:bg-slate-100 transition-colors flex items-center gap-1"
       >
-        <UIcon name="i-lucide-arrow-left" class="w-4 h-4" />
+        <Icon name="i-lucide-arrow-left" class="w-4 h-4" />
         Retour
       </button>
       <button 
         @click="printPage"
         class="px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg text-xs transition-colors flex items-center gap-1.5 shadow"
       >
-        <UIcon name="i-lucide-printer" class="w-4 h-4" />
+        <Icon name="i-lucide-printer" class="w-4 h-4" />
         Imprimer le certificat
       </button>
     </div>

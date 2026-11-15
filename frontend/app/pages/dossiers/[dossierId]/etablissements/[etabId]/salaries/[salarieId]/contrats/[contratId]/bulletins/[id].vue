@@ -643,7 +643,7 @@ onMounted(() => {
 
 <template>
   <div v-if="loading" class="flex flex-col items-center justify-center py-20 space-y-4 no-print">
-    <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-green-600" />
+    <Icon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-green-600" />
     <span class="text-sm text-slate-500 font-medium">Chargement du bulletin de paie...</span>
   </div>
 
@@ -685,7 +685,7 @@ onMounted(() => {
           :to="`/dossiers/${dossierId}/etablissements/${etabId}?tab=bulletins`"
           class="p-2 border-2 border-slate-200 rounded-lg hover:bg-slate-50 text-slate-700 transition-colors"
         >
-          <UIcon name="i-lucide-arrow-left" class="w-4 h-4" />
+          <Icon name="i-lucide-arrow-left" class="w-4 h-4" />
         </NuxtLink>
         <div>
           <h1 class="text-lg font-bold text-navy-900 leading-tight uppercase">
@@ -706,7 +706,7 @@ onMounted(() => {
           @click="handleRecalculate"
           class="px-4 py-2 border-2 border-slate-200 text-sm font-bold rounded-lg hover:bg-slate-50 text-slate-700 transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer shadow-flat-hover shadow-flat-active"
         >
-          <UIcon name="i-lucide-refresh-cw" class="w-4 h-4 text-green-600" />
+          <Icon name="i-lucide-refresh-cw" class="w-4 h-4 text-green-600" />
           Recalculer
         </button>
         <button 
@@ -714,7 +714,7 @@ onMounted(() => {
           @click="handleDelete"
           class="px-4 py-2 border-2 border-red-200 text-sm font-bold rounded-lg hover:bg-red-50 text-red-650 transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer shadow-flat-hover shadow-flat-active"
         >
-          <UIcon name="i-lucide-trash-2" class="w-4 h-4" />
+          <Icon name="i-lucide-trash-2" class="w-4 h-4" />
           Supprimer
         </button>
         <button 
@@ -722,7 +722,7 @@ onMounted(() => {
           @click="handleValidate"
           class="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 text-white text-sm font-bold rounded-lg shadow-flat transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer shadow-flat-hover shadow-flat-active"
         >
-          <UIcon name="i-lucide-check-circle" class="w-4 h-4" />
+          <Icon name="i-lucide-check-circle" class="w-4 h-4" />
           Valider
         </button>
         <button 
@@ -730,7 +730,7 @@ onMounted(() => {
           @click="handleInvalidate"
           class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-bold rounded-lg shadow-flat transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer shadow-flat-hover shadow-flat-active"
         >
-          <UIcon name="i-lucide-x-circle" class="w-4 h-4" />
+          <Icon name="i-lucide-x-circle" class="w-4 h-4" />
           Dé-valider
         </button>
 
@@ -739,7 +739,7 @@ onMounted(() => {
           @click="triggerPrint"
           class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-lg shadow-flat transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer shadow-flat-hover shadow-flat-active"
         >
-          <UIcon name="i-lucide-printer" class="w-4 h-4" />
+          <Icon name="i-lucide-printer" class="w-4 h-4" />
           Imprimer
         </button>
         <!-- Bulletin officiel au format Sage Saari (document destiné au salarié) -->
@@ -747,7 +747,7 @@ onMounted(() => {
           @click="router.push(`/dossiers/${dossierId}/etablissements/${etabId}/print-bulletins?ids=${bulletinId}`)"
           class="px-4 py-2 border-2 border-slate-800 text-slate-800 hover:bg-slate-800 hover:text-white text-sm font-bold rounded-lg transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer"
         >
-          <UIcon name="i-lucide-file-text" class="w-4 h-4" />
+          <Icon name="i-lucide-file-text" class="w-4 h-4" />
           Imprimer
         </button>
         <!-- PDF : exactement le document joint lorsque le bulletin est envoyé par email -->
@@ -756,7 +756,7 @@ onMounted(() => {
           @click="telechargerPdf"
           class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold rounded-lg transition-colors flex items-center gap-1.5 uppercase tracking-wider cursor-pointer"
         >
-          <UIcon name="i-lucide-download" class="w-4 h-4" />
+          <Icon name="i-lucide-download" class="w-4 h-4" />
           Bulletin PDF
         </button>
       </div>
@@ -770,7 +770,7 @@ onMounted(() => {
         @click="hsModalOpen = true"
         class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-850 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 border border-slate-350 rounded-lg shadow-flat-hover shadow-flat-active cursor-pointer"
       >
-        <UIcon name="i-lucide-plus-circle" class="w-4 h-4 text-green-600" />
+        <Icon name="i-lucide-plus-circle" class="w-4 h-4 text-green-600" />
         Saisir Heure Supp
       </button>
 
@@ -778,7 +778,7 @@ onMounted(() => {
         @click="absModalOpen = true"
         class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-850 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 border border-slate-350 rounded-lg shadow-flat-hover shadow-flat-active cursor-pointer"
       >
-        <UIcon name="i-lucide-minus-circle" class="w-4 h-4 text-red-650" />
+        <Icon name="i-lucide-minus-circle" class="w-4 h-4 text-red-650" />
         Saisir Absence
       </button>
 
@@ -786,7 +786,7 @@ onMounted(() => {
         @click="primeModalOpen = true"
         class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-850 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 border border-slate-350 rounded-lg shadow-flat-hover shadow-flat-active cursor-pointer"
       >
-        <UIcon name="i-lucide-award" class="w-4 h-4 text-navy-700" />
+        <Icon name="i-lucide-award" class="w-4 h-4 text-navy-700" />
         Saisir Prime
       </button>
 
@@ -794,7 +794,7 @@ onMounted(() => {
         @click="acompteModalOpen = true"
         class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-850 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 border border-slate-350 rounded-lg shadow-flat-hover shadow-flat-active cursor-pointer"
       >
-        <UIcon name="i-lucide-banknote" class="w-4 h-4 text-amber-600" />
+        <Icon name="i-lucide-banknote" class="w-4 h-4 text-amber-600" />
         Définir Acompte
       </button>
 
@@ -802,7 +802,7 @@ onMounted(() => {
         @click="optionModalOpen = true"
         class="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-850 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-1.5 border border-slate-350 rounded-lg shadow-flat-hover shadow-flat-active cursor-pointer"
       >
-        <UIcon name="i-lucide-plus-circle" class="w-4 h-4 text-navy-700" />
+        <Icon name="i-lucide-plus-circle" class="w-4 h-4 text-navy-700" />
         Saisir Option / Avantage
       </button>
     </div>
@@ -1054,19 +1054,19 @@ onMounted(() => {
       <!-- Quick Inline Action Toolbar (Hidden on Print) -->
       <div v-if="bulletin.statut !== 'valide'" class="mt-4 no-print flex flex-wrap gap-2 justify-center border-t border-slate-200 pt-4">
         <button @click="hsModalOpen = true" class="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold uppercase border-2 border-slate-250 rounded-lg shadow-sm flex items-center gap-1 cursor-pointer">
-          <UIcon name="i-lucide-plus" class="w-3.5 h-3.5 text-green-600" /> + Heure Supp
+          <Icon name="i-lucide-plus" class="w-3.5 h-3.5 text-green-600" /> + Heure Supp
         </button>
         <button @click="absModalOpen = true" class="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold uppercase border-2 border-slate-250 rounded-lg shadow-sm flex items-center gap-1 cursor-pointer">
-          <UIcon name="i-lucide-minus" class="w-3.5 h-3.5 text-red-650" /> + Absence
+          <Icon name="i-lucide-minus" class="w-3.5 h-3.5 text-red-650" /> + Absence
         </button>
         <button @click="primeModalOpen = true" class="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold uppercase border-2 border-slate-250 rounded-lg shadow-sm flex items-center gap-1 cursor-pointer">
-          <UIcon name="i-lucide-award" class="w-3.5 h-3.5 text-navy-700" /> + Prime
+          <Icon name="i-lucide-award" class="w-3.5 h-3.5 text-navy-700" /> + Prime
         </button>
         <button @click="acompteModalOpen = true" class="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold uppercase border-2 border-slate-250 rounded-lg shadow-sm flex items-center gap-1 cursor-pointer">
-          <UIcon name="i-lucide-banknote" class="w-3.5 h-3.5 text-amber-600" /> + Acompte
+          <Icon name="i-lucide-banknote" class="w-3.5 h-3.5 text-amber-600" /> + Acompte
         </button>
         <button @click="optionModalOpen = true" class="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 text-slate-800 text-xs font-bold uppercase border-2 border-slate-250 rounded-lg shadow-sm flex items-center gap-1 cursor-pointer">
-          <UIcon name="i-lucide-plus" class="w-3.5 h-3.5 text-navy-700" /> + Option / Avantage
+          <Icon name="i-lucide-plus" class="w-3.5 h-3.5 text-navy-700" /> + Option / Avantage
         </button>
       </div>
 
@@ -1210,7 +1210,7 @@ onMounted(() => {
                 </span>
               </div>
               <button v-if="!a.is_hr" @click="handleDeleteAbsence(a.id)" class="text-red-650 hover:text-red-750 p-1 cursor-pointer">
-                <UIcon name="i-lucide-trash-2" class="w-4 h-4" />
+                <Icon name="i-lucide-trash-2" class="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -1228,7 +1228,7 @@ onMounted(() => {
                 </span>
               </div>
               <button @click="handleDeleteHs(h.id)" class="text-red-650 hover:text-red-750 p-1 cursor-pointer">
-                <UIcon name="i-lucide-trash-2" class="w-4 h-4" />
+                <Icon name="i-lucide-trash-2" class="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -1255,7 +1255,7 @@ onMounted(() => {
                 </div>
               </div>
               <button @click="handleDeletePrime(p.id)" class="text-red-650 hover:text-red-750 p-1 cursor-pointer">
-                <UIcon name="i-lucide-trash-2" class="w-4 h-4" />
+                <Icon name="i-lucide-trash-2" class="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -1282,7 +1282,7 @@ onMounted(() => {
                 </div>
               </div>
               <button @click="handleDeleteOption(o.id)" class="text-red-650 hover:text-red-750 p-1 cursor-pointer">
-                <UIcon name="i-lucide-trash-2" class="w-4 h-4" />
+                <Icon name="i-lucide-trash-2" class="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -1293,7 +1293,7 @@ onMounted(() => {
     <!-- Raccourcis fiche salarié & contrat (Caché à l'impression) -->
     <div class="bg-white border-2 border-slate-200 p-4 shadow-flat flex flex-col sm:flex-row justify-between items-center gap-4 no-print border-t-4 border-t-navy-900 rounded-lg">
       <div class="flex items-center space-x-2">
-        <UIcon name="i-lucide-link" class="w-4 h-4 text-slate-500" />
+        <Icon name="i-lucide-link" class="w-4 h-4 text-slate-500" />
         <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Raccourcis :</span>
       </div>
       <div class="flex flex-wrap gap-3 w-full sm:w-auto justify-start sm:justify-end">
@@ -1301,14 +1301,14 @@ onMounted(() => {
           :to="`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}`"
           class="px-4 py-2 border-2 border-slate-200 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-slate-50 text-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer shadow-flat-hover shadow-flat-active"
         >
-          <UIcon name="i-lucide-user" class="w-4 h-4 text-navy-700" />
+          <Icon name="i-lucide-user" class="w-4 h-4 text-navy-700" />
           Fiche Salarié
         </NuxtLink>
         <NuxtLink 
           :to="`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}/contrats/${contratId}`"
           class="px-4 py-2 border-2 border-slate-200 text-xs font-bold uppercase tracking-wider rounded-lg hover:bg-slate-50 text-slate-700 transition-colors flex items-center gap-1.5 cursor-pointer shadow-flat-hover shadow-flat-active"
         >
-          <UIcon name="i-lucide-file-text" class="w-4 h-4 text-navy-700" />
+          <Icon name="i-lucide-file-text" class="w-4 h-4 text-navy-700" />
           Fiche Contrat
         </NuxtLink>
       </div>
@@ -1317,8 +1317,8 @@ onMounted(() => {
     <!-- Modals for adding variables -->
     
     <!-- Modal: Overtime -->
-    <UModal v-model:open="hsModalOpen" title="Saisir des Heures Supplémentaires">
-      <template #content>
+    <Dialog v-model:visible="hsModalOpen" header="Saisir des Heures Supplémentaires" modal :draggable="false" dismissable-mask class="w-[32rem] max-w-[calc(100vw-2rem)]">
+      <template #container>
         <div class="p-6 space-y-4 rounded-xl bg-white border border-slate-200">
           <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Heure Supp.</h2>
           
@@ -1347,11 +1347,11 @@ onMounted(() => {
           </div>
         </div>
       </template>
-    </UModal>
+    </Dialog>
 
     <!-- Modal: Absence -->
-    <UModal v-model:open="absModalOpen" title="Saisir une Absence / Congé">
-      <template #content>
+    <Dialog v-model:visible="absModalOpen" header="Saisir une Absence / Congé" modal :draggable="false" dismissable-mask class="w-[32rem] max-w-[calc(100vw-2rem)]">
+      <template #container>
         <div class="p-6 space-y-4 rounded-xl bg-white border border-slate-200">
           <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Saisir Absence</h2>
           
@@ -1399,11 +1399,11 @@ onMounted(() => {
           </div>
         </div>
       </template>
-    </UModal>
+    </Dialog>
 
     <!-- Modal: Prime -->
-    <UModal v-model:open="primeModalOpen" title="Saisir une Prime">
-      <template #content>
+    <Dialog v-model:visible="primeModalOpen" header="Saisir une Prime" modal :draggable="false" dismissable-mask class="w-[32rem] max-w-[calc(100vw-2rem)]">
+      <template #container>
         <div class="p-6 space-y-4 rounded-xl bg-white border border-slate-200">
           <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Prime</h2>
           
@@ -1465,11 +1465,11 @@ onMounted(() => {
           </div>
         </div>
       </template>
-    </UModal>
+    </Dialog>
 
     <!-- Modal: Acompte -->
-    <UModal v-model:open="acompteModalOpen" title="Définir un Acompte">
-      <template #content>
+    <Dialog v-model:visible="acompteModalOpen" header="Définir un Acompte" modal :draggable="false" dismissable-mask class="w-[32rem] max-w-[calc(100vw-2rem)]">
+      <template #container>
         <div class="p-6 space-y-4 rounded-xl bg-white border border-slate-200">
           <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Acompte sur salaire</h2>
           
@@ -1491,11 +1491,11 @@ onMounted(() => {
           </div>
         </div>
       </template>
-    </UModal>
+    </Dialog>
 
     <!-- Modal: Option -->
-    <UModal v-model:open="optionModalOpen" title="Saisir une Option / Avantage">
-      <template #content>
+    <Dialog v-model:visible="optionModalOpen" header="Saisir une Option / Avantage" modal :draggable="false" dismissable-mask class="w-[32rem] max-w-[calc(100vw-2rem)]">
+      <template #container>
         <div class="p-6 space-y-4 rounded-xl bg-white border border-slate-200">
           <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Option ou Avantage</h2>
           
@@ -1536,7 +1536,7 @@ onMounted(() => {
           </div>
         </div>
       </template>
-    </UModal>
+    </Dialog>
 
   </div>
 </template>

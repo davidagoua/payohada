@@ -267,7 +267,7 @@ onMounted(chargerRubriques)
             @click="showEntretienForm = true"
             class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg text-xs transition-colors flex items-center gap-1.5 shadow-sm"
           >
-            <UIcon name="i-lucide-file-plus" class="w-3.5 h-3.5" />
+            <Icon name="i-lucide-file-plus" class="w-3.5 h-3.5" />
             Nouvel Entretien
           </button>
         </div>
@@ -345,7 +345,7 @@ onMounted(chargerRubriques)
             @click="showVisiteForm = true"
             class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg text-xs transition-colors flex items-center gap-1.5 shadow-sm"
           >
-            <UIcon name="i-lucide-file-plus" class="w-3.5 h-3.5" />
+            <Icon name="i-lucide-file-plus" class="w-3.5 h-3.5" />
             Nouvelle Visite
           </button>
         </div>
@@ -440,7 +440,7 @@ onMounted(chargerRubriques)
             @click="showFormationForm = true"
             class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg text-xs transition-colors flex items-center gap-1.5 shadow-sm"
           >
-            <UIcon name="i-lucide-file-plus" class="w-3.5 h-3.5" />
+            <Icon name="i-lucide-file-plus" class="w-3.5 h-3.5" />
             Nouvelle Formation
           </button>
         </div>
@@ -537,7 +537,7 @@ onMounted(chargerRubriques)
             @click="showAbsenceForm = true"
             class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg text-xs transition-colors flex items-center gap-1.5 shadow-sm"
           >
-            <UIcon name="i-lucide-file-plus" class="w-3.5 h-3.5" />
+            <Icon name="i-lucide-file-plus" class="w-3.5 h-3.5" />
             Nouvelle Absence
           </button>
         </div>
@@ -631,7 +631,7 @@ onMounted(chargerRubriques)
             @click="showPretForm = true"
             class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg text-xs transition-colors flex items-center gap-1.5 shadow-sm"
           >
-            <UIcon name="i-lucide-file-plus" class="w-3.5 h-3.5" />
+            <Icon name="i-lucide-file-plus" class="w-3.5 h-3.5" />
             Nouveau Prêt
           </button>
         </div>
@@ -709,7 +709,7 @@ onMounted(chargerRubriques)
             @click="showContratHrForm = true"
             class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg text-xs transition-colors flex items-center gap-1.5 shadow-sm"
           >
-            <UIcon name="i-lucide-file-plus" class="w-3.5 h-3.5" />
+            <Icon name="i-lucide-file-plus" class="w-3.5 h-3.5" />
             Nouveau Contrat HR
           </button>
         </div>
@@ -792,7 +792,7 @@ onMounted(chargerRubriques)
             @click="showServiceForm = true"
             class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg text-xs transition-colors flex items-center gap-1.5 shadow-sm"
           >
-            <UIcon name="i-lucide-file-plus" class="w-3.5 h-3.5" />
+            <Icon name="i-lucide-file-plus" class="w-3.5 h-3.5" />
             Nouvelle Affectation
           </button>
         </div>
@@ -810,7 +810,7 @@ onMounted(chargerRubriques)
                 </option>
               </select>
               <p v-if="dossierDepartements.length === 0" class="mt-1 text-xs text-amber-600 font-medium">
-                <UIcon name="i-lucide-alert-triangle" class="w-3.5 h-3.5 inline mr-1 align-text-bottom" />
+                <Icon name="i-lucide-alert-triangle" class="w-3.5 h-3.5 inline mr-1 align-text-bottom" />
                 Aucun département configuré pour ce dossier. Veuillez d'abord en ajouter dans la fiche du dossier client.
               </p>
             </div>
@@ -879,7 +879,7 @@ onMounted(chargerRubriques)
             @click="showArchivageForm = true"
             class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg text-xs transition-colors flex items-center gap-1.5 shadow-sm"
           >
-            <UIcon name="i-lucide-file-plus" class="w-3.5 h-3.5" />
+            <Icon name="i-lucide-file-plus" class="w-3.5 h-3.5" />
             Nouveau Document
           </button>
         </div>
@@ -935,7 +935,7 @@ onMounted(chargerRubriques)
                     class="inline-flex items-center gap-1 text-navy-700 hover:text-navy-900 font-semibold hover:underline"
                     @click="telechargerDocument(item.fichier_joint)"
                   >
-                    <UIcon name="i-lucide-download" class="w-3.5 h-3.5" />
+                    <Icon name="i-lucide-download" class="w-3.5 h-3.5" />
                     Télécharger
                   </button>
                   <span v-else class="text-slate-400 italic">Aucun fichier</span>

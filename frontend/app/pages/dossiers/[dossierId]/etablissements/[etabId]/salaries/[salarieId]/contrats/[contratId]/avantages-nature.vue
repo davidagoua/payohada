@@ -204,7 +204,7 @@ onMounted(async () => {
           class="text-xs font-semibold text-slate-500 hover:text-navy-700 inline-flex items-center gap-1.5 mb-1"
           @click="router.back()"
         >
-          <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
+          <Icon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
           Retour au contrat
         </button>
         <h1 class="text-lg font-bold text-navy-900">Avantages en nature</h1>
@@ -231,7 +231,7 @@ onMounted(async () => {
           class="px-3 py-2 bg-slate-800 hover:bg-slate-900 disabled:bg-slate-300 text-white text-xs font-bold rounded-lg inline-flex items-center gap-1.5"
           @click="simuler"
         >
-          <UIcon :name="calculEnCours ? 'i-lucide-loader-2' : 'i-lucide-calculator'" class="w-4 h-4" :class="{ 'animate-spin': calculEnCours }" />
+          <Icon :name="calculEnCours ? 'i-lucide-loader-2' : 'i-lucide-calculator'" class="w-4 h-4" :class="{ 'animate-spin': calculEnCours }" />
           Actualiser
         </button>
       </div>
@@ -243,7 +243,7 @@ onMounted(async () => {
         <!-- Logement -->
         <section class="bg-white border border-slate-200 rounded-xl p-5">
           <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <UIcon name="i-lucide-house" class="w-4 h-4 text-navy-700" />
+            <Icon name="i-lucide-house" class="w-4 h-4 text-navy-700" />
             Logement et charges
           </h2>
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -280,7 +280,7 @@ onMounted(async () => {
         <!-- Domesticité -->
         <section class="bg-white border border-slate-200 rounded-xl p-5">
           <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <UIcon name="i-lucide-users" class="w-4 h-4 text-navy-700" />
+            <Icon name="i-lucide-users" class="w-4 h-4 text-navy-700" />
             Domesticité et autres avantages
           </h2>
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -317,7 +317,7 @@ onMounted(async () => {
         <!-- Véhicule -->
         <section class="bg-white border border-slate-200 rounded-xl p-5">
           <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <UIcon name="i-lucide-car" class="w-4 h-4 text-navy-700" />
+            <Icon name="i-lucide-car" class="w-4 h-4 text-navy-700" />
             Véhicule
           </h2>
           <select v-model="saisie.vehicule_type" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm mb-3">
@@ -375,7 +375,7 @@ onMounted(async () => {
         <!-- Participations et assiette sociale -->
         <section class="bg-white border border-slate-200 rounded-xl p-5">
           <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider mb-4 flex items-center gap-2">
-            <UIcon name="i-lucide-scale" class="w-4 h-4 text-navy-700" />
+            <Icon name="i-lucide-scale" class="w-4 h-4 text-navy-700" />
             Participations et assiette CNPS
           </h2>
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -404,7 +404,7 @@ onMounted(async () => {
         <!-- Périodes enregistrées -->
         <section class="bg-white border border-slate-200 rounded-xl p-5">
           <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider mb-3 flex items-center gap-2">
-            <UIcon name="i-lucide-history" class="w-4 h-4 text-navy-700" />
+            <Icon name="i-lucide-history" class="w-4 h-4 text-navy-700" />
             Périodes enregistrées
           </h2>
           <p v-if="!periodes.length" class="text-xs text-slate-500">
@@ -504,7 +504,7 @@ onMounted(async () => {
             class="w-full px-4 py-3 bg-green-600 hover:bg-green-700 disabled:bg-slate-300 text-white text-sm font-bold rounded-xl inline-flex items-center justify-center gap-2"
             @click="enregistrer"
           >
-            <UIcon :name="enregistrement ? 'i-lucide-loader-2' : 'i-lucide-save'" class="w-4 h-4" :class="{ 'animate-spin': enregistrement }" />
+            <Icon :name="enregistrement ? 'i-lucide-loader-2' : 'i-lucide-save'" class="w-4 h-4" :class="{ 'animate-spin': enregistrement }" />
             {{ enregistrement ? 'Enregistrement…' : `Enregistrer pour ${MOIS_LABELS[mois - 1]} ${annee}` }}
           </button>
           <p class="text-[10px] text-slate-400 text-center">

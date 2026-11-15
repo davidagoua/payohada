@@ -222,7 +222,7 @@ onMounted(async () => {
 
 <template>
   <div v-if="loadingDossier" class="flex flex-col items-center justify-center py-20 space-y-4">
-    <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-green-600" />
+    <Icon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-green-600" />
     <span class="text-sm text-slate-500 font-medium">Chargement du contexte dossier...</span>
   </div>
 
@@ -231,7 +231,7 @@ onMounted(async () => {
     <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex items-center justify-between">
       <div class="flex items-center space-x-4">
         <div class="w-12 h-12 bg-navy-50 text-navy-700 rounded-lg flex items-center justify-center font-bold text-xl border border-navy-200">
-          <UIcon name="i-lucide-building" class="w-6 h-6" />
+          <Icon name="i-lucide-building" class="w-6 h-6" />
         </div>
         <div>
           <h1 class="text-2xl font-bold text-navy-900 leading-tight">Nouvel Établissement</h1>

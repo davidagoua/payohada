@@ -192,7 +192,7 @@ const activeContextLabel = computed(() => {
               class="p-1.5 rounded-lg text-navy-200 hover:text-white hover:bg-white/15 transition-colors cursor-pointer"
               @click="clearHistory"
             >
-              <UIcon
+              <Icon
                 name="i-lucide-trash-2"
                 class="w-4 h-4"
               />
@@ -205,7 +205,7 @@ const activeContextLabel = computed(() => {
               class="p-1.5 rounded-lg text-navy-200 hover:text-white hover:bg-white/15 transition-colors cursor-pointer"
               @click="closeChat"
             >
-              <UIcon
+              <Icon
                 name="i-lucide-x"
                 class="w-5 h-5"
               />
@@ -219,7 +219,7 @@ const activeContextLabel = computed(() => {
           class="bg-navy-50/80 border-b border-navy-200 px-3.5 py-1.5 flex items-center justify-between text-[11px] text-navy-900 select-none"
         >
           <div class="flex items-center space-x-1.5 truncate">
-            <UIcon
+            <Icon
               name="i-lucide-building-2"
               class="w-3.5 h-3.5 text-navy-700 flex-shrink-0"
             />
@@ -239,7 +239,7 @@ const activeContextLabel = computed(() => {
             class="mb-2"
           >
             <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center space-x-1">
-              <UIcon
+              <Icon
                 name="i-lucide-sparkles"
                 class="w-3 h-3 text-navy-700"
               />
@@ -254,7 +254,7 @@ const activeContextLabel = computed(() => {
                 @click="selectPrompt(prompt)"
               >
                 <span>{{ prompt }}</span>
-                <UIcon
+                <Icon
                   name="i-lucide-corner-down-left"
                   class="w-3.5 h-3.5 text-slate-400 group-hover:text-green-600 opacity-0 group-hover:opacity-100 transition-opacity"
                 />
@@ -283,7 +283,7 @@ const activeContextLabel = computed(() => {
                 class="flex items-center justify-between pb-1.5 mb-1.5 border-b border-slate-100 text-[10px] text-slate-400"
               >
                 <div class="flex items-center space-x-1.5 font-semibold text-navy-700">
-                  <UIcon
+                  <Icon
                     name="i-lucide-bot"
                     class="w-3.5 h-3.5"
                   />
@@ -296,7 +296,7 @@ const activeContextLabel = computed(() => {
                   class="p-1 hover:text-slate-700 transition-colors flex items-center space-x-1"
                   @click="copyMessage(msg.id, msg.content)"
                 >
-                  <UIcon
+                  <Icon
                     :name="copiedId === msg.id ? 'i-lucide-check' : 'i-lucide-copy'"
                     class="w-3 h-3"
                   />
@@ -370,7 +370,7 @@ const activeContextLabel = computed(() => {
               title="Envoyer le message"
               class="absolute right-1.5 p-1.5 rounded-lg bg-green-600 hover:bg-green-700 disabled:opacity-40 disabled:hover:bg-green-600 text-white transition-all cursor-pointer disabled:cursor-not-allowed shadow-xs"
             >
-              <UIcon
+              <Icon
                 :name="isLoading ? 'i-lucide-loader-2' : 'i-lucide-send'"
                 class="w-4 h-4"
                 :class="{ 'animate-spin': isLoading }"
@@ -405,7 +405,7 @@ const activeContextLabel = computed(() => {
 
       <span class="text-xs font-bold tracking-wide">Assistant Paie</span>
 
-      <UIcon
+      <Icon
         :name="isOpen ? 'i-lucide-x' : 'i-lucide-sparkles'"
         class="w-4 h-4 text-green-200 group-hover:rotate-12 transition-transform"
       />

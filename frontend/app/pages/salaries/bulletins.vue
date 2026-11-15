@@ -172,7 +172,7 @@ const handleChangePassword = async () => {
           @click="showPasswordForm = !showPasswordForm" 
           class="px-4 py-2 border-2 border-slate-200 hover:bg-slate-50 text-slate-850 text-xs font-bold uppercase tracking-wider rounded-lg shadow-flat transition-all cursor-pointer flex items-center gap-1.5"
         >
-          <UIcon name="i-lucide-key" class="w-4 h-4 text-navy-700" />
+          <Icon name="i-lucide-key" class="w-4 h-4 text-navy-700" />
           {{ showPasswordForm ? "Masquer le formulaire" : "Modifier mon mot de passe" }}
         </button>
       </div>
@@ -322,8 +322,8 @@ const handleChangePassword = async () => {
     </div>
 
     <!-- Modal: View Payslip -->
-    <UModal v-model:open="previewModalOpen" title="Visualiser le bulletin">
-      <template #content>
+    <Dialog v-model:visible="previewModalOpen" header="Visualiser le bulletin" modal :draggable="false" dismissable-mask class="w-[32rem] max-w-[calc(100vw-2rem)]">
+      <template #container>
         <div v-if="selectedBulletin" class="p-6 space-y-4 rounded-xl bg-slate-50 border border-slate-200 max-h-[85vh] overflow-y-auto w-full max-w-4xl">
           <div class="flex justify-between items-center border-b border-slate-200 pb-2">
             <h2 class="text-md font-bold text-navy-900 uppercase">Aperçu du bulletin de paie</h2>
@@ -457,11 +457,11 @@ const handleChangePassword = async () => {
           </div>
         </div>
       </template>
-    </UModal>
+    </Dialog>
 
     <!-- Modal: Make a Claim -->
-    <UModal v-model:open="claimModalOpen" title="Créer une réclamation">
-      <template #content>
+    <Dialog v-model:visible="claimModalOpen" header="Créer une réclamation" modal :draggable="false" dismissable-mask class="w-[32rem] max-w-[calc(100vw-2rem)]">
+      <template #container>
         <div class="p-6 space-y-4 rounded-xl bg-white border border-slate-200 max-w-md mx-auto">
           <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Déposer une réclamation</h2>
           
@@ -486,6 +486,6 @@ const handleChangePassword = async () => {
           </div>
         </div>
       </template>
-    </UModal>
+    </Dialog>
   </div>
 </template>

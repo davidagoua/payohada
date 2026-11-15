@@ -105,7 +105,7 @@ onMounted(charger)
       v-if="chargement"
       class="flex items-center justify-center py-16 text-sm text-slate-500 gap-3"
     >
-      <UIcon
+      <Icon
         name="i-lucide-loader-2"
         class="w-5 h-5 animate-spin text-green-600"
       />
@@ -137,7 +137,7 @@ onMounted(charger)
             <p class="text-[11px] font-bold uppercase tracking-wider text-slate-500">
               {{ indicateur.libelle }}
             </p>
-            <UIcon
+            <Icon
               :name="indicateur.icone"
               class="w-4 h-4 text-slate-400"
             />
@@ -242,7 +242,7 @@ onMounted(charger)
             to="/admin/cabinets"
             class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold uppercase tracking-wider bg-navy-900 text-white hover:bg-navy-800"
           >
-            <UIcon
+            <Icon
               name="i-lucide-settings-2"
               class="w-4 h-4"
             />
@@ -302,7 +302,7 @@ onMounted(charger)
                       ? 'bg-red-50 text-red-700 border-red-200'
                       : 'bg-green-50 text-green-700 border-green-200'"
                   >
-                    <UIcon
+                    <Icon
                       :name="cabinet.suspendu ? 'i-lucide-pause-circle' : 'i-lucide-check-circle'"
                       class="w-3 h-3"
                     />

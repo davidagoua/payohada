@@ -45,7 +45,7 @@ const getStatusBadge = (statut) => {
     case 'rejete':
       return { label: 'Rejetée', color: 'danger' }
     default:
-      return { label: 'En attente', color: 'warning' }
+      return { label: 'En attente', color: 'warn' }
   }
 }
 </script>
@@ -57,7 +57,7 @@ const getStatusBadge = (statut) => {
       <div>
         <div class="flex items-center gap-2">
           <NuxtLink to="/client" class="text-xs text-slate-500 hover:text-navy-700 font-semibold flex items-center gap-1">
-            <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
+            <Icon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
             Tableau de bord
           </NuxtLink>
         </div>
@@ -97,7 +97,7 @@ const getStatusBadge = (statut) => {
     <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
       <div class="p-4 border-b border-slate-200">
         <div class="relative w-full max-w-sm">
-          <UIcon name="i-lucide-search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+          <Icon name="i-lucide-search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
           <input 
             v-model="searchQuery" 
             type="text" 
@@ -108,12 +108,12 @@ const getStatusBadge = (statut) => {
       </div>
 
       <div v-if="loading" class="p-12 text-center text-slate-400">
-        <UIcon name="i-lucide-loader-2" class="w-8 h-8 mx-auto animate-spin mb-2" />
+        <Icon name="i-lucide-loader-2" class="w-8 h-8 mx-auto animate-spin mb-2" />
         <p class="text-xs">Chargement des réclamations...</p>
       </div>
 
       <div v-else-if="filteredReclamations.length === 0" class="p-12 text-center text-slate-500">
-        <UIcon name="i-lucide-message-square-off" class="w-10 h-10 mx-auto text-slate-300 mb-2" />
+        <Icon name="i-lucide-message-square-off" class="w-10 h-10 mx-auto text-slate-300 mb-2" />
         <p class="text-sm font-bold text-navy-900">Aucune réclamation trouvée</p>
         <p class="text-xs text-slate-500 mt-1">Vos salariés n'ont soumis aucune réclamation pour le moment.</p>
       </div>
@@ -124,9 +124,7 @@ const getStatusBadge = (statut) => {
             <div>
               <div class="flex items-center gap-2">
                 <span class="font-bold text-slate-900 text-sm">{{ r.sujet }}</span>
-                <UBadge :color="getStatusBadge(r.statut).color" variant="subtle" size="xs">
-                  {{ getStatusBadge(r.statut).label }}
-                </UBadge>
+                <Tag :severity="getStatusBadge(r.statut).color" :value="getStatusBadge(r.statut).label" class="text-xs" />
               </div>
               <p class="text-xs text-slate-500 mt-0.5">
                 Soumis par <strong>{{ r.salarie_nom }} {{ r.salarie_prenom }}</strong>
@@ -142,7 +140,7 @@ const getStatusBadge = (statut) => {
           <!-- Commentaire du gestionnaire -->
           <div v-if="r.commentaire_gestionnaire" class="mt-3 bg-navy-50/70 p-3 rounded-lg border border-navy-200 text-xs">
             <span class="font-bold text-navy-900 flex items-center gap-1 mb-1">
-              <UIcon name="i-lucide-message-circle" class="w-4 h-4 text-navy-700" />
+              <Icon name="i-lucide-message-circle" class="w-4 h-4 text-navy-700" />
               Réponse du cabinet :
             </span>
             <p class="text-slate-700 leading-relaxed">{{ r.commentaire_gestionnaire }}</p>

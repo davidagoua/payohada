@@ -25,7 +25,7 @@ const sousTitre = computed(() =>
     <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div class="flex items-center space-x-4">
         <div class="w-12 h-12 bg-navy-50 text-navy-700 rounded-lg flex items-center justify-center font-bold text-xl border border-navy-200">
-          <UIcon name="i-lucide-shield-check" class="w-6 h-6" />
+          <Icon name="i-lucide-shield-check" class="w-6 h-6" />
         </div>
         <div>
           <div class="flex items-center gap-2 flex-wrap">
@@ -56,7 +56,7 @@ const sousTitre = computed(() =>
       >
         <div class="flex items-start space-x-4">
           <div class="w-12 h-12 bg-navy-50 text-navy-700 rounded-xl flex items-center justify-center group-hover:bg-navy-900 group-hover:text-white transition-colors duration-200">
-            <UIcon name="i-lucide-users" class="w-6 h-6" />
+            <Icon name="i-lucide-users" class="w-6 h-6" />
           </div>
           <div class="space-y-1">
             <h2 class="text-lg font-bold text-navy-900 group-hover:text-navy-700 transition-colors">Utilisateurs du cabinet</h2>
@@ -67,7 +67,7 @@ const sousTitre = computed(() =>
         </div>
         <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-navy-700">
           <span>Gérer les utilisateurs</span>
-          <UIcon name="i-lucide-chevron-right" class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+          <Icon name="i-lucide-chevron-right" class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
         </div>
       </NuxtLink>
 
@@ -78,7 +78,7 @@ const sousTitre = computed(() =>
       >
         <div class="flex items-start space-x-4">
           <div class="w-12 h-12 bg-navy-50 text-navy-700 rounded-xl flex items-center justify-center group-hover:bg-navy-900 group-hover:text-white transition-colors duration-200">
-            <UIcon name="i-lucide-sliders" class="w-6 h-6" />
+            <Icon name="i-lucide-sliders" class="w-6 h-6" />
           </div>
           <div class="space-y-1">
             <div class="flex items-center gap-2 flex-wrap">
@@ -94,7 +94,7 @@ const sousTitre = computed(() =>
         </div>
         <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-navy-700">
           <span>Consulter les constantes</span>
-          <UIcon name="i-lucide-chevron-right" class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+          <Icon name="i-lucide-chevron-right" class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
         </div>
       </NuxtLink>
 
@@ -105,7 +105,7 @@ const sousTitre = computed(() =>
       >
         <div class="flex items-start space-x-4">
           <div class="w-12 h-12 bg-navy-50 text-navy-700 rounded-xl flex items-center justify-center group-hover:bg-navy-900 group-hover:text-white transition-colors duration-200">
-            <UIcon name="i-lucide-book-open" class="w-6 h-6" />
+            <Icon name="i-lucide-book-open" class="w-6 h-6" />
           </div>
           <div class="space-y-1">
             <div class="flex items-center gap-2 flex-wrap">
@@ -121,7 +121,7 @@ const sousTitre = computed(() =>
         </div>
         <div class="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between text-xs font-semibold text-navy-700">
           <span>Consulter le plan de paie</span>
-          <UIcon name="i-lucide-chevron-right" class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
+          <Icon name="i-lucide-chevron-right" class="w-4 h-4 transform group-hover:translate-x-1 transition-transform" />
         </div>
       </NuxtLink>
 

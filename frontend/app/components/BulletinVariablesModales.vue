@@ -298,8 +298,8 @@ onMounted(fetchPlanPaie)
   <!-- Modals for adding variables -->
 
   <!-- Modal: Overtime -->
-  <UModal v-model:open="hsModalOpen" title="Saisir des Heures Supplémentaires">
-    <template #content>
+  <Dialog v-model:visible="hsModalOpen" header="Saisir des Heures Supplémentaires" modal :draggable="false" dismissable-mask class="w-[32rem] max-w-[calc(100vw-2rem)]">
+    <template #container>
       <div class="p-6 space-y-4 rounded-xl bg-white border border-slate-200">
         <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Heure Supp.{{ libelleCibles }}</h2>
 
@@ -328,11 +328,11 @@ onMounted(fetchPlanPaie)
         </div>
       </div>
     </template>
-  </UModal>
+  </Dialog>
 
   <!-- Modal: Absence -->
-  <UModal v-model:open="absModalOpen" title="Saisir une Absence / Congé">
-    <template #content>
+  <Dialog v-model:visible="absModalOpen" header="Saisir une Absence / Congé" modal :draggable="false" dismissable-mask class="w-[32rem] max-w-[calc(100vw-2rem)]">
+    <template #container>
       <div class="p-6 space-y-4 rounded-xl bg-white border border-slate-200">
         <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Saisir Absence{{ libelleCibles }}</h2>
 
@@ -380,11 +380,11 @@ onMounted(fetchPlanPaie)
         </div>
       </div>
     </template>
-  </UModal>
+  </Dialog>
 
   <!-- Modal: Prime -->
-  <UModal v-model:open="primeModalOpen" title="Saisir une Prime">
-    <template #content>
+  <Dialog v-model:visible="primeModalOpen" header="Saisir une Prime" modal :draggable="false" dismissable-mask class="w-[32rem] max-w-[calc(100vw-2rem)]">
+    <template #container>
       <div class="p-6 space-y-4 rounded-xl bg-white border border-slate-200">
         <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Prime{{ libelleCibles }}</h2>
 
@@ -446,11 +446,11 @@ onMounted(fetchPlanPaie)
         </div>
       </div>
     </template>
-  </UModal>
+  </Dialog>
 
   <!-- Modal: Acompte -->
-  <UModal v-model:open="acompteModalOpen" title="Définir un Acompte">
-    <template #content>
+  <Dialog v-model:visible="acompteModalOpen" header="Définir un Acompte" modal :draggable="false" dismissable-mask class="w-[32rem] max-w-[calc(100vw-2rem)]">
+    <template #container>
       <div class="p-6 space-y-4 rounded-xl bg-white border border-slate-200">
         <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Acompte sur salaire{{ libelleCibles }}</h2>
 
@@ -473,7 +473,7 @@ onMounted(fetchPlanPaie)
         </div>
       </div>
     </template>
-  </UModal>
+  </Dialog>
   </div>
 </template>
 

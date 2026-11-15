@@ -256,7 +256,7 @@ onMounted(async () => {
           class="carbon-helper hover:underline inline-flex items-center gap-1.5 mb-1"
           @click="router.push(`/dossiers/${dossierId}/etablissements/${etabId}?tab=infos`)"
         >
-          <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
+          <Icon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
           Retour à l'établissement
         </button>
         <h1 class="carbon-heading-03 text-navy-900">Éditions</h1>
@@ -309,7 +309,7 @@ onMounted(async () => {
       <!-- Catalogue -->
       <div class="lg:col-span-1 space-y-4">
         <div v-if="chargementCatalogue" class="carbon-tile text-center py-8">
-          <UIcon name="i-lucide-loader-2" class="w-6 h-6 animate-spin inline-block" />
+          <Icon name="i-lucide-loader-2" class="w-6 h-6 animate-spin inline-block" />
           <p class="carbon-helper mt-2">Chargement du catalogue…</p>
         </div>
 
@@ -328,7 +328,7 @@ onMounted(async () => {
             >
               <div class="flex items-center justify-between gap-2">
                 <span class="font-semibold text-navy-900">{{ edition.libelle }}</span>
-                <UIcon
+                <Icon
                   v-if="codeSelectionne === edition.code"
                   name="i-lucide-check"
                   class="w-4 h-4 text-green-600 shrink-0"
@@ -355,7 +355,7 @@ onMounted(async () => {
               class="px-4 h-10 bg-green-600 hover:bg-green-700 disabled:bg-slate-300 text-white font-semibold inline-flex items-center gap-2"
               @click="visualiser"
             >
-              <UIcon :name="generationEnCours ? 'i-lucide-loader-2' : 'i-lucide-eye'"
+              <Icon :name="generationEnCours ? 'i-lucide-loader-2' : 'i-lucide-eye'"
                      class="w-4 h-4" :class="{ 'animate-spin': generationEnCours }" />
               Visualiser
             </button>
@@ -366,7 +366,7 @@ onMounted(async () => {
               class="px-3 h-10 border border-slate-400 hover:bg-slate-100 disabled:opacity-40 font-semibold inline-flex items-center gap-1.5 uppercase text-xs"
               @click="telecharger(format)"
             >
-              <UIcon :name="exportEnCours === format ? 'i-lucide-loader-2' : 'i-lucide-download'"
+              <Icon :name="exportEnCours === format ? 'i-lucide-loader-2' : 'i-lucide-download'"
                      class="w-3.5 h-3.5" :class="{ 'animate-spin': exportEnCours === format }" />
               {{ format === 'excel' ? 'Excel' : format }}
             </button>
@@ -375,7 +375,7 @@ onMounted(async () => {
               class="px-3 h-10 border border-slate-400 hover:bg-slate-100 disabled:opacity-40 font-semibold inline-flex items-center gap-1.5 uppercase text-xs"
               @click="ouvrirEnvoi"
             >
-              <UIcon name="i-lucide-mail" class="w-3.5 h-3.5" />
+              <Icon name="i-lucide-mail" class="w-3.5 h-3.5" />
               Email
             </button>
           </div>
@@ -438,7 +438,7 @@ onMounted(async () => {
         </div>
 
         <div v-else class="carbon-tile text-center py-16">
-          <UIcon name="i-lucide-table-2" class="w-10 h-10 text-slate-300 inline-block" />
+          <Icon name="i-lucide-table-2" class="w-10 h-10 text-slate-300 inline-block" />
           <p class="carbon-helper mt-3">
             Choisissez une édition puis cliquez sur « Visualiser » pour afficher l'aperçu.
           </p>
@@ -456,7 +456,7 @@ onMounted(async () => {
             Envoyer « {{ editionSelectionnee?.libelle }} »
           </h2>
           <button class="text-slate-500 hover:text-slate-900" @click="envoi.ouvert = false">
-            <UIcon name="i-lucide-x" class="w-4 h-4" />
+            <Icon name="i-lucide-x" class="w-4 h-4" />
           </button>
         </div>
         <div class="p-4 space-y-4">
@@ -491,7 +491,7 @@ onMounted(async () => {
           <button :disabled="envoiEnCours"
                   class="px-4 h-10 bg-green-600 hover:bg-green-700 disabled:bg-slate-300 text-white font-semibold inline-flex items-center gap-2"
                   @click="envoyer">
-            <UIcon :name="envoiEnCours ? 'i-lucide-loader-2' : 'i-lucide-send'"
+            <Icon :name="envoiEnCours ? 'i-lucide-loader-2' : 'i-lucide-send'"
                    class="w-4 h-4" :class="{ 'animate-spin': envoiEnCours }" />
             Envoyer
           </button>

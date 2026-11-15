@@ -176,7 +176,7 @@ onMounted(() => {
     <div class="bg-white border-2 border-slate-200 p-6 shadow-flat flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-t-4 border-t-navy-900">
       <div class="flex items-center space-x-4">
         <div class="w-12 h-12 bg-navy-50 text-navy-700 flex items-center justify-center font-bold text-xl border border-navy-200">
-          <UIcon name="i-lucide-calculator" class="w-6 h-6" />
+          <Icon name="i-lucide-calculator" class="w-6 h-6" />
         </div>
         <div>
           <h1 class="text-2xl font-bold text-navy-900 leading-tight">Simulateur de Bulletin de Paie</h1>
@@ -189,8 +189,8 @@ onMounted(() => {
         :disabled="loading"
         class="w-full md:w-auto px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold tracking-wider uppercase shadow-flat transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer shadow-flat-hover shadow-flat-active"
       >
-        <UIcon v-if="loading" name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
-        <UIcon v-else name="i-lucide-play" class="w-4 h-4" />
+        <Icon v-if="loading" name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
+        <Icon v-else name="i-lucide-play" class="w-4 h-4" />
         <span>LANCER LE CALCUL</span>
       </button>
     </div>
@@ -359,7 +359,7 @@ onMounted(() => {
               @click="addAbsence" 
               class="text-xs text-green-600 hover:text-green-700 font-bold flex items-center gap-1"
             >
-              <UIcon name="i-lucide-plus" class="w-3.5 h-3.5" /> Ajouter
+              <Icon name="i-lucide-plus" class="w-3.5 h-3.5" /> Ajouter
             </button>
           </div>
 
@@ -390,7 +390,7 @@ onMounted(() => {
                 @click="removeAbsence(abs.id)" 
                 class="mt-4 p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg"
               >
-                <UIcon name="i-lucide-x" class="w-4 h-4" />
+                <Icon name="i-lucide-x" class="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -404,7 +404,7 @@ onMounted(() => {
               @click="addHeureSup" 
               class="text-xs text-green-600 hover:text-green-700 font-bold flex items-center gap-1"
             >
-              <UIcon name="i-lucide-plus" class="w-3.5 h-3.5" /> Ajouter
+              <Icon name="i-lucide-plus" class="w-3.5 h-3.5" /> Ajouter
             </button>
           </div>
 
@@ -430,7 +430,7 @@ onMounted(() => {
                 @click="removeHeureSup(hs.id)" 
                 class="mt-4 p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg"
               >
-                <UIcon name="i-lucide-x" class="w-4 h-4" />
+                <Icon name="i-lucide-x" class="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -444,7 +444,7 @@ onMounted(() => {
               @click="addPrime" 
               class="text-xs text-green-600 hover:text-green-700 font-bold flex items-center gap-1"
             >
-              <UIcon name="i-lucide-plus" class="w-3.5 h-3.5" /> Ajouter
+              <Icon name="i-lucide-plus" class="w-3.5 h-3.5" /> Ajouter
             </button>
           </div>
 
@@ -490,7 +490,7 @@ onMounted(() => {
                 @click="removePrime(p.id)" 
                 class="absolute top-2 right-2 p-1 text-red-500 hover:text-red-700 hover:bg-red-50"
               >
-                <UIcon name="i-lucide-x" class="w-4 h-4" />
+                <Icon name="i-lucide-x" class="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -501,7 +501,7 @@ onMounted(() => {
       <!-- Right Column: Simulated Payslip Preview (7 cols) -->
       <div class="lg:col-span-7">
         <div v-if="loading" class="bg-white border-2 border-slate-200 p-16 text-center space-y-4 shadow-flat flex flex-col items-center justify-center border-t-4 border-t-green-600">
-          <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-green-600" />
+          <Icon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-green-600" />
           <span class="text-sm font-semibold text-slate-650">Calcul en cours et génération du bulletin...</span>
         </div>
 

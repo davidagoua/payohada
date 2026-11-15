@@ -404,7 +404,7 @@ const handleImportExcel = async (event) => {
       <div>
         <div class="flex items-center gap-2">
           <NuxtLink to="/client" class="text-xs text-slate-500 hover:text-navy-700 font-semibold flex items-center gap-1">
-            <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
+            <Icon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
             Tableau de bord
           </NuxtLink>
         </div>
@@ -443,38 +443,43 @@ const handleImportExcel = async (event) => {
         </div>
 
         <!-- Export Excel -->
-        <UButton 
-          color="neutral" 
-          variant="outline" 
-          size="sm"
+        <Button
+          severity="secondary"
+          outlined
+          size="small"
           :loading="excelExporting"
           @click="handleExportExcel"
+          label="Maquette Excel"
         >
-          <UIcon name="i-lucide-download" class="w-4 h-4 mr-1 text-navy-700" />
-          Maquette Excel
-        </UButton>
+          <template #icon>
+            <Icon name="i-lucide-download" class="w-4 h-4 text-navy-700" />
+          </template>
+        </Button>
 
         <!-- Import Excel -->
-        <UButton 
-          color="neutral" 
-          variant="outline" 
-          size="sm"
+        <Button
+          severity="secondary"
+          outlined
+          size="small"
           @click="excelImportModalOpen = true"
+          label="Importer Excel"
         >
-          <UIcon name="i-lucide-upload" class="w-4 h-4 mr-1 text-navy-700" />
-          Importer Excel
-        </UButton>
+          <template #icon>
+            <Icon name="i-lucide-upload" class="w-4 h-4 text-navy-700" />
+          </template>
+        </Button>
 
         <!-- Bouton de transmission au cabinet -->
-        <UButton 
-          color="primary" 
-          size="sm"
-          class="bg-green-600 hover:bg-green-700 text-white font-bold shadow-xs"
+        <Button
+          size="small"
           @click="openTransmitModal"
+          label="Transmettre au Cabinet"
+          class="font-bold shadow-xs"
         >
-          <UIcon name="i-lucide-send" class="w-4 h-4 mr-1.5" />
-          Transmettre au Cabinet
-        </UButton>
+          <template #icon>
+            <Icon name="i-lucide-send" class="w-4 h-4" />
+          </template>
+        </Button>
       </div>
     </div>
 
@@ -488,7 +493,7 @@ const handleImportExcel = async (event) => {
           periodeStatut?.statut === 'transmis' ? 'bg-amber-100 text-amber-700' :
           (periodeStatut?.statut === 'calcule' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700')
         ]">
-          <UIcon :name="
+          <Icon :name="
             periodeStatut?.statut === 'transmis' ? 'i-lucide-clock' :
             (periodeStatut?.statut === 'calcule' ? 'i-lucide-check-circle-2' : 'i-lucide-edit-3')
           " class="w-5 h-5" />
@@ -525,7 +530,7 @@ const handleImportExcel = async (event) => {
     <!-- Barre de recherche -->
     <div class="flex items-center justify-between gap-4">
       <div class="relative w-full max-w-sm">
-        <UIcon name="i-lucide-search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
+        <Icon name="i-lucide-search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
         <input 
           v-model="searchQuery" 
           type="text" 
@@ -541,27 +546,27 @@ const handleImportExcel = async (event) => {
       class="bg-white border border-slate-200 rounded-xl p-4 shadow-xs flex flex-col sm:flex-row justify-between items-center gap-3 text-xs"
     >
       <span class="font-bold text-slate-700">{{ selection.length }} salarié(s) sélectionné(s)</span>
-      <UDropdownMenu :items="menuSaisieGroupee">
+      <AppMenu :items="menuSaisieGroupee">
         <button
           type="button"
           class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
         >
-          <UIcon name="i-lucide-list-plus" class="w-3.5 h-3.5" />
+          <Icon name="i-lucide-list-plus" class="w-3.5 h-3.5" />
           Ajouter des variables
-          <UIcon name="i-lucide-chevron-down" class="w-3.5 h-3.5" />
+          <Icon name="i-lucide-chevron-down" class="w-3.5 h-3.5" />
         </button>
-      </UDropdownMenu>
+      </AppMenu>
     </div>
 
     <!-- Tableau de saisie collective -->
     <div class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-xs">
       <div v-if="loading" class="p-12 text-center text-slate-400">
-        <UIcon name="i-lucide-loader-2" class="w-8 h-8 mx-auto animate-spin mb-2" />
+        <Icon name="i-lucide-loader-2" class="w-8 h-8 mx-auto animate-spin mb-2" />
         <p class="text-xs">Chargement de la grille des variables...</p>
       </div>
 
       <div v-else-if="filteredRows.length === 0" class="p-12 text-center text-slate-500">
-        <UIcon name="i-lucide-users" class="w-10 h-10 mx-auto text-slate-300 mb-2" />
+        <Icon name="i-lucide-users" class="w-10 h-10 mx-auto text-slate-300 mb-2" />
         <p class="text-sm font-bold text-navy-900">Aucun salarié trouvé</p>
         <p class="text-xs text-slate-500 mt-1">Aucun contrat actif n'est associé à cette entreprise pour cette période.</p>
       </div>
@@ -642,7 +647,7 @@ const handleImportExcel = async (event) => {
                     class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[11px] font-semibold text-amber-700 hover:bg-amber-100 border border-dashed border-amber-300 transition-colors cursor-pointer"
                     @click="openHsModal(row)"
                   >
-                    <UIcon name="i-lucide-plus" class="w-3 h-3" />
+                    <Icon name="i-lucide-plus" class="w-3 h-3" />
                     HS
                   </button>
                 </div>
@@ -674,7 +679,7 @@ const handleImportExcel = async (event) => {
                     class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[11px] font-semibold text-red-700 hover:bg-red-100 border border-dashed border-red-300 transition-colors cursor-pointer"
                     @click="openAbsenceModal(row)"
                   >
-                    <UIcon name="i-lucide-plus" class="w-3 h-3" />
+                    <Icon name="i-lucide-plus" class="w-3 h-3" />
                     Absence
                   </button>
                 </div>
@@ -706,7 +711,7 @@ const handleImportExcel = async (event) => {
                     class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[11px] font-semibold text-navy-700 hover:bg-navy-100 border border-dashed border-navy-300 transition-colors cursor-pointer"
                     @click="openPrimeModal(row)"
                   >
-                    <UIcon name="i-lucide-plus" class="w-3 h-3" />
+                    <Icon name="i-lucide-plus" class="w-3 h-3" />
                     Prime
                   </button>
                 </div>
@@ -733,8 +738,8 @@ const handleImportExcel = async (event) => {
     </div>
 
     <!-- ═══ Modal : Ajout Heures Supplémentaires ═══ -->
-    <UModal v-model:open="hsModalOpen" title="Déclarer des Heures Supplémentaires">
-      <template #body>
+    <Dialog v-model:visible="hsModalOpen" header="Déclarer des Heures Supplémentaires" modal :draggable="false" dismissable-mask class="w-[32rem] max-w-[calc(100vw-2rem)]">
+      <template #default>
         <div class="space-y-4">
           <div class="bg-slate-50 p-3 rounded-lg border text-xs text-slate-600">
             <strong>{{ libelleCibles }}</strong>
@@ -765,17 +770,25 @@ const handleImportExcel = async (event) => {
       </template>
       <template #footer>
         <div class="flex justify-end gap-2">
-          <UButton color="neutral" variant="ghost" @click="hsModalOpen = false">Annuler</UButton>
-          <UButton color="primary" class="bg-green-600 hover:bg-green-700 text-white font-bold" :loading="enregistrementEnCours" @click="submitHs">
-            Enregistrer
-          </UButton>
+          <Button
+            severity="secondary"
+            text
+            @click="hsModalOpen = false"
+            label="Annuler"
+          />
+          <Button
+            :loading="enregistrementEnCours"
+            @click="submitHs"
+            label="Enregistrer"
+            class="font-bold"
+          />
         </div>
       </template>
-    </UModal>
+    </Dialog>
 
     <!-- ═══ Modal : Ajout Absence / Congé ═══ -->
-    <UModal v-model:open="absenceModalOpen" title="Déclarer une Absence ou un Congé">
-      <template #body>
+    <Dialog v-model:visible="absenceModalOpen" header="Déclarer une Absence ou un Congé" modal :draggable="false" dismissable-mask class="w-[32rem] max-w-[calc(100vw-2rem)]">
+      <template #default>
         <div class="space-y-4">
           <div class="bg-slate-50 p-3 rounded-lg border text-xs text-slate-600">
             <strong>{{ libelleCibles }}</strong>
@@ -819,17 +832,26 @@ const handleImportExcel = async (event) => {
       </template>
       <template #footer>
         <div class="flex justify-end gap-2">
-          <UButton color="neutral" variant="ghost" @click="absenceModalOpen = false">Annuler</UButton>
-          <UButton color="primary" class="bg-red-600 hover:bg-red-700 text-white font-bold" :loading="enregistrementEnCours" @click="submitAbsence">
-            Enregistrer
-          </UButton>
+          <Button
+            severity="secondary"
+            text
+            @click="absenceModalOpen = false"
+            label="Annuler"
+          />
+          <Button
+            severity="danger"
+            :loading="enregistrementEnCours"
+            @click="submitAbsence"
+            label="Enregistrer"
+            class="font-bold"
+          />
         </div>
       </template>
-    </UModal>
+    </Dialog>
 
     <!-- ═══ Modal : Ajout Prime ═══ -->
-    <UModal v-model:open="primeModalOpen" title="Déclarer une Prime ou Indemnité">
-      <template #body>
+    <Dialog v-model:visible="primeModalOpen" header="Déclarer une Prime ou Indemnité" modal :draggable="false" dismissable-mask class="w-[32rem] max-w-[calc(100vw-2rem)]">
+      <template #default>
         <div class="space-y-4">
           <div class="bg-slate-50 p-3 rounded-lg border text-xs text-slate-600">
             <strong>{{ libelleCibles }}</strong>
@@ -860,20 +882,28 @@ const handleImportExcel = async (event) => {
       </template>
       <template #footer>
         <div class="flex justify-end gap-2">
-          <UButton color="neutral" variant="ghost" @click="primeModalOpen = false">Annuler</UButton>
-          <UButton color="primary" class="bg-green-600 hover:bg-green-700 text-white font-bold" :loading="enregistrementEnCours" @click="submitPrime">
-            Enregistrer
-          </UButton>
+          <Button
+            severity="secondary"
+            text
+            @click="primeModalOpen = false"
+            label="Annuler"
+          />
+          <Button
+            :loading="enregistrementEnCours"
+            @click="submitPrime"
+            label="Enregistrer"
+            class="font-bold"
+          />
         </div>
       </template>
-    </UModal>
+    </Dialog>
 
     <!-- ═══ Modal : Transmission au Cabinet ═══ -->
-    <UModal v-model:open="transmitModalOpen" title="Transmettre les variables au cabinet">
-      <template #body>
+    <Dialog v-model:visible="transmitModalOpen" header="Transmettre les variables au cabinet" modal :draggable="false" dismissable-mask class="w-[32rem] max-w-[calc(100vw-2rem)]">
+      <template #default>
         <div class="space-y-4">
           <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800 flex items-start gap-2">
-            <UIcon name="i-lucide-alert-circle" class="w-5 h-5 shrink-0 text-amber-600 mt-0.5" />
+            <Icon name="i-lucide-alert-circle" class="w-5 h-5 shrink-0 text-amber-600 mt-0.5" />
             <div>
               Vous êtes sur le point de transmettre officiellement les éléments variables de <strong>{{ currentPeriodLabel }}</strong> à votre gestionnaire de paie.
               Le statut passera à <strong>"Transmis"</strong> et votre cabinet pourra lancer le calcul des bulletins.
@@ -893,29 +923,32 @@ const handleImportExcel = async (event) => {
       </template>
       <template #footer>
         <div class="flex justify-end gap-2">
-          <UButton color="neutral" variant="ghost" @click="transmitModalOpen = false">Annuler</UButton>
-          <UButton 
-            color="primary" 
+          <Button
+            severity="secondary"
+            text
+            @click="transmitModalOpen = false"
+            label="Annuler"
+          />
+          <Button
             :loading="transmitting"
-            class="bg-green-600 hover:bg-green-700 text-white font-bold" 
             @click="submitTransmission"
-          >
-            Confirmer la Transmission
-          </UButton>
+            label="Confirmer la Transmission"
+            class="font-bold"
+          />
         </div>
       </template>
-    </UModal>
+    </Dialog>
 
     <!-- ═══ Modal : Import Excel ═══ -->
-    <UModal v-model:open="excelImportModalOpen" title="Importer la matrice Excel des variables">
-      <template #body>
+    <Dialog v-model:visible="excelImportModalOpen" header="Importer la matrice Excel des variables" modal :draggable="false" dismissable-mask class="w-[32rem] max-w-[calc(100vw-2rem)]">
+      <template #default>
         <div class="space-y-4">
           <p class="text-xs text-slate-600 leading-relaxed">
             Importez le fichier Excel préalablement rempli (format officiel QPXL1501). Les variables seront automatiquement injectées dans la base de données.
           </p>
 
           <div class="border-2 border-dashed border-slate-300 hover:border-green-500 rounded-xl p-6 text-center transition-colors">
-            <UIcon name="i-lucide-file-spreadsheet" class="w-10 h-10 mx-auto text-navy-700 mb-2" />
+            <Icon name="i-lucide-file-spreadsheet" class="w-10 h-10 mx-auto text-navy-700 mb-2" />
             <label class="cursor-pointer">
               <span class="text-xs font-bold text-navy-700 hover:underline">Sélectionner un fichier Excel (.xlsx, .xls)</span>
               <input type="file" accept=".xlsx,.xls" class="hidden" @change="handleImportExcel" />
@@ -926,9 +959,14 @@ const handleImportExcel = async (event) => {
       </template>
       <template #footer>
         <div class="flex justify-end">
-          <UButton color="neutral" variant="ghost" @click="excelImportModalOpen = false">Fermer</UButton>
+          <Button
+            severity="secondary"
+            text
+            @click="excelImportModalOpen = false"
+            label="Fermer"
+          />
         </div>
       </template>
-    </UModal>
+    </Dialog>
   </div>
 </template>

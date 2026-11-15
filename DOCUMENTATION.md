@@ -1,7 +1,7 @@
 # 📖 Documentation — PayOHADA Paie
 
 ##  Vue d'ensemble
-**PayOHADA** est une solution moderne de gestion de la paie et des ressources humaines conforme aux normes juridiques, fiscales et sociales de l'espace **OHADA** (notamment la Côte d'Ivoire et les pays de la zone UEMOA). La solution repose sur un backend **FastAPI (Python)** avec base de données relationnelle (PostgreSQL / SQLite) et un frontend **Nuxt 4 / Vue 3** propulsé par TailwindCSS et `@nuxt/ui`.
+**PayOHADA** est une solution moderne de gestion de la paie et des ressources humaines conforme aux normes juridiques, fiscales et sociales de l'espace **OHADA** (notamment la Côte d'Ivoire et les pays de la zone UEMOA). La solution repose sur un backend **FastAPI (Python)** avec base de données relationnelle (PostgreSQL / SQLite) et un frontend **Nuxt 4 / Vue 3** propulsé par TailwindCSS et les composants **PrimeVue 4** (thème `app/theme/payohada.ts`).
 
 > 📘 **Manuel utilisateur par rôle** : [manuel-utilisation-payohada.pdf](docs/manuel-utilisation-payohada.pdf) — version 1.6, 38 pages, guides Cabinet, Entreprise et Salarié (source DOCX et générateur dans [`docs/manuel/`](docs/manuel/)).
 
@@ -873,11 +873,11 @@ dans [`docs/CHARTE_GRAPHIQUE.md`](docs/CHARTE_GRAPHIQUE.md).
 | Libellés | 12 px, **casse de phrase** — Carbon proscrit les capitales, contrairement à l'ancien style qui les employait partout. |
 | En-tête applicatif | Coque **navy** : `#01173a`, logo clair (`payohada-logo-light.png`), onglet actif blanc à soulignement vert, pied de page navy. |
 | Tableaux | Style *data table* : aucune bordure verticale, **en-tête navy à texte blanc souligné d'un filet vert de 2 px**, hauteur de ligne 40 px, survol gray-20. |
-| Couleur secondaire | Échelle `navy-50 → navy-950` exposée en utilitaires Tailwind ; `secondary` et `info` de Nuxt UI pointent sur `navy`, ce qui aligne `UBadge`, `UButton` et les notifications. |
+| Couleur secondaire | Échelle `navy-50 → navy-950` exposée en utilitaires Tailwind ; le thème PrimeVue (`app/theme/payohada.ts`) reprend le vert en primaire et le navy pour les surfaces sélectionnées, les en-têtes de tableaux et les notifications d'information. |
 | Focus | Contour de 2 px dans la couleur d'action (vert), à l'intérieur de l'élément — défini une seule fois, globalement. |
 | Relief | L'ombre décalée d'origine est remplacée par un relief plat. Carbon sépare par des filets, non par des ombres. |
-| Rayons | Interface arrondie : `--radius-lg` = 10 px (cartes, champs, boutons), `--radius-xl` = 12 px (grandes surfaces), `--radius-2xl` = 16 px (modales), `--ui-radius` = 8 px pour Nuxt UI. L'impression remet des angles droits. |
-| Composants Nuxt UI | Les jetons sémantiques (`--ui-bg`, `--ui-text`, `--ui-border`…) sont alignés sur Carbon, ce qui habille `UButton`, `UInput`, `UCard` et `UModal` sans les toucher. Les surcharges sont limitées au mode clair (`:root:not(.dark)`) pour préserver la palette sombre. |
+| Rayons | Interface arrondie : `--radius-lg` = 10 px (cartes, champs, boutons), `--radius-xl` = 12 px (grandes surfaces), `--radius-2xl` = 16 px (modales), 8 px (`border.radius.md`) pour les champs PrimeVue. L'impression remet des angles droits. |
+| Composants PrimeVue | Préréglage Aura redéfini dans `app/theme/payohada.ts` : gris Carbon, champ à fond gris et filet inférieur, focus 2 px vert, notifications opaques. `Button`, `Dialog`, `Menu` (via `AppMenu`), `Tag` et `Toast` remplacent les composants Nuxt UI. PrimeVue est figé en 4.5 (licence MIT) : la version 5 exige une clé de licence PrimeUI. |
 
 Classes maison ajoutées : `.carbon-tile`, `.carbon-label`, `.carbon-helper`,
 `.carbon-error`, `.carbon-tag`, `.carbon-notification`, `.carbon-divider`,

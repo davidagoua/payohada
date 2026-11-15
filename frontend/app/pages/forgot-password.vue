@@ -56,7 +56,7 @@ const handleSubmit = async () => {
     <!-- En-tête de la carte -->
     <div class="flex items-center gap-3 mb-6">
       <div class="w-11 h-11 bg-navy-50 border border-navy-200 flex items-center justify-center text-navy-700 shrink-0">
-        <UIcon name="i-lucide-key-round" class="w-5 h-5" />
+        <Icon name="i-lucide-key-round" class="w-5 h-5" />
       </div>
       <div>
         <h1 class="text-xl font-bold text-navy-900 tracking-tight">
@@ -74,7 +74,7 @@ const handleSubmit = async () => {
         v-if="successMessage"
         class="mb-5 p-4 bg-green-50 border border-green-200 flex items-start gap-3"
       >
-        <UIcon name="i-lucide-mail-check" class="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
+        <Icon name="i-lucide-mail-check" class="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
         <div class="text-xs text-green-900 leading-relaxed space-y-1.5">
           <p class="font-bold">Demande enregistrée</p>
           <p>{{ successMessage }}</p>
@@ -90,7 +90,7 @@ const handleSubmit = async () => {
         class="mb-5 p-3.5 bg-red-50 border border-red-200 flex items-center gap-2.5 text-red-700 text-xs font-semibold"
         role="alert"
       >
-        <UIcon name="i-lucide-alert-circle" class="w-4 h-4 text-red-600 shrink-0" />
+        <Icon name="i-lucide-alert-circle" class="w-4 h-4 text-red-600 shrink-0" />
         <span>{{ errorMessage }}</span>
       </div>
 
@@ -123,15 +123,15 @@ const handleSubmit = async () => {
           :disabled="submitting"
           class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 disabled:bg-slate-300 text-white text-sm font-bold shadow-flat transition-colors"
         >
-          <UIcon v-if="submitting" name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
-          <UIcon v-else name="i-lucide-send" class="w-4 h-4" />
+          <Icon v-if="submitting" name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
+          <Icon v-else name="i-lucide-send" class="w-4 h-4" />
           {{ submitting ? 'Envoi en cours…' : 'Envoyer le lien de réinitialisation' }}
         </button>
       </form>
 
       <div class="mt-6 pt-5 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs">
         <NuxtLink to="/login" class="font-semibold text-navy-700 hover:text-navy-900 inline-flex items-center gap-1.5">
-          <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
+          <Icon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
           Retour à la connexion
         </NuxtLink>
         <span class="text-slate-400">Besoin d'aide ? Contactez votre gestionnaire</span>

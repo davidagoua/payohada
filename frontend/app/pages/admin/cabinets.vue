@@ -181,7 +181,7 @@ onMounted(() => {
     <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div class="flex items-center space-x-4">
         <div class="w-12 h-12 bg-navy-50 text-navy-700 rounded-lg flex items-center justify-center border border-navy-200">
-          <UIcon name="i-lucide-building-2" class="w-6 h-6" />
+          <Icon name="i-lucide-building-2" class="w-6 h-6" />
         </div>
         <div>
           <div class="flex items-center gap-2 flex-wrap">
@@ -201,7 +201,7 @@ onMounted(() => {
         class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-bold uppercase tracking-wider transition-colors shadow-flat shrink-0"
         @click="formulaireOuvert = !formulaireOuvert; adminCible = null"
       >
-        <UIcon :name="formulaireOuvert ? 'i-lucide-x' : 'i-lucide-plus'" class="w-4 h-4" />
+        <Icon :name="formulaireOuvert ? 'i-lucide-x' : 'i-lucide-plus'" class="w-4 h-4" />
         {{ formulaireOuvert ? 'Fermer' : 'Ajouter un cabinet' }}
       </button>
     </div>
@@ -210,7 +210,7 @@ onMounted(() => {
 
     <!-- Accès refusé (sécurité d'affichage ; l'API tranche) -->
     <div v-if="!estAdminPlateforme" class="bg-white border border-slate-200 rounded-xl p-8 text-center text-sm text-slate-500">
-      <UIcon name="i-lucide-lock" class="w-8 h-8 mx-auto mb-3 text-slate-400" />
+      <Icon name="i-lucide-lock" class="w-8 h-8 mx-auto mb-3 text-slate-400" />
       Cet espace est réservé à l'administrateur de la plateforme.
     </div>
 
@@ -220,7 +220,7 @@ onMounted(() => {
         <div class="flex items-start justify-between gap-4">
           <div class="flex items-start gap-3">
             <div class="w-9 h-9 bg-green-50 border border-green-200 text-green-700 rounded-lg flex items-center justify-center shrink-0">
-              <UIcon name="i-lucide-mail-check" class="w-4 h-4" />
+              <Icon name="i-lucide-mail-check" class="w-4 h-4" />
             </div>
             <div class="text-xs leading-relaxed">
               <p class="font-bold text-navy-900 text-sm">{{ compteCree.titre }}</p>
@@ -236,7 +236,7 @@ onMounted(() => {
             </div>
           </div>
           <button type="button" class="text-slate-400 hover:text-slate-700" aria-label="Fermer" @click="compteCree = null">
-            <UIcon name="i-lucide-x" class="w-4 h-4" />
+            <Icon name="i-lucide-x" class="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -312,8 +312,8 @@ onMounted(() => {
             </button>
             <button type="submit" :disabled="creationEnCours"
               class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-slate-300 text-white text-xs font-bold uppercase tracking-wider">
-              <UIcon v-if="creationEnCours" name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
-              <UIcon v-else name="i-lucide-building-2" class="w-4 h-4" />
+              <Icon v-if="creationEnCours" name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
+              <Icon v-else name="i-lucide-building-2" class="w-4 h-4" />
               Créer le cabinet
             </button>
           </div>
@@ -328,7 +328,7 @@ onMounted(() => {
             <p class="text-xs text-slate-500 mt-1">{{ adminCible.cabinet_nom || adminCible.email }}</p>
           </div>
           <button type="button" class="text-slate-400 hover:text-slate-700" @click="adminCible = null">
-            <UIcon name="i-lucide-x" class="w-4 h-4" />
+            <Icon name="i-lucide-x" class="w-4 h-4" />
           </button>
         </div>
         <form class="grid grid-cols-1 md:grid-cols-2 gap-4" @submit.prevent="ajouterAdministrateur">
@@ -358,8 +358,8 @@ onMounted(() => {
             </button>
             <button type="submit" :disabled="adminEnCours"
               class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-slate-300 text-white text-xs font-bold uppercase tracking-wider">
-              <UIcon v-if="adminEnCours" name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
-              <UIcon v-else name="i-lucide-user-plus" class="w-4 h-4" />
+              <Icon v-if="adminEnCours" name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
+              <Icon v-else name="i-lucide-user-plus" class="w-4 h-4" />
               Ajouter l'administrateur
             </button>
           </div>
@@ -369,7 +369,7 @@ onMounted(() => {
       <!-- Liste des cabinets -->
       <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
         <div v-if="chargement" class="p-10 flex flex-col items-center gap-3 text-slate-500">
-          <UIcon name="i-lucide-loader-2" class="w-6 h-6 animate-spin text-green-600" />
+          <Icon name="i-lucide-loader-2" class="w-6 h-6 animate-spin text-green-600" />
           <span class="text-sm">Chargement des cabinets…</span>
         </div>
 

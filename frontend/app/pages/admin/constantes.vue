@@ -99,7 +99,7 @@ onMounted(() => {
     <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div class="flex items-center space-x-4">
         <div class="w-12 h-12 bg-navy-50 text-navy-700 rounded-lg flex items-center justify-center font-bold text-xl border border-navy-200">
-          <UIcon name="i-lucide-sliders" class="w-6 h-6" />
+          <Icon name="i-lucide-sliders" class="w-6 h-6" />
         </div>
         <div>
           <h1 class="text-2xl font-bold text-navy-900 leading-tight">Constantes de Paie</h1>
@@ -112,7 +112,7 @@ onMounted(() => {
         @click="openCreateModal"
         class="w-full md:w-auto px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow-sm transition-colors flex items-center justify-center gap-2"
       >
-        <UIcon name="i-lucide-plus" class="w-4 h-4" />
+        <Icon name="i-lucide-plus" class="w-4 h-4" />
         <span>Nouvelle Constante</span>
       </button>
     </div>
@@ -124,7 +124,7 @@ onMounted(() => {
       v-if="!estAdminPlateforme"
       class="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs text-slate-600 flex items-start gap-2"
     >
-      <UIcon name="i-lucide-eye" class="w-4 h-4 mt-0.5 text-slate-500 shrink-0" />
+      <Icon name="i-lucide-eye" class="w-4 h-4 mt-0.5 text-slate-500 shrink-0" />
       <p>
         <span class="font-bold text-navy-900">Consultation seule.</span>
         Les constantes de paie sont communes à la plateforme ; leur modification est
@@ -156,7 +156,7 @@ onMounted(() => {
     <!-- Content Table -->
     <div class="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden">
       <div v-if="loading" class="p-16 text-center space-y-4 flex flex-col items-center justify-center">
-        <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-green-600" />
+        <Icon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-green-600" />
         <span class="text-sm font-semibold text-slate-650">Chargement des constantes...</span>
       </div>
       
@@ -195,13 +195,13 @@ onMounted(() => {
                   @click="openEditModal(item)"
                   class="text-navy-700 hover:text-navy-900 hover:bg-navy-50 p-1.5 rounded transition-colors"
                 >
-                  <UIcon name="i-lucide-pencil" class="w-4 h-4" />
+                  <Icon name="i-lucide-pencil" class="w-4 h-4" />
                 </button>
                 <button 
                   @click="handleDelete(item.id)"
                   class="text-red-500 hover:text-red-750 hover:bg-red-50 p-1.5 rounded transition-colors"
                 >
-                  <UIcon name="i-lucide-trash" class="w-4 h-4" />
+                  <Icon name="i-lucide-trash" class="w-4 h-4" />
                 </button>
               </td>
               <td v-else class="px-6 py-4 text-right text-xs text-slate-400">—</td>
@@ -221,7 +221,7 @@ onMounted(() => {
             {{ isEditing ? 'Modifier la Constante' : 'Créer une Constante' }}
           </h3>
           <button @click="showModal = false" class="text-slate-400 hover:text-slate-600">
-            <UIcon name="i-lucide-x" class="w-5 h-5" />
+            <Icon name="i-lucide-x" class="w-5 h-5" />
           </button>
         </div>
 

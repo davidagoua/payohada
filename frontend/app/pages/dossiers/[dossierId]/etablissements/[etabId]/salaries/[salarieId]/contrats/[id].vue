@@ -366,7 +366,7 @@ onMounted(() => {
 
 <template>
   <div v-if="loading" class="flex flex-col items-center justify-center py-20 space-y-4">
-    <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-green-600" />
+    <Icon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-green-600" />
     <span class="text-sm text-slate-500 font-medium">Chargement du contrat de travail...</span>
   </div>
 
@@ -390,14 +390,14 @@ onMounted(() => {
           :to="`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}/contrats/${contratId}/avantages-nature`"
           class="px-4 py-2 border border-navy-200 text-sm font-semibold rounded-lg hover:bg-navy-50 text-navy-700 transition-colors flex items-center gap-1.5"
         >
-          <UIcon name="i-lucide-house-plus" class="w-4 h-4" />
+          <Icon name="i-lucide-house-plus" class="w-4 h-4" />
           Avantages en nature
         </NuxtLink>
         <button 
           @click="handleDeleteContrat"
           class="px-4 py-2 border border-red-200 text-sm font-semibold rounded-lg hover:bg-red-50 text-red-600 transition-colors flex items-center gap-1.5"
         >
-          <UIcon name="i-lucide-trash-2" class="w-4 h-4" />
+          <Icon name="i-lucide-trash-2" class="w-4 h-4" />
           Rupture / Supprimer
         </button>
       </div>
@@ -607,7 +607,7 @@ onMounted(() => {
               @click="showModal = true"
               class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg text-xs transition-colors flex items-center gap-1.5 shadow-sm"
             >
-              <UIcon name="i-lucide-calculator" class="w-3.5 h-3.5" />
+              <Icon name="i-lucide-calculator" class="w-3.5 h-3.5" />
               Calculer un bulletin
             </button>
           </div>
@@ -659,7 +659,7 @@ onMounted(() => {
                   <td class="px-4 py-3 text-right">
                     <span class="text-navy-700 group-hover:underline text-xs font-semibold flex items-center justify-end gap-1">
                       Visualiser
-                      <UIcon name="i-lucide-eye" class="w-4 h-4" />
+                      <Icon name="i-lucide-eye" class="w-4 h-4" />
                     </span>
                   </td>
                 </tr>
@@ -718,7 +718,7 @@ onMounted(() => {
               :to="`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}/contrats/${contratId}/depart`"
               class="w-full px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm"
             >
-              <UIcon name="i-lucide-calculator" class="w-4 h-4" />
+              <Icon name="i-lucide-calculator" class="w-4 h-4" />
               Départ &amp; solde de tout compte (calcul réglementaire)
             </NuxtLink>
             <button
@@ -726,7 +726,7 @@ onMounted(() => {
               @click="showDepartModal = true"
               class="w-full px-4 py-2 border border-slate-300 hover:bg-slate-50 text-slate-600 font-semibold rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5"
             >
-              <UIcon name="i-lucide-log-out" class="w-4 h-4" />
+              <Icon name="i-lucide-log-out" class="w-4 h-4" />
               Déclaration rapide (sans calcul)
             </button>
           </div>
@@ -752,14 +752,14 @@ onMounted(() => {
                 :to="`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}/contrats/${contratId}/depart`"
                 class="flex-1 px-3 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg text-xs text-center inline-flex items-center justify-center gap-1.5"
               >
-                <UIcon name="i-lucide-calculator" class="w-3.5 h-3.5" />
+                <Icon name="i-lucide-calculator" class="w-3.5 h-3.5" />
                 Recalculer le solde de tout compte
               </NuxtLink>
               <NuxtLink
                 :to="`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}/contrats/${contratId}/depart/print-stc`"
                 class="flex-1 px-3 py-2 border border-slate-300 hover:bg-slate-50 text-slate-700 font-semibold rounded-lg text-xs text-center inline-flex items-center justify-center gap-1.5"
               >
-                <UIcon name="i-lucide-receipt" class="w-3.5 h-3.5" />
+                <Icon name="i-lucide-receipt" class="w-3.5 h-3.5" />
                 Reçu détaillé
               </NuxtLink>
             </div>
@@ -801,7 +801,7 @@ onMounted(() => {
                 :disabled="savingStc"
                 class="w-full px-3 py-2 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow-sm"
               >
-                <UIcon name="i-lucide-save" class="w-4 h-4" />
+                <Icon name="i-lucide-save" class="w-4 h-4" />
                 Mettre à jour le STC
               </button>
             </div>
@@ -817,10 +817,10 @@ onMounted(() => {
                   class="px-3 py-2 border border-slate-250 hover:bg-slate-50 text-slate-700 font-semibold rounded-lg text-xs transition-colors flex items-center justify-between"
                 >
                   <span class="flex items-center gap-1.5">
-                    <UIcon name="i-lucide-printer" class="w-4 h-4 text-navy-700" />
+                    <Icon name="i-lucide-printer" class="w-4 h-4 text-navy-700" />
                     Reçu pour Solde de Tout Compte
                   </span>
-                  <UIcon name="i-lucide-external-link" class="w-3.5 h-3.5 text-slate-400" />
+                  <Icon name="i-lucide-external-link" class="w-3.5 h-3.5 text-slate-400" />
                 </a>
 
                 <a 
@@ -829,10 +829,10 @@ onMounted(() => {
                   class="px-3 py-2 border border-slate-250 hover:bg-slate-50 text-slate-700 font-semibold rounded-lg text-xs transition-colors flex items-center justify-between"
                 >
                   <span class="flex items-center gap-1.5">
-                    <UIcon name="i-lucide-file-text" class="w-4 h-4 text-navy-700" />
+                    <Icon name="i-lucide-file-text" class="w-4 h-4 text-navy-700" />
                     Certificat de travail
                   </span>
-                  <UIcon name="i-lucide-external-link" class="w-3.5 h-3.5 text-slate-400" />
+                  <Icon name="i-lucide-external-link" class="w-3.5 h-3.5 text-slate-400" />
                 </a>
 
                 <a 
@@ -841,10 +841,10 @@ onMounted(() => {
                   class="px-3 py-2 border border-slate-250 hover:bg-slate-50 text-slate-700 font-semibold rounded-lg text-xs transition-colors flex items-center justify-between"
                 >
                   <span class="flex items-center gap-1.5">
-                    <UIcon name="i-lucide-file-signature" class="w-4 h-4 text-navy-700" />
+                    <Icon name="i-lucide-file-signature" class="w-4 h-4 text-navy-700" />
                     Attestation de travail
                   </span>
-                  <UIcon name="i-lucide-external-link" class="w-3.5 h-3.5 text-slate-400" />
+                  <Icon name="i-lucide-external-link" class="w-3.5 h-3.5 text-slate-400" />
                 </a>
               </div>
             </div>
@@ -855,7 +855,7 @@ onMounted(() => {
               @click="handleCancelDepart"
               class="w-full px-3 py-1.5 border border-red-200 text-red-650 hover:bg-red-50 font-semibold rounded-lg text-xs transition-colors flex items-center justify-center gap-1"
             >
-              <UIcon name="i-lucide-x-circle" class="w-4 h-4" />
+              <Icon name="i-lucide-x-circle" class="w-4 h-4" />
               Annuler la déclaration de sortie
             </button>
           </div>
@@ -870,7 +870,7 @@ onMounted(() => {
         <div class="flex justify-between items-center border-b border-slate-100 pb-3">
           <h3 class="text-lg font-bold text-navy-900">Calculer un Bulletin</h3>
           <button @click="showModal = false" class="text-slate-400 hover:text-slate-600">
-            <UIcon name="i-lucide-x" class="w-5 h-5" />
+            <Icon name="i-lucide-x" class="w-5 h-5" />
           </button>
         </div>
 
@@ -903,7 +903,7 @@ onMounted(() => {
               Annuler
             </button>
             <button type="submit" :disabled="calcLoading" class="px-4 py-2 text-sm font-semibold bg-green-600 hover:bg-green-700 text-white rounded-lg shadow transition-colors flex items-center gap-1.5">
-              <UIcon v-if="calcLoading" name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
+              <Icon v-if="calcLoading" name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
               Lancer le calcul
             </button>
           </div>
@@ -916,7 +916,7 @@ onMounted(() => {
         <div class="flex justify-between items-center border-b border-slate-100 pb-3">
           <h3 class="text-lg font-bold text-navy-900">Déclarer le départ du salarié</h3>
           <button @click="showDepartModal = false" class="text-slate-400 hover:text-slate-600">
-            <UIcon name="i-lucide-x" class="w-5 h-5" />
+            <Icon name="i-lucide-x" class="w-5 h-5" />
           </button>
         </div>
 

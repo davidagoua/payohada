@@ -104,21 +104,21 @@ onMounted(() => {
         @click="modalOpen = true"
         class="mt-4 sm:mt-0 flex items-center justify-center px-4 py-2 border-2 border-green-700 text-xs font-bold uppercase tracking-wider bg-green-600 hover:bg-green-700 text-white transition-all space-x-2 shadow-flat cursor-pointer shadow-flat-hover shadow-flat-active"
       >
-        <UIcon name="i-lucide-folder-plus" class="w-4 h-4" />
+        <Icon name="i-lucide-folder-plus" class="w-4 h-4" />
         <span>Nouveau Dossier</span>
       </button>
     </div>
 
     <!-- Loading State -->
     <div v-if="loading" class="flex flex-col items-center justify-center py-20 space-y-4">
-      <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-green-600" />
+      <Icon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-green-600" />
       <span class="text-sm text-slate-500 font-medium">Chargement des dossiers clients...</span>
     </div>
 
     <!-- Empty State -->
     <div v-else-if="dossiers.length === 0" class="bg-white border-2 border-dashed border-slate-350 p-12 text-center max-w-xl mx-auto space-y-4 shadow-flat">
       <div class="w-12 h-12 bg-navy-50 flex items-center justify-center text-navy-700 mx-auto">
-        <UIcon name="i-lucide-folder-open" class="w-6 h-6" />
+        <Icon name="i-lucide-folder-open" class="w-6 h-6" />
       </div>
       <h3 class="font-bold text-navy-900 text-lg">Aucun dossier d'entreprise</h3>
       <p class="text-sm text-slate-500">
@@ -128,7 +128,7 @@ onMounted(() => {
         @click="modalOpen = true"
         class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white font-bold text-xs uppercase tracking-wider transition-colors inline-flex items-center space-x-2 shadow-flat"
       >
-        <UIcon name="i-lucide-folder-plus" class="w-4 h-4" />
+        <Icon name="i-lucide-folder-plus" class="w-4 h-4" />
         <span>Créer un dossier</span>
       </button>
     </div>
@@ -145,7 +145,7 @@ onMounted(() => {
           <!-- Top Row: Icon and Code badge -->
           <div class="flex items-center justify-between">
             <div class="w-10 h-10 bg-navy-50 text-navy-700 flex items-center justify-center group-hover:bg-navy-800 group-hover:text-white transition-colors duration-150 border border-navy-100">
-              <UIcon name="i-lucide-folder" class="w-5 h-5" />
+              <Icon name="i-lucide-folder" class="w-5 h-5" />
             </div>
             <span class="text-xs px-2 py-0.5 font-mono font-bold bg-navy-50 text-navy-700 group-hover:bg-navy-100 group-hover:text-navy-900 transition-colors border border-navy-200">
               {{ dossier.code }}
@@ -169,7 +169,7 @@ onMounted(() => {
         <!-- Bottom Row: Contact info & Year -->
         <div class="border-t border-slate-100 mt-4 pt-3 flex items-center justify-between text-xs text-slate-500">
           <span class="truncate max-w-[150px]">
-            <UIcon name="i-lucide-user" class="w-3.5 h-3.5 inline mr-1 text-slate-400" />
+            <Icon name="i-lucide-user" class="w-3.5 h-3.5 inline mr-1 text-slate-400" />
             {{ dossier.nom_contact || 'Non spécifié' }}
           </span>
           <span class="bg-navy-50 px-1.5 py-0.5 font-semibold text-navy-700 border border-navy-200">
@@ -180,8 +180,8 @@ onMounted(() => {
     </div>
 
     <!-- Dialog / Modal: Create Dossier Form -->
-    <UModal v-model:open="modalOpen" title="Créer un nouveau Dossier Client">
-      <template #content>
+    <Dialog v-model:visible="modalOpen" header="Créer un nouveau Dossier Client" modal :draggable="false" dismissable-mask class="w-[32rem] max-w-[calc(100vw-2rem)]">
+      <template #container>
         <div class="p-6 space-y-4">
           <h2 class="text-lg font-bold text-navy-900 border-b border-slate-100 pb-2">Nouveau Dossier d'Entreprise</h2>
           
@@ -310,7 +310,7 @@ onMounted(() => {
           </div>
         </div>
       </template>
-    </UModal>
+    </Dialog>
 
   </div>
 </template>

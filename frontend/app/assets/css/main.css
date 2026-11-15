@@ -1,5 +1,5 @@
+@layer theme, base, primevue, components, utilities;
 @import "tailwindcss";
-@import "@nuxt/ui";
 
 /* ═══════════════════════════════════════════════════════════════════
    THÈME CARBON (IBM Carbon Design System)
@@ -136,9 +136,6 @@
 }
 
 :root {
-  /* Rayon de base des composants Nuxt UI. */
-  --ui-radius: 8px !important;
-
   /* ── Jetons de marque ───────────────────────────────────────────────
      Le bleu encre #01173a est la deuxième couleur du logo. Il structure
      l'interface ; le vert reste la couleur d'action. */
@@ -454,34 +451,38 @@ tbody tr:last-child td {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   COMPOSANTS NUXT UI (UButton, UInput, UCard, UModal…)
-   Nuxt UI expose un jeu de jetons sémantiques : les redéfinir suffit à
-   aligner ses composants sur Carbon, sans toucher au moindre gabarit.
-   Les surcharges sont limitées au mode clair (`:root:not(.dark)`) afin de
-   laisser intacte la palette sombre fournie par Nuxt UI.
+   COMPOSANTS PRIMEVUE (Button, Dialog, Menu, Toast, Tag…)
+   Les couleurs, rayons et champs sont réglés par le thème
+   `app/theme/payohada.ts`. Ne restent ici que les détails propres à la
+   charte : titre de modale à l'encre navy, filet sous l'en-tête.
    ═══════════════════════════════════════════════════════════════════ */
 
-:root:not(.dark) {
-  /* Surfaces */
-  --ui-bg: #ffffff;
-  --ui-bg-muted: var(--carbon-layer);            /* gray-10 */
-  --ui-bg-elevated: #ffffff;
-  --ui-bg-accented: var(--carbon-layer-hover);   /* gray-20 */
-  --ui-bg-inverted: var(--carbon-inverse);       /* gray-80 */
+.p-dialog .p-dialog-header {
+  border-bottom: 2px solid var(--brand-navy);
+  margin: 0 1.25rem;
+  padding-left: 0;
+  padding-right: 0;
+}
 
-  /* Texte */
-  --ui-text: var(--carbon-text);                 /* gray-100 */
-  --ui-text-highlighted: var(--carbon-text);
-  --ui-text-toned: var(--carbon-text-secondary); /* gray-70 */
-  --ui-text-muted: var(--carbon-text-helper);    /* gray-60 */
-  --ui-text-dimmed: var(--carbon-text-placeholder); /* gray-40 */
-  --ui-text-inverted: #ffffff;
+.p-dialog .p-dialog-title {
+  color: var(--brand-navy);
+}
 
-  /* Bordures : Carbon distingue la bordure discrète de la bordure forte */
-  --ui-border: var(--carbon-border-strong);      /* gray-50 */
-  --ui-border-muted: var(--carbon-border-subtle);/* gray-20 */
-  --ui-border-accented: #c6c6c6;                 /* gray-30 */
-  --ui-border-inverted: var(--carbon-text);      /* gray-100 */
+.p-dialog .p-dialog-content {
+  padding-top: 1rem;
+}
+
+.p-toast .p-toast-message {
+  border-left-width: 3px;
+}
+
+/* Une classe de couleur posée sur un élément de menu (ex. `text-red-600`
+   pour « Se déconnecter ») colore aussi son libellé et son icône. */
+.p-menu .p-menu-item[class*="text-"] .p-menu-item-content,
+.p-menu .p-menu-item[class*="text-"] .p-menu-item-link,
+.p-menu .p-menu-item[class*="text-"] .p-menu-item-label,
+.p-menu .p-menu-item[class*="text-"] .p-menu-item-icon {
+  color: inherit;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -511,7 +512,7 @@ tbody tr:last-child td {
 
 /* Rayons des contrôles sans classe dédiée : arrondi doux par défaut.
    Déclarés dans la couche `base`, ils restent surchargeables par les
-   utilitaires `rounded-*` des gabarits et par les composants Nuxt UI. */
+   utilitaires `rounded-*` des gabarits et par les composants PrimeVue. */
 @layer base {
   input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]),
   select,

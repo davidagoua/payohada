@@ -213,7 +213,7 @@ onMounted(charger)
         v-else-if="!demandes.length"
         class="p-10 text-center"
       >
-        <UIcon
+        <Icon
           name="i-lucide-inbox"
           class="w-10 h-10 text-slate-300 inline-block"
         />
@@ -264,7 +264,7 @@ onMounted(charger)
               </td>
               <td class="px-5 py-3">
                 <span class="inline-flex items-center gap-1 text-xs font-semibold text-slate-600">
-                  <UIcon
+                  <Icon
                     :name="demande.type === 'conge' ? 'i-lucide-palmtree' : 'i-lucide-hand-coins'"
                     class="w-3.5 h-3.5"
                   />
@@ -304,7 +304,7 @@ onMounted(charger)
                     class="px-3 py-1.5 bg-green-600 hover:bg-green-700 disabled:bg-slate-300 text-white text-[11px] font-bold uppercase tracking-wider rounded-lg inline-flex items-center gap-1"
                     @click="valider(demande)"
                   >
-                    <UIcon
+                    <Icon
                       :name="decisionEnCours === `${demande.type}-${demande.id}` ? 'i-lucide-loader-2' : 'i-lucide-check'"
                       class="w-3.5 h-3.5"
                       :class="{ 'animate-spin': decisionEnCours === `${demande.type}-${demande.id}` }"
@@ -315,7 +315,7 @@ onMounted(charger)
                     class="px-3 py-1.5 border border-red-200 text-red-600 hover:bg-red-50 text-[11px] font-bold uppercase tracking-wider rounded-lg inline-flex items-center gap-1"
                     @click="ouvrirRefus(demande)"
                   >
-                    <UIcon
+                    <Icon
                       name="i-lucide-x"
                       class="w-3.5 h-3.5"
                     />
@@ -355,7 +355,7 @@ onMounted(charger)
             class="text-slate-500 hover:text-slate-900"
             @click="refus.ouvert = false"
           >
-            <UIcon
+            <Icon
               name="i-lucide-x"
               class="w-4 h-4"
             />
@@ -392,7 +392,7 @@ onMounted(charger)
             class="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-slate-300 text-white text-sm font-bold rounded-lg inline-flex items-center gap-1.5"
             @click="confirmerRefus"
           >
-            <UIcon
+            <Icon
               :name="refusEnCours ? 'i-lucide-loader-2' : 'i-lucide-x-circle'"
               class="w-4 h-4"
               :class="{ 'animate-spin': refusEnCours }"

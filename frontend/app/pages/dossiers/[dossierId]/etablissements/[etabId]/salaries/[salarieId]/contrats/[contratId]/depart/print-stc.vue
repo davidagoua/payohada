@@ -110,7 +110,7 @@ onMounted(fetchPrintData)
 
 <template>
   <div v-if="loading" class="flex flex-col items-center justify-center min-h-screen space-y-4">
-    <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-green-600" />
+    <Icon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-green-600" />
     <span class="text-sm text-slate-500 font-medium">Chargement du document…</span>
   </div>
 
@@ -119,15 +119,15 @@ onMounted(fetchPrintData)
     <!-- Barre d'actions (masquée à l'impression) -->
     <div class="no-print mb-8 p-4 bg-slate-50 border border-slate-200 rounded-lg flex justify-between items-center shadow-sm">
       <button class="px-3 py-1.5 border border-slate-200 text-slate-700 font-semibold rounded-lg text-xs hover:bg-slate-100 inline-flex items-center gap-1" @click="router.back()">
-        <UIcon name="i-lucide-arrow-left" class="w-4 h-4" />
+        <Icon name="i-lucide-arrow-left" class="w-4 h-4" />
         Retour
       </button>
       <div class="flex items-center gap-2">
         <button class="px-3 py-1.5 border border-slate-200 text-slate-700 font-semibold rounded-lg text-xs hover:bg-slate-100" @click="fetchPrintData">
-          <UIcon name="i-lucide-refresh-cw" class="w-4 h-4" />
+          <Icon name="i-lucide-refresh-cw" class="w-4 h-4" />
         </button>
         <button class="px-4 py-1.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg text-xs inline-flex items-center gap-1.5 shadow" @click="printPage">
-          <UIcon name="i-lucide-printer" class="w-4 h-4" />
+          <Icon name="i-lucide-printer" class="w-4 h-4" />
           Imprimer
         </button>
       </div>

@@ -235,7 +235,7 @@ onMounted(fetchEtabDetails)
 
 <template>
   <div v-if="loading" class="flex flex-col items-center justify-center py-20 space-y-4">
-    <UIcon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-green-600" />
+    <Icon name="i-lucide-loader-2" class="w-8 h-8 animate-spin text-green-600" />
     <span class="text-sm text-slate-500 font-medium">Chargement de l'établissement...</span>
   </div>
   <div v-else-if="etab" class="space-y-6">
@@ -257,7 +257,7 @@ onMounted(fetchEtabDetails)
           </div>
           <div class="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
             <div class="relative w-full sm:w-72">
-              <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              <Icon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
               <input
                 v-model="rechercheSalarie"
                 type="search"
@@ -269,7 +269,7 @@ onMounted(fetchEtabDetails)
               @click="router.push(`/dossiers/${dossierId}/etablissements/${etabId}/salaries/new`)"
               class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg text-xs transition-colors flex items-center justify-center gap-1.5 shadow-flat uppercase tracking-wider cursor-pointer whitespace-nowrap"
             >
-              <UIcon name="i-lucide-user-plus" class="w-3.5 h-3.5" />
+              <Icon name="i-lucide-user-plus" class="w-3.5 h-3.5" />
               Ajouter un Salarié
             </button>
           </div>
@@ -285,7 +285,7 @@ onMounted(fetchEtabDetails)
             class="p-1.5 bg-red-650 hover:bg-red-755 text-white transition-colors shadow-flat cursor-pointer flex items-center justify-center"
             title="Supprimer la sélection"
           >
-            <UIcon name="i-lucide-trash-2" class="w-4 h-4" />
+            <Icon name="i-lucide-trash-2" class="w-4 h-4" />
           </button>
         </div>
 
@@ -350,7 +350,7 @@ onMounted(fetchEtabDetails)
                       class="p-1 text-slate-400 hover:text-green-700 disabled:text-slate-200 disabled:cursor-not-allowed transition-colors"
                       @click.stop="envoyerIdentifiants(sal)"
                     >
-                      <UIcon
+                      <Icon
                         :name="envoiIdentifiantsId === sal.id ? 'i-lucide-loader-2' : 'i-lucide-mail'"
                         class="w-4 h-4"
                         :class="{ 'animate-spin': envoiIdentifiantsId === sal.id }"
@@ -358,7 +358,7 @@ onMounted(fetchEtabDetails)
                     </button>
                     <span class="text-navy-700 group-hover:underline text-xs font-bold uppercase tracking-wider flex items-center gap-1">
                       Fiche Salarié
-                      <UIcon name="i-lucide-chevron-right" class="w-4 h-4" />
+                      <Icon name="i-lucide-chevron-right" class="w-4 h-4" />
                     </span>
                   </div>
                 </td>
@@ -381,7 +381,7 @@ onMounted(fetchEtabDetails)
           </div>
           <div class="flex items-center gap-3 w-full sm:w-auto">
             <div class="relative w-full sm:w-72">
-              <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+              <Icon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
               <input
                 v-model="rechercheContrat"
                 type="search"
@@ -405,7 +405,7 @@ onMounted(fetchEtabDetails)
             class="p-1.5 bg-red-650 hover:bg-red-755 text-white transition-colors shadow-flat cursor-pointer flex items-center justify-center"
             title="Supprimer la sélection"
           >
-            <UIcon name="i-lucide-trash-2" class="w-4 h-4" />
+            <Icon name="i-lucide-trash-2" class="w-4 h-4" />
           </button>
         </div>
 
@@ -467,7 +467,7 @@ onMounted(fetchEtabDetails)
                 <td class="px-6 py-4 text-right">
                   <span class="text-navy-700 group-hover:underline text-xs font-bold uppercase tracking-wider flex items-center justify-end gap-1">
                     Gérer le Contrat
-                    <UIcon name="i-lucide-chevron-right" class="w-4 h-4" />
+                    <Icon name="i-lucide-chevron-right" class="w-4 h-4" />
                   </span>
                 </td>
               </tr>

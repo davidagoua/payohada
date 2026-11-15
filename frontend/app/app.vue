@@ -29,15 +29,17 @@ useHead({
 </script>
 
 <template>
-  <UApp>
+  <div>
     <div v-if="!initialized" class="min-h-screen bg-navy-950 flex flex-col items-center justify-center space-y-5">
       <img src="/payohada-logo-light.png" alt="payohada" class="h-12 w-auto object-contain animate-pulse mb-1" />
-      <UIcon name="i-lucide-loader-2" class="w-6 h-6 animate-spin text-green-500" />
+      <Icon name="i-lucide-loader-2" class="w-6 h-6 animate-spin text-green-500" />
       <span class="text-xs text-slate-300 font-semibold tracking-wider uppercase">Initialisation de la session...</span>
     </div>
     <NuxtLayout v-else>
       <NuxtPage />
     </NuxtLayout>
     <AppChatbot v-if="initialized" />
-  </UApp>
+    <!-- Notifications PrimeVue, communes à toute l'application. -->
+    <Toast position="top-right" />
+  </div>
 </template>

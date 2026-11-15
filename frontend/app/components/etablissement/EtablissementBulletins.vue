@@ -504,7 +504,7 @@ onMounted(async () => {
             :disabled="bulkProcessing || stats.generatedCount === 0"
             class="px-4 py-2 border-2 border-slate-200 text-xs font-bold uppercase tracking-wider hover:bg-slate-50 text-slate-700 transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-flat-hover shadow-flat-active"
           >
-            <UIcon name="i-lucide-check-circle-2" class="w-4 h-4 text-green-600" />
+            <Icon name="i-lucide-check-circle-2" class="w-4 h-4 text-green-600" />
             Valider la période
           </button>
           <button
@@ -512,7 +512,7 @@ onMounted(async () => {
             :disabled="bulkProcessing || stats.pendingCount === 0"
             class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-bold uppercase tracking-wider shadow-flat transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer shadow-flat-hover shadow-flat-active"
           >
-            <UIcon name="i-lucide-calculator" class="w-4 h-4" />
+            <Icon name="i-lucide-calculator" class="w-4 h-4" />
             Calculer les bulletins
           </button>
         </div>
@@ -535,7 +535,7 @@ onMounted(async () => {
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Effectif Établissement</span>
             <div class="w-7 h-7 bg-navy-50 text-navy-700 rounded-lg flex items-center justify-center">
-              <UIcon name="i-lucide-users" class="w-4 h-4" />
+              <Icon name="i-lucide-users" class="w-4 h-4" />
             </div>
           </div>
           <p class="text-2xl font-bold text-navy-900">{{ stats.totalEmployees }} salariés</p>
@@ -546,7 +546,7 @@ onMounted(async () => {
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Bulletins Calculés</span>
             <div class="w-7 h-7 bg-green-50 text-green-700 rounded-lg flex items-center justify-center">
-              <UIcon name="i-lucide-check-circle-2" class="w-4 h-4" />
+              <Icon name="i-lucide-check-circle-2" class="w-4 h-4" />
             </div>
           </div>
           <p class="text-2xl font-bold text-navy-900">{{ stats.generatedCount }} / {{ stats.totalEmployees }}</p>
@@ -565,7 +565,7 @@ onMounted(async () => {
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Masse Brut</span>
             <div class="w-7 h-7 bg-navy-50 text-navy-700 rounded-lg flex items-center justify-center">
-              <UIcon name="i-lucide-coins" class="w-4 h-4" />
+              <Icon name="i-lucide-coins" class="w-4 h-4" />
             </div>
           </div>
           <p class="text-2xl font-bold text-navy-900 font-mono tracking-tight">{{ formatXOF(stats.masseBrut) }}</p>
@@ -576,7 +576,7 @@ onMounted(async () => {
           <div class="flex items-center justify-between">
             <span class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Masse Nette</span>
             <div class="w-7 h-7 bg-green-50 text-green-700 rounded-lg flex items-center justify-center">
-              <UIcon name="i-lucide-banknote" class="w-4 h-4" />
+              <Icon name="i-lucide-banknote" class="w-4 h-4" />
             </div>
           </div>
           <p class="text-2xl font-bold text-green-700 font-mono tracking-tight">{{ formatXOF(stats.masseNet) }}</p>
@@ -594,44 +594,44 @@ onMounted(async () => {
             @click="handleCalculateSelected"
             class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-bold uppercase tracking-wider transition-colors shadow-flat cursor-pointer"
           >
-            <UIcon name="i-lucide-calculator" class="w-3.5 h-3.5 inline mr-1" />
+            <Icon name="i-lucide-calculator" class="w-3.5 h-3.5 inline mr-1" />
             Calculer
           </button>
           <button
             @click="handleValidateSelected"
             class="px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-slate-900 font-bold uppercase tracking-wider transition-colors shadow-flat cursor-pointer"
           >
-            <UIcon name="i-lucide-check-circle" class="w-3.5 h-3.5 inline mr-1" />
+            <Icon name="i-lucide-check-circle" class="w-3.5 h-3.5 inline mr-1" />
             Valider
           </button>
-          <UDropdownMenu :items="modalesVariables?.menuSaisieGroupee(selectedBulletins) ?? []">
+          <AppMenu :items="modalesVariables?.menuSaisieGroupee(selectedBulletins) ?? []">
             <button
               class="px-3 py-1.5 bg-navy-800 hover:bg-navy-700 text-white font-bold uppercase tracking-wider transition-colors shadow-flat cursor-pointer"
             >
-              <UIcon name="i-lucide-list-plus" class="w-3.5 h-3.5 inline mr-1" />
+              <Icon name="i-lucide-list-plus" class="w-3.5 h-3.5 inline mr-1" />
               Saisies
-              <UIcon name="i-lucide-chevron-down" class="w-3.5 h-3.5 inline ml-1" />
+              <Icon name="i-lucide-chevron-down" class="w-3.5 h-3.5 inline ml-1" />
             </button>
-          </UDropdownMenu>
+          </AppMenu>
           <button
             @click="handlePrintSelected"
             class="px-3 py-1.5 bg-navy-800 hover:bg-navy-700 text-white font-bold uppercase tracking-wider transition-colors shadow-flat cursor-pointer"
           >
-            <UIcon name="i-lucide-printer" class="w-3.5 h-3.5 inline mr-1" />
+            <Icon name="i-lucide-printer" class="w-3.5 h-3.5 inline mr-1" />
             Imprimer
           </button>
           <button
             @click="handleSendEmployeeEmailsSelected"
             class="px-3 py-1.5 bg-navy-800 hover:bg-navy-700 text-white font-bold uppercase tracking-wider transition-colors shadow-flat cursor-pointer"
           >
-            <UIcon name="i-lucide-mail" class="w-3.5 h-3.5 inline mr-1" />
+            <Icon name="i-lucide-mail" class="w-3.5 h-3.5 inline mr-1" />
             Mail Employé
           </button>
           <button
             @click="handleSendManagerEmailsSelected"
             class="px-3 py-1.5 bg-navy-800 hover:bg-navy-700 text-white font-bold uppercase tracking-wider transition-colors shadow-flat cursor-pointer"
           >
-            <UIcon name="i-lucide-mail" class="w-3.5 h-3.5 inline mr-1" />
+            <Icon name="i-lucide-mail" class="w-3.5 h-3.5 inline mr-1" />
             Mail Gestionnaire
           </button>
           <button
@@ -639,7 +639,7 @@ onMounted(async () => {
             class="p-1.5 bg-red-650 hover:bg-red-755 text-white transition-colors shadow-flat cursor-pointer flex items-center justify-center"
             title="Supprimer"
           >
-            <UIcon name="i-lucide-trash-2" class="w-4 h-4" />
+            <Icon name="i-lucide-trash-2" class="w-4 h-4" />
           </button>
         </div>
       </div>
@@ -649,7 +649,7 @@ onMounted(async () => {
         <!-- Recherche : sous les statistiques, juste au-dessus de l'en-tête du tableau -->
         <div v-if="contracts.length > 0" class="px-5 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div class="relative w-full sm:w-96">
-            <UIcon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+            <Icon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
             <input
               v-model="rechercheBulletin"
               type="search"
@@ -664,7 +664,7 @@ onMounted(async () => {
 
         <div v-if="contracts.length === 0" class="text-center py-16 px-4 bg-white space-y-3">
           <div class="w-10 h-10 bg-slate-100 text-slate-400 rounded-lg flex items-center justify-center mx-auto">
-            <UIcon name="i-lucide-user-x" class="w-5 h-5" />
+            <Icon name="i-lucide-user-x" class="w-5 h-5" />
           </div>
           <h4 class="font-bold text-navy-900">Aucun salarié avec contrat actif</h4>
           <p class="text-xs text-slate-500 max-w-sm mx-auto">
@@ -673,7 +673,7 @@ onMounted(async () => {
         </div>
 
         <div v-else-if="contratsBulletinsFiltres.length === 0" class="text-center py-16 px-4 bg-white space-y-2">
-          <UIcon name="i-lucide-search-x" class="w-6 h-6 text-slate-400 mx-auto" />
+          <Icon name="i-lucide-search-x" class="w-6 h-6 text-slate-400 mx-auto" />
           <h4 class="font-bold text-navy-900">Aucun salarié ne correspond à la recherche</h4>
           <p class="text-xs text-slate-500">Recherche : « {{ rechercheBulletin }} »</p>
         </div>
@@ -758,7 +758,7 @@ onMounted(async () => {
                         :to="`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${c.salarie_id}/contrats/${c.id}/bulletins/${bulletinsMap[c.id].id}`"
                         class="px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 uppercase tracking-wider"
                       >
-                        <UIcon name="i-lucide-eye" class="w-3.5 h-3.5" />
+                        <Icon name="i-lucide-eye" class="w-3.5 h-3.5" />
                         Voir
                       </NuxtLink>
 
@@ -769,7 +769,7 @@ onMounted(async () => {
                         class="px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 transition-colors rounded-lg text-xs font-bold flex items-center gap-1 uppercase tracking-wider cursor-pointer"
                         title="Recalculer le bulletin"
                       >
-                        <UIcon name="i-lucide-refresh-cw" class="w-3.5 h-3.5 text-green-600" />
+                        <Icon name="i-lucide-refresh-cw" class="w-3.5 h-3.5 text-green-600" />
                         Recalculer
                       </button>
 
@@ -780,12 +780,12 @@ onMounted(async () => {
                         class="px-2.5 py-1.5 border border-yellow-250 bg-yellow-50 hover:bg-yellow-100 text-yellow-750 transition-colors rounded-lg text-xs font-bold flex items-center gap-1 uppercase tracking-wider cursor-pointer"
                         title="Valider définitivement"
                       >
-                        <UIcon name="i-lucide-check-circle" class="w-3.5 h-3.5 text-yellow-600" />
+                        <Icon name="i-lucide-check-circle" class="w-3.5 h-3.5 text-yellow-600" />
                         Valider
                       </button>
 
                       <!-- Dropdown quick entries -->
-                      <UDropdownMenu
+                      <AppMenu
                         v-if="bulletinsMap[c.id].statut !== 'valide'"
                         :items="[[
                           {
@@ -814,9 +814,9 @@ onMounted(async () => {
                           class="px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 uppercase tracking-wider cursor-pointer"
                         >
                           Saisies
-                          <UIcon name="i-lucide-chevron-down" class="w-3.5 h-3.5" />
+                          <Icon name="i-lucide-chevron-down" class="w-3.5 h-3.5" />
                         </button>
-                      </UDropdownMenu>
+                      </AppMenu>
 
                       <!-- Delete -->
                       <button
@@ -825,7 +825,7 @@ onMounted(async () => {
                         class="px-2.5 py-1.5 border border-red-200 bg-red-50 hover:bg-red-100 text-red-650 transition-colors rounded-lg cursor-pointer flex items-center justify-center"
                         title="Supprimer"
                       >
-                        <UIcon name="i-lucide-trash-2" class="w-4 h-4" />
+                        <Icon name="i-lucide-trash-2" class="w-4 h-4" />
                       </button>
                     </template>
 
@@ -834,7 +834,7 @@ onMounted(async () => {
                       @click="handleCalculateSingle(c.id)"
                       class="px-2.5 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-bold transition-colors flex items-center gap-1 shadow-flat uppercase tracking-wider cursor-pointer"
                     >
-                      <UIcon name="i-lucide-calculator" class="w-3.5 h-3.5" />
+                      <Icon name="i-lucide-calculator" class="w-3.5 h-3.5" />
                       Calculer
                     </button>
                   </div>

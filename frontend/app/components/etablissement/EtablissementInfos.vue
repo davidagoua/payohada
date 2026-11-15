@@ -927,7 +927,7 @@ onMounted(fetchSecteurs)
             @click="caisseModalOpen = true"
             class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg text-xs transition-colors flex items-center gap-1.5 shadow-flat uppercase tracking-wider cursor-pointer"
           >
-            <UIcon name="i-lucide-plus" class="w-3.5 h-3.5" />
+            <Icon name="i-lucide-plus" class="w-3.5 h-3.5" />
             Ajouter une Caisse
           </button>
         </div>
@@ -942,7 +942,7 @@ onMounted(fetchSecteurs)
             class="p-1.5 bg-red-650 hover:bg-red-755 text-white transition-colors shadow-flat cursor-pointer flex items-center justify-center"
             title="Détacher la sélection"
           >
-            <UIcon name="i-lucide-trash-2" class="w-4 h-4" />
+            <Icon name="i-lucide-trash-2" class="w-4 h-4" />
           </button>
         </div>
 
@@ -989,7 +989,7 @@ onMounted(fetchSecteurs)
                     class="text-red-650 hover:text-red-750 cursor-pointer flex items-center justify-end w-full"
                     title="Détacher la caisse"
                   >
-                    <UIcon name="i-lucide-trash-2" class="w-4 h-4" />
+                    <Icon name="i-lucide-trash-2" class="w-4 h-4" />
                   </button>
                 </td>
               </tr>
@@ -998,8 +998,8 @@ onMounted(fetchSecteurs)
         </div>
       </div>
 
-    <UModal v-model:open="caisseModalOpen" title="Rattacher une Caisse de Cotisation">
-      <template #content>
+    <Dialog v-model:visible="caisseModalOpen" header="Rattacher une Caisse de Cotisation" modal :draggable="false" dismissable-mask class="w-[32rem] max-w-[calc(100vw-2rem)]">
+      <template #container>
         <div class="p-6 space-y-4 rounded-xl bg-white border border-slate-200">
           <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Nouvelle Caisse</h2>
 
@@ -1051,7 +1051,7 @@ onMounted(fetchSecteurs)
           </div>
         </div>
       </template>
-    </UModal>
+    </Dialog>
   </div>
 </template>
 

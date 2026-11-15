@@ -1,4 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
+import tailwindcss from '@tailwindcss/vite'
+import PayohadaTheme from './app/theme/payohada'
+
 const supabaseUrl = process.env.NUXT_PUBLIC_SUPABASE_URL || ''
 // Racine de l'API, préfixe `/api/v1` **compris** (voir `frontend/.env`).
 // Les appels directs utilisent donc `${apiBase}/editions/...` et jamais
@@ -41,7 +44,8 @@ export default defineNuxtConfig({
 
   modules: [
     '@nuxt/eslint',
-    '@nuxt/ui',
+    '@primevue/nuxt-module',
+    '@nuxt/icon',
     'nuxt-icons',
     'nuxt-email-renderer',
     'nuxt-security'
@@ -84,12 +88,45 @@ export default defineNuxtConfig({
     preset: 'bun'
   },
 
+  vite: {
+    plugins: [tailwindcss()]
+  },
+
   eslint: {
     config: {
       stylistic: {
         commaDangle: 'never',
         braceStyle: '1tbs'
       }
+    }
+  },
+
+  // Icônes Iconify (Lucide, Simple Icons) : `<Icon name="i-lucide-…" />`.
+  icon: {
+    serverBundle: 'local'
+  },
+
+  // Composants PrimeVue, thème aux couleurs de la marque (voir app/theme).
+  primevue: {
+    options: {
+      ripple: false,
+      theme: {
+        preset: PayohadaTheme,
+        options: {
+          // L'interface reste en clair : aucune classe `.dark` n'est posée.
+          darkModeSelector: '.dark',
+          // Les utilitaires Tailwind passent devant les styles PrimeVue.
+          cssLayer: {
+            name: 'primevue',
+            order: 'theme, base, primevue, components, utilities'
+          }
+        }
+      }
+    },
+    // `useToast` est fourni par `composables/useToast.ts`, qui garde la
+    // signature employée dans toute l'application.
+    composables: {
+      exclude: ['useToast']
     }
   },
 

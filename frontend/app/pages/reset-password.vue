@@ -98,14 +98,14 @@ const handleSubmit = async () => {
     <div class="bg-white border border-slate-200 border-t-4 border-t-navy-900 shadow-flat p-7 sm:p-8">
       <!-- Vérification en cours -->
       <div v-if="verification === 'en_cours'" class="flex flex-col items-center gap-3 py-6 text-center">
-        <UIcon name="i-lucide-loader-2" class="w-7 h-7 animate-spin text-green-600" />
+        <Icon name="i-lucide-loader-2" class="w-7 h-7 animate-spin text-green-600" />
         <p class="text-sm text-slate-600">Vérification de votre lien…</p>
       </div>
 
       <!-- Lien invalide / expiré -->
       <div v-else-if="verification === 'invalide'" class="text-center">
         <div class="w-12 h-12 mx-auto bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 mb-4">
-          <UIcon name="i-lucide-link-2-off" class="w-6 h-6" />
+          <Icon name="i-lucide-link-2-off" class="w-6 h-6" />
         </div>
         <h1 class="text-base font-bold text-navy-900">Lien inutilisable</h1>
         <p class="mt-2 text-sm text-slate-600 leading-relaxed">
@@ -116,7 +116,7 @@ const handleSubmit = async () => {
           to="/forgot-password"
           class="mt-6 inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-bold shadow-flat transition-colors"
         >
-          <UIcon name="i-lucide-refresh-cw" class="w-4 h-4" />
+          <Icon name="i-lucide-refresh-cw" class="w-4 h-4" />
           Demander un nouveau lien
         </NuxtLink>
         <NuxtLink to="/login" class="mt-3 block text-xs font-semibold text-navy-700 hover:text-navy-900">
@@ -127,7 +127,7 @@ const handleSubmit = async () => {
       <!-- Succès -->
       <div v-else-if="termine" class="text-center">
         <div class="w-12 h-12 mx-auto bg-green-50 border border-green-200 flex items-center justify-center text-green-600 mb-4">
-          <UIcon name="i-lucide-shield-check" class="w-6 h-6" />
+          <Icon name="i-lucide-shield-check" class="w-6 h-6" />
         </div>
         <h1 class="text-base font-bold text-navy-900">Mot de passe mis à jour</h1>
         <p class="mt-2 text-sm text-slate-600">
@@ -137,7 +137,7 @@ const handleSubmit = async () => {
           to="/login"
           class="mt-6 inline-flex items-center justify-center gap-2 w-full px-4 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-bold shadow-flat transition-colors"
         >
-          <UIcon name="i-lucide-log-in" class="w-4 h-4" />
+          <Icon name="i-lucide-log-in" class="w-4 h-4" />
           Se connecter
         </NuxtLink>
       </div>
@@ -146,7 +146,7 @@ const handleSubmit = async () => {
       <div v-else>
         <div class="flex items-center gap-3 mb-5">
           <div class="w-10 h-10 bg-navy-50 border border-navy-200 flex items-center justify-center text-navy-700 shrink-0">
-            <UIcon name="i-lucide-lock-keyhole" class="w-5 h-5" />
+            <Icon name="i-lucide-lock-keyhole" class="w-5 h-5" />
           </div>
           <div>
             <h1 class="text-base font-bold text-navy-900">
@@ -163,7 +163,7 @@ const handleSubmit = async () => {
           class="mb-5 p-3.5 bg-red-50 border border-red-200 flex items-center gap-2.5 text-red-700 text-xs font-semibold"
           role="alert"
         >
-          <UIcon name="i-lucide-alert-circle" class="w-4 h-4 text-red-600 shrink-0" />
+          <Icon name="i-lucide-alert-circle" class="w-4 h-4 text-red-600 shrink-0" />
           <span>{{ errorMessage }}</span>
         </div>
 
@@ -188,7 +188,7 @@ const handleSubmit = async () => {
                 :aria-label="afficherMotDePasse ? 'Masquer' : 'Afficher'"
                 @click="afficherMotDePasse = !afficherMotDePasse"
               >
-                <UIcon :name="afficherMotDePasse ? 'i-lucide-eye-off' : 'i-lucide-eye'" class="w-4 h-4" />
+                <Icon :name="afficherMotDePasse ? 'i-lucide-eye-off' : 'i-lucide-eye'" class="w-4 h-4" />
               </button>
             </div>
             <ul class="mt-2 space-y-1 text-[11px]">
@@ -229,15 +229,15 @@ const handleSubmit = async () => {
             :disabled="submitting || !motDePasseValide || !correspond"
             class="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-green-600 hover:bg-green-700 disabled:bg-slate-300 text-white text-sm font-bold shadow-flat transition-colors"
           >
-            <UIcon v-if="submitting" name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
-            <UIcon v-else name="i-lucide-check" class="w-4 h-4" />
+            <Icon v-if="submitting" name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
+            <Icon v-else name="i-lucide-check" class="w-4 h-4" />
             {{ submitting ? 'Enregistrement…' : 'Enregistrer le nouveau mot de passe' }}
           </button>
         </form>
 
         <div class="mt-6 pt-5 border-t border-slate-200">
           <NuxtLink to="/login" class="text-xs font-semibold text-navy-700 hover:text-navy-900 inline-flex items-center gap-1.5">
-            <UIcon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
+            <Icon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
             Retour à la connexion
           </NuxtLink>
         </div>

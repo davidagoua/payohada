@@ -289,7 +289,7 @@ onMounted(async () => {
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div class="flex items-start gap-4">
           <div class="w-12 h-12 bg-navy-50 text-navy-700 rounded-xl flex items-center justify-center border border-navy-200 shrink-0">
-            <UIcon name="i-lucide-upload" class="w-6 h-6" />
+            <Icon name="i-lucide-upload" class="w-6 h-6" />
           </div>
           <div>
             <div class="flex items-center gap-2 flex-wrap">
@@ -308,7 +308,7 @@ onMounted(async () => {
           :to="`/dossiers/${dossierId}`"
           class="inline-flex items-center gap-2 px-4 py-2 border border-slate-300 text-slate-600 hover:bg-slate-50 text-xs font-bold uppercase tracking-wider transition-colors shrink-0"
         >
-          <UIcon name="i-lucide-arrow-left" class="w-4 h-4" />
+          <Icon name="i-lucide-arrow-left" class="w-4 h-4" />
           Retour au dossier
         </NuxtLink>
       </div>
@@ -319,7 +319,7 @@ onMounted(async () => {
       v-if="diagnostic && (!diagnostic.table_imports || !diagnostic.ecriture_possible)"
       class="bg-red-50 border border-red-200 rounded-xl p-4 text-xs text-red-900 flex items-start gap-2"
     >
-      <UIcon name="i-lucide-server-crash" class="w-4 h-4 mt-0.5 shrink-0" />
+      <Icon name="i-lucide-server-crash" class="w-4 h-4 mt-0.5 shrink-0" />
       <div class="space-y-1">
         <p class="font-bold">Le module d'import n'est pas complètement installé sur le serveur.</p>
         <p v-if="!diagnostic.table_imports">
@@ -336,14 +336,14 @@ onMounted(async () => {
 
     <!-- Erreur d'analyse ou d'exécution -->
     <div v-if="erreurAnalyse" class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-900 flex items-start gap-2">
-      <UIcon name="i-lucide-triangle-alert" class="w-4 h-4 mt-0.5 shrink-0" />
+      <Icon name="i-lucide-triangle-alert" class="w-4 h-4 mt-0.5 shrink-0" />
       <div>
         <p class="font-bold">L'analyse n'a pas abouti.</p>
         <p class="mt-0.5">{{ erreurAnalyse }}</p>
       </div>
     </div>
     <div v-if="erreurExecution" class="bg-red-50 border border-red-200 rounded-xl p-4 text-xs text-red-900 flex items-start gap-2">
-      <UIcon name="i-lucide-circle-x" class="w-4 h-4 mt-0.5 shrink-0" />
+      <Icon name="i-lucide-circle-x" class="w-4 h-4 mt-0.5 shrink-0" />
       <div>
         <p class="font-bold">L'exécution de l'import a échoué.</p>
         <p class="mt-0.5">{{ erreurExecution }}</p>
@@ -391,7 +391,7 @@ onMounted(async () => {
         >
           <div class="flex items-center justify-between gap-2">
             <span class="text-sm font-bold text-navy-900">{{ type.libelle }}</span>
-            <UIcon
+            <Icon
               :name="typeSelectionne === type.code ? 'i-lucide-check-circle-2' : 'i-lucide-circle'"
               class="w-5 h-5"
               :class="typeSelectionne === type.code ? 'text-green-600' : 'text-slate-300'"
@@ -410,7 +410,7 @@ onMounted(async () => {
           class="inline-flex items-center gap-2 px-4 py-2 border border-navy-200 text-navy-800 hover:bg-navy-50 text-xs font-bold uppercase tracking-wider transition-colors"
           @click="telechargerModele"
         >
-          <UIcon name="i-lucide-download" class="w-4 h-4" />
+          <Icon name="i-lucide-download" class="w-4 h-4" />
           Télécharger le modèle Excel
         </button>
         <p class="text-xs text-slate-500">
@@ -437,7 +437,7 @@ onMounted(async () => {
           class="hidden"
           @change="choisirFichier"
         >
-        <UIcon name="i-lucide-file-spreadsheet" class="w-8 h-8 mx-auto mb-2" :class="fichier ? 'text-green-600' : 'text-slate-400'" />
+        <Icon name="i-lucide-file-spreadsheet" class="w-8 h-8 mx-auto mb-2" :class="fichier ? 'text-green-600' : 'text-slate-400'" />
         <p v-if="fichier" class="text-sm font-bold text-navy-900">{{ fichier.name }}</p>
         <p v-else class="text-sm font-semibold text-slate-600">Cliquez ou déposez un fichier ici</p>
         <p class="text-xs text-slate-400 mt-1">
@@ -452,8 +452,8 @@ onMounted(async () => {
           class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-slate-300 text-white text-xs font-bold uppercase tracking-wider transition-colors"
           @click="analyserFichier"
         >
-          <UIcon v-if="analyseEnCours" name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
-          <UIcon v-else name="i-lucide-scan-search" class="w-4 h-4" />
+          <Icon v-if="analyseEnCours" name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
+          <Icon v-else name="i-lucide-scan-search" class="w-4 h-4" />
           {{ analyseEnCours ? 'Analyse en cours…' : 'Analyser le fichier' }}
         </button>
       </div>
@@ -493,7 +493,7 @@ onMounted(async () => {
       <!-- Mapping incomplet -->
       <div v-if="champsManquantsAvecCle.length" class="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-3">
         <div class="flex items-start gap-2">
-          <UIcon name="i-lucide-triangle-alert" class="w-4 h-4 text-amber-700 mt-0.5 shrink-0" />
+          <Icon name="i-lucide-triangle-alert" class="w-4 h-4 text-amber-700 mt-0.5 shrink-0" />
           <div>
             <p class="text-sm font-bold text-amber-900">Associez les colonnes manquantes</p>
             <p class="text-xs text-amber-800 mt-0.5">
@@ -521,7 +521,7 @@ onMounted(async () => {
             class="inline-flex items-center gap-2 px-4 py-2 bg-amber-600 hover:bg-amber-700 disabled:bg-slate-300 text-white text-xs font-bold uppercase tracking-wider transition-colors"
             @click="analyserFichier"
           >
-            <UIcon name="i-lucide-refresh-cw" class="w-4 h-4" />
+            <Icon name="i-lucide-refresh-cw" class="w-4 h-4" />
             Relancer l'analyse
           </button>
         </div>
@@ -587,8 +587,8 @@ onMounted(async () => {
           class="inline-flex items-center gap-2 px-4 py-2 border border-amber-300 text-amber-800 hover:bg-amber-50 disabled:opacity-50 text-xs font-bold uppercase tracking-wider transition-colors"
           @click="executerImport(true)"
         >
-          <UIcon v-if="executionEnCours" name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
-          <UIcon v-else name="i-lucide-filter" class="w-4 h-4" />
+          <Icon v-if="executionEnCours" name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
+          <Icon v-else name="i-lucide-filter" class="w-4 h-4" />
           Importer les {{ analyse.job.lignes_valides }} ligne(s) valide(s)
         </button>
         <button
@@ -597,8 +597,8 @@ onMounted(async () => {
           class="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-slate-300 text-white text-xs font-bold uppercase tracking-wider transition-colors"
           @click="executerImport(false)"
         >
-          <UIcon v-if="executionEnCours" name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
-          <UIcon v-else name="i-lucide-play" class="w-4 h-4" />
+          <Icon v-if="executionEnCours" name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
+          <Icon v-else name="i-lucide-play" class="w-4 h-4" />
           Exécuter l'import
         </button>
       </div>
@@ -607,7 +607,7 @@ onMounted(async () => {
     <!-- Résultat de l'exécution -->
     <div v-if="execution" class="bg-green-50 border border-green-200 rounded-xl p-6">
       <div class="flex items-start gap-3">
-        <UIcon name="i-lucide-check-circle-2" class="w-6 h-6 text-green-700 shrink-0" />
+        <Icon name="i-lucide-check-circle-2" class="w-6 h-6 text-green-700 shrink-0" />
         <div>
           <p class="text-sm font-bold text-green-900">Import terminé</p>
           <p class="text-xs text-green-800 mt-1">{{ execution.message }}</p>
@@ -629,7 +629,7 @@ onMounted(async () => {
         </button>
       </div>
       <div v-if="chargementHistorique" class="p-8 text-center text-sm text-slate-500">
-        <UIcon name="i-lucide-loader-2" class="w-5 h-5 animate-spin text-green-600 mx-auto mb-2" />
+        <Icon name="i-lucide-loader-2" class="w-5 h-5 animate-spin text-green-600 mx-auto mb-2" />
         Chargement…
       </div>
       <div v-else-if="historique.length === 0" class="p-8 text-center text-sm text-slate-500">

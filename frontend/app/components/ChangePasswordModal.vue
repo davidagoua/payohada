@@ -79,14 +79,14 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <UModal v-model:open="isOpen" title="Modification du mot de passe">
-    <template #content>
+  <Dialog v-model:visible="isOpen" header="Modification du mot de passe" modal :draggable="false" dismissable-mask class="w-[32rem] max-w-[calc(100vw-2rem)]">
+    <template #container>
       <div class="p-6 bg-white border border-slate-200 max-w-lg w-full mx-auto shadow-flat">
         <!-- Header -->
         <div class="flex items-start justify-between border-b-2 border-navy-900 pb-4 mb-4">
           <div class="flex items-center gap-2.5">
             <div class="w-9 h-9 rounded-lg bg-navy-50 border border-navy-200 flex items-center justify-center text-navy-700 shrink-0">
-              <UIcon name="i-lucide-shield-check" class="w-5 h-5" />
+              <Icon name="i-lucide-shield-check" class="w-5 h-5" />
             </div>
             <div>
               <h2 class="text-base font-bold text-navy-900 uppercase tracking-wider">
@@ -104,7 +104,7 @@ const handleSubmit = async () => {
             class="text-slate-400 hover:text-slate-650 p-1 transition-colors cursor-pointer rounded"
             title="Fermer (Échap)"
           >
-            <UIcon name="i-lucide-x" class="w-5 h-5" />
+            <Icon name="i-lucide-x" class="w-5 h-5" />
           </button>
         </div>
 
@@ -113,7 +113,7 @@ const handleSubmit = async () => {
           v-if="isDefault"
           class="mb-5 p-3.5 bg-amber-50/90 border border-amber-300/80 rounded-lg flex items-start gap-3 text-amber-900"
         >
-          <UIcon name="i-lucide-shield-alert" class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <Icon name="i-lucide-shield-alert" class="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
           <div class="text-xs leading-relaxed space-y-1">
             <p class="font-bold text-amber-950">
               Mot de passe par défaut actif
@@ -129,7 +129,7 @@ const handleSubmit = async () => {
           v-if="errorMessage"
           class="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center gap-2.5 text-red-700 text-xs font-semibold"
         >
-          <UIcon name="i-lucide-alert-circle" class="w-4 h-4 text-red-600 shrink-0" />
+          <Icon name="i-lucide-alert-circle" class="w-4 h-4 text-red-600 shrink-0" />
           <span>{{ errorMessage }}</span>
         </div>
 
@@ -153,7 +153,7 @@ const handleSubmit = async () => {
                 @click="showOldPassword = !showOldPassword"
                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-650 cursor-pointer"
               >
-                <UIcon :name="showOldPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'" class="w-4 h-4" />
+                <Icon :name="showOldPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'" class="w-4 h-4" />
               </button>
             </div>
             <p v-if="isDefault" class="text-[11px] text-slate-500 mt-1">
@@ -179,7 +179,7 @@ const handleSubmit = async () => {
                 @click="showNewPassword = !showNewPassword"
                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-650 cursor-pointer"
               >
-                <UIcon :name="showNewPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'" class="w-4 h-4" />
+                <Icon :name="showNewPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'" class="w-4 h-4" />
               </button>
             </div>
             <div class="flex items-center gap-3 mt-1 text-[11px] text-slate-500">
@@ -210,7 +210,7 @@ const handleSubmit = async () => {
                 @click="showConfirmPassword = !showConfirmPassword"
                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-650 cursor-pointer"
               >
-                <UIcon :name="showConfirmPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'" class="w-4 h-4" />
+                <Icon :name="showConfirmPassword ? 'i-lucide-eye-off' : 'i-lucide-eye'" class="w-4 h-4" />
               </button>
             </div>
             <p
@@ -239,12 +239,12 @@ const handleSubmit = async () => {
               :disabled="submitting || authLoading"
               class="px-4 py-2 text-xs font-bold bg-green-600 hover:bg-green-700 text-white rounded-lg shadow-flat transition-colors uppercase tracking-wider cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
             >
-              <UIcon v-if="submitting || authLoading" name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
+              <Icon v-if="submitting || authLoading" name="i-lucide-loader-2" class="w-4 h-4 animate-spin" />
               {{ submitting ? "Enregistrement..." : "Enregistrer" }}
             </button>
           </div>
         </form>
       </div>
     </template>
-  </UModal>
+  </Dialog>
 </template>

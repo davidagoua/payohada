@@ -141,8 +141,8 @@ const handleSaveProcess = async () => {
     </div>
 
     <!-- Modal: Process Claim -->
-    <UModal v-model:open="processModalOpen" title="Traiter la réclamation">
-      <template #content>
+    <Dialog v-model:visible="processModalOpen" header="Traiter la réclamation" modal :draggable="false" dismissable-mask class="w-[32rem] max-w-[calc(100vw-2rem)]">
+      <template #container>
         <div v-if="selectedClaim" class="p-6 space-y-4 rounded-xl bg-white border border-slate-200 max-w-md mx-auto">
           <h2 class="text-lg font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Répondre à la réclamation</h2>
           
@@ -178,6 +178,6 @@ const handleSaveProcess = async () => {
           </div>
         </div>
       </template>
-    </UModal>
+    </Dialog>
   </div>
 </template>
