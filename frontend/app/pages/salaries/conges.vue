@@ -179,31 +179,30 @@ onMounted(charger)
         >
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Date de début</label>
-            <input
+            <InputText
               v-model="form.date_debut"
               type="date"
               required
               class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white"
-            >
+            />
           </div>
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Date de fin</label>
-            <input
+            <InputText
               v-model="form.date_fin"
               type="date"
               required
               class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white"
-            >
+            />
           </div>
           <div class="sm:col-span-2">
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Motif (facultatif)</label>
-            <input
+            <InputText
               v-model="form.motif"
-              type="text"
               maxlength="1000"
               placeholder="Congés annuels, événement familial…"
               class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white"
-            >
+            />
           </div>
           <div class="sm:col-span-2 flex flex-wrap items-center justify-between gap-3">
             <p class="text-xs text-slate-500">
@@ -255,55 +254,44 @@ onMounted(charger)
         v-else
         class="overflow-x-auto"
       >
-        <table class="min-w-full text-sm">
-          <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider text-[11px]">
-            <tr>
-              <th class="px-4 py-2 text-left font-semibold">
-                Période
-              </th>
-              <th class="px-4 py-2 text-right font-semibold">
-                Jours
-              </th>
-              <th class="px-4 py-2 text-left font-semibold">
-                Motif
-              </th>
-              <th class="px-4 py-2 text-left font-semibold">
-                Statut
-              </th>
-              <th class="px-4 py-2 text-left font-semibold">
-                Réponse
-              </th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100">
-            <tr
-              v-for="demande in demandes"
-              :key="demande.id"
-              class="hover:bg-slate-50"
-            >
-              <td class="px-4 py-2.5 font-medium text-slate-800">
-                {{ formatDate(demande.date_debut) }} → {{ formatDate(demande.date_fin) }}
-              </td>
-              <td class="px-4 py-2.5 text-right font-mono">
-                {{ demande.nombre_jours }}
-              </td>
-              <td class="px-4 py-2.5 text-slate-500">
-                {{ demande.motif || '—' }}
-              </td>
-              <td class="px-4 py-2.5">
-                <span
-                  class="inline-flex px-2 py-0.5 border text-[11px] font-bold uppercase tracking-wide"
-                  :class="classeStatut(demande.statut)"
-                >
-                  {{ libelleStatut(demande.statut) }}
-                </span>
-              </td>
-              <td class="px-4 py-2.5 text-slate-500">
-                {{ demande.commentaire_gestionnaire || '—' }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <DataTable
+          :pt="{ thead: { class: 'bg-slate-50 text-slate-500 uppercase tracking-wider text-[11px]' } }"
+          class="min-w-full text-sm"
+          :value="demandes"
+          data-key="id"
+          row-hover
+        >
+          <Column header="Période" header-class="px-4 py-2 text-left font-semibold" body-class="px-4 py-2.5 font-medium text-slate-800">
+            <template #body="{ data: demande }">
+              {{ formatDate(demande.date_debut) }} → {{ formatDate(demande.date_fin) }}
+            </template>
+          </Column>
+          <Column header="Jours" header-class="px-4 py-2 text-right font-semibold" body-class="px-4 py-2.5 text-right font-mono">
+            <template #body="{ data: demande }">
+              {{ demande.nombre_jours }}
+            </template>
+          </Column>
+          <Column header="Motif" header-class="px-4 py-2 text-left font-semibold" body-class="px-4 py-2.5 text-slate-500">
+            <template #body="{ data: demande }">
+              {{ demande.motif || '—' }}
+            </template>
+          </Column>
+          <Column header="Statut" header-class="px-4 py-2 text-left font-semibold" body-class="px-4 py-2.5">
+            <template #body="{ data: demande }">
+              <span
+                class="inline-flex px-2 py-0.5 border text-[11px] font-bold uppercase tracking-wide"
+                :class="classeStatut(demande.statut)"
+              >
+                {{ libelleStatut(demande.statut) }}
+              </span>
+            </template>
+          </Column>
+          <Column header="Réponse" header-class="px-4 py-2 text-left font-semibold" body-class="px-4 py-2.5 text-slate-500">
+            <template #body="{ data: demande }">
+              {{ demande.commentaire_gestionnaire || '—' }}
+            </template>
+          </Column>
+        </DataTable>
       </div>
     </div>
   </div>

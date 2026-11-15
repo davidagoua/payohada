@@ -272,31 +272,51 @@ onMounted(async () => {
       <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 items-end">
         <div>
           <label class="carbon-label">Mois de début</label>
-          <select v-model.number="periode.mois_debut" class="w-full">
-            <option v-for="(libelle, index) in MOIS" :key="index" :value="index + 1">
-              {{ libelle }}
-            </option>
-          </select>
+          <Select
+            v-model.number="periode.mois_debut"
+            class="w-full"
+            :options="[
+              ...MOIS.map((libelle, index) => ({ label: `${libelle}`, value: index + 1 }))
+            ]"
+            option-label="label"
+            option-value="value"
+          />
         </div>
         <div>
           <label class="carbon-label">Année de début</label>
-          <select v-model.number="periode.annee_debut" class="w-full">
-            <option v-for="a in annees" :key="a" :value="a">{{ a }}</option>
-          </select>
+          <Select
+            v-model.number="periode.annee_debut"
+            class="w-full"
+            :options="[
+              ...annees.map(a => ({ label: `${a}`, value: a }))
+            ]"
+            option-label="label"
+            option-value="value"
+          />
         </div>
         <div>
           <label class="carbon-label">Mois de fin</label>
-          <select v-model.number="periode.mois_fin" class="w-full">
-            <option v-for="(libelle, index) in MOIS" :key="index" :value="index + 1">
-              {{ libelle }}
-            </option>
-          </select>
+          <Select
+            v-model.number="periode.mois_fin"
+            class="w-full"
+            :options="[
+              ...MOIS.map((libelle, index) => ({ label: `${libelle}`, value: index + 1 }))
+            ]"
+            option-label="label"
+            option-value="value"
+          />
         </div>
         <div>
           <label class="carbon-label">Année de fin</label>
-          <select v-model.number="periode.annee_fin" class="w-full">
-            <option v-for="a in annees" :key="a" :value="a">{{ a }}</option>
-          </select>
+          <Select
+            v-model.number="periode.annee_fin"
+            class="w-full"
+            :options="[
+              ...annees.map(a => ({ label: `${a}`, value: a }))
+            ]"
+            option-label="label"
+            option-value="value"
+          />
         </div>
       </div>
       <p class="carbon-helper mt-3">
@@ -465,21 +485,29 @@ onMounted(async () => {
           </p>
           <div>
             <label class="carbon-label">Destinataire *</label>
-            <input v-model="envoi.destinataire" type="email"
-                   placeholder="adresse@exemple.ci" class="w-full">
+            <InputText
+              v-model="envoi.destinataire"
+              type="email"
+              placeholder="adresse@exemple.ci"
+              class="w-full"
+            />
           </div>
           <div>
             <label class="carbon-label">Copie (facultatif)</label>
-            <input v-model="envoi.copie" type="email"
-                   placeholder="copie@exemple.ci" class="w-full">
+            <InputText
+              v-model="envoi.copie"
+              type="email"
+              placeholder="copie@exemple.ci"
+              class="w-full"
+            />
           </div>
           <div>
             <label class="carbon-label">Objet</label>
-            <input v-model="envoi.objet" type="text" class="w-full">
+            <InputText v-model="envoi.objet" class="w-full" />
           </div>
           <div>
             <label class="carbon-label">Message (facultatif)</label>
-            <textarea v-model="envoi.message" rows="3" class="w-full"
+            <Textarea v-model="envoi.message" rows="3" class="w-full"
                       placeholder="Message accompagnant l'envoi…" />
           </div>
         </div>

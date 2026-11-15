@@ -184,18 +184,18 @@ const handleChangePassword = async () => {
       <form @submit.prevent="handleChangePassword" class="space-y-4">
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Mot de passe actuel</label>
-          <input v-model="oldPassword" type="password" placeholder="Saisir l'ancien mot de passe" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white" required />
+          <InputText v-model="oldPassword" type="password" placeholder="Saisir l'ancien mot de passe" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white" required />
           <p class="text-[10px] text-amber-600 font-semibold mt-1">
             Lors de votre première connexion, utilisez le mot de passe provisoire communiqué par votre gestionnaire.
           </p>
         </div>
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Nouveau mot de passe</label>
-          <input v-model="newPassword" type="password" placeholder="Au moins 8 caractères" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white" required />
+          <InputText v-model="newPassword" type="password" placeholder="Au moins 8 caractères" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white" required />
         </div>
         <div>
           <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Confirmer le nouveau mot de passe</label>
-          <input v-model="confirmPassword" type="password" placeholder="Ressaisir le nouveau mot de passe" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white" required />
+          <InputText v-model="confirmPassword" type="password" placeholder="Ressaisir le nouveau mot de passe" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white" required />
         </div>
         <div class="flex justify-end pt-2">
           <button type="submit" :disabled="changingPassword" class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-xs font-bold uppercase tracking-wider rounded-lg shadow-flat transition-colors cursor-pointer disabled:bg-slate-300">
@@ -227,55 +227,58 @@ const handleChangePassword = async () => {
             Aucun bulletin de salaire n'a été publié pour le moment.
           </div>
           <div v-else class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-200">
-              <thead class="bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                <tr>
-                  <th scope="col" class="px-6 py-3 text-left">Période</th>
-                  <th scope="col" class="px-6 py-3 text-right">Salaire Brut</th>
-                  <th scope="col" class="px-6 py-3 text-right">Net à payer</th>
-                  <th scope="col" class="px-6 py-3 class text-center">Statut</th>
-                  <th scope="col" class="px-6 py-3 text-center">Actions</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-150 text-sm text-slate-700">
-                <tr v-for="b in bulletins" :key="b.id" class="hover:bg-slate-50/50 transition-colors">
-                  <td class="px-6 py-4 font-bold text-slate-900 uppercase">
-                    {{ getPeriodLabel(b.mois, b.annee) }}
-                  </td>
-                  <td class="px-6 py-4 text-right font-mono font-medium">
-                    {{ formatXOF(b.salaire_brut) }}
-                  </td>
-                  <td class="px-6 py-4 text-right font-mono font-bold text-green-700">
-                    {{ formatXOF(b.net_a_payer) }}
-                  </td>
-                  <td class="px-6 py-4 text-center">
-                    <span class="inline-block px-2.5 py-0.5 text-[9px] font-black uppercase border rounded-lg tracking-wider"
-                      :class="[
-                        b.statut === 'valide'
-                          ? 'bg-green-50 border-green-300 text-green-700'
-                          : 'bg-amber-50 border-amber-300 text-amber-700'
-                      ]"
-                    >
-                      {{ b.statut === 'valide' ? 'Validé' : 'Brouillon' }}
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 text-center space-x-2">
-                    <button 
-                      @click="handlePreview(b)" 
-                      class="px-2.5 py-1 text-[11px] font-bold uppercase bg-slate-50 border-2 border-slate-200 text-slate-800 hover:bg-slate-100 rounded-lg shadow-sm transition-colors cursor-pointer"
-                    >
-                      Visualiser
-                    </button>
-                    <button 
-                      @click="handleOpenClaimModal(b)" 
-                      class="px-2.5 py-1 text-[11px] font-bold uppercase bg-red-50 border-2 border-red-200 text-red-700 hover:bg-red-100 rounded-lg shadow-sm transition-colors cursor-pointer"
-                    >
-                      Réclamation
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <DataTable
+              :pt="{ thead: { class: 'bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider' }, tbody: { class: 'text-sm text-slate-700' } }"
+              class="min-w-full divide-y divide-slate-200"
+              :value="bulletins"
+              data-key="id"
+              row-hover
+            >
+              <Column header="Période" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-bold text-slate-900 uppercase">
+                <template #body="{ data: b }">
+                  {{ getPeriodLabel(b.mois, b.annee) }}
+                </template>
+              </Column>
+              <Column header="Salaire Brut" header-class="px-6 py-3 text-right" body-class="px-6 py-4 text-right font-mono font-medium">
+                <template #body="{ data: b }">
+                  {{ formatXOF(b.salaire_brut) }}
+                </template>
+              </Column>
+              <Column header="Net à payer" header-class="px-6 py-3 text-right" body-class="px-6 py-4 text-right font-mono font-bold text-green-700">
+                <template #body="{ data: b }">
+                  {{ formatXOF(b.net_a_payer) }}
+                </template>
+              </Column>
+              <Column header="Statut" header-class="px-6 py-3 class text-center" body-class="px-6 py-4 text-center">
+                <template #body="{ data: b }">
+                  <span class="inline-block px-2.5 py-0.5 text-[9px] font-black uppercase border rounded-lg tracking-wider"
+                    :class="[
+                      b.statut === 'valide'
+                        ? 'bg-green-50 border-green-300 text-green-700'
+                        : 'bg-amber-50 border-amber-300 text-amber-700'
+                    ]"
+                  >
+                    {{ b.statut === 'valide' ? 'Validé' : 'Brouillon' }}
+                  </span>
+                </template>
+              </Column>
+              <Column header="Actions" header-class="px-6 py-3 text-center" body-class="px-6 py-4 text-center space-x-2">
+                <template #body="{ data: b }">
+                  <button
+                    @click="handlePreview(b)"
+                    class="px-2.5 py-1 text-[11px] font-bold uppercase bg-slate-50 border-2 border-slate-200 text-slate-800 hover:bg-slate-100 rounded-lg shadow-sm transition-colors cursor-pointer"
+                  >
+                    Visualiser
+                  </button>
+                  <button
+                    @click="handleOpenClaimModal(b)"
+                    class="px-2.5 py-1 text-[11px] font-bold uppercase bg-red-50 border-2 border-red-200 text-red-700 hover:bg-red-100 rounded-lg shadow-sm transition-colors cursor-pointer"
+                  >
+                    Réclamation
+                  </button>
+                </template>
+              </Column>
+            </DataTable>
           </div>
         </div>
       </div>
@@ -468,11 +471,11 @@ const handleChangePassword = async () => {
           <div class="space-y-3">
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Sujet de la réclamation</label>
-              <input v-model="claimSujet" type="text" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white" required />
+              <InputText v-model="claimSujet" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white" required />
             </div>
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Description détaillée de votre demande</label>
-              <textarea v-model="claimDescription" rows="4" placeholder="Expliquez en détail l'anomalie ou l'erreur constatée sur votre bulletin..." class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white" required></textarea>
+              <Textarea v-model="claimDescription" rows="4" placeholder="Expliquez en détail l'anomalie ou l'erreur constatée sur votre bulletin..." class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white" required />
             </div>
           </div>
 

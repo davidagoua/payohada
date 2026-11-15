@@ -376,23 +376,27 @@ onMounted(async () => {
             <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">
               Situation de fin de CDD (art. 15.8)
             </label>
-            <select v-model="form.sous_motif_fin_cdd" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
-              <option v-for="sous in SOUS_MOTIFS_CDD" :key="sous.valeur" :value="sous.valeur">
-                {{ sous.libelle }}{{ sous.due ? ' — indemnité due' : ' — indemnité non due' }}
-              </option>
-            </select>
+            <Select
+              v-model="form.sous_motif_fin_cdd"
+              class="w-full text-sm"
+              :options="[
+                ...SOUS_MOTIFS_CDD.map(sous => ({ label: `${sous.libelle}${sous.due ? ' — indemnité due' : ' — indemnité non due'}`, value: sous.valeur }))
+              ]"
+              option-label="label"
+              option-value="value"
+            />
           </div>
 
           <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Date de sortie *</label>
-              <input v-model="form.date_sortie" type="date" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+              <InputText v-model="form.date_sortie" type="date" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
             <div>
               <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">
                 Ancienneté (mois)
               </label>
-              <input v-model.number="form.anciennete_mois" type="number" min="0" :placeholder="String(ancienneteCalculee ?? '')" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+              <InputText v-model.number="form.anciennete_mois" type="number" min="0" :placeholder="String(ancienneteCalculee ?? '')" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
               <p class="text-[10px] text-slate-400 mt-1">
                 <span v-if="ancienneteCalculee !== null">Calculée : {{ ancienneteCalculee }} mois — </span>
                 laisser vide pour l'utiliser
@@ -402,18 +406,18 @@ onMounted(async () => {
               <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">
                 SMHC mensuel (F)
               </label>
-              <input v-model.number="form.smhc_mensuel" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+              <InputText v-model.number="form.smhc_mensuel" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
               <p class="text-[10px] text-slate-400 mt-1">Base de la gratification et des frais funéraires</p>
             </div>
           </div>
 
           <div class="mt-4 flex flex-wrap gap-4">
             <label v-if="form.motif_fin_contrat === 'licenciement'" class="flex items-center gap-2 cursor-pointer">
-              <input v-model="form.faute_lourde" type="checkbox" class="accent-red-600">
+              <Checkbox v-model="form.faute_lourde" binary />
               <span class="text-xs font-semibold text-slate-700">Faute lourde retenue (supprime l'indemnité)</span>
             </label>
             <label v-if="form.motif_fin_contrat === 'deces'" class="flex items-center gap-2 cursor-pointer">
-              <input v-model="form.conditions_retraite_remplies" type="checkbox" class="accent-green-600">
+              <Checkbox v-model="form.conditions_retraite_remplies" binary />
               <span class="text-xs font-semibold text-slate-700">Conditions de départ à la retraite remplies</span>
             </label>
           </div>
@@ -424,7 +428,7 @@ onMounted(async () => {
           <div class="flex items-center justify-between mb-3">
             <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider">Rémunérations de référence</h2>
             <label class="flex items-center gap-2 cursor-pointer">
-              <input v-model="form.saisie_salaires" type="checkbox" class="accent-green-600">
+              <Checkbox v-model="form.saisie_salaires" binary />
               <span class="text-[11px] font-semibold text-slate-600">Saisir manuellement</span>
             </label>
           </div>
@@ -438,7 +442,7 @@ onMounted(async () => {
               <label class="block text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-0.5">
                 M-{{ 12 - index }}
               </label>
-              <input v-model.number="form.salaires_12_mois[index]" type="number" min="0" placeholder="—" class="w-full px-2 py-1.5 border border-slate-300 rounded-lg text-xs">
+              <InputText v-model.number="form.salaires_12_mois[index]" type="number" min="0" placeholder="—" class="w-full px-2 py-1.5 border border-slate-300 rounded-lg text-xs" />
             </div>
           </div>
         </section>
@@ -448,25 +452,31 @@ onMounted(async () => {
           <div class="flex items-center justify-between mb-4">
             <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider">Gratification annuelle</h2>
             <label class="flex items-center gap-2 cursor-pointer">
-              <input v-model="form.gratification_active" type="checkbox" class="accent-green-600">
+              <Checkbox v-model="form.gratification_active" binary />
               <span class="text-[11px] font-semibold text-slate-600">Inclure</span>
             </label>
           </div>
           <div v-if="form.gratification_active" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div>
               <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Année</label>
-              <select v-model.number="form.gratification_annee" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
-                <option v-for="a in anneesDisponibles" :key="a" :value="a">{{ a }}</option>
-              </select>
+              <Select
+                v-model.number="form.gratification_annee"
+                class="w-full text-sm"
+                :options="[
+                  ...anneesDisponibles.map(a => ({ label: `${a}`, value: a }))
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
             <div>
               <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Jours de service</label>
-              <input v-model.number="form.gratification_jours_service" type="number" min="0" max="360" placeholder="auto (360 j)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+              <InputText v-model.number="form.gratification_jours_service" type="number" min="0" max="360" placeholder="auto (360 j)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
               <p class="text-[10px] text-slate-400 mt-1">Base 360 jours, calculée depuis les dates si vide</p>
             </div>
             <div>
               <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Taux entreprise</label>
-              <input v-model.number="form.gratification_taux_entreprise" type="number" min="0" max="5" step="0.05" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+              <InputText v-model.number="form.gratification_taux_entreprise" type="number" min="0" max="5" step="0.05" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
               <p class="text-[10px] text-slate-400 mt-1">0 = minimum conventionnel de 75 %</p>
             </div>
           </div>
@@ -479,27 +489,33 @@ onMounted(async () => {
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div>
               <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Mois de service</label>
-              <input v-model.number="form.conges_mois_service" type="number" min="0" :placeholder="String(ancienneteRetenue)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+              <InputText v-model.number="form.conges_mois_service" type="number" min="0" :placeholder="String(ancienneteRetenue)" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
             <div>
               <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Jours déjà pris</label>
-              <input v-model.number="form.conges_jours_pris" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+              <InputText v-model.number="form.conges_jours_pris" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
             <div>
               <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Jours supplémentaires</label>
-              <input v-model.number="form.conges_jours_supplementaires" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+              <InputText v-model.number="form.conges_jours_supplementaires" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
               <p class="text-[10px] text-slate-400 mt-1">Ancienneté, charges de famille…</p>
             </div>
             <div class="sm:col-span-2">
               <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Méthode de valorisation</label>
-              <select v-model="form.conges_methode" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
-                <option value="conventionnelle">Conventionnelle — art. 71-72 (journalier × jours calendaires)</option>
-                <option value="decret">Décret n° 98-39 — allocation principale 1/12</option>
-              </select>
+              <Select
+                v-model="form.conges_methode"
+                class="w-full text-sm"
+                :options="[
+                  { label: `Conventionnelle — art. 71-72 (journalier × jours calendaires)`, value: 'conventionnelle' },
+                  { label: `Décret n° 98-39 — allocation principale 1/12`, value: 'decret' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
             <div>
               <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Montant manuel</label>
-              <input v-model.number="form.conges_montant_manuel" type="number" min="0" placeholder="—" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+              <InputText v-model.number="form.conges_montant_manuel" type="number" min="0" placeholder="—" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
           </div>
         </section>
@@ -510,11 +526,11 @@ onMounted(async () => {
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Indemnité compensatrice de préavis</label>
-              <input v-model.number="form.indemnite_preavis" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+              <InputText v-model.number="form.indemnite_preavis" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
             <div>
               <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Autres indemnités</label>
-              <input v-model.number="form.indemnite_autre" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+              <InputText v-model.number="form.indemnite_autre" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
           </div>
         </section>

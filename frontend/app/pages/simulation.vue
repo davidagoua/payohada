@@ -208,18 +208,30 @@ onMounted(() => {
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Mode de calcul</label>
-              <select v-model="modeCalcul" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500">
-                <option value="brut">Salaire brut</option>
-                <option value="net">Salaire net</option>
-              </select>
+              <Select
+                v-model="modeCalcul"
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Salaire brut`, value: 'brut' },
+                  { label: `Salaire net`, value: 'net' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
             
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Base de calcul</label>
-              <select v-model="typeSalaire" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500">
-                <option value="Mensuel">Salaire Mensuel</option>
-                <option value="Horaire">Taux Horaire</option>
-              </select>
+              <Select
+                v-model="typeSalaire"
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Salaire Mensuel`, value: 'Mensuel' },
+                  { label: `Taux Horaire`, value: 'Horaire' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
           </div>
 
@@ -228,9 +240,9 @@ onMounted(() => {
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">
                 {{ modeCalcul === 'net' ? 'Salaire Mensuel Net (FCFA)' : 'Salaire Mensuel Brut (FCFA)' }}
               </label>
-              <input 
-                v-model="salaireMensuel" 
-                type="number" 
+              <InputText
+                v-model.number="salaireMensuel"
+                type="number"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
@@ -238,9 +250,9 @@ onMounted(() => {
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">
                 {{ modeCalcul === 'net' ? 'Taux Horaire Net (FCFA)' : 'Taux Horaire Brut (FCFA)' }}
               </label>
-              <input 
-                v-model="salaireHoraire" 
-                type="number" 
+              <InputText
+                v-model.number="salaireHoraire"
+                type="number"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
@@ -249,19 +261,19 @@ onMounted(() => {
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Heures standard (Mois)</label>
-              <input 
-                v-model="horaireStandard" 
-                type="number" 
-                step="0.01" 
+              <InputText
+                v-model.number="horaireStandard"
+                type="number"
+                step="0.01"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Taux AT Patronal (%)</label>
-              <input 
-                v-model="tauxAt" 
-                type="number" 
-                step="0.1" 
+              <InputText
+                v-model.number="tauxAt"
+                type="number"
+                step="0.1"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
@@ -270,16 +282,22 @@ onMounted(() => {
           <div class="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Unité de Temps</label>
-              <select v-model="uniteTemps" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500">
-                <option value="Heures">Heures</option>
-                <option value="Jours">Jours</option>
-              </select>
+              <Select
+                v-model="uniteTemps"
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Heures`, value: 'Heures' },
+                  { label: `Jours`, value: 'Jours' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Sursalaire (FCFA)</label>
-              <input 
-                v-model="sursalaire" 
-                type="number" 
+              <InputText
+                v-model.number="sursalaire"
+                type="number"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500"
               />
               <p class="mt-1 text-[10px] text-slate-400">
@@ -291,16 +309,22 @@ onMounted(() => {
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Régime Expatrié</label>
-              <select v-model="expatrie" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500">
-                <option :value="false">Non (Local)</option>
-                <option :value="true">Oui (Expatrié)</option>
-              </select>
+              <Select
+                v-model="expatrie"
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Non (Local)`, value: false },
+                  { label: `Oui (Expatrié)`, value: true }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Acompte déduit (FCFA)</label>
-              <input 
-                v-model="acompte" 
-                type="number" 
+              <InputText
+                v-model.number="acompte"
+                type="number"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
@@ -309,17 +333,23 @@ onMounted(() => {
           <div class="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Situation familiale (RICF)</label>
-              <select v-model="situationMatrimoniale" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500">
-                <option value="Célibataire">Célibataire</option>
-                <option value="Marié">Marié(e)</option>
-                <option value="Veuf">Veuf / veuve</option>
-                <option value="Divorcé">Divorcé(e)</option>
-              </select>
+              <Select
+                v-model="situationMatrimoniale"
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Célibataire`, value: 'Célibataire' },
+                  { label: `Marié(e)`, value: 'Marié' },
+                  { label: `Veuf / veuve`, value: 'Veuf' },
+                  { label: `Divorcé(e)`, value: 'Divorcé' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Enfants à charge</label>
-              <input
-                v-model="enfantsCharge"
+              <InputText
+                v-model.number="enfantsCharge"
                 type="number"
                 min="0"
                 step="1"
@@ -334,17 +364,17 @@ onMounted(() => {
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Transport (FCFA)</label>
-              <input 
-                v-model="indemniteTransport" 
-                type="number" 
+              <InputText
+                v-model.number="indemniteTransport"
+                type="number"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Dotation Tél. (FCFA)</label>
-              <input 
-                v-model="dotationTelephonique" 
-                type="number" 
+              <InputText
+                v-model.number="dotationTelephonique"
+                type="number"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
@@ -371,19 +401,23 @@ onMounted(() => {
               <div class="flex-grow grid grid-cols-3 gap-2">
                 <div>
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Motif</label>
-                  <select v-model="abs.code" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs bg-white select focus:outline-none focus:ring-2 focus:ring-green-500">
-                    <option v-for="type in absenceTypes" :key="type" :value="type">
-                       {{ type }}
-                    </option>
-                  </select>
+                  <Select
+                    v-model="abs.code"
+                    class="block w-full text-xs"
+                    :options="[
+                      ...absenceTypes.map(type => ({ label: `${type}`, value: type }))
+                    ]"
+                    option-label="label"
+                    option-value="value"
+                  />
                 </div>
                 <div>
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Nbr Heures</label>
-                  <input v-model="abs.nbr_heures" type="number" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs font-mono" />
+                  <InputText v-model.number="abs.nbr_heures" type="number" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs font-mono" />
                 </div>
                 <div>
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Nbr Jours</label>
-                  <input v-model="abs.nbr_jours" type="number" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs font-mono" />
+                  <InputText v-model.number="abs.nbr_jours" type="number" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs font-mono" />
                 </div>
               </div>
               <button 
@@ -416,14 +450,20 @@ onMounted(() => {
               <div class="flex-grow grid grid-cols-2 gap-2">
                 <div>
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Type Majoré</label>
-                  <select v-model="hs.code" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs bg-white">
-                    <option value="HS_25">HS Majorées à 25 %</option>
-                    <option value="HS_50">HS Majorées à 50 %</option>
-                  </select>
+                  <Select
+                    v-model="hs.code"
+                    class="block w-full text-xs"
+                    :options="[
+                      { label: `HS Majorées à 25 %`, value: 'HS_25' },
+                      { label: `HS Majorées à 50 %`, value: 'HS_50' }
+                    ]"
+                    option-label="label"
+                    option-value="value"
+                  />
                 </div>
                 <div>
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Nombre d'heures</label>
-                  <input v-model="hs.nombre" type="number" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs font-mono" />
+                  <InputText v-model.number="hs.nombre" type="number" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs font-mono" />
                 </div>
               </div>
               <button 
@@ -456,33 +496,39 @@ onMounted(() => {
               <div class="grid grid-cols-3 gap-2">
                 <div>
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Code</label>
-                  <input v-model="p.code" type="text" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs font-mono" />
+                  <InputText v-model="p.code" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs font-mono" />
                 </div>
                 <div>
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Libellé</label>
-                  <input v-model="p.libelle" type="text" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs" />
+                  <InputText v-model="p.libelle" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs" />
                 </div>
                 <div>
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Mode</label>
-                  <select v-model="p.mode" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs bg-white">
-                    <option value="direct">Montant Direct</option>
-                    <option value="calcul">Base x Taux</option>
-                  </select>
+                  <Select
+                    v-model="p.mode"
+                    class="block w-full text-xs"
+                    :options="[
+                      { label: `Montant Direct`, value: 'direct' },
+                      { label: `Base x Taux`, value: 'calcul' }
+                    ]"
+                    option-label="label"
+                    option-value="value"
+                  />
                 </div>
               </div>
               
               <div class="grid grid-cols-3 gap-2 items-end">
                 <div v-if="p.mode === 'calcul'">
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Base (FCFA)</label>
-                  <input v-model="p.base" type="number" @input="p.montant = (Number(p.base) || 0) * ((Number(p.taux) || 0) / 100)" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs font-mono bg-white" />
+                  <InputText v-model.number="p.base" type="number" @input="p.montant = (Number(p.base) || 0) * ((Number(p.taux) || 0) / 100)" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs font-mono bg-white" />
                 </div>
                 <div v-if="p.mode === 'calcul'">
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Taux (%)</label>
-                  <input v-model="p.taux" type="number" step="0.01" @input="p.montant = (Number(p.base) || 0) * ((Number(p.taux) || 0) / 100)" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs font-mono bg-white" />
+                  <InputText v-model.number="p.taux" type="number" step="0.01" @input="p.montant = (Number(p.base) || 0) * ((Number(p.taux) || 0) / 100)" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs font-mono bg-white" />
                 </div>
                 <div :class="p.mode === 'calcul' ? 'col-span-1' : 'col-span-3'">
                   <label class="text-[9px] uppercase tracking-wider font-semibold text-slate-400">Montant (FCFA)</label>
-                  <input v-model="p.montant" type="number" :disabled="p.mode === 'calcul'" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs font-mono bg-white disabled:bg-slate-100" />
+                  <InputText v-model.number="p.montant" type="number" :disabled="p.mode === 'calcul'" class="block w-full px-2 py-1 border border-slate-300 rounded-lg text-xs font-mono bg-white disabled:bg-slate-100" />
                 </div>
               </div>
               

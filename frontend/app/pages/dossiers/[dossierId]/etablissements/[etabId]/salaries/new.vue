@@ -131,18 +131,23 @@ onMounted(() => {
         <div class="grid grid-cols-3 gap-4">
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Civilité</label>
-            <select v-model="salCivilite" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select">
-              <option value="M.">Monsieur (M.)</option>
-              <option value="MME">Madame (Mme)</option>
-            </select>
+            <Select
+              v-model="salCivilite"
+              class="mt-1 block w-full text-sm"
+              :options="[
+                { label: `Monsieur (M.)`, value: 'M.' },
+                { label: `Madame (Mme)`, value: 'MME' }
+              ]"
+              option-label="label"
+              option-value="value"
+            />
           </div>
           <div class="col-span-2">
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Matricule</label>
-            <input 
-              type="text" 
+            <InputText
               disabled
-              value="Généré automatiquement" 
-              class="mt-1 block w-full px-3 py-2 border border-slate-200 bg-slate-50 rounded-lg text-sm font-mono text-slate-500 cursor-not-allowed" 
+              model-value="Généré automatiquement"
+              class="mt-1 block w-full px-3 py-2 border border-slate-200 bg-slate-50 rounded-lg text-sm font-mono text-slate-500 cursor-not-allowed"
             />
           </div>
         </div>
@@ -150,11 +155,10 @@ onMounted(() => {
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Prénom <span class="text-red-500">*</span></label>
-            <input 
-              v-model="salPrenom" 
-              type="text" 
+            <InputText
+              v-model="salPrenom"
               required
-              placeholder="Jean" 
+              placeholder="Jean"
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm transition-colors',
                 fieldErrors.prenom ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -164,11 +168,10 @@ onMounted(() => {
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Nom de famille <span class="text-red-500">*</span></label>
-            <input 
-              v-model="salNom" 
-              type="text" 
+            <InputText
+              v-model="salNom"
               required
-              placeholder="Dupont" 
+              placeholder="Dupont"
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm transition-colors',
                 fieldErrors.nom ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -181,10 +184,9 @@ onMounted(() => {
         <div class="grid grid-cols-3 gap-4">
           <div class="col-span-2">
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Numéro de Sécurité Sociale (NIR)</label>
-            <input 
-              v-model="salNir" 
-              type="text" 
-              placeholder="15 chiffres (Ex: 180017500123456)" 
+            <InputText
+              v-model="salNir"
+              placeholder="15 chiffres (Ex: 180017500123456)"
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono transition-colors',
                 fieldErrors.numero_securite_sociale ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -194,28 +196,40 @@ onMounted(() => {
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Régime Expatrié</label>
-            <select v-model="salExpatrie" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select">
-              <option :value="false">Non (Local)</option>
-              <option :value="true">Oui (Expatrié)</option>
-            </select>
+            <Select
+              v-model="salExpatrie"
+              class="mt-1 block w-full text-sm"
+              :options="[
+                { label: `Non (Local)`, value: false },
+                { label: `Oui (Expatrié)`, value: true }
+              ]"
+              option-label="label"
+              option-value="value"
+            />
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Situation Matrimoniale</label>
-            <select v-model="salSituationMatrimoniale" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select">
-              <option value="Célibataire">Célibataire</option>
-              <option value="Marié">Marié(e)</option>
-              <option value="Divorcé">Divorcé(e)</option>
-              <option value="Veuf">Veuf(ve)</option>
-            </select>
+            <Select
+              v-model="salSituationMatrimoniale"
+              class="mt-1 block w-full text-sm"
+              :options="[
+                { label: `Célibataire`, value: 'Célibataire' },
+                { label: `Marié(e)`, value: 'Marié' },
+                { label: `Divorcé(e)`, value: 'Divorcé' },
+                { label: `Veuf(ve)`, value: 'Veuf' }
+              ]"
+              option-label="label"
+              option-value="value"
+            />
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Enfants à charge</label>
-            <input 
-              v-model.number="salEnfantsCharge" 
-              type="number" 
+            <InputText
+              v-model.number="salEnfantsCharge"
+              type="number"
               min="0"
               max="20"
               class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500"
@@ -226,10 +240,10 @@ onMounted(() => {
         <div class="grid grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Email Personnel</label>
-            <input 
-              v-model="salEmail" 
-              type="email" 
-              placeholder="jean.dupont@gmail.com" 
+            <InputText
+              v-model="salEmail"
+              type="email"
+              placeholder="jean.dupont@gmail.com"
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm transition-colors',
                 fieldErrors.email ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -239,10 +253,9 @@ onMounted(() => {
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Téléphone</label>
-            <input 
-              v-model="salPhone" 
-              type="text" 
-              placeholder="0607080910" 
+            <InputText
+              v-model="salPhone"
+              placeholder="0607080910"
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm transition-colors',
                 fieldErrors.telephone ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -255,9 +268,8 @@ onMounted(() => {
         <div class="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">IBAN Versement Salaire</label>
-            <input 
-              v-model="salIban" 
-              type="text" 
+            <InputText
+              v-model="salIban"
               placeholder="FR76..."
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono transition-colors',
@@ -268,9 +280,8 @@ onMounted(() => {
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">BIC</label>
-            <input 
-              v-model="salBic" 
-              type="text" 
+            <InputText
+              v-model="salBic"
               placeholder="Ex: CEIDFRPP..."
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono transition-colors',

@@ -215,17 +215,20 @@ onMounted(async () => {
         </p>
       </div>
       <div class="flex items-center gap-2">
-        <select v-model.number="mois" class="px-3 py-2 border border-slate-300 rounded-lg text-sm">
-          <option v-for="(libelle, index) in MOIS_LABELS" :key="index" :value="index + 1">
-            {{ libelle }}
-          </option>
-        </select>
-        <input
+        <Select
+          v-model.number="mois"
+          class="text-sm"
+          :options="[
+            ...MOIS_LABELS.map((libelle, index) => ({ label: `${libelle}`, value: index + 1 }))
+          ]"
+          option-label="label"
+          option-value="value"
+        />
+        <InputText
           v-model="annee"
-          type="text"
           maxlength="4"
           class="w-20 px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono"
-        >
+        />
         <button
           :disabled="calculEnCours"
           class="px-3 py-2 bg-slate-800 hover:bg-slate-900 disabled:bg-slate-300 text-white text-xs font-bold rounded-lg inline-flex items-center gap-1.5"
@@ -255,23 +258,23 @@ onMounted(async () => {
             ]" :key="champ.cle"
               class="flex items-center gap-2 px-3 py-2.5 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50"
             >
-              <input v-model="saisie[champ.cle]" type="checkbox" class="accent-green-600">
+              <Checkbox v-model="saisie[champ.cle]" binary />
               <span class="text-xs font-semibold text-slate-700">{{ champ.libelle }}</span>
             </label>
           </div>
           <div class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div>
               <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Nombre de pièces</label>
-              <input v-model.number="saisie.nombre_pieces" type="number" min="1" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+              <InputText v-model.number="saisie.nombre_pieces" type="number" min="1" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
               <p class="text-[10px] text-slate-400 mt-1">7 = « 7 pièces et plus »</p>
             </div>
             <div>
               <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Climatiseurs</label>
-              <input v-model.number="saisie.nombre_climatiseurs" type="number" min="0" step="0.5" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+              <InputText v-model.number="saisie.nombre_climatiseurs" type="number" min="0" step="0.5" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
               <p class="text-[10px] text-slate-400 mt-1">20 000 F par unité</p>
             </div>
             <label class="flex items-end gap-2 px-3 py-2.5 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50">
-              <input v-model="saisie.piscine" type="checkbox" class="accent-green-600">
+              <Checkbox v-model="saisie.piscine" binary />
               <span class="text-xs font-semibold text-slate-700">Piscine (30 000 F)</span>
             </label>
           </div>
@@ -286,30 +289,30 @@ onMounted(async () => {
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div>
               <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Gardiens / jardiniers</label>
-              <input v-model.number="saisie.nombre_gardiens" type="number" min="0" step="0.5" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+              <InputText v-model.number="saisie.nombre_gardiens" type="number" min="0" step="0.5" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
               <p class="text-[10px] text-slate-400 mt-1">50 000 F / personne</p>
             </div>
             <div>
               <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Employés de maison</label>
-              <input v-model.number="saisie.nombre_employes_maison" type="number" min="0" step="0.5" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+              <InputText v-model.number="saisie.nombre_employes_maison" type="number" min="0" step="0.5" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
               <p class="text-[10px] text-slate-400 mt-1">60 000 F / personne</p>
             </div>
             <div>
               <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Cuisiniers</label>
-              <input v-model.number="saisie.nombre_cuisiniers" type="number" min="0" step="0.5" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+              <InputText v-model.number="saisie.nombre_cuisiniers" type="number" min="0" step="0.5" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
               <p class="text-[10px] text-slate-400 mt-1">90 000 F / personne</p>
             </div>
             <div>
               <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Repas pris en charge</label>
-              <input v-model.number="saisie.cout_mensuel_repas" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+              <InputText v-model.number="saisie.cout_mensuel_repas" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
             <label class="flex items-end gap-2 px-3 py-2.5 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50">
-              <input v-model="saisie.exoneration_repas_applicable" type="checkbox" class="accent-green-600">
+              <Checkbox v-model="saisie.exoneration_repas_applicable" binary />
               <span class="text-xs font-semibold text-slate-700">Exonération 30 000 F</span>
             </label>
             <div>
               <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Autres (coût réel)</label>
-              <input v-model.number="saisie.autres_avantages_cout_reel" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+              <InputText v-model.number="saisie.autres_avantages_cout_reel" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
           </div>
         </section>
@@ -320,51 +323,55 @@ onMounted(async () => {
             <Icon name="i-lucide-car" class="w-4 h-4 text-navy-700" />
             Véhicule
           </h2>
-          <select v-model="saisie.vehicule_type" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm mb-3">
-            <option :value="null">Aucun véhicule</option>
-            <option v-for="type in TYPES_VEHICULE" :key="type.valeur" :value="type.valeur">
-              {{ type.libelle }} — {{ type.note }}
-            </option>
-          </select>
+          <Select
+            v-model="saisie.vehicule_type"
+            class="w-full text-sm mb-3"
+            :options="[
+              { label: `Aucun véhicule`, value: null },
+              ...TYPES_VEHICULE.map(type => ({ label: `${type.libelle} — ${type.note}`, value: type.valeur }))
+            ]"
+            option-label="label"
+            option-value="value"
+          />
 
           <div v-if="vehiculeConcerne" class="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <template v-if="saisie.vehicule_type === 'transport_collectif_couts_reels'">
               <div>
                 <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Carburant</label>
-                <input v-model.number="saisie.vehicule_carburant" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+                <InputText v-model.number="saisie.vehicule_carburant" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
               </div>
               <div>
                 <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Entretien</label>
-                <input v-model.number="saisie.vehicule_entretien" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+                <InputText v-model.number="saisie.vehicule_entretien" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
               </div>
               <div>
                 <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Assurance</label>
-                <input v-model.number="saisie.vehicule_assurance" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+                <InputText v-model.number="saisie.vehicule_assurance" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
               </div>
               <div>
                 <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Vignette</label>
-                <input v-model.number="saisie.vehicule_vignette" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+                <InputText v-model.number="saisie.vehicule_vignette" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
               </div>
               <div>
                 <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Autres coûts</label>
-                <input v-model.number="saisie.vehicule_autres" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+                <InputText v-model.number="saisie.vehicule_autres" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
               </div>
               <div>
                 <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Bénéficiaires</label>
-                <input v-model.number="saisie.vehicule_nombre_beneficiaires" type="number" min="1" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+                <InputText v-model.number="saisie.vehicule_nombre_beneficiaires" type="number" min="1" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
               </div>
             </template>
             <div v-if="saisie.vehicule_type === 'transport_collectif_forfait'">
               <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Forfait mensuel</label>
-              <input v-model.number="saisie.vehicule_forfait_mensuel" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+              <InputText v-model.number="saisie.vehicule_forfait_mensuel" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
             <div v-if="saisie.vehicule_type === 'autre_taxable'">
               <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Valeur réelle mensuelle</label>
-              <input v-model.number="saisie.vehicule_valeur_reelle" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+              <InputText v-model.number="saisie.vehicule_valeur_reelle" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
             <div v-if="transportCollectif">
               <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Participation salarié</label>
-              <input v-model.number="saisie.vehicule_participation" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+              <InputText v-model.number="saisie.vehicule_participation" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
           </div>
           <p v-else class="text-xs text-slate-500">
@@ -383,20 +390,20 @@ onMounted(async () => {
               <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">
                 Participation du salarié (hors véhicule)
               </label>
-              <input v-model.number="saisie.participation_salarie_hors_vehicule" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+              <InputText v-model.number="saisie.participation_salarie_hors_vehicule" type="number" min="0" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
             <div>
               <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">
                 Valeur réelle hors véhicule (assiette CNPS)
               </label>
-              <input v-model.number="saisie.valeur_reelle_hors_vehicule_cnps" type="number" min="0" placeholder="Vide = assiette fiscale" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm">
+              <InputText v-model.number="saisie.valeur_reelle_hors_vehicule_cnps" type="number" min="0" placeholder="Vide = assiette fiscale" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
               <p class="text-[10px] text-slate-400 mt-1">
                 Le fisc retient un forfait, la CNPS la valeur réelle : saisissez-la ici pour les distinguer.
               </p>
             </div>
           </div>
           <label class="mt-4 flex items-center gap-2 cursor-pointer">
-            <input v-model="saisie.est_persistant" type="checkbox" class="accent-green-600">
+            <Checkbox v-model="saisie.est_persistant" binary />
             <span class="text-xs font-semibold text-slate-700">Avantage récurrent (reporté sur les mois suivants)</span>
           </label>
         </section>
@@ -410,30 +417,31 @@ onMounted(async () => {
           <p v-if="!periodes.length" class="text-xs text-slate-500">
             Aucun avantage en nature enregistré pour ce contrat.
           </p>
-          <table v-else class="w-full text-xs">
-            <thead>
-              <tr class="text-left text-slate-500 uppercase tracking-wider text-[10px] border-b border-slate-200">
-                <th class="py-2">Période</th>
-                <th class="py-2">Récurrent</th>
-                <th class="py-2 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="periode in periodes" :key="`${periode.annee}-${periode.mois}`" class="border-b border-slate-100">
-                <td class="py-2 font-semibold text-slate-800">
-                  {{ MOIS_LABELS[periode.mois - 1] }} {{ periode.annee }}
-                </td>
-                <td class="py-2">
-                  <span v-if="periode.est_persistant" class="text-green-700 font-bold">Oui</span>
-                  <span v-else class="text-slate-400">Non</span>
-                </td>
-                <td class="py-2 text-right space-x-2">
-                  <button class="text-navy-700 hover:underline font-semibold" @click="chargerPeriode(periode)">Charger</button>
-                  <button class="text-red-600 hover:underline font-semibold" @click="supprimerPeriode(periode)">Supprimer</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <DataTable
+            v-else
+            class="w-full text-xs"
+            :value="periodes"
+            :row-class="() => 'border-b border-slate-100'"
+            row-hover
+          >
+            <Column header="Période" header-class="py-2" body-class="py-2 font-semibold text-slate-800">
+              <template #body="{ data: periode }">
+                {{ MOIS_LABELS[periode.mois - 1] }} {{ periode.annee }}
+              </template>
+            </Column>
+            <Column header="Récurrent" header-class="py-2" body-class="py-2">
+              <template #body="{ data: periode }">
+                <span v-if="periode.est_persistant" class="text-green-700 font-bold">Oui</span>
+                <span v-else class="text-slate-400">Non</span>
+              </template>
+            </Column>
+            <Column header="Actions" header-class="py-2 text-right" body-class="py-2 text-right space-x-2">
+              <template #body="{ data: periode }">
+                <button class="text-navy-700 hover:underline font-semibold" @click="chargerPeriode(periode)">Charger</button>
+                <button class="text-red-600 hover:underline font-semibold" @click="supprimerPeriode(periode)">Supprimer</button>
+              </template>
+            </Column>
+          </DataTable>
         </section>
       </div>
 

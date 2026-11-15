@@ -132,7 +132,7 @@ onMounted(charger)
         >
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Montant (FCFA)</label>
-            <input
+            <InputText
               v-model.number="form.montant"
               type="number"
               min="1"
@@ -140,47 +140,40 @@ onMounted(charger)
               required
               placeholder="50 000"
               class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white"
-            >
+            />
           </div>
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Mois de paie</label>
-            <select
+            <Select
               v-model.number="form.mois"
-              class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white"
-            >
-              <option
-                v-for="(libelle, index) in MOIS"
-                :key="index"
-                :value="index + 1"
-              >
-                {{ libelle }}
-              </option>
-            </select>
+              class="mt-1 block w-full text-sm"
+              :options="[
+                ...MOIS.map((libelle, index) => ({ label: `${libelle}`, value: index + 1 }))
+              ]"
+              option-label="label"
+              option-value="value"
+            />
           </div>
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Année</label>
-            <select
+            <Select
               v-model.number="form.annee"
-              class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white"
-            >
-              <option
-                v-for="annee in annees"
-                :key="annee"
-                :value="annee"
-              >
-                {{ annee }}
-              </option>
-            </select>
+              class="mt-1 block w-full text-sm"
+              :options="[
+                ...annees.map(annee => ({ label: `${annee}`, value: annee }))
+              ]"
+              option-label="label"
+              option-value="value"
+            />
           </div>
           <div class="sm:col-span-3">
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Motif (facultatif)</label>
-            <input
+            <InputText
               v-model="form.motif"
-              type="text"
               maxlength="1000"
               placeholder="Frais imprévus, rentrée scolaire…"
               class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white"
-            >
+            />
           </div>
           <div class="sm:col-span-3 flex justify-end">
             <button
@@ -221,55 +214,44 @@ onMounted(charger)
         v-else
         class="overflow-x-auto"
       >
-        <table class="min-w-full text-sm">
-          <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider text-[11px]">
-            <tr>
-              <th class="px-4 py-2 text-left font-semibold">
-                Mois de paie
-              </th>
-              <th class="px-4 py-2 text-right font-semibold">
-                Montant
-              </th>
-              <th class="px-4 py-2 text-left font-semibold">
-                Motif
-              </th>
-              <th class="px-4 py-2 text-left font-semibold">
-                Statut
-              </th>
-              <th class="px-4 py-2 text-left font-semibold">
-                Réponse
-              </th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100">
-            <tr
-              v-for="demande in demandes"
-              :key="demande.id"
-              class="hover:bg-slate-50"
-            >
-              <td class="px-4 py-2.5 font-medium text-slate-800">
-                {{ MOIS[(demande.mois || 1) - 1] }} {{ demande.annee }}
-              </td>
-              <td class="px-4 py-2.5 text-right font-mono">
-                {{ formatFCFA(demande.montant) }}
-              </td>
-              <td class="px-4 py-2.5 text-slate-500">
-                {{ demande.motif || '—' }}
-              </td>
-              <td class="px-4 py-2.5">
-                <span
-                  class="inline-flex px-2 py-0.5 border text-[11px] font-bold uppercase tracking-wide"
-                  :class="classeStatut(demande.statut)"
-                >
-                  {{ libelleStatut(demande.statut) }}
-                </span>
-              </td>
-              <td class="px-4 py-2.5 text-slate-500">
-                {{ demande.commentaire_gestionnaire || '—' }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <DataTable
+          :pt="{ thead: { class: 'bg-slate-50 text-slate-500 uppercase tracking-wider text-[11px]' } }"
+          class="min-w-full text-sm"
+          :value="demandes"
+          data-key="id"
+          row-hover
+        >
+          <Column header="Mois de paie" header-class="px-4 py-2 text-left font-semibold" body-class="px-4 py-2.5 font-medium text-slate-800">
+            <template #body="{ data: demande }">
+              {{ MOIS[(demande.mois || 1) - 1] }} {{ demande.annee }}
+            </template>
+          </Column>
+          <Column header="Montant" header-class="px-4 py-2 text-right font-semibold" body-class="px-4 py-2.5 text-right font-mono">
+            <template #body="{ data: demande }">
+              {{ formatFCFA(demande.montant) }}
+            </template>
+          </Column>
+          <Column header="Motif" header-class="px-4 py-2 text-left font-semibold" body-class="px-4 py-2.5 text-slate-500">
+            <template #body="{ data: demande }">
+              {{ demande.motif || '—' }}
+            </template>
+          </Column>
+          <Column header="Statut" header-class="px-4 py-2 text-left font-semibold" body-class="px-4 py-2.5">
+            <template #body="{ data: demande }">
+              <span
+                class="inline-flex px-2 py-0.5 border text-[11px] font-bold uppercase tracking-wide"
+                :class="classeStatut(demande.statut)"
+              >
+                {{ libelleStatut(demande.statut) }}
+              </span>
+            </template>
+          </Column>
+          <Column header="Réponse" header-class="px-4 py-2 text-left font-semibold" body-class="px-4 py-2.5 text-slate-500">
+            <template #body="{ data: demande }">
+              {{ demande.commentaire_gestionnaire || '—' }}
+            </template>
+          </Column>
+        </DataTable>
       </div>
     </div>
   </div>

@@ -401,13 +401,12 @@ onMounted(fetchSecteurs)
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Code Établissement</label>
-              <input v-model="etabCode" type="text" disabled class="mt-1 block w-full px-3 py-2 border border-slate-200 rounded-lg text-sm font-mono bg-slate-50 text-slate-450 cursor-not-allowed focus:outline-none" />
+              <InputText v-model="etabCode" disabled class="mt-1 block w-full px-3 py-2 border border-slate-200 rounded-lg text-sm font-mono bg-slate-50 text-slate-450 cursor-not-allowed focus:outline-none" />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Raison Sociale</label>
-              <input
+              <InputText
                 v-model="etabNom"
-                type="text"
                 :class="[
                   'mt-1 block w-full px-3 py-2 border rounded-lg text-sm transition-colors focus:ring-green-500 focus:border-green-500 bg-white',
                   fieldErrors.raison_sociale ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
@@ -420,38 +419,39 @@ onMounted(fetchSecteurs)
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Secteur d'activité</label>
-              <select
+              <Select
                 v-model="etabSecteurId"
-                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 w-full"
-              >
-                <option :value="null">-- Aucun secteur sélectionné --</option>
-                <option v-for="s in secteurs" :key="s.id" :value="s.id">{{ s.nom }}</option>
-              </select>
+                class="mt-1 block w-full text-sm w-full"
+                :options="[
+                  { label: `-- Aucun secteur sélectionné --`, value: null },
+                  ...secteurs.map(s => ({ label: `${s.nom}`, value: s.id }))
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Sigle</label>
-              <input
+              <InputText
                 v-model="etabSigle"
-                type="text"
                 placeholder="Ex: ACME"
                 class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">N° RCCM</label>
-              <input
+              <InputText
                 v-model="etabNumeroRccm"
-                type="text"
                 placeholder="Ex: CI-ABJ-01-202X-B12..."
                 class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Date de création</label>
-              <input
+              <InputText
                 v-model="etabDateCreation"
                 type="date"
                 class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
@@ -460,7 +460,7 @@ onMounted(fetchSecteurs)
           </div>
 
           <div class="flex items-center space-x-2 pt-2">
-            <input id="is-principal" v-model="etabPrincipal" type="checkbox" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+            <Checkbox id="is-principal" v-model="etabPrincipal" binary />
             <label for="is-principal" class="text-sm font-bold text-slate-700 uppercase tracking-wider">Établissement Principal du dossier</label>
           </div>
         </div>
@@ -472,26 +472,26 @@ onMounted(fetchSecteurs)
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="md:col-span-2">
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Voie / Rue</label>
-              <input v-model="addrVoie" type="text" placeholder="Ex: 15 Rue de la Paix" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
+              <InputText v-model="addrVoie" placeholder="Ex: 15 Rue de la Paix" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Complément d'adresse</label>
-              <input v-model="addrVoie2" type="text" placeholder="Bâtiment, escalier..." class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
+              <InputText v-model="addrVoie2" placeholder="Bâtiment, escalier..." class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Code Postal</label>
-              <input v-model="addrCode" type="text" placeholder="75001" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <InputText v-model="addrCode" placeholder="75001" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Ville</label>
-              <input v-model="addrVille" type="text" placeholder="Paris" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
+              <InputText v-model="addrVille" placeholder="Paris" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Pays</label>
-              <input v-model="addrPays" type="text" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
+              <InputText v-model="addrPays" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
           </div>
         </div>
@@ -503,27 +503,24 @@ onMounted(fetchSecteurs)
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Pays d'adresse</label>
-              <input
+              <InputText
                 v-model="etabAdressePays"
-                type="text"
                 placeholder="Ex: COTE D'IVOIRE"
                 class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Commune</label>
-              <input
+              <InputText
                 v-model="etabAdresseCommune"
-                type="text"
                 placeholder="Ex: Cocody"
                 class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Quartier</label>
-              <input
+              <InputText
                 v-model="etabAdresseQuartier"
-                type="text"
                 placeholder="Ex: Angré"
                 class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
@@ -533,27 +530,24 @@ onMounted(fetchSecteurs)
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Rue</label>
-              <input
+              <InputText
                 v-model="etabAdresseRue"
-                type="text"
                 placeholder="Ex: Rue des Banques"
                 class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Îlot</label>
-              <input
+              <InputText
                 v-model="etabAdresseIlot"
-                type="text"
                 placeholder="Ex: 12"
                 class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Lot</label>
-              <input
+              <InputText
                 v-model="etabAdresseLot"
-                type="text"
                 placeholder="Ex: 45"
                 class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
@@ -562,38 +556,34 @@ onMounted(fetchSecteurs)
 
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Localisation détaillée / Indications</label>
-            <textarea
+            <Textarea
               v-model="etabAdresseLocalisation"
               rows="2"
               placeholder="Ex: Non loin du rond-point, face à la pharmacie..."
-              class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white"
-            ></textarea>
+              class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Boîte Postale / Adresse postale</label>
-              <input
+              <InputText
                 v-model="etabAdressePostale"
-                type="text"
                 placeholder="Ex: BP 123 Abidjan"
                 class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Téléphone</label>
-              <input
+              <InputText
                 v-model="etabTelephone"
-                type="text"
                 placeholder="Ex: +225 07 00 00 00 00"
                 class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Fax</label>
-              <input
+              <InputText
                 v-model="etabFax"
-                type="text"
                 placeholder="Ex: +225 27 00 00 00 00"
                 class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white"
               />
@@ -603,7 +593,7 @@ onMounted(fetchSecteurs)
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">E-mail</label>
-              <input
+              <InputText
                 v-model="etabEmail"
                 type="email"
                 placeholder="Ex: contact@entreprise.com"
@@ -612,7 +602,7 @@ onMounted(fetchSecteurs)
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Site Web</label>
-              <input
+              <InputText
                 v-model="etabSiteWeb"
                 type="url"
                 placeholder="Ex: https://www.entreprise.com"
@@ -627,18 +617,18 @@ onMounted(fetchSecteurs)
           <h3 class="text-sm font-bold text-navy-900 border-b border-slate-200 pb-2 uppercase tracking-wider">Informations Bancaires de l'Établissement</h3>
 
           <div class="flex items-center space-x-2 pb-2">
-            <input id="bank-virement" v-model="bankVirement" type="checkbox" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+            <Checkbox id="bank-virement" v-model="bankVirement" binary />
             <label for="bank-virement" class="text-sm font-bold text-slate-700 uppercase tracking-wider">Autoriser le virement SEPA</label>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">IBAN</label>
-              <input v-model="bankIban" type="text" placeholder="FR76..." class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <InputText v-model="bankIban" placeholder="FR76..." class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Code BIC (Swift)</label>
-              <input v-model="bankBic" type="text" placeholder="Ex: UBAFRPP..." class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <InputText v-model="bankBic" placeholder="Ex: UBAFRPP..." class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
           </div>
         </div>
@@ -650,9 +640,8 @@ onMounted(fetchSecteurs)
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Matricule employeur</label>
-              <input
+              <InputText
                 v-model="cnpsMatricule"
-                type="text"
                 :class="[
                   'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
                   fieldErrors.cnps_matricule ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
@@ -662,9 +651,8 @@ onMounted(fetchSecteurs)
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Code activité</label>
-              <input
+              <InputText
                 v-model="cnpsCodeActivite"
-                type="text"
                 :class="[
                   'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
                   fieldErrors.cnps_code_activite ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
@@ -674,9 +662,8 @@ onMounted(fetchSecteurs)
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Code agence</label>
-              <input
+              <InputText
                 v-model="cnpsCodeAgence"
-                type="text"
                 :class="[
                   'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
                   fieldErrors.cnps_code_agence ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
@@ -686,9 +673,8 @@ onMounted(fetchSecteurs)
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Code établissement</label>
-              <input
+              <InputText
                 v-model="cnpsCodeEtablissement"
-                type="text"
                 :class="[
                   'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
                   fieldErrors.cnps_code_etablissement ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
@@ -700,9 +686,8 @@ onMounted(fetchSecteurs)
 
           <div>
             <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Agence de rattachement</label>
-            <input
+            <InputText
               v-model="cnpsAgenceRattachement"
-              type="text"
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
                 fieldErrors.cnps_agence_rattachement ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
@@ -714,19 +699,31 @@ onMounted(fetchSecteurs)
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Périodicité de paiement - CNPS</label>
-              <select v-model="cnpsPeriodicitePaiement" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white select">
-                <option value="Mensuelle">Mensuelle</option>
-                <option value="Trimestrielle">Trimestrielle</option>
-                <option value="Annuelle">Annuelle</option>
-              </select>
+              <Select
+                v-model="cnpsPeriodicitePaiement"
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Mensuelle`, value: 'Mensuelle' },
+                  { label: `Trimestrielle`, value: 'Trimestrielle' },
+                  { label: `Annuelle`, value: 'Annuelle' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Périodicité de paiement - CMU</label>
-              <select v-model="cmuPeriodicitePaiement" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white select">
-                <option value="Mensuelle">Mensuelle</option>
-                <option value="Trimestrielle">Trimestrielle</option>
-                <option value="Annuelle">Annuelle</option>
-              </select>
+              <Select
+                v-model="cmuPeriodicitePaiement"
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Mensuelle`, value: 'Mensuelle' },
+                  { label: `Trimestrielle`, value: 'Trimestrielle' },
+                  { label: `Annuelle`, value: 'Annuelle' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
           </div>
         </div>
@@ -738,9 +735,8 @@ onMounted(fetchSecteurs)
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">N° de Compte contribuable</label>
-              <input
+              <InputText
                 v-model="dgiCompteContribuable"
-                type="text"
                 :class="[
                   'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
                   fieldErrors.dgi_compte_contribuable ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
@@ -750,9 +746,8 @@ onMounted(fetchSecteurs)
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Centre des impôts</label>
-              <input
+              <InputText
                 v-model="dgiCentreImpots"
-                type="text"
                 :class="[
                   'mt-1 block w-full px-3 py-2 border rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white transition-colors',
                   fieldErrors.dgi_centre_impots ? 'border-red-300 bg-red-50/30' : 'border-slate-350'
@@ -765,19 +760,31 @@ onMounted(fetchSecteurs)
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Périodicité des déclarations</label>
-              <select v-model="dgiPeriodiciteDeclaration" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white select">
-                <option value="Mensuelle">Mensuelle</option>
-                <option value="Trimestrielle">Trimestrielle</option>
-                <option value="Annuelle">Annuelle</option>
-              </select>
+              <Select
+                v-model="dgiPeriodiciteDeclaration"
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Mensuelle`, value: 'Mensuelle' },
+                  { label: `Trimestrielle`, value: 'Trimestrielle' },
+                  { label: `Annuelle`, value: 'Annuelle' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Régime fiscal par défaut</label>
-              <select v-model="dgiRegimeFiscal" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white select">
-                <option value="Régime général">Régime général</option>
-                <option value="Régime simplifié">Régime simplifié</option>
-                <option value="Impôt synthétique">Impôt synthétique</option>
-              </select>
+              <Select
+                v-model="dgiRegimeFiscal"
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Régime général`, value: 'Régime général' },
+                  { label: `Régime simplifié`, value: 'Régime simplifié' },
+                  { label: `Impôt synthétique`, value: 'Impôt synthétique' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
           </div>
         </div>
@@ -792,28 +799,42 @@ onMounted(fetchSecteurs)
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Code CDI</label>
-              <input v-model="dfeCodeCdi" type="text" maxlength="10" placeholder="Ex : 611"
-                     class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono bg-white" />
+              <InputText
+                v-model="dfeCodeCdi"
+                maxlength="10"
+                placeholder="Ex : 611"
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono bg-white"
+              />
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Code activité (DFE)</label>
-              <input v-model="dfeCodeActivite" type="text" maxlength="20" placeholder="Ex : CCE0802"
-                     class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono bg-white" />
+              <InputText
+                v-model="dfeCodeActivite"
+                maxlength="20"
+                placeholder="Ex : CCE0802"
+                class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono bg-white"
+              />
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Régime d'imposition</label>
-              <select v-model="dfeRegimeImposition" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white select">
-                <option value="">-- Non précisé --</option>
-                <option value="RNI">RNI</option>
-                <option value="RSI">RSI</option>
-                <option value="IM">IM</option>
-                <option value="TEE">TEE</option>
-              </select>
+              <Select
+                v-model="dfeRegimeImposition"
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `-- Non précisé --`, value: '' },
+                  { label: `RNI`, value: 'RNI' },
+                  { label: `RSI`, value: 'RSI' },
+                  { label: `IM`, value: 'IM' },
+                  { label: `TEE`, value: 'TEE' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
           </div>
 
           <div class="flex items-center space-x-2">
-            <input id="edit-dfe-employeur" v-model="dfeEstEmployeur" type="checkbox" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+            <Checkbox id="edit-dfe-employeur" v-model="dfeEstEmployeur" binary />
             <label for="edit-dfe-employeur" class="text-sm font-semibold text-slate-700 uppercase tracking-wider">Employeur</label>
           </div>
 
@@ -821,8 +842,10 @@ onMounted(fetchSecteurs)
             <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Obligations fiscales</label>
             <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               <label v-for="obligation in OBLIGATIONS_FISCALES" :key="obligation.code" class="flex items-center gap-2 text-sm text-slate-700">
-                <input v-model="dfeObligations" type="checkbox" :value="obligation.code"
-                       class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+                <Checkbox
+                  v-model="dfeObligations"
+                  :value="obligation.code"
+                />
                 {{ obligation.libelle }}
               </label>
             </div>
@@ -835,26 +858,31 @@ onMounted(fetchSecteurs)
 
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Adresse d'édition (sur le bulletin de paie)</label>
-            <textarea
+            <Textarea
               v-model="etabAdresseBulletinPaie"
               rows="2"
               placeholder="Ex: Siège Social - Abidjan, Cocody..."
-              class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white focus:ring-green-500 focus:border-green-500"
-            ></textarea>
+              class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white focus:ring-green-500 focus:border-green-500" />
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Mode de décompte ancienneté</label>
-              <select v-model="etabModeDecompteAnciennete" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white select focus:ring-green-500 focus:border-green-500">
-                <option value="Date anniversaire de la date d'entrée">Date anniversaire de la date d'entrée</option>
-                <option value="Année civile">Année civile</option>
-              </select>
+              <Select
+                v-model="etabModeDecompteAnciennete"
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Date anniversaire de la date d'entrée`, value: 'Date anniversaire de la date d\'entrée' },
+                  { label: `Année civile`, value: 'Année civile' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Période de référence congés (mois)</label>
-              <input
-                v-model="etabCongesPeriodeReferenceMois"
+              <InputText
+                v-model.number="etabCongesPeriodeReferenceMois"
                 type="number"
                 min="1"
                 max="12"
@@ -863,44 +891,47 @@ onMounted(fetchSecteurs)
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Mode de gestion du solde congés</label>
-              <select v-model="etabCongesModeGestionSolde" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white select focus:ring-green-500 focus:border-green-500">
-                <option value="Jours calendaires">Jours calendaires</option>
-                <option value="Jours ouvrables">Jours ouvrables</option>
-                <option value="Jours ouvrés">Jours ouvrés</option>
-              </select>
+              <Select
+                v-model="etabCongesModeGestionSolde"
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Jours calendaires`, value: 'Jours calendaires' },
+                  { label: `Jours ouvrables`, value: 'Jours ouvrables' },
+                  { label: `Jours ouvrés`, value: 'Jours ouvrés' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
           </div>
 
           <div class="space-y-4 pt-2">
             <div class="flex items-center space-x-2">
-              <input id="edit-matricule-auto" v-model="etabMatriculeGenerationAuto" type="checkbox" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
+              <Checkbox id="edit-matricule-auto" v-model="etabMatriculeGenerationAuto" binary />
               <label for="edit-matricule-auto" class="text-sm font-bold text-slate-700 uppercase tracking-wider">Génération automatique des matricules salariés</label>
             </div>
 
             <div v-if="etabMatriculeGenerationAuto" class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-50 p-4 border border-slate-200 rounded-lg">
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Préfixe matricule</label>
-                <input
+                <InputText
                   v-model="etabMatriculePrefixe"
-                  type="text"
                   placeholder="Ex: EMP-"
                   class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white"
                 />
               </div>
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Suffixe matricule</label>
-                <input
+                <InputText
                   v-model="etabMatriculeSuffixe"
-                  type="text"
                   placeholder="Ex: -CI"
                   class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white"
                 />
               </div>
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Numéro séquentiel de départ</label>
-                <input
+                <InputText
                   v-model="etabMatriculeNumeroSequentiel"
-                  type="text"
                   placeholder="Ex: 001"
                   class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white"
                 />
@@ -951,50 +982,67 @@ onMounted(fetchSecteurs)
           Aucune caisse rattachée pour le moment.
         </div>
         <div v-else class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-slate-200 text-sm">
-            <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-              <tr>
-                <th scope="col" class="px-4 py-3 text-left w-10">
-                  <input type="checkbox" v-model="allCaissesSelected" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
-                </th>
-                <th scope="col" class="px-6 py-3 text-left">Type</th>
-                <th scope="col" class="px-6 py-3 text-left">Nom de la Caisse</th>
-                <th scope="col" class="px-6 py-3 text-left">Code Organisme</th>
-                <th scope="col" class="px-6 py-3 text-left">N° Affiliation</th>
-                <th scope="col" class="px-6 py-3 text-left">IBAN / BIC</th>
-                <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-150 bg-white">
-              <tr v-for="c in caisses" :key="c.id" class="hover:bg-slate-50">
-                <td class="px-4 py-4" @click.stop>
-                  <input type="checkbox" :value="c.id" v-model="selectedCaisses" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
-                </td>
-                <td class="px-6 py-4">
-                  <span class="px-2 py-0.5 rounded-lg text-xs font-bold bg-navy-50 text-navy-700 border border-navy-200 uppercase">
-                    {{ c.type_cotisation }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 font-semibold text-slate-700">{{ c.nom_caisse }}</td>
-                <td class="px-6 py-4 font-mono text-slate-500">{{ c.code_dsn || '-' }}</td>
-                <td class="px-6 py-4 font-mono text-slate-500">{{ c.numero_affiliation || '-' }}</td>
-                <td class="px-6 py-4 text-xs text-slate-500 font-mono">
-                  <p v-if="c.iban">IBAN : {{ c.iban }}</p>
-                  <p v-if="c.bic">BIC : {{ c.bic }}</p>
-                  <span v-if="!c.iban && !c.bic">-</span>
-                </td>
-                <td class="px-6 py-4 text-right">
-                  <button
-                    @click="handleDeleteCaisse(c.id)"
-                    class="text-red-650 hover:text-red-750 cursor-pointer flex items-center justify-end w-full"
-                    title="Détacher la caisse"
-                  >
-                    <Icon name="i-lucide-trash-2" class="w-4 h-4" />
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <DataTable
+            :pt="{ thead: { class: 'bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]' }, tbody: { class: 'bg-white' } }"
+            class="min-w-full divide-y divide-slate-200 text-sm"
+            :value="caisses"
+            data-key="id"
+            row-hover
+          >
+            <Column header-class="px-4 py-3 text-left w-10" body-class="px-4 py-4">
+              <template #header>
+                <Checkbox v-model="allCaissesSelected" binary />
+              </template>
+              <template #body="{ data: c }">
+                <div @click.stop>
+                  <Checkbox :value="c.id" v-model="selectedCaisses" />
+                </div>
+              </template>
+            </Column>
+            <Column header="Type" header-class="px-6 py-3 text-left" body-class="px-6 py-4">
+              <template #body="{ data: c }">
+                <span class="px-2 py-0.5 rounded-lg text-xs font-bold bg-navy-50 text-navy-700 border border-navy-200 uppercase">
+                  {{ c.type_cotisation }}
+                </span>
+              </template>
+            </Column>
+            <Column header="Nom de la Caisse" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-semibold text-slate-700">
+              <template #body="{ data: c }">
+                {{ c.nom_caisse }}
+              </template>
+            </Column>
+            <Column header="Code Organisme" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-mono text-slate-500">
+              <template #body="{ data: c }">
+                {{ c.code_dsn || '-' }}
+              </template>
+            </Column>
+            <Column header="N° Affiliation" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-mono text-slate-500">
+              <template #body="{ data: c }">
+                {{ c.numero_affiliation || '-' }}
+              </template>
+            </Column>
+            <Column header="IBAN / BIC" header-class="px-6 py-3 text-left" body-class="px-6 py-4 text-xs text-slate-500 font-mono">
+              <template #body="{ data: c }">
+                <p v-if="c.iban">IBAN : {{ c.iban }}</p>
+                <p v-if="c.bic">BIC : {{ c.bic }}</p>
+                <span v-if="!c.iban && !c.bic">-</span>
+              </template>
+            </Column>
+            <Column header-class="relative px-6 py-3" body-class="px-6 py-4 text-right">
+              <template #header>
+                <span class="sr-only">Actions</span>
+              </template>
+              <template #body="{ data: c }">
+                <button
+                  @click="handleDeleteCaisse(c.id)"
+                  class="text-red-650 hover:text-red-750 cursor-pointer flex items-center justify-end w-full"
+                  title="Détacher la caisse"
+                >
+                  <Icon name="i-lucide-trash-2" class="w-4 h-4" />
+                </button>
+              </template>
+            </Column>
+          </DataTable>
         </div>
       </div>
 
@@ -1006,38 +1054,44 @@ onMounted(fetchSecteurs)
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Type de cotisation</label>
-              <select v-model="caisseType" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-lg text-sm bg-white select">
-                <option value="urssaf">CNPS (Sécurité Sociale)</option>
-                <option value="retraite_complementaire">Retraite Complémentaire</option>
-                <option value="prevoyance">Prévoyance / Mutuelle</option>
-                <option value="autre">Autre</option>
-              </select>
+              <Select
+                v-model="caisseType"
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `CNPS (Sécurité Sociale)`, value: 'urssaf' },
+                  { label: `Retraite Complémentaire`, value: 'retraite_complementaire' },
+                  { label: `Prévoyance / Mutuelle`, value: 'prevoyance' },
+                  { label: `Autre`, value: 'autre' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Nom de la Caisse <span class="text-red-500">*</span></label>
-              <input v-model="caisseNom" type="text" placeholder="Ex: URSSAF IDF" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
+              <InputText v-model="caisseNom" placeholder="Ex: URSSAF IDF" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Code Organisme</label>
-              <input v-model="caisseDsn" type="text" placeholder="Ex: CNPS-01" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <InputText v-model="caisseDsn" placeholder="Ex: CNPS-01" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Numéro d'Affiliation</label>
-              <input v-model="caisseAffiliation" type="text" placeholder="Ex: AFF12345" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <InputText v-model="caisseAffiliation" placeholder="Ex: AFF12345" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-4 border-t border-slate-200 pt-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">IBAN de Règlement</label>
-              <input v-model="caisseIban" type="text" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <InputText v-model="caisseIban" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">BIC</label>
-              <input v-model="caisseBic" type="text" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <InputText v-model="caisseBic" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
           </div>
 

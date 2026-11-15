@@ -183,11 +183,10 @@ onMounted(() => {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Numéro de Contrat <span class="text-red-500">*</span></label>
-            <input 
-              v-model="cNumero" 
-              type="text" 
+            <InputText
+              v-model="cNumero"
               required
-              placeholder="Ex: CD-DUPONT-01" 
+              placeholder="Ex: CD-DUPONT-01"
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none transition-colors',
                 fieldErrors.numero_contrat ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -197,23 +196,22 @@ onMounted(() => {
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Poste (Grille Salariale)</label>
-            <select 
+            <Select
               v-model="cPosteSalaireId"
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 w-full"
-            >
-              <option :value="null">-- Aucun poste (saisie libre) --</option>
-              <option v-for="p in postes" :key="p.id" :value="p.id">
-                {{ p.categorie_professionnelle }} - {{ p.echelon_categorie }} 
-                {{ p.salaire_mensuel_fcfa ? `(${p.salaire_mensuel_fcfa} FCFA)` : `(${p.taux_horaire_fcfa} FCFA/h)` }}
-              </option>
-            </select>
+              class="mt-1 block w-full text-sm w-full"
+              :options="[
+                { label: `-- Aucun poste (saisie libre) --`, value: null },
+                ...postes.map(p => ({ label: `${p.categorie_professionnelle} - ${p.echelon_categorie} ${p.salaire_mensuel_fcfa ? `(${p.salaire_mensuel_fcfa} FCFA)` : `(${p.taux_horaire_fcfa} FCFA/h)`}`, value: p.id }))
+              ]"
+              option-label="label"
+              option-value="value"
+            />
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Poste / Emploi</label>
-            <input 
-              v-model="cEmploi" 
-              type="text" 
-              placeholder="Ex: Développeur Web" 
+            <InputText
+              v-model="cEmploi"
+              placeholder="Ex: Développeur Web"
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm focus:outline-none transition-colors',
                 fieldErrors.emploi ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -226,30 +224,42 @@ onMounted(() => {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Type de Contrat <span class="text-red-500">*</span></label>
-            <select v-model="cTypeContrat" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
-              <option :value="10">CDI (10)</option>
-              <option :value="29">CDD (29)</option>
-              <option :value="18">Contrat Apprentissage (18)</option>
-              <option :value="28">Professionnalisation (28)</option>
-            </select>
+            <Select
+              v-model="cTypeContrat"
+              class="mt-1 block w-full text-sm"
+              :options="[
+                { label: `CDI (10)`, value: 10 },
+                { label: `CDD (29)`, value: 29 },
+                { label: `Contrat Apprentissage (18)`, value: 18 },
+                { label: `Professionnalisation (28)`, value: 28 }
+              ]"
+              option-label="label"
+              option-value="value"
+            />
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Statut Cadre / Non-Cadre <span class="text-red-500">*</span></label>
-            <select v-model="cStatutPro" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
-              <option :value="1">Cadre (1)</option>
-              <option :value="2">Non-Cadre (2)</option>
-              <option :value="3">Ouvrier / Employé (3)</option>
-            </select>
+            <Select
+              v-model="cStatutPro"
+              class="mt-1 block w-full text-sm"
+              :options="[
+                { label: `Cadre (1)`, value: 1 },
+                { label: `Non-Cadre (2)`, value: 2 },
+                { label: `Ouvrier / Employé (3)`, value: 3 }
+              ]"
+              option-label="label"
+              option-value="value"
+            />
           </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Date de Début <span class="text-red-500">*</span></label>
-            <input 
-              v-model="cDateDebut" 
-              type="date" 
-              required 
+            <InputText
+              v-model="cDateDebut"
+              type="date"
+              required
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none transition-colors',
                 fieldErrors.date_debut_contrat ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -259,9 +269,9 @@ onMounted(() => {
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Date Fin (si CDD)</label>
-            <input 
-              v-model="cDateFin" 
-              type="date" 
+            <InputText
+              v-model="cDateFin"
+              type="date"
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none transition-colors',
                 fieldErrors.date_fin_previsionnelle_contrat ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -277,9 +287,9 @@ onMounted(() => {
               Salaire {{ cModeCalcul === 'net' ? 'Net' : 'Brut' }} (FCFA)
             </label>
             <div class="mt-1">
-              <input
+              <InputText
                 v-if="cTypeSalaire === 'Mensuel'"
-                v-model="cSalaireMensuel"
+                v-model.number="cSalaireMensuel"
                 type="number"
                 step="0.01"
                 placeholder="Mensuel"
@@ -290,9 +300,9 @@ onMounted(() => {
               />
               <p v-if="cTypeSalaire === 'Mensuel' && fieldErrors.salaire_mensuel" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.salaire_mensuel }}</p>
 
-              <input
+              <InputText
                 v-if="cTypeSalaire === 'Horaire'"
-                v-model="cSalaireHoraire"
+                v-model.number="cSalaireHoraire"
                 type="number"
                 step="0.01"
                 placeholder="Horaire"
@@ -306,34 +316,52 @@ onMounted(() => {
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Type Salaire</label>
-            <select v-model="cTypeSalaire" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
-              <option value="Mensuel">Mensuel</option>
-              <option value="Horaire">Horaire</option>
-            </select>
+            <Select
+              v-model="cTypeSalaire"
+              class="mt-1 block w-full text-sm"
+              :options="[
+                { label: `Mensuel`, value: 'Mensuel' },
+                { label: `Horaire`, value: 'Horaire' }
+              ]"
+              option-label="label"
+              option-value="value"
+            />
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Nature du salaire</label>
-            <select v-model="cModeCalcul" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
-              <option value="brut">Brut</option>
-              <option value="net">Net</option>
-            </select>
+            <Select
+              v-model="cModeCalcul"
+              class="mt-1 block w-full text-sm"
+              :options="[
+                { label: `Brut`, value: 'brut' },
+                { label: `Net`, value: 'net' }
+              ]"
+              option-label="label"
+              option-value="value"
+            />
           </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-slate-100 pt-4">
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Unité de Temps</label>
-            <select v-model="cUniteTemps" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
-              <option value="Heures">Heures</option>
-              <option value="Jours">Jours</option>
-            </select>
+            <Select
+              v-model="cUniteTemps"
+              class="mt-1 block w-full text-sm"
+              :options="[
+                { label: `Heures`, value: 'Heures' },
+                { label: `Jours`, value: 'Jours' }
+              ]"
+              option-label="label"
+              option-value="value"
+            />
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Sursalaire (FCFA)</label>
-            <input 
-              v-model="cSursalaire" 
-              type="number" 
-              step="0.01" 
-              placeholder="0.00" 
+            <InputText
+              v-model.number="cSursalaire"
+              type="number"
+              step="0.01"
+              placeholder="0.00"
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none transition-colors',
                 fieldErrors.sursalaire ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -349,11 +377,11 @@ onMounted(() => {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Indemnité de Transport (FCFA)</label>
-            <input 
-              v-model="cIndemniteTransport" 
-              type="number" 
-              step="0.01" 
-              placeholder="0.00" 
+            <InputText
+              v-model.number="cIndemniteTransport"
+              type="number"
+              step="0.01"
+              placeholder="0.00"
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none transition-colors',
                 fieldErrors.indemnite_transport ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -363,11 +391,11 @@ onMounted(() => {
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Dotation Téléphonique (FCFA)</label>
-            <input 
-              v-model="cDotationTelephonique" 
-              type="number" 
-              step="0.01" 
-              placeholder="0.00" 
+            <InputText
+              v-model.number="cDotationTelephonique"
+              type="number"
+              step="0.01"
+              placeholder="0.00"
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none transition-colors',
                 fieldErrors.dotation_telephonique ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -378,10 +406,10 @@ onMounted(() => {
         </div>
         <div>
           <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">CCN (IDCC Convention Collective)</label>
-          <input 
-            v-model="cIdcc" 
-            type="number" 
-            placeholder="Ex: 1486" 
+          <InputText
+            v-model.number="cIdcc"
+            type="number"
+            placeholder="Ex: 1486"
             :class="[
               'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none transition-colors',
               fieldErrors.idcc ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'

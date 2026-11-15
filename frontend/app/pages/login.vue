@@ -300,17 +300,16 @@ onMounted(() => {
                 Nom du Cabinet ou de la Société <span class="text-red-500">*</span>
               </label>
               <div class="mt-1 relative">
-                <input
+                <InputText
                   id="cabinet_nom"
                   v-model="cabinetNom"
-                  type="text"
                   required
                   placeholder="Ex: Cabinet Audit & Paie Afrique, FIDUCO..."
                   :class="[
                     'block w-full px-3.5 py-2.5 border rounded-xl focus:outline-none text-sm transition-all',
                     fieldErrors.cabinetNom ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
                   ]"
-                >
+                />
               </div>
               <p
                 v-if="fieldErrors.cabinetNom"
@@ -329,13 +328,13 @@ onMounted(() => {
                   Téléphone professionnel
                 </label>
                 <div class="mt-1 relative">
-                  <input
+                  <InputText
                     id="cabinet_telephone"
                     v-model="cabinetTelephone"
                     type="tel"
                     placeholder="Ex: +225 07 00 00 00 00"
                     class="block w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
-                  >
+                  />
                 </div>
               </div>
 
@@ -347,13 +346,12 @@ onMounted(() => {
                   Ville / Commune
                 </label>
                 <div class="mt-1 relative">
-                  <input
+                  <InputText
                     id="cabinet_ville"
                     v-model="cabinetVille"
-                    type="text"
                     placeholder="Ex: Abidjan, Cocody"
                     class="block w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all"
-                  >
+                  />
                 </div>
               </div>
             </div>
@@ -365,42 +363,25 @@ onMounted(() => {
               >
                 Zone OHADA / Pays principal
               </label>
-              <select
+              <Select
                 id="cabinet_pays"
                 v-model="cabinetPays"
-                class="mt-1 block w-full px-3.5 py-2.5 border border-slate-300 rounded-xl focus:outline-none text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
-              >
-                <option value="Côte d'Ivoire">
-                  Côte d'Ivoire (Conforme CNPS / CMU / Barème IGR)
-                </option>
-                <option value="Sénégal">
-                  Sénégal (Zone UEMOA / OHADA)
-                </option>
-                <option value="Cameroun">
-                  Cameroun (Zone CEMAC / OHADA)
-                </option>
-                <option value="Bénin">
-                  Bénin (Zone UEMOA / OHADA)
-                </option>
-                <option value="Togo">
-                  Togo (Zone UEMOA / OHADA)
-                </option>
-                <option value="Mali">
-                  Mali (Zone UEMOA / OHADA)
-                </option>
-                <option value="Burkina Faso">
-                  Burkina Faso (Zone UEMOA / OHADA)
-                </option>
-                <option value="Gabon">
-                  Gabon (Zone CEMAC / OHADA)
-                </option>
-                <option value="Congo">
-                  Congo (Zone CEMAC / OHADA)
-                </option>
-                <option value="Autre">
-                  Autre pays espace OHADA
-                </option>
-              </select>
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Côte d'Ivoire (Conforme CNPS / CMU / Barème IGR)`, value: 'Côte d\'Ivoire' },
+                  { label: `Sénégal (Zone UEMOA / OHADA)`, value: 'Sénégal' },
+                  { label: `Cameroun (Zone CEMAC / OHADA)`, value: 'Cameroun' },
+                  { label: `Bénin (Zone UEMOA / OHADA)`, value: 'Bénin' },
+                  { label: `Togo (Zone UEMOA / OHADA)`, value: 'Togo' },
+                  { label: `Mali (Zone UEMOA / OHADA)`, value: 'Mali' },
+                  { label: `Burkina Faso (Zone UEMOA / OHADA)`, value: 'Burkina Faso' },
+                  { label: `Gabon (Zone CEMAC / OHADA)`, value: 'Gabon' },
+                  { label: `Congo (Zone CEMAC / OHADA)`, value: 'Congo' },
+                  { label: `Autre pays espace OHADA`, value: 'Autre' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
 
             <div class="pt-2">
@@ -445,17 +426,16 @@ onMounted(() => {
                 >
                   Prénom <span class="text-red-500">*</span>
                 </label>
-                <input
+                <InputText
                   id="first_name"
                   v-model="firstName"
-                  type="text"
                   required
                   placeholder="Jean"
                   :class="[
                     'mt-1 block w-full px-3.5 py-2.5 border rounded-xl focus:outline-none text-sm transition-all',
                     fieldErrors.firstName ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
                   ]"
-                >
+                />
                 <p
                   v-if="fieldErrors.firstName"
                   class="mt-1 text-xs text-red-600 font-medium"
@@ -471,17 +451,16 @@ onMounted(() => {
                 >
                   Nom <span class="text-red-500">*</span>
                 </label>
-                <input
+                <InputText
                   id="last_name"
                   v-model="lastName"
-                  type="text"
                   required
                   placeholder="Kouassi"
                   :class="[
                     'mt-1 block w-full px-3.5 py-2.5 border rounded-xl focus:outline-none text-sm transition-all',
                     fieldErrors.lastName ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
                   ]"
-                >
+                />
                 <p
                   v-if="fieldErrors.lastName"
                   class="mt-1 text-xs text-red-600 font-medium"
@@ -498,7 +477,7 @@ onMounted(() => {
               >
                 Email professionnel (Identifiant de connexion) <span class="text-red-500">*</span>
               </label>
-              <input
+              <InputText
                 id="reg_email"
                 v-model="email"
                 type="email"
@@ -508,7 +487,7 @@ onMounted(() => {
                   'mt-1 block w-full px-3.5 py-2.5 border rounded-xl focus:outline-none text-sm transition-all',
                   fieldErrors.email ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
                 ]"
-              >
+              />
               <p
                 v-if="fieldErrors.email"
                 class="mt-1 text-xs text-red-600 font-medium"
@@ -526,7 +505,7 @@ onMounted(() => {
                   Mot de passe <span class="text-red-500">*</span>
                 </label>
                 <div class="mt-1 relative">
-                  <input
+                  <InputText
                     id="reg_password"
                     v-model="password"
                     :type="showPassword ? 'text' : 'password'"
@@ -536,7 +515,7 @@ onMounted(() => {
                       'block w-full px-3.5 py-2.5 pr-10 border rounded-xl focus:outline-none text-sm transition-all',
                       fieldErrors.password ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
                     ]"
-                  >
+                  />
                   <button
                     type="button"
                     class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
@@ -563,7 +542,7 @@ onMounted(() => {
                 >
                   Confirmer le mot de passe <span class="text-red-500">*</span>
                 </label>
-                <input
+                <InputText
                   id="password_confirm"
                   v-model="passwordConfirm"
                   :type="showPassword ? 'text' : 'password'"
@@ -573,7 +552,7 @@ onMounted(() => {
                     'mt-1 block w-full px-3.5 py-2.5 border rounded-xl focus:outline-none text-sm transition-all',
                     fieldErrors.passwordConfirm ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
                   ]"
-                >
+                />
                 <p
                   v-if="fieldErrors.passwordConfirm"
                   class="mt-1 text-xs text-red-600 font-medium"
@@ -640,7 +619,7 @@ onMounted(() => {
             >
               Adresse Email
             </label>
-            <input
+            <InputText
               id="login_email"
               v-model="loginEmail"
               type="email"
@@ -650,7 +629,7 @@ onMounted(() => {
                 'mt-1 block w-full px-3.5 py-2.5 border rounded-xl focus:outline-none text-sm transition-all',
                 fieldErrors.loginEmail ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
               ]"
-            >
+            />
             <p
               v-if="fieldErrors.loginEmail"
               class="mt-1 text-xs text-red-600 font-medium"
@@ -675,7 +654,7 @@ onMounted(() => {
               </NuxtLink>
             </div>
             <div class="mt-1 relative">
-              <input
+              <InputText
                 id="login_password"
                 v-model="loginPassword"
                 :type="showPassword ? 'text' : 'password'"
@@ -685,7 +664,7 @@ onMounted(() => {
                   'block w-full px-3.5 py-2.5 pr-10 border rounded-xl focus:outline-none text-sm transition-all',
                   fieldErrors.loginPassword ? 'border-red-300 focus:ring-2 focus:ring-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
                 ]"
-              >
+              />
               <button
                 type="button"
                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"

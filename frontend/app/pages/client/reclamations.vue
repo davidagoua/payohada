@@ -98,9 +98,8 @@ const getStatusBadge = (statut) => {
       <div class="p-4 border-b border-slate-200">
         <div class="relative w-full max-w-sm">
           <Icon name="i-lucide-search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-          <input 
-            v-model="searchQuery" 
-            type="text" 
+          <InputText
+            v-model="searchQuery"
             placeholder="Rechercher une réclamation..."
             class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-4 py-1.5 text-xs text-slate-800"
           />

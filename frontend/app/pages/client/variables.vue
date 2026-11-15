@@ -421,25 +421,27 @@ const handleImportExcel = async (event) => {
         <!-- Mois -->
         <div class="flex items-center gap-1.5 bg-slate-50 p-1.5 rounded-lg border border-slate-200">
           <label class="text-xs font-bold text-slate-600 ml-1">Mois :</label>
-          <select 
-            v-model="selectedMois" 
-            class="bg-white border border-slate-250 rounded px-2.5 py-1 text-xs font-bold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-green-500"
-          >
-            <option v-for="m in months" :key="m.value" :value="m.value">
-              {{ m.label }}
-            </option>
-          </select>
+          <Select
+            v-model="selectedMois"
+            class="text-xs"
+            :options="[
+              ...months.map(m => ({ label: `${m.label}`, value: m.value }))
+            ]"
+            option-label="label"
+            option-value="value"
+          />
 
           <!-- Année -->
           <label class="text-xs font-bold text-slate-600 ml-2">Année :</label>
-          <select 
-            v-model="selectedAnnee" 
-            class="bg-white border border-slate-250 rounded px-2.5 py-1 text-xs font-bold text-slate-800 focus:outline-hidden focus:ring-1 focus:ring-green-500"
-          >
-            <option v-for="y in years" :key="y" :value="y">
-              {{ y }}
-            </option>
-          </select>
+          <Select
+            v-model="selectedAnnee"
+            class="text-xs"
+            :options="[
+              ...years.map(y => ({ label: `${y}`, value: y }))
+            ]"
+            option-label="label"
+            option-value="value"
+          />
         </div>
 
         <!-- Export Excel -->
@@ -531,9 +533,8 @@ const handleImportExcel = async (event) => {
     <div class="flex items-center justify-between gap-4">
       <div class="relative w-full max-w-sm">
         <Icon name="i-lucide-search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-        <input 
-          v-model="searchQuery" 
-          type="text" 
+        <InputText
+          v-model="searchQuery"
           placeholder="Filtrer par nom, prénom, matricule ou poste..."
           class="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-4 py-1.5 text-xs text-slate-800 placeholder:text-slate-400 focus:outline-hidden focus:ring-1 focus:ring-green-500"
         />
@@ -572,168 +573,159 @@ const handleImportExcel = async (event) => {
       </div>
 
       <div v-else class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-slate-200 text-left">
-          <thead class="bg-slate-50 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
-            <tr>
-              <th scope="col" class="px-4 py-3 w-10">
-                <input
-                  v-model="toutSelectionner"
-                  type="checkbox"
-                  :disabled="!periodeModifiable"
-                  aria-label="Sélectionner tous les salariés"
-                  class="rounded border-slate-300 text-green-600 focus:ring-green-500 h-4 w-4 disabled:opacity-40"
-                />
-              </th>
-              <th scope="col" class="px-4 py-3">Salarié</th>
-              <th scope="col" class="px-4 py-3">Salaire de Base</th>
-              <th scope="col" class="px-4 py-3">Heures Supplémentaires</th>
-              <th scope="col" class="px-4 py-3">Congés & Absences</th>
-              <th scope="col" class="px-4 py-3">Primes & Indemnités</th>
-              <th scope="col" class="px-4 py-3 text-right">Statut Bulletin</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-150 text-xs">
-            <tr v-for="row in filteredRows" :key="row.contrat_id" class="hover:bg-slate-50/70 transition-colors">
-              <td class="px-4 py-3.5">
-                <input
-                  v-model="selection"
-                  type="checkbox"
-                  :value="row.contrat_id"
-                  :disabled="!periodeModifiable || row.bulletin_statut === 'valide'"
-                  :aria-label="`Sélectionner ${row.nom} ${row.prenom}`"
-                  class="rounded border-slate-300 text-green-600 focus:ring-green-500 h-4 w-4 disabled:opacity-40"
-                />
-              </td>
-
-              <!-- Salarié Info -->
-              <td class="px-4 py-3.5">
-                <div class="font-bold text-slate-900 flex items-center gap-1.5">
-                  {{ row.nom }} {{ row.prenom }}
-                </div>
-                <div class="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5">
-                  <span class="font-mono bg-slate-100 px-1 rounded text-slate-600">{{ row.matricule }}</span>
-                  <span>{{ row.intitule_poste }}</span>
-                </div>
-              </td>
-
-              <!-- Salaire Base -->
-              <td class="px-4 py-3.5 font-medium text-slate-700">
-                {{ formatFCFA(row.salaire_base) }}
-              </td>
-
-              <!-- Heures Sup -->
-              <td class="px-4 py-3.5">
-                <div class="flex flex-wrap items-center gap-1.5">
-                  <span 
-                    v-for="hs in row.heures_supplementaires" 
-                    :key="hs.id"
-                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 group"
+        <DataTable
+          :pt="{ thead: { class: 'bg-slate-50 text-[11px] font-bold text-slate-600 uppercase tracking-wider' }, tbody: { class: 'text-xs' } }"
+          class="min-w-full divide-y divide-slate-200 text-left"
+          :value="filteredRows"
+          data-key="contrat_id"
+          row-hover
+        >
+          <Column header-class="px-4 py-3 w-10" body-class="px-4 py-3.5">
+            <template #header>
+              <Checkbox
+                v-model="toutSelectionner"
+                :disabled="!periodeModifiable"
+                aria-label="Sélectionner tous les salariés"
+                binary
+              />
+            </template>
+            <template #body="{ data: row }">
+              <Checkbox
+                v-model="selection"
+                :value="row.contrat_id"
+                :disabled="!periodeModifiable || row.bulletin_statut === 'valide'"
+                :aria-label="`Sélectionner ${row.nom} ${row.prenom}`"
+              />
+            </template>
+          </Column>
+          <Column header="Salarié" header-class="px-4 py-3" body-class="px-4 py-3.5">
+            <template #body="{ data: row }">
+              <div class="font-bold text-slate-900 flex items-center gap-1.5">
+                {{ row.nom }} {{ row.prenom }}
+              </div>
+              <div class="text-[11px] text-slate-500 flex items-center gap-2 mt-0.5">
+                <span class="font-mono bg-slate-100 px-1 rounded text-slate-600">{{ row.matricule }}</span>
+                <span>{{ row.intitule_poste }}</span>
+              </div>
+            </template>
+          </Column>
+          <Column header="Salaire de Base" header-class="px-4 py-3" body-class="px-4 py-3.5 font-medium text-slate-700">
+            <template #body="{ data: row }">
+              {{ formatFCFA(row.salaire_base) }}
+            </template>
+          </Column>
+          <Column header="Heures Supplémentaires" header-class="px-4 py-3" body-class="px-4 py-3.5">
+            <template #body="{ data: row }">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span
+                  v-for="hs in row.heures_supplementaires"
+                  :key="hs.id"
+                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200 group"
+                >
+                  <span>{{ hs.nombre }}h ({{ hs.code }})</span>
+                  <button
+                    type="button"
+                    class="hover:text-red-600 opacity-60 group-hover:opacity-100 cursor-pointer ml-0.5"
+                    title="Supprimer"
+                    @click="removeHs(hs.id)"
                   >
-                    <span>{{ hs.nombre }}h ({{ hs.code }})</span>
-                    <button 
-                      type="button" 
-                      class="hover:text-red-600 opacity-60 group-hover:opacity-100 cursor-pointer ml-0.5" 
-                      title="Supprimer"
-                      @click="removeHs(hs.id)"
-                    >
-                      &times;
-                    </button>
-                  </span>
-
-                  <!-- Bouton + HS -->
-                  <button 
-                    v-if="periodeModifiable"
-                    type="button" 
-                    class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[11px] font-semibold text-amber-700 hover:bg-amber-100 border border-dashed border-amber-300 transition-colors cursor-pointer"
-                    @click="openHsModal(row)"
-                  >
-                    <Icon name="i-lucide-plus" class="w-3 h-3" />
-                    HS
+                    &times;
                   </button>
-                </div>
-              </td>
+                </span>
 
-              <!-- Absences / Congés -->
-              <td class="px-4 py-3.5">
-                <div class="flex flex-wrap items-center gap-1.5">
-                  <span 
-                    v-for="abs in row.absences" 
-                    :key="abs.id"
-                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-red-50 text-red-800 border border-red-200 group"
+                <!-- Bouton + HS -->
+                <button
+                  v-if="periodeModifiable"
+                  type="button"
+                  class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[11px] font-semibold text-amber-700 hover:bg-amber-100 border border-dashed border-amber-300 transition-colors cursor-pointer"
+                  @click="openHsModal(row)"
+                >
+                  <Icon name="i-lucide-plus" class="w-3 h-3" />
+                  HS
+                </button>
+              </div>
+            </template>
+          </Column>
+          <Column header="Congés & Absences" header-class="px-4 py-3" body-class="px-4 py-3.5">
+            <template #body="{ data: row }">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span
+                  v-for="abs in row.absences"
+                  :key="abs.id"
+                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-red-50 text-red-800 border border-red-200 group"
+                >
+                  <span>{{ abs.code }}: {{ abs.nbr_jour_by_user || 0 }}j</span>
+                  <button
+                    type="button"
+                    class="hover:text-red-700 opacity-60 group-hover:opacity-100 cursor-pointer ml-0.5"
+                    title="Supprimer"
+                    @click="removeAbsence(abs.id)"
                   >
-                    <span>{{ abs.code }}: {{ abs.nbr_jour_by_user || 0 }}j</span>
-                    <button 
-                      type="button" 
-                      class="hover:text-red-700 opacity-60 group-hover:opacity-100 cursor-pointer ml-0.5" 
-                      title="Supprimer"
-                      @click="removeAbsence(abs.id)"
-                    >
-                      &times;
-                    </button>
-                  </span>
-
-                  <!-- Bouton + Absence -->
-                  <button 
-                    v-if="periodeModifiable"
-                    type="button" 
-                    class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[11px] font-semibold text-red-700 hover:bg-red-100 border border-dashed border-red-300 transition-colors cursor-pointer"
-                    @click="openAbsenceModal(row)"
-                  >
-                    <Icon name="i-lucide-plus" class="w-3 h-3" />
-                    Absence
+                    &times;
                   </button>
-                </div>
-              </td>
+                </span>
 
-              <!-- Primes -->
-              <td class="px-4 py-3.5">
-                <div class="flex flex-wrap items-center gap-1.5">
-                  <span 
-                    v-for="p in row.primes" 
-                    :key="p.id"
-                    class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-navy-50 text-navy-800 border border-navy-200 group"
+                <!-- Bouton + Absence -->
+                <button
+                  v-if="periodeModifiable"
+                  type="button"
+                  class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[11px] font-semibold text-red-700 hover:bg-red-100 border border-dashed border-red-300 transition-colors cursor-pointer"
+                  @click="openAbsenceModal(row)"
+                >
+                  <Icon name="i-lucide-plus" class="w-3 h-3" />
+                  Absence
+                </button>
+              </div>
+            </template>
+          </Column>
+          <Column header="Primes & Indemnités" header-class="px-4 py-3" body-class="px-4 py-3.5">
+            <template #body="{ data: row }">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span
+                  v-for="p in row.primes"
+                  :key="p.id"
+                  class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-navy-50 text-navy-800 border border-navy-200 group"
+                >
+                  <span>{{ p.libelle || p.code }}: {{ formatFCFA(p.montant) }}</span>
+                  <button
+                    type="button"
+                    class="hover:text-red-600 opacity-60 group-hover:opacity-100 cursor-pointer ml-0.5"
+                    title="Supprimer"
+                    @click="removePrime(p.id)"
                   >
-                    <span>{{ p.libelle || p.code }}: {{ formatFCFA(p.montant) }}</span>
-                    <button 
-                      type="button" 
-                      class="hover:text-red-600 opacity-60 group-hover:opacity-100 cursor-pointer ml-0.5" 
-                      title="Supprimer"
-                      @click="removePrime(p.id)"
-                    >
-                      &times;
-                    </button>
-                  </span>
-
-                  <!-- Bouton + Prime -->
-                  <button 
-                    v-if="periodeModifiable"
-                    type="button" 
-                    class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[11px] font-semibold text-navy-700 hover:bg-navy-100 border border-dashed border-navy-300 transition-colors cursor-pointer"
-                    @click="openPrimeModal(row)"
-                  >
-                    <Icon name="i-lucide-plus" class="w-3 h-3" />
-                    Prime
+                    &times;
                   </button>
-                </div>
-              </td>
+                </span>
 
-              <!-- Statut Bulletin -->
-              <td class="px-4 py-3.5 text-right">
-                <div v-if="row.has_bulletin" class="flex flex-col items-end">
-                  <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-800 border border-green-200">
-                    Calculé
-                  </span>
-                  <span class="text-xs font-black text-navy-900 mt-0.5">
-                    {{ formatFCFA(row.net_a_payer) }}
-                  </span>
-                </div>
-                <div v-else>
-                  <span class="text-[11px] text-slate-400 italic">En attente de calcul</span>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                <!-- Bouton + Prime -->
+                <button
+                  v-if="periodeModifiable"
+                  type="button"
+                  class="inline-flex items-center gap-0.5 px-2 py-0.5 rounded text-[11px] font-semibold text-navy-700 hover:bg-navy-100 border border-dashed border-navy-300 transition-colors cursor-pointer"
+                  @click="openPrimeModal(row)"
+                >
+                  <Icon name="i-lucide-plus" class="w-3 h-3" />
+                  Prime
+                </button>
+              </div>
+            </template>
+          </Column>
+          <Column header="Statut Bulletin" header-class="px-4 py-3 text-right" body-class="px-4 py-3.5 text-right">
+            <template #body="{ data: row }">
+              <div v-if="row.has_bulletin" class="flex flex-col items-end">
+                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-800 border border-green-200">
+                  Calculé
+                </span>
+                <span class="text-xs font-black text-navy-900 mt-0.5">
+                  {{ formatFCFA(row.net_a_payer) }}
+                </span>
+              </div>
+              <div v-else>
+                <span class="text-[11px] text-slate-400 italic">En attente de calcul</span>
+              </div>
+            </template>
+          </Column>
+        </DataTable>
       </div>
     </div>
 
@@ -747,22 +739,28 @@ const handleImportExcel = async (event) => {
 
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">Type de majoration :</label>
-            <select v-model="hsForm.code" class="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-xs font-semibold">
-              <option value="HS_15">HS15 (Heures de jour de 41e à 48e h • +15%)</option>
-              <option value="HS_25">HS25 (Majoration standard • +25%)</option>
-              <option value="HS_50">HS50 (Au-delà de 48h ou nuit • +50%)</option>
-              <option value="HS_75">HS75 (Dimanches & jours fériés de jour • +75%)</option>
-              <option value="HS_100">HS100 (Dimanches & jours fériés de nuit • +100%)</option>
-            </select>
+            <Select
+              v-model="hsForm.code"
+              class="w-full text-xs"
+              :options="[
+                { label: `HS15 (Heures de jour de 41e à 48e h • +15%)`, value: 'HS_15' },
+                { label: `HS25 (Majoration standard • +25%)`, value: 'HS_25' },
+                { label: `HS50 (Au-delà de 48h ou nuit • +50%)`, value: 'HS_50' },
+                { label: `HS75 (Dimanches & jours fériés de jour • +75%)`, value: 'HS_75' },
+                { label: `HS100 (Dimanches & jours fériés de nuit • +100%)`, value: 'HS_100' }
+              ]"
+              option-label="label"
+              option-value="value"
+            />
           </div>
 
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">Nombre d'heures :</label>
-            <input 
-              v-model.number="hsForm.nombre" 
-              type="number" 
-              step="0.5" 
-              min="0.5" 
+            <InputText
+              v-model.number="hsForm.nombre"
+              type="number"
+              step="0.5"
+              min="0.5"
               class="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-xs font-semibold"
             />
           </div>
@@ -796,36 +794,42 @@ const handleImportExcel = async (event) => {
 
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">Motif / Type :</label>
-            <select v-model="absenceForm.code" class="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-xs font-semibold">
-              <option value="CP">Congés Payés (CP)</option>
-              <option value="MAL">Maladie ordinaire (MAL)</option>
-              <option value="AT">Accident du Travail (AT)</option>
-              <option value="MAT">Maternité (MAT)</option>
-              <option value="CSS">Congé Sans Solde (CSS)</option>
-              <option value="ABS">Absence injustifiée (ABS)</option>
-              <option value="PERM">Permission exceptionnelle</option>
-            </select>
+            <Select
+              v-model="absenceForm.code"
+              class="w-full text-xs"
+              :options="[
+                { label: `Congés Payés (CP)`, value: 'CP' },
+                { label: `Maladie ordinaire (MAL)`, value: 'MAL' },
+                { label: `Accident du Travail (AT)`, value: 'AT' },
+                { label: `Maternité (MAT)`, value: 'MAT' },
+                { label: `Congé Sans Solde (CSS)`, value: 'CSS' },
+                { label: `Absence injustifiée (ABS)`, value: 'ABS' },
+                { label: `Permission exceptionnelle`, value: 'PERM' }
+              ]"
+              option-label="label"
+              option-value="value"
+            />
           </div>
 
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1">Date début :</label>
-              <input v-model="absenceForm.date_debut" type="date" class="w-full bg-white border border-slate-300 rounded px-2.5 py-1 text-xs" />
+              <InputText v-model="absenceForm.date_debut" type="date" class="w-full bg-white border border-slate-300 rounded px-2.5 py-1 text-xs" />
             </div>
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1">Date fin :</label>
-              <input v-model="absenceForm.date_fin" type="date" class="w-full bg-white border border-slate-300 rounded px-2.5 py-1 text-xs" />
+              <InputText v-model="absenceForm.date_fin" type="date" class="w-full bg-white border border-slate-300 rounded px-2.5 py-1 text-xs" />
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1">Nombre de jours :</label>
-              <input v-model.number="absenceForm.nbr_jour_by_user" type="number" step="0.5" min="0" class="w-full bg-white border border-slate-300 rounded px-2.5 py-1 text-xs" />
+              <InputText v-model.number="absenceForm.nbr_jour_by_user" type="number" step="0.5" min="0" class="w-full bg-white border border-slate-300 rounded px-2.5 py-1 text-xs" />
             </div>
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1">Nombre d'heures (optionnel) :</label>
-              <input v-model.number="absenceForm.nbr_heure_by_user" type="number" step="0.5" min="0" class="w-full bg-white border border-slate-300 rounded px-2.5 py-1 text-xs" />
+              <InputText v-model.number="absenceForm.nbr_heure_by_user" type="number" step="0.5" min="0" class="w-full bg-white border border-slate-300 rounded px-2.5 py-1 text-xs" />
             </div>
           </div>
         </div>
@@ -859,24 +863,30 @@ const handleImportExcel = async (event) => {
 
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">Type de Prime :</label>
-            <select v-model="primeForm.code" class="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-xs font-semibold">
-              <option value="PRIME_RENDEMENT">Prime de rendement / performance</option>
-              <option value="PRIME_TRANSPORT">Indemnité de transport exceptionnelle</option>
-              <option value="PRIME_PANIER">Prime de panier / repas</option>
-              <option value="PRIME_EXC">Prime exceptionnelle</option>
-              <option value="GRATIFICATION">Gratification / 13e mois</option>
-              <option value="AVANCE_ACOMPTE">Acompte sur salaire (Déduction)</option>
-            </select>
+            <Select
+              v-model="primeForm.code"
+              class="w-full text-xs"
+              :options="[
+                { label: `Prime de rendement / performance`, value: 'PRIME_RENDEMENT' },
+                { label: `Indemnité de transport exceptionnelle`, value: 'PRIME_TRANSPORT' },
+                { label: `Prime de panier / repas`, value: 'PRIME_PANIER' },
+                { label: `Prime exceptionnelle`, value: 'PRIME_EXC' },
+                { label: `Gratification / 13e mois`, value: 'GRATIFICATION' },
+                { label: `Acompte sur salaire (Déduction)`, value: 'AVANCE_ACOMPTE' }
+              ]"
+              option-label="label"
+              option-value="value"
+            />
           </div>
 
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">Libellé sur le bulletin :</label>
-            <input v-model="primeForm.libelle" type="text" class="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-xs" />
+            <InputText v-model="primeForm.libelle" class="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-xs" />
           </div>
 
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">Montant (FCFA) :</label>
-            <input v-model.number="primeForm.montant" type="number" step="1000" min="0" class="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-xs font-bold" />
+            <InputText v-model.number="primeForm.montant" type="number" step="1000" min="0" class="w-full bg-white border border-slate-300 rounded px-3 py-1.5 text-xs font-bold" />
           </div>
         </div>
       </template>
@@ -912,12 +922,11 @@ const handleImportExcel = async (event) => {
 
           <div>
             <label class="block text-xs font-bold text-slate-700 mb-1">Notes ou instructions pour le gestionnaire (optionnel) :</label>
-            <textarea 
+            <Textarea 
               v-model="transmitNotes" 
               rows="3" 
               placeholder="Ex: Merci de vérifier les heures sup de l'équipe technique, primes de fin de trimestre incluses..."
-              class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs"
-            ></textarea>
+              class="w-full bg-white border border-slate-300 rounded-lg p-2.5 text-xs" />
           </div>
         </div>
       </template>

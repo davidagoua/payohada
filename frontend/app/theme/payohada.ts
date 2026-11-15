@@ -128,9 +128,11 @@ export default definePreset(Aura, {
           filledBackground: '{surface.50}',
           filledHoverBackground: '{surface.100}',
           filledFocusBackground: '{surface.50}',
-          borderColor: 'transparent transparent {surface.500} transparent',
-          hoverBorderColor: 'transparent transparent {surface.500} transparent',
-          focusBorderColor: 'transparent transparent {primary.600} transparent',
+          // Le filet inférieur seul des champs est posé dans main.css ;
+          // les cases à cocher et boutons radio gardent un contour complet.
+          borderColor: '{surface.500}',
+          hoverBorderColor: '{surface.700}',
+          focusBorderColor: '{primary.600}',
           invalidBorderColor: '#da1e28',
           color: '{surface.900}',
           disabledColor: '{surface.400}',

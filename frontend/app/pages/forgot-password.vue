@@ -99,7 +99,7 @@ const handleSubmit = async () => {
           <label for="email" class="block text-xs font-bold uppercase tracking-wider text-slate-700">
             Adresse email du compte
           </label>
-          <input
+          <InputText
             id="email"
             v-model="email"
             type="email"
@@ -112,7 +112,7 @@ const handleSubmit = async () => {
                 ? 'border-red-300 bg-red-50/30'
                 : 'border-slate-300'
             ]"
-          >
+          />
           <p class="mt-1.5 text-[11px] text-slate-500">
             Utilisez l'adresse avec laquelle vous vous connectez habituellement.
           </p>

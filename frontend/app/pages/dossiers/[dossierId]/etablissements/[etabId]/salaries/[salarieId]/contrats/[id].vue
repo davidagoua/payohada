@@ -414,23 +414,22 @@ onMounted(() => {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Poste (Grille Salariale)</label>
-                <select 
+                <Select
                   v-model="editPosteSalaireId"
-                  class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 w-full"
-                >
-                  <option :value="null">-- Aucun poste (saisie libre) --</option>
-                  <option v-for="p in postes" :key="p.id" :value="p.id">
-                    {{ p.categorie_professionnelle }} - {{ p.echelon_categorie }} 
-                    {{ p.salaire_mensuel_fcfa ? `(${p.salaire_mensuel_fcfa} FCFA)` : `(${p.taux_horaire_fcfa} FCFA/h)` }}
-                  </option>
-                </select>
+                  class="mt-1 block w-full text-sm w-full"
+                  :options="[
+                    { label: `-- Aucun poste (saisie libre) --`, value: null },
+                    ...postes.map(p => ({ label: `${p.categorie_professionnelle} - ${p.echelon_categorie} ${p.salaire_mensuel_fcfa ? `(${p.salaire_mensuel_fcfa} FCFA)` : `(${p.taux_horaire_fcfa} FCFA/h)`}`, value: p.id }))
+                  ]"
+                  option-label="label"
+                  option-value="value"
+                />
               </div>
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Intitulé de l'emploi (Poste)</label>
-                <input 
-                  v-model="editEmploi" 
-                  type="text" 
-                  placeholder="Ex: Développeur Senior" 
+                <InputText
+                  v-model="editEmploi"
+                  placeholder="Ex: Développeur Senior"
                   :class="[
                     'mt-1 block w-full px-3 py-2 border rounded-lg text-sm transition-colors',
                     fieldErrors.emploi ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -440,11 +439,17 @@ onMounted(() => {
               </div>
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Statut du contrat</label>
-                <select v-model="editStatut" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select">
-                  <option value="actif">Actif</option>
-                  <option value="suspendu">Suspendu (ex: congé sabbatique)</option>
-                  <option value="termine">Terminé (sortie de grille)</option>
-                </select>
+                <Select
+                  v-model="editStatut"
+                  class="mt-1 block w-full text-sm"
+                  :options="[
+                    { label: `Actif`, value: 'actif' },
+                    { label: `Suspendu (ex: congé sabbatique)`, value: 'suspendu' },
+                    { label: `Terminé (sortie de grille)`, value: 'termine' }
+                  ]"
+                  option-label="label"
+                  option-value="value"
+                />
               </div>
             </div>
 
@@ -453,7 +458,7 @@ onMounted(() => {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-slate-100 pt-4">
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Date d'embauche</label>
-                <input
+                <InputText
                   v-model="editDateDebutContrat"
                   type="date"
                   class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
@@ -462,7 +467,7 @@ onMounted(() => {
               </div>
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Date d'ancienneté</label>
-                <input
+                <InputText
                   v-model="editDateAnciennete"
                   type="date"
                   class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500"
@@ -477,19 +482,31 @@ onMounted(() => {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Type de Contrat</label>
-                <select v-model="editTypeContrat" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select">
-                  <option :value="10">CDI - Contrat à durée indéterminée (10)</option>
-                  <option :value="29">CDD - Contrat à durée déterminée (29)</option>
-                  <option :value="18">Contrat Apprentissage (18)</option>
-                  <option :value="28">Contrat de professionnalisation (28)</option>
-                </select>
+                <Select
+                  v-model="editTypeContrat"
+                  class="mt-1 block w-full text-sm"
+                  :options="[
+                    { label: `CDI - Contrat à durée indéterminée (10)`, value: 10 },
+                    { label: `CDD - Contrat à durée déterminée (29)`, value: 29 },
+                    { label: `Contrat Apprentissage (18)`, value: 18 },
+                    { label: `Contrat de professionnalisation (28)`, value: 28 }
+                  ]"
+                  option-label="label"
+                  option-value="value"
+                />
               </div>
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Mode de Rémunération</label>
-                <select v-model="editTypeSalaire" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select">
-                  <option value="Mensuel">Salaire Mensuel Fixe</option>
-                  <option value="Horaire">Taux Horaire</option>
-                </select>
+                <Select
+                  v-model="editTypeSalaire"
+                  class="mt-1 block w-full text-sm"
+                  :options="[
+                    { label: `Salaire Mensuel Fixe`, value: 'Mensuel' },
+                    { label: `Taux Horaire`, value: 'Horaire' }
+                  ]"
+                  option-label="label"
+                  option-value="value"
+                />
               </div>
             </div>
 
@@ -498,10 +515,10 @@ onMounted(() => {
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Salaire Mensuel {{ editModeCalcul === 'net' ? 'Net' : 'Brut' }} (FCFA)
                 </label>
-                <input 
-                  v-model="editSalaireMensuel" 
-                  type="number" 
-                  step="0.01" 
+                <InputText
+                  v-model.number="editSalaireMensuel"
+                  type="number"
+                  step="0.01"
                   :class="[
                     'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono transition-colors',
                     fieldErrors.salaire_mensuel ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300'
@@ -513,10 +530,10 @@ onMounted(() => {
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">
                   Taux Horaire {{ editModeCalcul === 'net' ? 'Net' : 'Brut' }} (FCFA)
                 </label>
-                <input 
-                  v-model="editSalaireHoraire" 
-                  type="number" 
-                  step="0.01" 
+                <InputText
+                  v-model.number="editSalaireHoraire"
+                  type="number"
+                  step="0.01"
                   :class="[
                     'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono transition-colors',
                     fieldErrors.salaire_horaire ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300'
@@ -526,27 +543,39 @@ onMounted(() => {
               </div>
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Nature du salaire</label>
-                <select v-model="editModeCalcul" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select">
-                  <option value="brut">Brut</option>
-                  <option value="net">Net</option>
-                </select>
+                <Select
+                  v-model="editModeCalcul"
+                  class="mt-1 block w-full text-sm"
+                  :options="[
+                    { label: `Brut`, value: 'brut' },
+                    { label: `Net`, value: 'net' }
+                  ]"
+                  option-label="label"
+                  option-value="value"
+                />
               </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-slate-100 pt-4">
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Unité de Temps</label>
-                <select v-model="editUniteTemps" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select">
-                  <option value="Heures">Heures</option>
-                  <option value="Jours">Jours</option>
-                </select>
+                <Select
+                  v-model="editUniteTemps"
+                  class="mt-1 block w-full text-sm"
+                  :options="[
+                    { label: `Heures`, value: 'Heures' },
+                    { label: `Jours`, value: 'Jours' }
+                  ]"
+                  option-label="label"
+                  option-value="value"
+                />
               </div>
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Sursalaire (FCFA)</label>
-                <input 
-                  v-model="editSursalaire" 
-                  type="number" 
-                  step="0.01" 
+                <InputText
+                  v-model.number="editSursalaire"
+                  type="number"
+                  step="0.01"
                   :class="[
                     'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono transition-colors',
                     fieldErrors.sursalaire ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300'
@@ -562,10 +591,10 @@ onMounted(() => {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Indemnité de Transport (FCFA)</label>
-                <input 
-                  v-model="editIndemniteTransport" 
-                  type="number" 
-                  step="0.01" 
+                <InputText
+                  v-model.number="editIndemniteTransport"
+                  type="number"
+                  step="0.01"
                   :class="[
                     'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono transition-colors',
                     fieldErrors.indemnite_transport ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300'
@@ -575,10 +604,10 @@ onMounted(() => {
               </div>
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Dotation Téléphonique (FCFA)</label>
-                <input 
-                  v-model="editDotationTelephonique" 
-                  type="number" 
-                  step="0.01" 
+                <InputText
+                  v-model.number="editDotationTelephonique"
+                  type="number"
+                  step="0.01"
                   :class="[
                     'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono transition-colors',
                     fieldErrors.dotation_telephonique ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300'
@@ -616,55 +645,59 @@ onMounted(() => {
             Aucun bulletin généré pour ce contrat.
           </div>
           <div v-else class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-slate-200 text-sm">
-              <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-                <tr>
-                  <th scope="col" class="px-4 py-3 text-left">Période</th>
-                  <th scope="col" class="px-4 py-3 text-left">Statut</th>
-                  <th scope="col" class="px-4 py-3 text-right">Brut (FCFA)</th>
-                  <th scope="col" class="px-4 py-3 text-right">Retenues (FCFA)</th>
-                  <th scope="col" class="px-4 py-3 text-right">Net à Payer (FCFA)</th>
-                  <th scope="col" class="relative px-4 py-3"><span class="sr-only">Actions</span></th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-150 bg-white">
-                <tr 
-                  v-for="b in bulletins" 
-                  :key="b.id"
-                  @click="router.push(`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}/contrats/${contratId}/bulletins/${b.id}`)"
-                  class="hover:bg-slate-50 cursor-pointer group"
-                >
-                  <td class="px-4 py-3 font-semibold text-slate-800">
-                    {{ String(b.mois).padStart(2, '0') }}/{{ b.annee }}
-                  </td>
-                  <td class="px-4 py-3">
-                    <span 
-                      :class="[
-                        b.statut === 'valide' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-yellow-50 text-yellow-700 border-yellow-200',
-                        'px-2 py-0.5 rounded text-[10px] uppercase font-bold border'
-                      ]"
-                    >
-                      {{ b.statut }}
-                    </span>
-                  </td>
-                  <td class="px-4 py-3 text-right font-mono text-slate-600">
-                    {{ b.salaire_brut?.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) }}
-                  </td>
-                  <td class="px-4 py-3 text-right font-mono text-slate-600">
-                    {{ b.cotisations_salariales?.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) }}
-                  </td>
-                  <td class="px-4 py-3 text-right font-mono font-bold text-slate-900">
-                    {{ b.net_a_payer?.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) }}
-                  </td>
-                  <td class="px-4 py-3 text-right">
-                    <span class="text-navy-700 group-hover:underline text-xs font-semibold flex items-center justify-end gap-1">
-                      Visualiser
-                      <Icon name="i-lucide-eye" class="w-4 h-4" />
-                    </span>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <DataTable
+              :pt="{ thead: { class: 'bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]' }, tbody: { class: 'bg-white' } }"
+              class="min-w-full divide-y divide-slate-200 text-sm"
+              :value="bulletins"
+              data-key="id"
+              @row-click="({ data: b }) => router.push(`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}/contrats/${contratId}/bulletins/${b.id}`)"
+              :row-class="() => 'cursor-pointer group'"
+              row-hover
+            >
+              <Column header="Période" header-class="px-4 py-3 text-left" body-class="px-4 py-3 font-semibold text-slate-800">
+                <template #body="{ data: b }">
+                  {{ String(b.mois).padStart(2, '0') }}/{{ b.annee }}
+                </template>
+              </Column>
+              <Column header="Statut" header-class="px-4 py-3 text-left" body-class="px-4 py-3">
+                <template #body="{ data: b }">
+                  <span
+                    :class="[
+                      b.statut === 'valide' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-yellow-50 text-yellow-700 border-yellow-200',
+                      'px-2 py-0.5 rounded text-[10px] uppercase font-bold border'
+                    ]"
+                  >
+                    {{ b.statut }}
+                  </span>
+                </template>
+              </Column>
+              <Column header="Brut (FCFA)" header-class="px-4 py-3 text-right" body-class="px-4 py-3 text-right font-mono text-slate-600">
+                <template #body="{ data: b }">
+                  {{ b.salaire_brut?.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) }}
+                </template>
+              </Column>
+              <Column header="Retenues (FCFA)" header-class="px-4 py-3 text-right" body-class="px-4 py-3 text-right font-mono text-slate-600">
+                <template #body="{ data: b }">
+                  {{ b.cotisations_salariales?.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) }}
+                </template>
+              </Column>
+              <Column header="Net à Payer (FCFA)" header-class="px-4 py-3 text-right" body-class="px-4 py-3 text-right font-mono font-bold text-slate-900">
+                <template #body="{ data: b }">
+                  {{ b.net_a_payer?.toLocaleString('fr-FR', { minimumFractionDigits: 2 }) }}
+                </template>
+              </Column>
+              <Column header-class="relative px-4 py-3" body-class="px-4 py-3 text-right">
+                <template #header>
+                  <span class="sr-only">Actions</span>
+                </template>
+                <template #body>
+                  <span class="text-navy-700 group-hover:underline text-xs font-semibold flex items-center justify-end gap-1">
+                    Visualiser
+                    <Icon name="i-lucide-eye" class="w-4 h-4" />
+                  </span>
+                </template>
+              </Column>
+            </DataTable>
           </div>
         </div>
       </div>
@@ -771,19 +804,19 @@ onMounted(() => {
               <div class="space-y-2">
                 <div>
                   <label class="block text-[10px] font-semibold text-slate-500 uppercase">Indemnité Congés Payés (brute)</label>
-                  <input v-model="editIndemniteCongesPayes" type="number" step="0.01" class="mt-1 block w-full px-2 py-1 border border-slate-350 rounded-lg text-xs font-mono bg-white focus:outline-none focus:ring-1 focus:ring-green-500" />
+                  <InputText v-model.number="editIndemniteCongesPayes" type="number" step="0.01" class="mt-1 block w-full px-2 py-1 border border-slate-350 rounded-lg text-xs font-mono bg-white focus:outline-none focus:ring-1 focus:ring-green-500" />
                 </div>
                 <div>
                   <label class="block text-[10px] font-semibold text-slate-500 uppercase">Indemnité Licenciement / Rupture</label>
-                  <input v-model="editIndemniteLicenciement" type="number" step="0.01" class="mt-1 block w-full px-2 py-1 border border-slate-350 rounded-lg text-xs font-mono bg-white focus:outline-none focus:ring-1 focus:ring-green-500" />
+                  <InputText v-model.number="editIndemniteLicenciement" type="number" step="0.01" class="mt-1 block w-full px-2 py-1 border border-slate-350 rounded-lg text-xs font-mono bg-white focus:outline-none focus:ring-1 focus:ring-green-500" />
                 </div>
                 <div>
                   <label class="block text-[10px] font-semibold text-slate-500 uppercase">Indemnité de Préavis</label>
-                  <input v-model="editIndemnitePreavis" type="number" step="0.01" class="mt-1 block w-full px-2 py-1 border border-slate-350 rounded-lg text-xs font-mono bg-white focus:outline-none focus:ring-1 focus:ring-green-500" />
+                  <InputText v-model.number="editIndemnitePreavis" type="number" step="0.01" class="mt-1 block w-full px-2 py-1 border border-slate-350 rounded-lg text-xs font-mono bg-white focus:outline-none focus:ring-1 focus:ring-green-500" />
                 </div>
                 <div>
                   <label class="block text-[10px] font-semibold text-slate-500 uppercase">Autre Indemnité</label>
-                  <input v-model="editIndemniteAutre" type="number" step="0.01" class="mt-1 block w-full px-2 py-1 border border-slate-350 rounded-lg text-xs font-mono bg-white focus:outline-none focus:ring-1 focus:ring-green-500" />
+                  <InputText v-model.number="editIndemniteAutre" type="number" step="0.01" class="mt-1 block w-full px-2 py-1 border border-slate-350 rounded-lg text-xs font-mono bg-white focus:outline-none focus:ring-1 focus:ring-green-500" />
                 </div>
                 <div class="bg-slate-50 border border-slate-200 rounded-lg p-2 flex justify-between items-center text-xs font-bold text-navy-900 font-mono">
                   <span>TOTAL STC :</span>
@@ -791,7 +824,7 @@ onMounted(() => {
                 </div>
                 <div>
                   <label class="block text-[10px] font-semibold text-slate-500 uppercase">Notes / Commentaires</label>
-                  <textarea v-model="editStcCommentaire" rows="2" class="mt-1 block w-full px-2 py-1 border border-slate-350 rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-green-500"></textarea>
+                  <Textarea v-model="editStcCommentaire" rows="2" class="mt-1 block w-full px-2 py-1 border border-slate-350 rounded-lg text-xs bg-white focus:outline-none focus:ring-1 focus:ring-green-500" />
                 </div>
               </div>
 
@@ -878,24 +911,30 @@ onMounted(() => {
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Mois</label>
-              <select v-model="calcMois" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select">
-                <option v-for="m in 12" :key="m" :value="m">{{ String(m).padStart(2, '0') }}</option>
-              </select>
+              <Select
+                v-model="calcMois"
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  ...Array.from({ length: 12 }, (_, i) => i + 1).map(m => ({ label: `${String(m).padStart(2, '0')}`, value: m }))
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Année</label>
-              <input v-model="calcAnnee" type="number" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono" />
+              <InputText v-model.number="calcAnnee" type="number" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono" />
             </div>
           </div>
 
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Acompte à déduire (FCFA)</label>
-            <input v-model="calcAcompte" type="number" step="0.01" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono" />
+            <InputText v-model.number="calcAcompte" type="number" step="0.01" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono" />
           </div>
 
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Commentaire (Optionnel)</label>
-            <textarea v-model="calcCommentaire" rows="2" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"></textarea>
+            <Textarea v-model="calcCommentaire" rows="2" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
           </div>
 
           <div class="flex justify-end space-x-3 pt-3 border-t border-slate-100">
@@ -923,36 +962,42 @@ onMounted(() => {
         <form @submit.prevent="handleDeclareDepart" class="space-y-4">
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Date de sortie</label>
-            <input v-model="departDateSortie" type="date" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+            <InputText v-model="departDateSortie" type="date" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
           </div>
 
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Motif de la sortie</label>
-            <select v-model="departMotifSortie" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select">
-              <option :value="10">Démission</option>
-              <option :value="20">Licenciement</option>
-              <option :value="30">Rupture conventionnelle</option>
-              <option :value="40">Fin de CDD</option>
-              <option :value="50">Retraite</option>
-              <option :value="60">Décès</option>
-              <option :value="70">Force majeure</option>
-              <option :value="99">Autre motif</option>
-            </select>
+            <Select
+              v-model="departMotifSortie"
+              class="mt-1 block w-full text-sm"
+              :options="[
+                { label: `Démission`, value: 10 },
+                { label: `Licenciement`, value: 20 },
+                { label: `Rupture conventionnelle`, value: 30 },
+                { label: `Fin de CDD`, value: 40 },
+                { label: `Retraite`, value: 50 },
+                { label: `Décès`, value: 60 },
+                { label: `Force majeure`, value: 70 },
+                { label: `Autre motif`, value: 99 }
+              ]"
+              option-label="label"
+              option-value="value"
+            />
           </div>
 
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Dernier jour travaillé (Optionnel)</label>
-            <input v-model="departDernierJourTravaille" type="date" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+            <InputText v-model="departDernierJourTravaille" type="date" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
           </div>
 
           <div class="flex items-center space-x-2 pt-1">
-            <input v-model="departMaintienAffiliation" type="checkbox" id="maintien_aff" class="w-4 h-4 text-green-600 border-slate-300 rounded focus:ring-green-500" />
+            <Checkbox v-model="departMaintienAffiliation" id="maintien_aff" binary />
             <label for="maintien_aff" class="text-xs text-slate-650">Maintien de l'affiliation prévoyance / santé</label>
           </div>
 
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Commentaire / Motif détaillé</label>
-            <textarea v-model="departCommentaire" rows="2" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" placeholder="Ex: rupture d'un commun accord..."></textarea>
+            <Textarea v-model="departCommentaire" rows="2" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" placeholder="Ex: rupture d'un commun accord..." />
           </div>
 
           <div class="flex justify-end space-x-3 pt-3 border-t border-slate-100">

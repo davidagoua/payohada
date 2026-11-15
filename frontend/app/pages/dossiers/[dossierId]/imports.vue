@@ -505,13 +505,16 @@ onMounted(async () => {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div v-for="champ in champsManquantsAvecCle" :key="champ.cle">
             <label class="block text-[11px] font-bold uppercase tracking-wider text-amber-900">{{ champ.libelle }}</label>
-            <select
+            <Select
               v-model="mappingSelection[champ.cle]"
-              class="mt-1 block w-full px-3 py-2 border border-amber-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-            >
-              <option value="">— Choisir une colonne —</option>
-              <option v-for="colonne in analyse.colonnes" :key="colonne" :value="colonne">{{ colonne }}</option>
-            </select>
+              class="mt-1 block w-full text-sm"
+              :options="[
+                { label: `— Choisir une colonne —`, value: '' },
+                ...analyse.colonnes.map(colonne => ({ label: `${colonne}`, value: colonne }))
+              ]"
+              option-label="label"
+              option-value="value"
+            />
           </div>
         </div>
         <div class="flex justify-end">
@@ -536,24 +539,33 @@ onMounted(async () => {
           </span>
         </div>
         <div class="max-h-64 overflow-auto border border-slate-200 rounded-lg">
-          <table class="min-w-full text-xs">
-            <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider text-[10px] sticky top-0">
-              <tr>
-                <th class="px-3 py-2 text-left">Ligne</th>
-                <th class="px-3 py-2 text-left">Champ</th>
-                <th class="px-3 py-2 text-left">Message</th>
-                <th class="px-3 py-2 text-left">Valeur</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-              <tr v-for="(erreur, index) in analyse.erreurs" :key="index" class="hover:bg-slate-50">
-                <td class="px-3 py-2 font-mono text-slate-600">{{ erreur.ligne }}</td>
-                <td class="px-3 py-2 font-semibold text-navy-900">{{ erreur.champ || '—' }}</td>
-                <td class="px-3 py-2 text-slate-600">{{ erreur.message }}</td>
-                <td class="px-3 py-2 font-mono text-slate-500">{{ erreur.valeur ?? '—' }}</td>
-              </tr>
-            </tbody>
-          </table>
+          <DataTable
+            :pt="{ thead: { class: 'bg-slate-50 text-slate-500 uppercase tracking-wider text-[10px] sticky top-0' } }"
+            class="min-w-full text-xs"
+            :value="analyse.erreurs"
+            row-hover
+          >
+            <Column header="Ligne" header-class="px-3 py-2 text-left" body-class="px-3 py-2 font-mono text-slate-600">
+              <template #body="{ data: erreur }">
+                {{ erreur.ligne }}
+              </template>
+            </Column>
+            <Column header="Champ" header-class="px-3 py-2 text-left" body-class="px-3 py-2 font-semibold text-navy-900">
+              <template #body="{ data: erreur }">
+                {{ erreur.champ || '—' }}
+              </template>
+            </Column>
+            <Column header="Message" header-class="px-3 py-2 text-left" body-class="px-3 py-2 text-slate-600">
+              <template #body="{ data: erreur }">
+                {{ erreur.message }}
+              </template>
+            </Column>
+            <Column header="Valeur" header-class="px-3 py-2 text-left" body-class="px-3 py-2 font-mono text-slate-500">
+              <template #body="{ data: erreur }">
+                {{ erreur.valeur ?? '—' }}
+              </template>
+            </Column>
+          </DataTable>
         </div>
       </div>
 
@@ -561,20 +573,18 @@ onMounted(async () => {
       <div v-if="analyse.apercu.length" class="space-y-2">
         <h3 class="text-xs font-bold uppercase tracking-wider text-slate-600">Aperçu des lignes valides</h3>
         <div class="overflow-x-auto border border-slate-200 rounded-lg">
-          <table class="min-w-full text-xs">
-            <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider text-[10px]">
-              <tr>
-                <th v-for="champ in champsAffiches" :key="champ.cle" class="px-3 py-2 text-left whitespace-nowrap">{{ champ.libelle }}</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-              <tr v-for="(ligne, index) in analyse.apercu" :key="index">
-                <td v-for="champ in champsAffiches" :key="champ.cle" class="px-3 py-2 text-slate-600 whitespace-nowrap">
-                  {{ ligne[champ.cle] ?? '—' }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <DataTable
+            :pt="{ thead: { class: 'bg-slate-50 text-slate-500 uppercase tracking-wider text-[10px]' } }"
+            class="min-w-full text-xs"
+            :value="analyse.apercu"
+            row-hover
+          >
+            <Column v-for="champ in champsAffiches" :key="champ.cle" :header="champ.libelle" header-class="px-3 py-2 text-left whitespace-nowrap" body-class="px-3 py-2 text-slate-600 whitespace-nowrap">
+              <template #body="{ data: ligne }">
+                {{ ligne[champ.cle] ?? '—' }}
+              </template>
+            </Column>
+          </DataTable>
         </div>
       </div>
 
@@ -636,32 +646,40 @@ onMounted(async () => {
         Aucun import pour ce dossier. Commencez par télécharger un modèle.
       </div>
       <div v-else class="overflow-x-auto">
-        <table class="min-w-full text-sm">
-          <thead>
-            <tr>
-              <th class="px-5 py-3 text-left">Date</th>
-              <th class="px-5 py-3 text-left">Type</th>
-              <th class="px-5 py-3 text-left">Fichier</th>
-              <th class="px-5 py-3 text-left">Statut</th>
-              <th class="px-5 py-3 text-right">Lignes</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100">
-            <tr v-for="job in historique" :key="job.id" class="hover:bg-slate-50">
-              <td class="px-5 py-3 text-slate-600 whitespace-nowrap">{{ formaterDate(job.created_at) }}</td>
-              <td class="px-5 py-3 font-semibold text-navy-900">{{ typeCourantLabel(job.type_import) }}</td>
-              <td class="px-5 py-3 text-slate-600">{{ job.fichier_nom }}</td>
-              <td class="px-5 py-3">
-                <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border" :class="statutCouleur(job.statut)">
-                  {{ statutLabel(job.statut) }}
-                </span>
-              </td>
-              <td class="px-5 py-3 text-right text-slate-600">
-                {{ job.lignes_valides }} / {{ job.total_lignes }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <DataTable
+          class="min-w-full text-sm"
+          :value="historique"
+          data-key="id"
+          row-hover
+        >
+          <Column header="Date" header-class="px-5 py-3 text-left" body-class="px-5 py-3 text-slate-600 whitespace-nowrap">
+            <template #body="{ data: job }">
+              {{ formaterDate(job.created_at) }}
+            </template>
+          </Column>
+          <Column header="Type" header-class="px-5 py-3 text-left" body-class="px-5 py-3 font-semibold text-navy-900">
+            <template #body="{ data: job }">
+              {{ typeCourantLabel(job.type_import) }}
+            </template>
+          </Column>
+          <Column header="Fichier" header-class="px-5 py-3 text-left" body-class="px-5 py-3 text-slate-600">
+            <template #body="{ data: job }">
+              {{ job.fichier_nom }}
+            </template>
+          </Column>
+          <Column header="Statut" header-class="px-5 py-3 text-left" body-class="px-5 py-3">
+            <template #body="{ data: job }">
+              <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border" :class="statutCouleur(job.statut)">
+                {{ statutLabel(job.statut) }}
+              </span>
+            </template>
+          </Column>
+          <Column header="Lignes" header-class="px-5 py-3 text-right" body-class="px-5 py-3 text-right text-slate-600">
+            <template #body="{ data: job }">
+              {{ job.lignes_valides }} / {{ job.total_lignes }}
+            </template>
+          </Column>
+        </DataTable>
       </div>
     </div>
   </div>

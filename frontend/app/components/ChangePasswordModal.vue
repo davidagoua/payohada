@@ -141,7 +141,7 @@ const handleSubmit = async () => {
               Mot de passe actuel <span class="text-red-500">*</span>
             </label>
             <div class="relative">
-              <input
+              <InputText
                 v-model="oldPassword"
                 :type="showOldPassword ? 'text' : 'password'"
                 placeholder="Saisissez votre mot de passe actuel"
@@ -167,7 +167,7 @@ const handleSubmit = async () => {
               Nouveau mot de passe <span class="text-red-500">*</span>
             </label>
             <div class="relative">
-              <input
+              <InputText
                 v-model="newPassword"
                 :type="showNewPassword ? 'text' : 'password'"
                 placeholder="Au moins 8 caractères"
@@ -198,7 +198,7 @@ const handleSubmit = async () => {
               Confirmer le nouveau mot de passe <span class="text-red-500">*</span>
             </label>
             <div class="relative">
-              <input
+              <InputText
                 v-model="confirmPassword"
                 :type="showConfirmPassword ? 'text' : 'password'"
                 placeholder="Ressaisissez le nouveau mot de passe"

@@ -188,19 +188,17 @@ onMounted(() => {
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Code Dossier <span class="text-red-500">*</span></label>
-              <input 
-                v-model="code" 
-                type="text" 
-                placeholder="Ex: ACME" 
+              <InputText
+                v-model="code"
+                placeholder="Ex: ACME"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Exercice Annuel</label>
-              <input 
-                v-model="annee" 
-                type="text" 
-                placeholder="Ex: 2026" 
+              <InputText
+                v-model="annee"
+                placeholder="Ex: 2026"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
               />
             </div>
@@ -208,10 +206,9 @@ onMounted(() => {
 
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Nom de l'Entreprise <span class="text-red-500">*</span></label>
-            <input 
-              v-model="nomDossier" 
-              type="text" 
-              placeholder="Ex: ACME SARL" 
+            <InputText
+              v-model="nomDossier"
+              placeholder="Ex: ACME SARL"
               class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
             />
           </div>
@@ -219,30 +216,31 @@ onMounted(() => {
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">RCCM</label>
-              <input 
-                v-model="rccm" 
-                type="text" 
-                placeholder="Ex : CI-ABJ-03-2024-B12-01234" 
+              <InputText
+                v-model="rccm"
+                placeholder="Ex : CI-ABJ-03-2024-B12-01234"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Jour de virement</label>
-              <select
+              <Select
                 v-model.number="jourVirement"
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-              >
-                <option :value="null">-- Non précisé --</option>
-                <option v-for="jour in 31" :key="jour" :value="jour">{{ jour }}</option>
-              </select>
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `-- Non précisé --`, value: null },
+                  ...Array.from({ length: 31 }, (_, i) => i + 1).map(jour => ({ label: `${jour}`, value: jour }))
+                ]"
+                option-label="label"
+                option-value="value"
+              />
               <p class="mt-1 text-[11px] text-slate-400">Paiement des salaires, chaque mois.</p>
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Pays de Référence</label>
-              <input 
-                v-model="pays" 
-                type="text" 
-                placeholder="Ex: Côte d'Ivoire" 
+              <InputText
+                v-model="pays"
+                placeholder="Ex: Côte d'Ivoire"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
               />
             </div>
@@ -251,42 +249,43 @@ onMounted(() => {
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Nom Contact</label>
-              <input 
-                v-model="nomContact" 
-                type="text" 
-                placeholder="Ex: M. Dupont" 
+              <InputText
+                v-model="nomContact"
+                placeholder="Ex: M. Dupont"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Qualité du contact</label>
-              <select 
-                v-model="qualite" 
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm bg-white"
-              >
-                <option :value="1">1 - Gestionnaire Principal</option>
-                <option :value="2">2 - Mandataire</option>
-                <option :value="3">3 - Cabinet Comptable</option>
-              </select>
+              <Select
+                v-model="qualite"
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `1 - Gestionnaire Principal`, value: 1 },
+                  { label: `2 - Mandataire`, value: 2 },
+                  { label: `3 - Cabinet Comptable`, value: 3 }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Email Contact</label>
-              <input 
-                v-model="email" 
-                type="email" 
-                placeholder="contact@acme.com" 
+              <InputText
+                v-model="email"
+                type="email"
+                placeholder="contact@acme.com"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Téléphone</label>
-              <input 
-                v-model="telephone" 
-                type="text" 
-                placeholder="Ex: 0102030405" 
+              <InputText
+                v-model="telephone"
+                placeholder="Ex: 0102030405"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 text-sm"
               />
             </div>

@@ -260,73 +260,60 @@ onMounted(charger)
           v-else
           class="overflow-x-auto"
         >
-          <table class="min-w-full divide-y divide-slate-200 text-sm">
-            <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-              <tr>
-                <th class="px-6 py-3 text-left">
-                  Cabinet
-                </th>
-                <th class="px-6 py-3 text-left">
-                  Statut
-                </th>
-                <th class="px-6 py-3 text-right">
-                  Utilisateurs
-                </th>
-                <th class="px-6 py-3 text-right">
-                  Sociétés
-                </th>
-                <th class="px-6 py-3 text-right">
-                  Salariés actifs
-                </th>
-                <th class="px-6 py-3 text-right">
-                  Bulletins du mois
-                </th>
-                <th class="px-6 py-3 text-right">
-                  Dernière activité
-                </th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-              <tr
-                v-for="cabinet in donnees.usage_cabinets"
-                :key="cabinet.id"
-                class="hover:bg-slate-50"
-              >
-                <td class="px-6 py-3 font-semibold text-navy-900">
-                  {{ cabinet.cabinet_nom || `Cabinet n° ${cabinet.id}` }}
-                </td>
-                <td class="px-6 py-3">
-                  <span
-                    class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border"
-                    :class="cabinet.suspendu
-                      ? 'bg-red-50 text-red-700 border-red-200'
-                      : 'bg-green-50 text-green-700 border-green-200'"
-                  >
-                    <Icon
-                      :name="cabinet.suspendu ? 'i-lucide-pause-circle' : 'i-lucide-check-circle'"
-                      class="w-3 h-3"
-                    />
-                    {{ cabinet.suspendu ? 'Suspendu' : 'Actif' }}
-                  </span>
-                </td>
-                <td class="px-6 py-3 text-right tabular-nums">
-                  {{ nombre(cabinet.utilisateurs) }}
-                </td>
-                <td class="px-6 py-3 text-right tabular-nums">
-                  {{ nombre(cabinet.societes) }}
-                </td>
-                <td class="px-6 py-3 text-right tabular-nums font-semibold">
-                  {{ nombre(cabinet.salaries_actifs) }}
-                </td>
-                <td class="px-6 py-3 text-right tabular-nums">
-                  {{ nombre(cabinet.bulletins_mois_courant) }}
-                </td>
-                <td class="px-6 py-3 text-right text-slate-500">
-                  {{ formatDate(cabinet.derniere_activite) }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <DataTable
+            :pt="{ thead: { class: 'bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]' } }"
+            class="min-w-full divide-y divide-slate-200 text-sm"
+            :value="donnees.usage_cabinets"
+            data-key="id"
+            row-hover
+          >
+            <Column header="Cabinet" header-class="px-6 py-3 text-left" body-class="px-6 py-3 font-semibold text-navy-900">
+              <template #body="{ data: cabinet }">
+                {{ cabinet.cabinet_nom || `Cabinet n° ${cabinet.id}` }}
+              </template>
+            </Column>
+            <Column header="Statut" header-class="px-6 py-3 text-left" body-class="px-6 py-3">
+              <template #body="{ data: cabinet }">
+                <span
+                  class="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border"
+                  :class="cabinet.suspendu
+                    ? 'bg-red-50 text-red-700 border-red-200'
+                    : 'bg-green-50 text-green-700 border-green-200'"
+                >
+                  <Icon
+                    :name="cabinet.suspendu ? 'i-lucide-pause-circle' : 'i-lucide-check-circle'"
+                    class="w-3 h-3"
+                  />
+                  {{ cabinet.suspendu ? 'Suspendu' : 'Actif' }}
+                </span>
+              </template>
+            </Column>
+            <Column header="Utilisateurs" header-class="px-6 py-3 text-right" body-class="px-6 py-3 text-right tabular-nums">
+              <template #body="{ data: cabinet }">
+                {{ nombre(cabinet.utilisateurs) }}
+              </template>
+            </Column>
+            <Column header="Sociétés" header-class="px-6 py-3 text-right" body-class="px-6 py-3 text-right tabular-nums">
+              <template #body="{ data: cabinet }">
+                {{ nombre(cabinet.societes) }}
+              </template>
+            </Column>
+            <Column header="Salariés actifs" header-class="px-6 py-3 text-right" body-class="px-6 py-3 text-right tabular-nums font-semibold">
+              <template #body="{ data: cabinet }">
+                {{ nombre(cabinet.salaries_actifs) }}
+              </template>
+            </Column>
+            <Column header="Bulletins du mois" header-class="px-6 py-3 text-right" body-class="px-6 py-3 text-right tabular-nums">
+              <template #body="{ data: cabinet }">
+                {{ nombre(cabinet.bulletins_mois_courant) }}
+              </template>
+            </Column>
+            <Column header="Dernière activité" header-class="px-6 py-3 text-right" body-class="px-6 py-3 text-right text-slate-500">
+              <template #body="{ data: cabinet }">
+                {{ formatDate(cabinet.derniere_activite) }}
+              </template>
+            </Column>
+          </DataTable>
         </div>
       </div>
     </template>

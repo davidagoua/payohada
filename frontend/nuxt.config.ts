@@ -110,6 +110,39 @@ export default defineNuxtConfig({
   primevue: {
     options: {
       ripple: false,
+      // Textes des composants (messages vides, lecteurs d'écran) en français.
+      locale: {
+        accept: 'Oui',
+        reject: 'Non',
+        cancel: 'Annuler',
+        clear: 'Effacer',
+        apply: 'Appliquer',
+        choose: 'Choisir',
+        upload: 'Envoyer',
+        dayNames: ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'],
+        dayNamesShort: ['dim.', 'lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.'],
+        dayNamesMin: ['D', 'L', 'M', 'M', 'J', 'V', 'S'],
+        monthNames: ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'],
+        monthNamesShort: ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'],
+        firstDayOfWeek: 1,
+        dateFormat: 'dd/mm/yy',
+        emptyMessage: 'Aucun résultat',
+        emptyFilterMessage: 'Aucun résultat',
+        emptySearchMessage: 'Aucun résultat',
+        emptySelectionMessage: 'Aucun élément sélectionné',
+        selectionMessage: '{0} élément(s) sélectionné(s)',
+        searchMessage: '{0} résultat(s) disponible(s)',
+        aria: {
+          trueLabel: 'Vrai',
+          falseLabel: 'Faux',
+          nullLabel: 'Non sélectionné',
+          close: 'Fermer',
+          selectAll: 'Tout sélectionner',
+          unselectAll: 'Tout désélectionner',
+          listView: 'Vue liste',
+          gridView: 'Vue grille'
+        }
+      },
       theme: {
         preset: PayohadaTheme,
         options: {

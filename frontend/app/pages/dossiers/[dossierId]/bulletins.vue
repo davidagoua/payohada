@@ -358,11 +358,17 @@ onMounted(() => {
     <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row items-center gap-4">
       <span class="text-xs font-bold uppercase tracking-wider text-slate-400 shrink-0">Filtre Période :</span>
       <div class="flex space-x-3 w-full sm:w-auto">
-        <select v-model="selectedMois" class="block w-full sm:w-40 px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select">
-          <option v-for="m in 12" :key="m" :value="m">{{ getPeriodLabel(m, 2026).split(' ')[0] }}</option>
-        </select>
-        <input
-          v-model="selectedAnnee"
+        <Select
+          v-model="selectedMois"
+          class="block w-full sm:w-40 text-sm"
+          :options="[
+            ...Array.from({ length: 12 }, (_, i) => i + 1).map(m => ({ label: `${getPeriodLabel(m, 2026).split(' ')[0]}`, value: m }))
+          ]"
+          option-label="label"
+          option-value="value"
+        />
+        <InputText
+          v-model.number="selectedAnnee"
           type="number"
           placeholder="Année"
           class="block w-full sm:w-28 px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono"
@@ -421,107 +427,105 @@ onMounted(() => {
       </div>
 
       <div v-else class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-slate-200 text-sm">
-          <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-            <tr>
-              <th scope="col" class="px-4 py-3 text-left w-10">
-                <input type="checkbox" v-model="allBulletinsSelected" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
-              </th>
-              <th scope="col" class="px-6 py-3 text-left">Employé</th>
-              <th scope="col" class="px-6 py-3 text-left">N° Contrat / Poste</th>
-              <th scope="col" class="px-6 py-3 text-left">Statut Bulletin</th>
-              <th scope="col" class="px-6 py-3 text-right">Salaire Brut</th>
-              <th scope="col" class="px-6 py-3 text-right">Net à Payer</th>
-              <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-150 bg-white">
-            <tr v-for="c in contracts" :key="c.id" class="hover:bg-slate-50 transition-colors">
-              <td class="px-4 py-4" @click.stop>
-                <input type="checkbox" :value="c.id" v-model="selectedBulletins" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
-              </td>
-
-              <!-- Employee Column -->
-              <td class="px-6 py-4">
-                <div class="flex items-center space-x-3">
-                  <div class="w-8 h-8 bg-navy-50 text-navy-700 rounded-full flex items-center justify-center font-bold text-xs border border-navy-200">
-                    {{ c.matricule_salarie.substring(c.matricule_salarie.lastIndexOf('-') + 1) }}
-                  </div>
-                  <div>
-                    <span class="block font-bold text-slate-900 leading-tight">
-                      {{ c.matricule_salarie }}
-                    </span>
-                    <span class="text-xs text-slate-500">
-                      Régime : {{ c.unite_temps === 'Jours' ? 'Journalier' : 'Horaire' }}
-                    </span>
-                  </div>
+        <DataTable
+          :pt="{ thead: { class: 'bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]' }, tbody: { class: 'bg-white' } }"
+          class="min-w-full divide-y divide-slate-200 text-sm"
+          :value="contracts"
+          data-key="id"
+          row-hover
+        >
+          <Column header-class="px-4 py-3 text-left w-10" body-class="px-4 py-4">
+            <template #header>
+              <Checkbox v-model="allBulletinsSelected" binary />
+            </template>
+            <template #body="{ data: c }">
+              <div @click.stop>
+                <Checkbox :value="c.id" v-model="selectedBulletins" />
+              </div>
+            </template>
+          </Column>
+          <Column header="Employé" header-class="px-6 py-3 text-left" body-class="px-6 py-4">
+            <template #body="{ data: c }">
+              <div class="flex items-center space-x-3">
+                <div class="w-8 h-8 bg-navy-50 text-navy-700 rounded-full flex items-center justify-center font-bold text-xs border border-navy-200">
+                  {{ c.matricule_salarie.substring(c.matricule_salarie.lastIndexOf('-') + 1) }}
                 </div>
-              </td>
-
-              <!-- Contract Column -->
-              <td class="px-6 py-4">
-                <span class="block font-medium text-slate-800 leading-tight">
-                  {{ c.emploi || 'Poste non spécifié' }}
-                </span>
-                <span class="text-[10px] font-mono text-slate-450">
-                  N° {{ c.numero_contrat }}
-                </span>
-              </td>
-
-              <!-- Payslip Status Column -->
-              <td class="px-6 py-4">
-                <span
+                <div>
+                  <span class="block font-bold text-slate-900 leading-tight">
+                    {{ c.matricule_salarie }}
+                  </span>
+                  <span class="text-xs text-slate-500">
+                    Régime : {{ c.unite_temps === 'Jours' ? 'Journalier' : 'Horaire' }}
+                  </span>
+                </div>
+              </div>
+            </template>
+          </Column>
+          <Column header="N° Contrat / Poste" header-class="px-6 py-3 text-left" body-class="px-6 py-4">
+            <template #body="{ data: c }">
+              <span class="block font-medium text-slate-800 leading-tight">
+                {{ c.emploi || 'Poste non spécifié' }}
+              </span>
+              <span class="text-[10px] font-mono text-slate-450">
+                N° {{ c.numero_contrat }}
+              </span>
+            </template>
+          </Column>
+          <Column header="Statut Bulletin" header-class="px-6 py-3 text-left" body-class="px-6 py-4">
+            <template #body="{ data: c }">
+              <span
+                v-if="bulletinsMap[c.id]"
+                :class="[
+                  bulletinsMap[c.id].statut === 'valide' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-yellow-50 text-yellow-700 border-yellow-200',
+                  'px-2.5 py-0.5 rounded text-[10px] uppercase font-bold border inline-block'
+                ]"
+              >
+                {{ bulletinsMap[c.id].statut }}
+              </span>
+              <span
+                v-else
+                class="bg-navy-50 text-navy-700 border-navy-200 px-2.5 py-0.5 rounded text-[10px] uppercase font-bold border inline-block"
+              >
+                Non calculé
+              </span>
+            </template>
+          </Column>
+          <Column header="Salaire Brut" header-class="px-6 py-3 text-right" body-class="px-6 py-4 text-right font-mono text-slate-650">
+            <template #body="{ data: c }">
+              {{ bulletinsMap[c.id] ? formatXOF(bulletinsMap[c.id].salaire_brut) : '-' }}
+            </template>
+          </Column>
+          <Column header="Net à Payer" header-class="px-6 py-3 text-right" body-class="px-6 py-4 text-right font-mono font-bold text-slate-900">
+            <template #body="{ data: c }">
+              {{ bulletinsMap[c.id] ? formatXOF(bulletinsMap[c.id].net_a_payer) : '-' }}
+            </template>
+          </Column>
+          <Column header-class="relative px-6 py-3" body-class="px-6 py-4 text-right">
+            <template #header>
+              <span class="sr-only">Actions</span>
+            </template>
+            <template #body="{ data: c }">
+              <div class="flex justify-end space-x-2">
+                <NuxtLink
                   v-if="bulletinsMap[c.id]"
-                  :class="[
-                    bulletinsMap[c.id].statut === 'valide' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-yellow-50 text-yellow-700 border-yellow-200',
-                    'px-2.5 py-0.5 rounded text-[10px] uppercase font-bold border inline-block'
-                  ]"
+                  :to="`/dossiers/${dossierId}/etablissements/${c.etablissement_id}/salaries/${c.salarie_id}/contrats/${c.id}/bulletins/${bulletinsMap[c.id].id}`"
+                  class="px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1"
                 >
-                  {{ bulletinsMap[c.id].statut }}
-                </span>
-                <span
+                  <Icon name="i-lucide-eye" class="w-3.5 h-3.5" />
+                  Voir
+                </NuxtLink>
+                <button
                   v-else
-                  class="bg-navy-50 text-navy-700 border-navy-200 px-2.5 py-0.5 rounded text-[10px] uppercase font-bold border inline-block"
+                  @click="handleCalculateSingle(c.id)"
+                  class="px-2.5 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-semibold transition-colors flex items-center gap-1"
                 >
-                  Non calculé
-                </span>
-              </td>
-
-              <!-- Brut Column -->
-              <td class="px-6 py-4 text-right font-mono text-slate-650">
-                {{ bulletinsMap[c.id] ? formatXOF(bulletinsMap[c.id].salaire_brut) : '-' }}
-              </td>
-
-              <!-- Net Column -->
-              <td class="px-6 py-4 text-right font-mono font-bold text-slate-900">
-                {{ bulletinsMap[c.id] ? formatXOF(bulletinsMap[c.id].net_a_payer) : '-' }}
-              </td>
-
-              <!-- Actions Column -->
-              <td class="px-6 py-4 text-right">
-                <div class="flex justify-end space-x-2">
-                  <NuxtLink
-                    v-if="bulletinsMap[c.id]"
-                    :to="`/dossiers/${dossierId}/etablissements/${c.etablissement_id}/salaries/${c.salarie_id}/contrats/${c.id}/bulletins/${bulletinsMap[c.id].id}`"
-                    class="px-2.5 py-1.5 border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1"
-                  >
-                    <Icon name="i-lucide-eye" class="w-3.5 h-3.5" />
-                    Voir
-                  </NuxtLink>
-                  <button
-                    v-else
-                    @click="handleCalculateSingle(c.id)"
-                    class="px-2.5 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-semibold transition-colors flex items-center gap-1"
-                  >
-                    <Icon name="i-lucide-calculator" class="w-3.5 h-3.5" />
-                    Calculer
-                  </button>
-                </div>
-              </td>
-
-            </tr>
-          </tbody>
-        </table>
+                  <Icon name="i-lucide-calculator" class="w-3.5 h-3.5" />
+                  Calculer
+                </button>
+              </div>
+            </template>
+          </Column>
+        </DataTable>
       </div>
     </div>
 

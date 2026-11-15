@@ -230,60 +230,61 @@ onMounted(() => {
         <form class="grid grid-cols-1 md:grid-cols-2 gap-4" @submit.prevent="creerMembre">
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500" for="membre_prenom">Prénom</label>
-            <input
+            <InputText
               id="membre_prenom"
               v-model="form.prenom"
-              type="text"
               required
               placeholder="Adjoua"
               class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
+            />
           </div>
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500" for="membre_nom">Nom</label>
-            <input
+            <InputText
               id="membre_nom"
               v-model="form.nom"
-              type="text"
               required
               placeholder="Yao"
               class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
+            />
           </div>
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500" for="membre_email">Email professionnel</label>
-            <input
+            <InputText
               id="membre_email"
               v-model="form.email"
               type="email"
               required
               placeholder="prenom.nom@cabinet.ci"
               class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
+            />
           </div>
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500" for="membre_role">Rôle</label>
-            <select
+            <Select
               id="membre_role"
               v-model="form.role"
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
-              <option value="gestionnaire_paie">Gestionnaire de paie</option>
-              <option value="cabinet">Administrateur du cabinet</option>
-            </select>
+              class="mt-1 block w-full text-sm"
+              :options="[
+                { label: `Gestionnaire de paie`, value: 'gestionnaire_paie' },
+                { label: `Administrateur du cabinet`, value: 'cabinet' }
+              ]"
+              option-label="label"
+              option-value="value"
+            />
           </div>
           <div class="md:col-span-2">
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500" for="membre_password">
               Mot de passe (facultatif)
             </label>
-            <input
+            <InputText
               id="membre_password"
               v-model="form.password"
               type="password"
               minlength="8"
               placeholder="Laisser vide pour générer et envoyer un mot de passe"
               class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
-            >
+            />
           </div>
           <div class="md:col-span-2 flex justify-end gap-3">
             <button
@@ -318,84 +319,89 @@ onMounted(() => {
         </div>
 
         <div v-else class="overflow-x-auto">
-          <table class="min-w-full text-sm">
-            <thead>
-              <tr>
-                <th scope="col" class="px-5 py-3 text-left">Membre</th>
-                <th scope="col" class="px-5 py-3 text-left">Rôle</th>
-                <th scope="col" class="px-5 py-3 text-left">Sociétés</th>
-                <th scope="col" class="px-5 py-3 text-left">Statut</th>
-                <th scope="col" class="px-5 py-3 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="membre in membres" :key="membre.id" class="hover:bg-slate-50">
-                <td class="px-5 py-4">
-                  <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 bg-navy-50 border border-navy-200 text-navy-700 rounded-full flex items-center justify-center font-bold text-xs shrink-0">
-                      {{ (membre.prenom || membre.email || '?').charAt(0).toUpperCase() }}
-                    </div>
-                    <div>
-                      <div class="flex items-center gap-2 flex-wrap">
-                        <span class="font-bold text-navy-900">
-                          {{ [membre.prenom, membre.nom].filter(Boolean).join(' ') || membre.email }}
-                        </span>
-                        <span
-                          v-if="membre.est_proprietaire"
-                          class="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-navy-50 text-navy-700 border border-navy-200"
-                        >
-                          Propriétaire
-                        </span>
-                        <span
-                          v-if="membre.id === user?.id"
-                          class="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-green-50 text-green-700 border border-green-200"
-                        >
-                          Vous
-                        </span>
-                      </div>
-                      <p class="text-xs text-slate-500">{{ membre.email }}</p>
-                    </div>
+          <DataTable
+            class="min-w-full text-sm"
+            :value="membres"
+            data-key="id"
+            row-hover
+          >
+            <Column header="Membre" header-class="px-5 py-3 text-left" body-class="px-5 py-4">
+              <template #body="{ data: membre }">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 bg-navy-50 border border-navy-200 text-navy-700 rounded-full flex items-center justify-center font-bold text-xs shrink-0">
+                    {{ (membre.prenom || membre.email || '?').charAt(0).toUpperCase() }}
                   </div>
-                </td>
-                <td class="px-5 py-4">
-                  <select
-                    :value="membre.role"
-                    :disabled="!peutChangerRole(membre)"
-                    class="px-2 py-1.5 border border-slate-300 rounded-md text-xs bg-white disabled:bg-slate-50 disabled:text-slate-500"
-                    @change="changerRole(membre, $event.target.value)"
-                  >
-                    <option value="gestionnaire_paie">Gestionnaire de paie</option>
-                    <option value="cabinet">Administrateur du cabinet</option>
-                  </select>
-                </td>
-                <td class="px-5 py-4 text-slate-600">
-                  <span class="font-bold text-navy-900">{{ membre.nombre_societes }}</span>
-                  <span class="text-xs text-slate-500"> société{{ membre.nombre_societes > 1 ? 's' : '' }}</span>
-                </td>
-                <td class="px-5 py-4">
-                  <span
-                    class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border"
-                    :class="membre.is_active
-                      ? 'bg-green-50 text-green-700 border-green-200'
-                      : 'bg-slate-100 text-slate-600 border-slate-200'"
-                  >
-                    {{ membre.is_active ? 'Actif' : 'Désactivé' }}
-                  </span>
-                </td>
-                <td class="px-5 py-4 text-right">
-                  <button
-                    type="button"
-                    :disabled="!peutModifier(membre)"
-                    class="text-xs font-semibold transition-colors disabled:text-slate-300 disabled:cursor-not-allowed"
-                    :class="membre.is_active ? 'text-red-600 hover:text-red-800' : 'text-green-700 hover:text-green-800'"
-                    @click="basculerActif(membre)"
-                  >
-                    {{ membre.is_active ? 'Désactiver' : 'Réactiver' }}
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                  <div>
+                    <div class="flex items-center gap-2 flex-wrap">
+                      <span class="font-bold text-navy-900">
+                        {{ [membre.prenom, membre.nom].filter(Boolean).join(' ') || membre.email }}
+                      </span>
+                      <span
+                        v-if="membre.est_proprietaire"
+                        class="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-navy-50 text-navy-700 border border-navy-200"
+                      >
+                        Propriétaire
+                      </span>
+                      <span
+                        v-if="membre.id === user?.id"
+                        class="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider bg-green-50 text-green-700 border border-green-200"
+                      >
+                        Vous
+                      </span>
+                    </div>
+                    <p class="text-xs text-slate-500">{{ membre.email }}</p>
+                  </div>
+                </div>
+              </template>
+            </Column>
+            <Column header="Rôle" header-class="px-5 py-3 text-left" body-class="px-5 py-4">
+              <template #body="{ data: membre }">
+                <Select
+                  :model-value="membre.role"
+                  :disabled="!peutChangerRole(membre)"
+                  class="text-xs"
+                  @change="changerRole(membre, $event.value)"
+                  :options="[
+                    { label: `Gestionnaire de paie`, value: 'gestionnaire_paie' },
+                    { label: `Administrateur du cabinet`, value: 'cabinet' }
+                  ]"
+                  option-label="label"
+                  option-value="value"
+                />
+              </template>
+            </Column>
+            <Column header="Sociétés" header-class="px-5 py-3 text-left" body-class="px-5 py-4 text-slate-600">
+              <template #body="{ data: membre }">
+                <span class="font-bold text-navy-900">{{ membre.nombre_societes }}</span>
+                <span class="text-xs text-slate-500"> société{{ membre.nombre_societes > 1 ? 's' : '' }}</span>
+              </template>
+            </Column>
+            <Column header="Statut" header-class="px-5 py-3 text-left" body-class="px-5 py-4">
+              <template #body="{ data: membre }">
+                <span
+                  class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border"
+                  :class="membre.is_active
+                    ? 'bg-green-50 text-green-700 border-green-200'
+                    : 'bg-slate-100 text-slate-600 border-slate-200'"
+                >
+                  {{ membre.is_active ? 'Actif' : 'Désactivé' }}
+                </span>
+              </template>
+            </Column>
+            <Column header="Action" header-class="px-5 py-3 text-right" body-class="px-5 py-4 text-right">
+              <template #body="{ data: membre }">
+                <button
+                  type="button"
+                  :disabled="!peutModifier(membre)"
+                  class="text-xs font-semibold transition-colors disabled:text-slate-300 disabled:cursor-not-allowed"
+                  :class="membre.is_active ? 'text-red-600 hover:text-red-800' : 'text-green-700 hover:text-green-800'"
+                  @click="basculerActif(membre)"
+                >
+                  {{ membre.is_active ? 'Désactiver' : 'Réactiver' }}
+                </button>
+              </template>
+            </Column>
+          </DataTable>
         </div>
       </div>
 

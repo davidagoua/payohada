@@ -592,9 +592,8 @@ onMounted(() => {
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Nom du Dossier / Entreprise</label>
-            <input 
-              v-model="editNom" 
-              type="text" 
+            <InputText
+              v-model="editNom"
               required
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm transition-colors',
@@ -605,9 +604,8 @@ onMounted(() => {
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">RCCM Principal</label>
-            <input 
-              v-model="editRccm" 
-              type="text" 
+            <InputText
+              v-model="editRccm"
               placeholder="Ex : CI-ABJ-03-2024-B12-01234"
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono transition-colors',
@@ -618,20 +616,22 @@ onMounted(() => {
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Jour de virement (chaque mois)</label>
-            <select
+            <Select
               v-model.number="editJourVirement"
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-            >
-              <option :value="null">-- Non précisé --</option>
-              <option v-for="jour in 31" :key="jour" :value="jour">{{ jour }}</option>
-            </select>
+              class="mt-1 block w-full text-sm"
+              :options="[
+                { label: `-- Non précisé --`, value: null },
+                ...Array.from({ length: 31 }, (_, i) => i + 1).map(jour => ({ label: `${jour}`, value: jour }))
+              ]"
+              option-label="label"
+              option-value="value"
+            />
             <p class="mt-1 text-[11px] text-slate-400">Date de paiement des salaires, récurrente.</p>
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Pays de Référence</label>
-            <input 
-              v-model="editPays" 
-              type="text" 
+            <InputText
+              v-model="editPays"
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm transition-colors',
                 fieldErrors.pays ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -644,9 +644,8 @@ onMounted(() => {
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Nom du Contact RH</label>
-            <input 
-              v-model="editContact" 
-              type="text" 
+            <InputText
+              v-model="editContact"
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm transition-colors',
                 fieldErrors.nom_contact ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -656,9 +655,9 @@ onMounted(() => {
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Adresse Email</label>
-            <input 
-              v-model="editEmail" 
-              type="email" 
+            <InputText
+              v-model="editEmail"
+              type="email"
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm transition-colors',
                 fieldErrors.adresse_email ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -668,9 +667,8 @@ onMounted(() => {
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Téléphone</label>
-            <input 
-              v-model="editPhone" 
-              type="text" 
+            <InputText
+              v-model="editPhone"
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm transition-colors',
                 fieldErrors.telephone ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -729,42 +727,57 @@ onMounted(() => {
           Aucun établissement créé pour le moment.
         </div>
         <div v-else class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-slate-200 text-sm">
-            <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-              <tr>
-                <th scope="col" class="px-4 py-3 text-left w-10">
-                  <input type="checkbox" v-model="allEtabsSelected" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
-                </th>
-                <th scope="col" class="px-6 py-3 text-left">Code</th>
-                <th scope="col" class="px-6 py-3 text-left">Raison Sociale</th>
-                <th scope="col" class="px-6 py-3 text-left">Matricule CNPS</th>
-                <th scope="col" class="px-6 py-3 text-left">N° Contribuable (DGI)</th>
-                <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-150 bg-white">
-              <tr 
-                v-for="etab in etablissements" 
-                :key="etab.id" 
-                @click="router.push(`/dossiers/${dossierId}/etablissements/${etab.id}`)"
-                class="hover:bg-slate-50 cursor-pointer group"
-              >
-                <td class="px-4 py-4" @click.stop>
-                  <input type="checkbox" :value="etab.id" v-model="selectedEtabs" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
-                </td>
-                <td class="px-6 py-4 font-mono font-semibold text-slate-900">{{ etab.code }}</td>
-                <td class="px-6 py-4 font-medium text-slate-700 group-hover:text-navy-700 transition-colors">{{ etab.raison_sociale }}</td>
-                <td class="px-6 py-4 font-mono text-slate-500">{{ etab.cnps_matricule || '-' }}</td>
-                <td class="px-6 py-4 font-mono text-slate-500">{{ etab.dgi_compte_contribuable || '-' }}</td>
-                <td class="px-6 py-4 text-right">
-                  <span class="text-navy-700 group-hover:underline text-xs font-semibold flex items-center justify-end gap-1">
-                    Gérer
-                    <Icon name="i-lucide-chevron-right" class="w-4 h-4" />
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <DataTable
+            :pt="{ thead: { class: 'bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]' }, tbody: { class: 'bg-white' } }"
+            class="min-w-full divide-y divide-slate-200 text-sm"
+            :value="etablissements"
+            data-key="id"
+            @row-click="({ data: etab }) => router.push(`/dossiers/${dossierId}/etablissements/${etab.id}`)"
+            :row-class="() => 'cursor-pointer group'"
+            row-hover
+          >
+            <Column header-class="px-4 py-3 text-left w-10" body-class="px-4 py-4">
+              <template #header>
+                <Checkbox v-model="allEtabsSelected" binary />
+              </template>
+              <template #body="{ data: etab }">
+                <div @click.stop>
+                  <Checkbox :value="etab.id" v-model="selectedEtabs" />
+                </div>
+              </template>
+            </Column>
+            <Column header="Code" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-mono font-semibold text-slate-900">
+              <template #body="{ data: etab }">
+                {{ etab.code }}
+              </template>
+            </Column>
+            <Column header="Raison Sociale" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-medium text-slate-700 group-hover:text-navy-700 transition-colors">
+              <template #body="{ data: etab }">
+                {{ etab.raison_sociale }}
+              </template>
+            </Column>
+            <Column header="Matricule CNPS" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-mono text-slate-500">
+              <template #body="{ data: etab }">
+                {{ etab.cnps_matricule || '-' }}
+              </template>
+            </Column>
+            <Column header="N° Contribuable (DGI)" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-mono text-slate-500">
+              <template #body="{ data: etab }">
+                {{ etab.dgi_compte_contribuable || '-' }}
+              </template>
+            </Column>
+            <Column header-class="relative px-6 py-3" body-class="px-6 py-4 text-right">
+              <template #header>
+                <span class="sr-only">Actions</span>
+              </template>
+              <template #body>
+                <span class="text-navy-700 group-hover:underline text-xs font-semibold flex items-center justify-end gap-1">
+                  Gérer
+                  <Icon name="i-lucide-chevron-right" class="w-4 h-4" />
+                </span>
+              </template>
+            </Column>
+          </DataTable>
         </div>
       </div>
     </div>
@@ -780,9 +793,8 @@ onMounted(() => {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-slate-100 pt-4">
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">SIRET NetEntreprise <span class="text-red-500">*</span></label>
-            <input 
-              v-model="neSiret" 
-              type="text" 
+            <InputText
+              v-model="neSiret"
               required
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono focus:outline-none transition-colors',
@@ -793,9 +805,8 @@ onMounted(() => {
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Nom du déclarant <span class="text-red-500">*</span></label>
-            <input 
-              v-model="neNom" 
-              type="text" 
+            <InputText
+              v-model="neNom"
               required
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm focus:outline-none transition-colors',
@@ -809,9 +820,8 @@ onMounted(() => {
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Prénom <span class="text-red-500">*</span></label>
-            <input 
-              v-model="nePrenom" 
-              type="text" 
+            <InputText
+              v-model="nePrenom"
               required
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm focus:outline-none transition-colors',
@@ -822,9 +832,9 @@ onMounted(() => {
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Adresse Email <span class="text-red-500">*</span></label>
-            <input 
-              v-model="neEmail" 
-              type="email" 
+            <InputText
+              v-model="neEmail"
+              type="email"
               required
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm focus:outline-none transition-colors',
@@ -835,9 +845,8 @@ onMounted(() => {
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Téléphone</label>
-            <input 
-              v-model="nePhone" 
-              type="text" 
+            <InputText
+              v-model="nePhone"
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm focus:outline-none transition-colors',
                 fieldErrors.telephone ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -882,16 +891,16 @@ onMounted(() => {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Nom du Département <span class="text-red-500">*</span></label>
-              <input type="text" v-model="formDept.nom" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" placeholder="Ressources Humaines, Comptabilité, etc." />
+              <InputText v-model="formDept.nom" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" placeholder="Ressources Humaines, Comptabilité, etc." />
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Code Département / Abréviation</label>
-              <input type="text" v-model="formDept.code" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" placeholder="RH, COMPTA, etc." />
+              <InputText v-model="formDept.code" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" placeholder="RH, COMPTA, etc." />
             </div>
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-500 uppercase">Description</label>
-            <textarea v-model="formDept.description" rows="2" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" placeholder="Description du service..."></textarea>
+            <Textarea v-model="formDept.description" rows="2" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" placeholder="Description du service..." />
           </div>
           <div class="flex justify-end space-x-2">
             <button type="button" @click="cancelDept" class="px-3 py-1.5 border border-slate-300 text-slate-600 hover:bg-slate-100 rounded-lg text-xs font-semibold">Annuler</button>
@@ -904,27 +913,38 @@ onMounted(() => {
           Aucun département créé pour le moment.
         </div>
         <div v-else-if="!showDeptForm" class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-slate-200 text-sm">
-            <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-              <tr>
-                <th scope="col" class="px-6 py-3 text-left">Code</th>
-                <th scope="col" class="px-6 py-3 text-left">Nom du Département</th>
-                <th scope="col" class="px-6 py-3 text-left">Description</th>
-                <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-150 bg-white">
-              <tr v-for="item in departements" :key="item.id" class="hover:bg-slate-50">
-                <td class="px-6 py-4 font-mono font-semibold text-slate-900">{{ item.code || '-' }}</td>
-                <td class="px-6 py-4 font-medium text-slate-700">{{ item.nom }}</td>
-                <td class="px-6 py-4 text-slate-500 max-w-xs truncate">{{ item.description || '-' }}</td>
-                <td class="px-6 py-4 text-right space-x-2">
-                  <button @click="editDept(item)" class="text-navy-700 hover:text-navy-900 text-xs font-semibold">Modifier</button>
-                  <button @click="deleteDept(item.id)" class="text-red-600 hover:text-red-800 text-xs font-semibold">Supprimer</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <DataTable
+            :pt="{ thead: { class: 'bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]' }, tbody: { class: 'bg-white' } }"
+            class="min-w-full divide-y divide-slate-200 text-sm"
+            :value="departements"
+            data-key="id"
+            row-hover
+          >
+            <Column header="Code" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-mono font-semibold text-slate-900">
+              <template #body="{ data: item }">
+                {{ item.code || '-' }}
+              </template>
+            </Column>
+            <Column header="Nom du Département" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-medium text-slate-700">
+              <template #body="{ data: item }">
+                {{ item.nom }}
+              </template>
+            </Column>
+            <Column header="Description" header-class="px-6 py-3 text-left" body-class="px-6 py-4 text-slate-500 max-w-xs truncate">
+              <template #body="{ data: item }">
+                {{ item.description || '-' }}
+              </template>
+            </Column>
+            <Column header-class="relative px-6 py-3" body-class="px-6 py-4 text-right space-x-2">
+              <template #header>
+                <span class="sr-only">Actions</span>
+              </template>
+              <template #body="{ data: item }">
+                <button @click="editDept(item)" class="text-navy-700 hover:text-navy-900 text-xs font-semibold">Modifier</button>
+                <button @click="deleteDept(item.id)" class="text-red-600 hover:text-red-800 text-xs font-semibold">Supprimer</button>
+              </template>
+            </Column>
+          </DataTable>
         </div>
       </div>
     </div>
@@ -982,21 +1002,19 @@ onMounted(() => {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-semibold text-slate-600 uppercase">Nom du responsable <span class="text-red-500">*</span></label>
-                <input 
-                  type="text" 
-                  v-model="formClient.nom" 
-                  required 
+                <InputText
+                  v-model="formClient.nom"
+                  required
                   class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-green-500 focus:outline-none"
-                  placeholder="Ex: TRAORE" 
+                  placeholder="Ex: TRAORE"
                 />
               </div>
               <div>
                 <label class="block text-xs font-semibold text-slate-600 uppercase">Prénom</label>
-                <input 
-                  type="text" 
-                  v-model="formClient.prenom" 
+                <InputText
+                  v-model="formClient.prenom"
                   class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-green-500 focus:outline-none"
-                  placeholder="Ex: Ibrahim" 
+                  placeholder="Ex: Ibrahim"
                 />
               </div>
             </div>
@@ -1004,21 +1022,20 @@ onMounted(() => {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-semibold text-slate-600 uppercase">Adresse Email de connexion <span class="text-red-500">*</span></label>
-                <input 
-                  type="email" 
-                  v-model="formClient.email" 
-                  required 
+                <InputText
+                  type="email"
+                  v-model="formClient.email"
+                  required
                   class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-green-500 focus:outline-none"
-                  placeholder="rh@entreprise-cliente.com" 
+                  placeholder="rh@entreprise-cliente.com"
                 />
               </div>
               <div>
                 <label class="block text-xs font-semibold text-slate-600 uppercase">Mot de passe temporaire (facultatif)</label>
-                <input 
-                  type="text" 
-                  v-model="formClient.password" 
+                <InputText
+                  v-model="formClient.password"
                   class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono bg-white focus:ring-2 focus:ring-green-500 focus:outline-none"
-                  placeholder="Laisser vide pour génération automatique" 
+                  placeholder="Laisser vide pour génération automatique"
                 />
                 <span class="text-[11px] text-slate-400">
                   Si laissé vide, un mot de passe aléatoire est généré et affiché une seule fois.
@@ -1064,74 +1081,77 @@ onMounted(() => {
         </div>
 
         <div v-else-if="!showClientForm" class="overflow-x-auto border border-slate-200 rounded-xl">
-          <table class="min-w-full divide-y divide-slate-200 text-sm">
-            <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-              <tr>
-                <th scope="col" class="px-6 py-3.5 text-left">Responsable</th>
-                <th scope="col" class="px-6 py-3.5 text-left">Email de connexion</th>
-                <th scope="col" class="px-6 py-3.5 text-left">Rôle plateforme</th>
-                <th scope="col" class="px-6 py-3.5 text-left">Statut</th>
-                <th scope="col" class="px-6 py-3.5 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-150 bg-white">
-              <tr v-for="user in comptesClients" :key="user.id" class="hover:bg-slate-50">
-                <td class="px-6 py-4">
-                  <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-navy-100 text-navy-800 font-bold text-xs flex items-center justify-center">
-                      {{ (user.prenom?.[0] || '') + (user.nom?.[0] || 'C') }}
-                    </div>
-                    <div>
-                      <span class="font-bold text-slate-900 block">{{ user.prenom }} {{ user.nom }}</span>
-                      <span class="text-xs text-slate-400">ID: {{ user.id }}</span>
-                    </div>
+          <DataTable
+            :pt="{ thead: { class: 'bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]' }, tbody: { class: 'bg-white' } }"
+            class="min-w-full divide-y divide-slate-200 text-sm"
+            :value="comptesClients"
+            data-key="id"
+            row-hover
+          >
+            <Column header="Responsable" header-class="px-6 py-3.5 text-left" body-class="px-6 py-4">
+              <template #body="{ data: user }">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-navy-100 text-navy-800 font-bold text-xs flex items-center justify-center">
+                    {{ (user.prenom?.[0] || '') + (user.nom?.[0] || 'C') }}
                   </div>
-                </td>
-                <td class="px-6 py-4 font-mono text-xs text-slate-700">
-                  <div class="flex items-center gap-2">
-                    <span>{{ user.email }}</span>
-                    <button @click="copyToClipboard(user.email, 'Email')" class="text-slate-400 hover:text-slate-600" title="Copier l'email">
-                      <Icon name="i-lucide-copy" class="w-3.5 h-3.5" />
-                    </button>
+                  <div>
+                    <span class="font-bold text-slate-900 block">{{ user.prenom }} {{ user.nom }}</span>
+                    <span class="text-xs text-slate-400">ID: {{ user.id }}</span>
                   </div>
-                </td>
-                <td class="px-6 py-4">
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-navy-50 text-navy-700 border border-navy-200">
-                    <Icon name="i-lucide-briefcase" class="w-3 h-3 mr-1 text-navy-700" />
-                    Client Entreprise
-                  </span>
-                </td>
-                <td class="px-6 py-4">
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-50 text-green-700">
-                    <span class="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5 animate-pulse"></span>
-                    Actif
-                  </span>
-                </td>
-                <td class="px-6 py-4 text-right space-x-2">
-                  <button 
-                    @click="copyToClipboard(user.email, 'Email')"
-                    class="text-xs font-semibold text-navy-700 hover:text-navy-900 inline-flex items-center gap-1"
-                  >
+                </div>
+              </template>
+            </Column>
+            <Column header="Email de connexion" header-class="px-6 py-3.5 text-left" body-class="px-6 py-4 font-mono text-xs text-slate-700">
+              <template #body="{ data: user }">
+                <div class="flex items-center gap-2">
+                  <span>{{ user.email }}</span>
+                  <button @click="copyToClipboard(user.email, 'Email')" class="text-slate-400 hover:text-slate-600" title="Copier l'email">
                     <Icon name="i-lucide-copy" class="w-3.5 h-3.5" />
-                    Copier email
                   </button>
-                  <button
-                    title="Génère un nouveau mot de passe provisoire et l'envoie par email au client"
-                    :disabled="envoiAccesEnCours === user.id"
-                    class="text-xs font-semibold text-slate-600 hover:text-slate-900 disabled:opacity-40 inline-flex items-center gap-1"
-                    @click="envoyerIdentifiants(user)"
-                  >
-                    <Icon
-                      :name="envoiAccesEnCours === user.id ? 'i-lucide-loader-2' : 'i-lucide-mail'"
-                      class="w-3.5 h-3.5"
-                      :class="{ 'animate-spin': envoiAccesEnCours === user.id }"
-                    />
-                    Envoyer les identifiants
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                </div>
+              </template>
+            </Column>
+            <Column header="Rôle plateforme" header-class="px-6 py-3.5 text-left" body-class="px-6 py-4">
+              <template #body>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-navy-50 text-navy-700 border border-navy-200">
+                  <Icon name="i-lucide-briefcase" class="w-3 h-3 mr-1 text-navy-700" />
+                  Client Entreprise
+                </span>
+              </template>
+            </Column>
+            <Column header="Statut" header-class="px-6 py-3.5 text-left" body-class="px-6 py-4">
+              <template #body>
+                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-50 text-green-700">
+                  <span class="w-1.5 h-1.5 rounded-full bg-green-500 mr-1.5 animate-pulse"></span>
+                  Actif
+                </span>
+              </template>
+            </Column>
+            <Column header="Actions" header-class="px-6 py-3.5 text-right" body-class="px-6 py-4 text-right space-x-2">
+              <template #body="{ data: user }">
+                <button
+                  @click="copyToClipboard(user.email, 'Email')"
+                  class="text-xs font-semibold text-navy-700 hover:text-navy-900 inline-flex items-center gap-1"
+                >
+                  <Icon name="i-lucide-copy" class="w-3.5 h-3.5" />
+                  Copier email
+                </button>
+                <button
+                  title="Génère un nouveau mot de passe provisoire et l'envoie par email au client"
+                  :disabled="envoiAccesEnCours === user.id"
+                  class="text-xs font-semibold text-slate-600 hover:text-slate-900 disabled:opacity-40 inline-flex items-center gap-1"
+                  @click="envoyerIdentifiants(user)"
+                >
+                  <Icon
+                    :name="envoiAccesEnCours === user.id ? 'i-lucide-loader-2' : 'i-lucide-mail'"
+                    class="w-3.5 h-3.5"
+                    :class="{ 'animate-spin': envoiAccesEnCours === user.id }"
+                  />
+                  Envoyer les identifiants
+                </button>
+              </template>
+            </Column>
+          </DataTable>
         </div>
       </div>
     </div>
@@ -1192,9 +1212,8 @@ onMounted(() => {
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-semibold text-slate-600 uppercase">Nom <span class="text-red-500">*</span></label>
-                <input
+                <InputText
                   v-model="formGestionnaire.nom"
-                  type="text"
                   required
                   placeholder="Ex: YAO"
                   class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-green-500 focus:outline-none"
@@ -1202,16 +1221,15 @@ onMounted(() => {
               </div>
               <div>
                 <label class="block text-xs font-semibold text-slate-600 uppercase">Prénom</label>
-                <input
+                <InputText
                   v-model="formGestionnaire.prenom"
-                  type="text"
                   placeholder="Ex: Adjoua"
                   class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-green-500 focus:outline-none"
                 />
               </div>
               <div class="md:col-span-2">
                 <label class="block text-xs font-semibold text-slate-600 uppercase">Email de connexion <span class="text-red-500">*</span></label>
-                <input
+                <InputText
                   v-model="formGestionnaire.email"
                   type="email"
                   required
@@ -1224,9 +1242,8 @@ onMounted(() => {
               </div>
               <div class="md:col-span-2">
                 <label class="block text-xs font-semibold text-slate-600 uppercase">Mot de passe (facultatif)</label>
-                <input
+                <InputText
                   v-model="formGestionnaire.password"
-                  type="text"
                   placeholder="Laisser vide pour en générer un et l'envoyer par email"
                   class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-green-500 focus:outline-none"
                 />
@@ -1265,62 +1282,66 @@ onMounted(() => {
           </p>
         </div>
         <div v-else class="overflow-x-auto border border-slate-200 rounded-xl">
-          <table class="min-w-full divide-y divide-slate-200 text-sm">
-            <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-              <tr>
-                <th class="px-6 py-3.5 text-left">Gestionnaire</th>
-                <th class="px-6 py-3.5 text-left">Email de connexion</th>
-                <th class="px-6 py-3.5 text-left">Statut</th>
-                <th class="px-6 py-3.5 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100 bg-white">
-              <tr v-for="compte in gestionnaires" :key="compte.id" class="hover:bg-slate-50">
-                <td class="px-6 py-4">
-                  <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-full bg-navy-100 text-navy-800 font-bold text-xs flex items-center justify-center">
-                      {{ (compte.prenom?.[0] || '') + (compte.nom?.[0] || 'G') }}
-                    </div>
-                    <div>
-                      <span class="font-bold text-slate-900 block">{{ compte.prenom }} {{ compte.nom }}</span>
-                      <span class="text-xs text-slate-400">ID: {{ compte.id }}</span>
-                    </div>
+          <DataTable
+            :pt="{ thead: { class: 'bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]' }, tbody: { class: 'bg-white' } }"
+            class="min-w-full divide-y divide-slate-200 text-sm"
+            :value="gestionnaires"
+            data-key="id"
+            row-hover
+          >
+            <Column header="Gestionnaire" header-class="px-6 py-3.5 text-left" body-class="px-6 py-4">
+              <template #body="{ data: compte }">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-navy-100 text-navy-800 font-bold text-xs flex items-center justify-center">
+                    {{ (compte.prenom?.[0] || '') + (compte.nom?.[0] || 'G') }}
                   </div>
-                </td>
-                <td class="px-6 py-4 font-mono text-xs text-slate-700">{{ compte.email }}</td>
-                <td class="px-6 py-4">
-                  <span
-                    class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold"
-                    :class="compte.is_active ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-500'"
-                  >
-                    {{ compte.is_active ? 'Actif' : 'Désactivé' }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 text-right space-x-3">
-                  <button
-                    :disabled="envoiGestionnaireEnCours === compte.id"
-                    title="Génère un nouveau mot de passe provisoire et l'envoie par email"
-                    class="text-xs font-semibold text-slate-600 hover:text-slate-900 disabled:opacity-40 inline-flex items-center gap-1"
-                    @click="envoyerIdentifiantsGestionnaire(compte)"
-                  >
-                    <Icon
-                      :name="envoiGestionnaireEnCours === compte.id ? 'i-lucide-loader-2' : 'i-lucide-mail'"
-                      class="w-3.5 h-3.5"
-                      :class="{ 'animate-spin': envoiGestionnaireEnCours === compte.id }"
-                    />
-                    Envoyer les identifiants
-                  </button>
-                  <button
-                    class="text-xs font-semibold text-red-600 hover:text-red-800 inline-flex items-center gap-1"
-                    @click="retirerGestionnaire(compte)"
-                  >
-                    <Icon name="i-lucide-user-minus" class="w-3.5 h-3.5" />
-                    Retirer
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                  <div>
+                    <span class="font-bold text-slate-900 block">{{ compte.prenom }} {{ compte.nom }}</span>
+                    <span class="text-xs text-slate-400">ID: {{ compte.id }}</span>
+                  </div>
+                </div>
+              </template>
+            </Column>
+            <Column header="Email de connexion" header-class="px-6 py-3.5 text-left" body-class="px-6 py-4 font-mono text-xs text-slate-700">
+              <template #body="{ data: compte }">
+                {{ compte.email }}
+              </template>
+            </Column>
+            <Column header="Statut" header-class="px-6 py-3.5 text-left" body-class="px-6 py-4">
+              <template #body="{ data: compte }">
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold"
+                  :class="compte.is_active ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-500'"
+                >
+                  {{ compte.is_active ? 'Actif' : 'Désactivé' }}
+                </span>
+              </template>
+            </Column>
+            <Column header="Actions" header-class="px-6 py-3.5 text-right" body-class="px-6 py-4 text-right space-x-3">
+              <template #body="{ data: compte }">
+                <button
+                  :disabled="envoiGestionnaireEnCours === compte.id"
+                  title="Génère un nouveau mot de passe provisoire et l'envoie par email"
+                  class="text-xs font-semibold text-slate-600 hover:text-slate-900 disabled:opacity-40 inline-flex items-center gap-1"
+                  @click="envoyerIdentifiantsGestionnaire(compte)"
+                >
+                  <Icon
+                    :name="envoiGestionnaireEnCours === compte.id ? 'i-lucide-loader-2' : 'i-lucide-mail'"
+                    class="w-3.5 h-3.5"
+                    :class="{ 'animate-spin': envoiGestionnaireEnCours === compte.id }"
+                  />
+                  Envoyer les identifiants
+                </button>
+                <button
+                  class="text-xs font-semibold text-red-600 hover:text-red-800 inline-flex items-center gap-1"
+                  @click="retirerGestionnaire(compte)"
+                >
+                  <Icon name="i-lucide-user-minus" class="w-3.5 h-3.5" />
+                  Retirer
+                </button>
+              </template>
+            </Column>
+          </DataTable>
         </div>
       </div>
     </div>

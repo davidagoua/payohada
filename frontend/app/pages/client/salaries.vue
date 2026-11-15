@@ -101,9 +101,8 @@ const formatFCFA = (amount) => {
       <div class="p-4 border-b border-slate-200 flex items-center justify-between gap-4">
         <div class="relative w-full max-w-sm">
           <Icon name="i-lucide-search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-          <input 
-            v-model="searchQuery" 
-            type="text" 
+          <InputText
+            v-model="searchQuery"
             placeholder="Rechercher par nom, prénom, matricule ou email..."
             class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-4 py-1.5 text-xs text-slate-800"
           />
@@ -124,43 +123,47 @@ const formatFCFA = (amount) => {
       </div>
 
       <div v-else class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-slate-200 text-left">
-          <thead class="bg-slate-50 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
-            <tr>
-              <th scope="col" class="px-4 py-3">Salarié</th>
-              <th scope="col" class="px-4 py-3">Matricule</th>
-              <th scope="col" class="px-4 py-3">Établissement</th>
-              <th scope="col" class="px-4 py-3">Contact</th>
-              <th scope="col" class="px-4 py-3">Situation</th>
-              <th scope="col" class="px-4 py-3 text-center">Statut</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-150 text-xs">
-            <tr v-for="s in filteredSalaries" :key="s.id" class="hover:bg-slate-50/70 transition-colors">
-              <td class="px-4 py-3.5 font-bold text-slate-900">
-                {{ s.nom }} {{ s.prenom }}
-              </td>
-              <td class="px-4 py-3.5 font-mono text-slate-600">
-                {{ s.matricule || `EMP-${s.id}` }}
-              </td>
-              <td class="px-4 py-3.5 text-slate-600">
-                {{ s.etablissement_nom || 'Établissement principal' }}
-              </td>
-              <td class="px-4 py-3.5 text-slate-600">
-                <div>{{ s.email || '-' }}</div>
-                <div class="text-[11px] text-slate-400">{{ s.telephone || '' }}</div>
-              </td>
-              <td class="px-4 py-3.5 text-slate-600">
-                {{ s.situation_matrimoniale || 'Célibataire' }} ({{ s.enfants_charge || 0 }} enf.)
-              </td>
-              <td class="px-4 py-3.5 text-center">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-800 border border-green-200">
-                  Actif
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <DataTable
+          :pt="{ thead: { class: 'bg-slate-50 text-[11px] font-bold text-slate-600 uppercase tracking-wider' }, tbody: { class: 'text-xs' } }"
+          class="min-w-full divide-y divide-slate-200 text-left"
+          :value="filteredSalaries"
+          data-key="id"
+          row-hover
+        >
+          <Column header="Salarié" header-class="px-4 py-3" body-class="px-4 py-3.5 font-bold text-slate-900">
+            <template #body="{ data: s }">
+              {{ s.nom }} {{ s.prenom }}
+            </template>
+          </Column>
+          <Column header="Matricule" header-class="px-4 py-3" body-class="px-4 py-3.5 font-mono text-slate-600">
+            <template #body="{ data: s }">
+              {{ s.matricule || `EMP-${s.id}` }}
+            </template>
+          </Column>
+          <Column header="Établissement" header-class="px-4 py-3" body-class="px-4 py-3.5 text-slate-600">
+            <template #body="{ data: s }">
+              {{ s.etablissement_nom || 'Établissement principal' }}
+            </template>
+          </Column>
+          <Column header="Contact" header-class="px-4 py-3" body-class="px-4 py-3.5 text-slate-600">
+            <template #body="{ data: s }">
+              <div>{{ s.email || '-' }}</div>
+              <div class="text-[11px] text-slate-400">{{ s.telephone || '' }}</div>
+            </template>
+          </Column>
+          <Column header="Situation" header-class="px-4 py-3" body-class="px-4 py-3.5 text-slate-600">
+            <template #body="{ data: s }">
+              {{ s.situation_matrimoniale || 'Célibataire' }} ({{ s.enfants_charge || 0 }} enf.)
+            </template>
+          </Column>
+          <Column header="Statut" header-class="px-4 py-3 text-center" body-class="px-4 py-3.5 text-center">
+            <template #body>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-800 border border-green-200">
+                Actif
+              </span>
+            </template>
+          </Column>
+        </DataTable>
       </div>
     </div>
   </div>

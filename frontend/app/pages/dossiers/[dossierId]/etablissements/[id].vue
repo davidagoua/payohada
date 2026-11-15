@@ -258,7 +258,7 @@ onMounted(fetchEtabDetails)
           <div class="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
             <div class="relative w-full sm:w-72">
               <Icon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-              <input
+              <InputText
                 v-model="rechercheSalarie"
                 type="search"
                 placeholder="Rechercher par nom ou matricule…"
@@ -297,74 +297,91 @@ onMounted(fetchEtabDetails)
           Aucun salarié ne correspond à « {{ rechercheSalarie }} ».
         </div>
         <div v-else class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-slate-200 text-sm">
-            <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-              <tr>
-                <th scope="col" class="px-4 py-3 text-left w-10">
-                  <input type="checkbox" v-model="allSalariesSelected" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
-                </th>
-                <th scope="col" class="px-6 py-3 text-left">Matricule</th>
-                <th scope="col" class="px-6 py-3 text-left">Nom & Prénom</th>
-                <th scope="col" class="px-6 py-3 text-left">N° Sécurité Sociale (NIR)</th>
-                <th scope="col" class="px-6 py-3 text-left">Email</th>
-                <th scope="col" class="px-6 py-3 text-left">Téléphone</th>
-                <th scope="col" class="px-6 py-3 text-left">Statut</th>
-                <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-150 bg-white">
-              <tr
-                v-for="sal in salariesFiltres"
-                :key="sal.id"
-                @click="router.push(`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${sal.id}`)"
-                class="hover:bg-slate-50/55 cursor-pointer group"
-              >
-                <td class="px-4 py-4" @click.stop>
-                  <input type="checkbox" :value="sal.id" v-model="selectedSalaries" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
-                </td>
-                <td class="px-6 py-4 font-mono font-semibold text-slate-900">{{ sal.matricule }}</td>
-                <td class="px-6 py-4 font-medium text-slate-700 group-hover:text-navy-700 transition-colors">
-                  {{ sal.nom.toUpperCase() }} {{ sal.prenom }}
-                </td>
-                <td class="px-6 py-4 font-mono text-slate-500">{{ sal.numero_securite_sociale || '-' }}</td>
-                <td class="px-6 py-4 text-slate-500">{{ sal.email || '-' }}</td>
-                <td class="px-6 py-4 text-slate-500 font-mono">{{ sal.telephone || '-' }}</td>
-                <td class="px-6 py-4">
-                  <span
-                    :class="[
-                      sal.is_active ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-100 text-slate-500 border-slate-200',
-                      'px-2 py-0.5 rounded-lg text-xs font-semibold border'
-                    ]"
+          <DataTable
+            :pt="{ thead: { class: 'bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]' }, tbody: { class: 'bg-white' } }"
+            class="min-w-full divide-y divide-slate-200 text-sm"
+            :value="salariesFiltres"
+            data-key="id"
+            @row-click="({ data: sal }) => router.push(`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${sal.id}`)"
+            :row-class="() => 'cursor-pointer group'"
+            row-hover
+          >
+            <Column header-class="px-4 py-3 text-left w-10" body-class="px-4 py-4">
+              <template #header>
+                <Checkbox v-model="allSalariesSelected" binary />
+              </template>
+              <template #body="{ data: sal }">
+                <div @click.stop>
+                  <Checkbox :value="sal.id" v-model="selectedSalaries" />
+                </div>
+              </template>
+            </Column>
+            <Column header="Matricule" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-mono font-semibold text-slate-900">
+              <template #body="{ data: sal }">
+                {{ sal.matricule }}
+              </template>
+            </Column>
+            <Column header="Nom & Prénom" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-medium text-slate-700 group-hover:text-navy-700 transition-colors">
+              <template #body="{ data: sal }">
+                {{ sal.nom.toUpperCase() }} {{ sal.prenom }}
+              </template>
+            </Column>
+            <Column header="N° Sécurité Sociale (NIR)" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-mono text-slate-500">
+              <template #body="{ data: sal }">
+                {{ sal.numero_securite_sociale || '-' }}
+              </template>
+            </Column>
+            <Column header="Email" header-class="px-6 py-3 text-left" body-class="px-6 py-4 text-slate-500">
+              <template #body="{ data: sal }">
+                {{ sal.email || '-' }}
+              </template>
+            </Column>
+            <Column header="Téléphone" header-class="px-6 py-3 text-left" body-class="px-6 py-4 text-slate-500 font-mono">
+              <template #body="{ data: sal }">
+                {{ sal.telephone || '-' }}
+              </template>
+            </Column>
+            <Column header="Statut" header-class="px-6 py-3 text-left" body-class="px-6 py-4">
+              <template #body="{ data: sal }">
+                <span
+                  :class="[
+                    sal.is_active ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-100 text-slate-500 border-slate-200',
+                    'px-2 py-0.5 rounded-lg text-xs font-semibold border'
+                  ]"
+                >
+                  {{ sal.is_active ? 'Actif' : 'Inactif' }}
+                </span>
+              </template>
+            </Column>
+            <Column header-class="relative px-6 py-3" body-class="px-6 py-4 text-right">
+              <template #header>
+                <span class="sr-only">Actions</span>
+              </template>
+              <template #body="{ data: sal }">
+                <div class="flex items-center justify-end gap-3">
+                  <button
+                    type="button"
+                    :disabled="!sal.email || envoiIdentifiantsId === sal.id"
+                    :title="sal.email
+                      ? 'Génère un nouveau mot de passe provisoire et l\'envoie par email'
+                      : 'Renseignez un email sur la fiche pour pouvoir envoyer les identifiants'"
+                    class="p-1 text-slate-400 hover:text-green-700 disabled:text-slate-200 disabled:cursor-not-allowed transition-colors"
+                    @click.stop="envoyerIdentifiants(sal)"
                   >
-                    {{ sal.is_active ? 'Actif' : 'Inactif' }}
+                    <Icon
+                      :name="envoiIdentifiantsId === sal.id ? 'i-lucide-loader-2' : 'i-lucide-mail'"
+                      class="w-4 h-4"
+                      :class="{ 'animate-spin': envoiIdentifiantsId === sal.id }"
+                    />
+                  </button>
+                  <span class="text-navy-700 group-hover:underline text-xs font-bold uppercase tracking-wider flex items-center gap-1">
+                    Fiche Salarié
+                    <Icon name="i-lucide-chevron-right" class="w-4 h-4" />
                   </span>
-                </td>
-                <td class="px-6 py-4 text-right">
-                  <div class="flex items-center justify-end gap-3">
-                    <button
-                      type="button"
-                      :disabled="!sal.email || envoiIdentifiantsId === sal.id"
-                      :title="sal.email
-                        ? 'Génère un nouveau mot de passe provisoire et l\'envoie par email'
-                        : 'Renseignez un email sur la fiche pour pouvoir envoyer les identifiants'"
-                      class="p-1 text-slate-400 hover:text-green-700 disabled:text-slate-200 disabled:cursor-not-allowed transition-colors"
-                      @click.stop="envoyerIdentifiants(sal)"
-                    >
-                      <Icon
-                        :name="envoiIdentifiantsId === sal.id ? 'i-lucide-loader-2' : 'i-lucide-mail'"
-                        class="w-4 h-4"
-                        :class="{ 'animate-spin': envoiIdentifiantsId === sal.id }"
-                      />
-                    </button>
-                    <span class="text-navy-700 group-hover:underline text-xs font-bold uppercase tracking-wider flex items-center gap-1">
-                      Fiche Salarié
-                      <Icon name="i-lucide-chevron-right" class="w-4 h-4" />
-                    </span>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                </div>
+              </template>
+            </Column>
+          </DataTable>
         </div>
 
       </div>
@@ -382,7 +399,7 @@ onMounted(fetchEtabDetails)
           <div class="flex items-center gap-3 w-full sm:w-auto">
             <div class="relative w-full sm:w-72">
               <Icon name="i-lucide-search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-              <input
+              <InputText
                 v-model="rechercheContrat"
                 type="search"
                 placeholder="Rechercher par nom ou matricule…"
@@ -417,62 +434,74 @@ onMounted(fetchEtabDetails)
           Aucun contrat ne correspond à « {{ rechercheContrat }} ».
         </div>
         <div v-else class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-slate-200 text-sm">
-            <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-              <tr>
-                <th scope="col" class="px-4 py-3 text-left w-10">
-                  <input type="checkbox" v-model="allContractsSelected" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
-                </th>
-                <th scope="col" class="px-6 py-3 text-left">N° Contrat</th>
-                <th scope="col" class="px-6 py-3 text-left">Salarié</th>
-                <th scope="col" class="px-6 py-3 text-left">Poste / Emploi</th>
-                <th scope="col" class="px-6 py-3 text-left">Type Contrat</th>
-                <th scope="col" class="px-6 py-3 text-left">Date Début</th>
-                <th scope="col" class="px-6 py-3 text-left">Statut</th>
-                <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-150 bg-white">
-              <tr
-                v-for="c in contratsFiltres"
-                :key="c.id"
-                @click="router.push(`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${c.salarie_id}/contrats/${c.id}`)"
-                class="hover:bg-slate-50 cursor-pointer group"
-              >
-                <td class="px-4 py-4" @click.stop>
-                  <input type="checkbox" :value="c.id" v-model="selectedContracts" class="rounded-lg border-slate-350 text-green-600 focus:ring-green-500 h-4 w-4" />
-                </td>
-                <td class="px-6 py-4 font-mono font-semibold text-slate-900">{{ c.numero_contrat }}</td>
-                <td class="px-6 py-4 font-medium text-slate-700 group-hover:text-navy-700 transition-colors">
-                  {{ getSalarieName(c.salarie_id) }}
-                </td>
-                <td class="px-6 py-4 font-medium text-slate-700">
-                  {{ c.emploi || 'Non renseigné' }}
-                </td>
-                <td class="px-6 py-4 text-slate-650 font-semibold">
-                  {{ c.type_contrat_travail === 10 ? 'CDI' : c.type_contrat_travail === 29 ? 'CDD' : 'Autre (code ' + c.type_contrat_travail + ')' }}
-                </td>
-
-                <td class="px-6 py-4 font-mono text-slate-500">{{ c.date_debut_contrat || '-' }}</td>
-                <td class="px-6 py-4">
-                  <span
-                    :class="[
-                      c.statut === 'actif' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-150 text-slate-500 border-slate-200',
-                      'px-2 py-0.5 rounded-lg text-[10px] uppercase font-bold border'
-                    ]"
-                  >
-                    {{ c.statut }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 text-right">
-                  <span class="text-navy-700 group-hover:underline text-xs font-bold uppercase tracking-wider flex items-center justify-end gap-1">
-                    Gérer le Contrat
-                    <Icon name="i-lucide-chevron-right" class="w-4 h-4" />
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <DataTable
+            :pt="{ thead: { class: 'bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]' }, tbody: { class: 'bg-white' } }"
+            class="min-w-full divide-y divide-slate-200 text-sm"
+            :value="contratsFiltres"
+            data-key="id"
+            @row-click="({ data: c }) => router.push(`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${c.salarie_id}/contrats/${c.id}`)"
+            :row-class="() => 'cursor-pointer group'"
+            row-hover
+          >
+            <Column header-class="px-4 py-3 text-left w-10" body-class="px-4 py-4">
+              <template #header>
+                <Checkbox v-model="allContractsSelected" binary />
+              </template>
+              <template #body="{ data: c }">
+                <div @click.stop>
+                  <Checkbox :value="c.id" v-model="selectedContracts" />
+                </div>
+              </template>
+            </Column>
+            <Column header="N° Contrat" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-mono font-semibold text-slate-900">
+              <template #body="{ data: c }">
+                {{ c.numero_contrat }}
+              </template>
+            </Column>
+            <Column header="Salarié" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-medium text-slate-700 group-hover:text-navy-700 transition-colors">
+              <template #body="{ data: c }">
+                {{ getSalarieName(c.salarie_id) }}
+              </template>
+            </Column>
+            <Column header="Poste / Emploi" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-medium text-slate-700">
+              <template #body="{ data: c }">
+                {{ c.emploi || 'Non renseigné' }}
+              </template>
+            </Column>
+            <Column header="Type Contrat" header-class="px-6 py-3 text-left" body-class="px-6 py-4 text-slate-650 font-semibold">
+              <template #body="{ data: c }">
+                {{ c.type_contrat_travail === 10 ? 'CDI' : c.type_contrat_travail === 29 ? 'CDD' : 'Autre (code ' + c.type_contrat_travail + ')' }}
+              </template>
+            </Column>
+            <Column header="Date Début" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-mono text-slate-500">
+              <template #body="{ data: c }">
+                {{ c.date_debut_contrat || '-' }}
+              </template>
+            </Column>
+            <Column header="Statut" header-class="px-6 py-3 text-left" body-class="px-6 py-4">
+              <template #body="{ data: c }">
+                <span
+                  :class="[
+                    c.statut === 'actif' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-150 text-slate-500 border-slate-200',
+                    'px-2 py-0.5 rounded-lg text-[10px] uppercase font-bold border'
+                  ]"
+                >
+                  {{ c.statut }}
+                </span>
+              </template>
+            </Column>
+            <Column header-class="relative px-6 py-3" body-class="px-6 py-4 text-right">
+              <template #header>
+                <span class="sr-only">Actions</span>
+              </template>
+              <template #body>
+                <span class="text-navy-700 group-hover:underline text-xs font-bold uppercase tracking-wider flex items-center justify-end gap-1">
+                  Gérer le Contrat
+                  <Icon name="i-lucide-chevron-right" class="w-4 h-4" />
+                </span>
+              </template>
+            </Column>
+          </DataTable>
         </div>
 
       </div>

@@ -306,15 +306,21 @@ onMounted(fetchPlanPaie)
         <div class="space-y-4">
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Taux de majoration</label>
-            <select v-model="hsCode" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white select">
-              <option value="HS_15">Majoration à 15%</option>
-              <option value="HS_25">Majoration à 25%</option>
-              <option value="HS_50">Majoration à 50%</option>
-            </select>
+            <Select
+              v-model="hsCode"
+              class="mt-1 block w-full text-sm"
+              :options="[
+                { label: `Majoration à 15%`, value: 'HS_15' },
+                { label: `Majoration à 25%`, value: 'HS_25' },
+                { label: `Majoration à 50%`, value: 'HS_50' }
+              ]"
+              option-label="label"
+              option-value="value"
+            />
           </div>
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Nombre d'heures</label>
-            <input v-model="hsNombre" type="number" step="0.5" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+            <InputText v-model.number="hsNombre" type="number" step="0.5" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
           </div>
         </div>
 
@@ -340,33 +346,39 @@ onMounted(fetchPlanPaie)
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Motif de l'absence</label>
-              <select v-model="absCode" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-lg text-sm bg-white select">
-                <option value="CONGES">Congés payés</option>
-                <option value="MALADIE">Maladie</option>
-                <option value="AT">Accident du travail</option>
-                <option value="SANS_SOLDE">Absence non autorisée (Sans solde)</option>
-              </select>
+              <Select
+                v-model="absCode"
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Congés payés`, value: 'CONGES' },
+                  { label: `Maladie`, value: 'MALADIE' },
+                  { label: `Accident du travail`, value: 'AT' },
+                  { label: `Absence non autorisée (Sans solde)`, value: 'SANS_SOLDE' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Nbr jours d'absence</label>
-              <input v-model="absNbrJour" type="number" step="0.5" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <InputText v-model.number="absNbrJour" type="number" step="0.5" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Date début</label>
-              <input v-model="absDateDebut" type="date" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
+              <InputText v-model="absDateDebut" type="date" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Date fin</label>
-              <input v-model="absDateFin" type="date" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
+              <InputText v-model="absDateFin" type="date" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
           </div>
 
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Nombre d'heures correspondantes (Si contrat horaire)</label>
-            <input v-model="absNbrHeure" type="number" step="1" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+            <InputText v-model.number="absNbrHeure" type="number" step="1" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
           </div>
         </div>
 
@@ -392,44 +404,54 @@ onMounted(fetchPlanPaie)
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Code Identifiant</label>
-              <select v-model="primeCode" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-lg text-sm bg-white select">
-                <option v-for="p in primesDisponibles" :key="p.code" :value="p.code">
-                  {{ p.libelle }} ({{ p.code }})
-                </option>
-              </select>
+              <Select
+                v-model="primeCode"
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  ...primesDisponibles.map(p => ({ label: `${p.libelle} (${p.code})`, value: p.code }))
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Mode de saisie</label>
-              <select v-model="primeMode" class="mt-1 block w-full px-3 py-2 border border-slate-355 rounded-lg text-sm bg-white select">
-                <option value="direct">Montant Direct</option>
-                <option value="calcul">Calcul par Base et Taux</option>
-              </select>
+              <Select
+                v-model="primeMode"
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Montant Direct`, value: 'direct' },
+                  { label: `Calcul par Base et Taux`, value: 'calcul' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
           </div>
 
           <div v-if="primeMode === 'calcul'" class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Base (FCFA)</label>
-              <input v-model="primeBase" type="number" @input="primeMontant = (Number(primeBase) || 0) * ((Number(primeTaux) || 0) / 100)" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <InputText v-model.number="primeBase" type="number" @input="primeMontant = (Number(primeBase) || 0) * ((Number(primeTaux) || 0) / 100)" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Taux (%)</label>
-              <input v-model="primeTaux" type="number" step="0.01" @input="primeMontant = (Number(primeBase) || 0) * ((Number(primeTaux) || 0) / 100)" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+              <InputText v-model.number="primeTaux" type="number" step="0.01" @input="primeMontant = (Number(primeBase) || 0) * ((Number(primeTaux) || 0) / 100)" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Montant de la prime (FCFA)</label>
-              <input v-model="primeMontant" type="number" :disabled="primeMode === 'calcul'" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white disabled:bg-slate-100" />
+              <InputText v-model.number="primeMontant" type="number" :disabled="primeMode === 'calcul'" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white disabled:bg-slate-100" />
             </div>
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Libellé (Affiché sur le bulletin)</label>
-              <input v-model="primeLibelle" type="text" placeholder="Ex: Prime de rendement" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
+              <InputText v-model="primeLibelle" placeholder="Ex: Prime de rendement" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
           </div>
           <div class="flex items-center space-x-2 pt-2">
-            <input v-model="primeEstPersistant" type="checkbox" id="prime_est_persistant" class="w-4 h-4 text-green-600 focus:ring-green-500 border-slate-300 rounded" />
+            <Checkbox v-model="primeEstPersistant" id="prime_est_persistant" binary />
             <label for="prime_est_persistant" class="text-xs font-semibold uppercase tracking-wider text-slate-500 cursor-pointer">
               Répéter les mois suivants (Persistant)
             </label>
@@ -457,7 +479,7 @@ onMounted(fetchPlanPaie)
         <div class="space-y-4">
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Montant de l'acompte (FCFA)</label>
-            <input v-model="acompteMontant" type="number" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
+            <InputText v-model.number="acompteMontant" type="number" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
             <p class="text-[10px] text-slate-500 mt-1">Sera déduit directement du salaire net à payer.</p>
             <p v-if="enGroupe" class="text-[10px] text-slate-500 mt-1">Le même montant remplacera l'acompte de chaque salarié sélectionné.</p>
           </div>

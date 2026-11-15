@@ -278,20 +278,20 @@ onMounted(chargerRubriques)
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Date de l'entretien</label>
-              <input type="date" v-model="formEntretien.date_entretien" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" />
+              <InputText type="date" v-model="formEntretien.date_entretien" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" />
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Nom de l'évaluateur</label>
-              <input type="text" v-model="formEntretien.nom_evaluateur" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <InputText v-model="formEntretien.nom_evaluateur" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Note globale (sur 20)</label>
-              <input type="number" step="0.1" min="0" max="20" v-model.number="formEntretien.note_globale" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <InputText type="number" step="0.1" min="0" max="20" v-model.number="formEntretien.note_globale" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-500 uppercase">Commentaires et objectifs</label>
-            <textarea v-model="formEntretien.commentaires" rows="3" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"></textarea>
+            <Textarea v-model="formEntretien.commentaires" rows="3" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
           </div>
           <div class="flex justify-end space-x-2">
             <button type="button" @click="cancelEntretien" class="px-3 py-1.5 border border-slate-300 text-slate-600 hover:bg-slate-100 rounded-lg text-xs font-semibold">Annuler</button>
@@ -304,29 +304,43 @@ onMounted(chargerRubriques)
           Aucun entretien enregistré.
         </div>
         <div v-else-if="!showEntretienForm" class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-slate-200 text-sm">
-            <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-              <tr>
-                <th scope="col" class="px-6 py-3 text-left">Date</th>
-                <th scope="col" class="px-6 py-3 text-left">Évaluateur</th>
-                <th scope="col" class="px-6 py-3 text-left">Note Globale</th>
-                <th scope="col" class="px-6 py-3 text-left">Commentaires</th>
-                <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-150 bg-white">
-              <tr v-for="item in entretiens" :key="item.id" class="hover:bg-slate-50">
-                <td class="px-6 py-4 font-mono">{{ item.date_entretien }}</td>
-                <td class="px-6 py-4 font-medium text-slate-800">{{ item.nom_evaluateur }}</td>
-                <td class="px-6 py-4 font-mono font-semibold">{{ item.note_globale !== null ? item.note_globale + '/20' : '-' }}</td>
-                <td class="px-6 py-4 text-slate-650 max-w-xs truncate">{{ item.commentaires || '-' }}</td>
-                <td class="px-6 py-4 text-right space-x-2">
-                  <button @click="editEntretien(item)" class="text-navy-700 hover:text-navy-900 text-xs font-semibold">Modifier</button>
-                  <button @click="deleteEntretien(item.id)" class="text-red-600 hover:text-red-800 text-xs font-semibold">Supprimer</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <DataTable
+            :pt="{ thead: { class: 'bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]' }, tbody: { class: 'bg-white' } }"
+            class="min-w-full divide-y divide-slate-200 text-sm"
+            :value="entretiens"
+            data-key="id"
+            row-hover
+          >
+            <Column header="Date" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-mono">
+              <template #body="{ data: item }">
+                {{ item.date_entretien }}
+              </template>
+            </Column>
+            <Column header="Évaluateur" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-medium text-slate-800">
+              <template #body="{ data: item }">
+                {{ item.nom_evaluateur }}
+              </template>
+            </Column>
+            <Column header="Note Globale" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-mono font-semibold">
+              <template #body="{ data: item }">
+                {{ item.note_globale !== null ? item.note_globale + '/20' : '-' }}
+              </template>
+            </Column>
+            <Column header="Commentaires" header-class="px-6 py-3 text-left" body-class="px-6 py-4 text-slate-650 max-w-xs truncate">
+              <template #body="{ data: item }">
+                {{ item.commentaires || '-' }}
+              </template>
+            </Column>
+            <Column header-class="relative px-6 py-3" body-class="px-6 py-4 text-right space-x-2">
+              <template #header>
+                <span class="sr-only">Actions</span>
+              </template>
+              <template #body="{ data: item }">
+                <button @click="editEntretien(item)" class="text-navy-700 hover:text-navy-900 text-xs font-semibold">Modifier</button>
+                <button @click="deleteEntretien(item.id)" class="text-red-600 hover:text-red-800 text-xs font-semibold">Supprimer</button>
+              </template>
+            </Column>
+          </DataTable>
         </div>
       </div>
     </div>
@@ -356,27 +370,41 @@ onMounted(chargerRubriques)
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Date de la visite</label>
-              <input type="date" v-model="formVisite.date_visite" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" />
+              <InputText type="date" v-model="formVisite.date_visite" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" />
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Type de visite</label>
-              <select v-model="formVisite.type_visite" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select">
-                <option value="Embauche">Embauche</option>
-                <option value="Reprise">Reprise</option>
-                <option value="Périodique">Périodique</option>
-              </select>
+              <Select
+                v-model="formVisite.type_visite"
+                required=""
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Embauche`, value: 'Embauche' },
+                  { label: `Reprise`, value: 'Reprise' },
+                  { label: `Périodique`, value: 'Périodique' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Avis d'aptitude</label>
-              <select v-model="formVisite.aptitude" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select">
-                <option value="Apte">Apte</option>
-                <option value="Inapte">Inapte</option>
-                <option value="Apte avec réserves">Apte avec réserves</option>
-              </select>
+              <Select
+                v-model="formVisite.aptitude"
+                required=""
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Apte`, value: 'Apte' },
+                  { label: `Inapte`, value: 'Inapte' },
+                  { label: `Apte avec réserves`, value: 'Apte avec réserves' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Date prochaine visite</label>
-              <input type="date" v-model="formVisite.prochaine_visite" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" />
+              <InputText type="date" v-model="formVisite.prochaine_visite" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" />
             </div>
           </div>
           <div class="flex justify-end space-x-2">
@@ -390,38 +418,50 @@ onMounted(chargerRubriques)
           Aucune visite médicale enregistrée.
         </div>
         <div v-else-if="!showVisiteForm" class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-slate-200 text-sm">
-            <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-              <tr>
-                <th scope="col" class="px-6 py-3 text-left">Date Visite</th>
-                <th scope="col" class="px-6 py-3 text-left">Type de Visite</th>
-                <th scope="col" class="px-6 py-3 text-left">Avis d'Aptitude</th>
-                <th scope="col" class="px-6 py-3 text-left">Prochaine Visite</th>
-                <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-150 bg-white">
-              <tr v-for="item in visites" :key="item.id" class="hover:bg-slate-50">
-                <td class="px-6 py-4 font-mono">{{ item.date_visite }}</td>
-                <td class="px-6 py-4 font-medium text-slate-800">{{ item.type_visite }}</td>
-                <td class="px-6 py-4">
-                  <span 
-                    :class="[
-                      item.aptitude === 'Apte' ? 'bg-green-50 text-green-700 border-green-200' : item.aptitude === 'Inapte' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-amber-50 text-amber-700 border-amber-200',
-                      'px-2 py-0.5 rounded text-[10px] uppercase font-bold border'
-                    ]"
-                  >
-                    {{ item.aptitude }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 font-mono text-slate-600">{{ item.prochaine_visite || '-' }}</td>
-                <td class="px-6 py-4 text-right space-x-2">
-                  <button @click="editVisite(item)" class="text-navy-700 hover:text-navy-900 text-xs font-semibold">Modifier</button>
-                  <button @click="deleteVisite(item.id)" class="text-red-600 hover:text-red-800 text-xs font-semibold">Supprimer</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <DataTable
+            :pt="{ thead: { class: 'bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]' }, tbody: { class: 'bg-white' } }"
+            class="min-w-full divide-y divide-slate-200 text-sm"
+            :value="visites"
+            data-key="id"
+            row-hover
+          >
+            <Column header="Date Visite" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-mono">
+              <template #body="{ data: item }">
+                {{ item.date_visite }}
+              </template>
+            </Column>
+            <Column header="Type de Visite" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-medium text-slate-800">
+              <template #body="{ data: item }">
+                {{ item.type_visite }}
+              </template>
+            </Column>
+            <Column header="Avis d'Aptitude" header-class="px-6 py-3 text-left" body-class="px-6 py-4">
+              <template #body="{ data: item }">
+                <span
+                  :class="[
+                    item.aptitude === 'Apte' ? 'bg-green-50 text-green-700 border-green-200' : item.aptitude === 'Inapte' ? 'bg-red-50 text-red-700 border-red-200' : 'bg-amber-50 text-amber-700 border-amber-200',
+                    'px-2 py-0.5 rounded text-[10px] uppercase font-bold border'
+                  ]"
+                >
+                  {{ item.aptitude }}
+                </span>
+              </template>
+            </Column>
+            <Column header="Prochaine Visite" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-mono text-slate-600">
+              <template #body="{ data: item }">
+                {{ item.prochaine_visite || '-' }}
+              </template>
+            </Column>
+            <Column header-class="relative px-6 py-3" body-class="px-6 py-4 text-right space-x-2">
+              <template #header>
+                <span class="sr-only">Actions</span>
+              </template>
+              <template #body="{ data: item }">
+                <button @click="editVisite(item)" class="text-navy-700 hover:text-navy-900 text-xs font-semibold">Modifier</button>
+                <button @click="deleteVisite(item.id)" class="text-red-600 hover:text-red-800 text-xs font-semibold">Supprimer</button>
+              </template>
+            </Column>
+          </DataTable>
         </div>
       </div>
     </div>
@@ -451,29 +491,36 @@ onMounted(chargerRubriques)
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Intitulé de la formation</label>
-              <input type="text" v-model="formFormation.intitule_formation" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <InputText v-model="formFormation.intitule_formation" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Organisme de formation</label>
-              <input type="text" v-model="formFormation.organisme" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <InputText v-model="formFormation.organisme" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Date de début</label>
-              <input type="date" v-model="formFormation.date_debut" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" />
+              <InputText type="date" v-model="formFormation.date_debut" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" />
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Date de fin</label>
-              <input type="date" v-model="formFormation.date_fin" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" />
+              <InputText type="date" v-model="formFormation.date_fin" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" />
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Statut</label>
-              <select v-model="formFormation.statut_formation" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select">
-                <option value="Demandée">Demandée</option>
-                <option value="En cours">En cours</option>
-                <option value="Terminée">Terminée</option>
-              </select>
+              <Select
+                v-model="formFormation.statut_formation"
+                required=""
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Demandée`, value: 'Demandée' },
+                  { label: `En cours`, value: 'En cours' },
+                  { label: `Terminée`, value: 'Terminée' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
           </div>
           <div class="flex justify-end space-x-2">
@@ -487,38 +534,50 @@ onMounted(chargerRubriques)
           Aucune formation enregistrée.
         </div>
         <div v-else-if="!showFormationForm" class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-slate-200 text-sm">
-            <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-              <tr>
-                <th scope="col" class="px-6 py-3 text-left">Intitulé</th>
-                <th scope="col" class="px-6 py-3 text-left">Organisme</th>
-                <th scope="col" class="px-6 py-3 text-left">Période</th>
-                <th scope="col" class="px-6 py-3 text-left">Statut</th>
-                <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-150 bg-white">
-              <tr v-for="item in formations" :key="item.id" class="hover:bg-slate-50">
-                <td class="px-6 py-4 font-medium text-slate-800">{{ item.intitule_formation }}</td>
-                <td class="px-6 py-4 text-slate-700">{{ item.organisme }}</td>
-                <td class="px-6 py-4 font-mono text-xs text-slate-650">Du {{ item.date_debut }} au {{ item.date_fin }}</td>
-                <td class="px-6 py-4">
-                  <span 
-                    :class="[
-                      item.statut_formation === 'Terminée' ? 'bg-green-50 text-green-700 border-green-200' : item.statut_formation === 'En cours' ? 'bg-navy-50 text-navy-700 border-navy-200' : 'bg-slate-100 text-slate-650 border-slate-200',
-                      'px-2 py-0.5 rounded text-[10px] uppercase font-bold border'
-                    ]"
-                  >
-                    {{ item.statut_formation }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 text-right space-x-2">
-                  <button @click="editFormation(item)" class="text-navy-700 hover:text-navy-900 text-xs font-semibold">Modifier</button>
-                  <button @click="deleteFormation(item.id)" class="text-red-600 hover:text-red-800 text-xs font-semibold">Supprimer</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <DataTable
+            :pt="{ thead: { class: 'bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]' }, tbody: { class: 'bg-white' } }"
+            class="min-w-full divide-y divide-slate-200 text-sm"
+            :value="formations"
+            data-key="id"
+            row-hover
+          >
+            <Column header="Intitulé" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-medium text-slate-800">
+              <template #body="{ data: item }">
+                {{ item.intitule_formation }}
+              </template>
+            </Column>
+            <Column header="Organisme" header-class="px-6 py-3 text-left" body-class="px-6 py-4 text-slate-700">
+              <template #body="{ data: item }">
+                {{ item.organisme }}
+              </template>
+            </Column>
+            <Column header="Période" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-mono text-xs text-slate-650">
+              <template #body="{ data: item }">
+                Du {{ item.date_debut }} au {{ item.date_fin }}
+              </template>
+            </Column>
+            <Column header="Statut" header-class="px-6 py-3 text-left" body-class="px-6 py-4">
+              <template #body="{ data: item }">
+                <span
+                  :class="[
+                    item.statut_formation === 'Terminée' ? 'bg-green-50 text-green-700 border-green-200' : item.statut_formation === 'En cours' ? 'bg-navy-50 text-navy-700 border-navy-200' : 'bg-slate-100 text-slate-650 border-slate-200',
+                    'px-2 py-0.5 rounded text-[10px] uppercase font-bold border'
+                  ]"
+                >
+                  {{ item.statut_formation }}
+                </span>
+              </template>
+            </Column>
+            <Column header-class="relative px-6 py-3" body-class="px-6 py-4 text-right space-x-2">
+              <template #header>
+                <span class="sr-only">Actions</span>
+              </template>
+              <template #body="{ data: item }">
+                <button @click="editFormation(item)" class="text-navy-700 hover:text-navy-900 text-xs font-semibold">Modifier</button>
+                <button @click="deleteFormation(item.id)" class="text-red-600 hover:text-red-800 text-xs font-semibold">Supprimer</button>
+              </template>
+            </Column>
+          </DataTable>
         </div>
       </div>
     </div>
@@ -548,16 +607,23 @@ onMounted(chargerRubriques)
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Motif de l'absence</label>
-              <select v-model="formAbsence.type_absence" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select">
-                <option value="Congés payés">Congés payés</option>
-                <option value="Maladie">Maladie</option>
-                <option value="Maternité/Paternité">Maternité/Paternité</option>
-                <option value="Sans solde">Sans solde</option>
-              </select>
+              <Select
+                v-model="formAbsence.type_absence"
+                required=""
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Congés payés`, value: 'Congés payés' },
+                  { label: `Maladie`, value: 'Maladie' },
+                  { label: `Maternité/Paternité`, value: 'Maternité/Paternité' },
+                  { label: `Sans solde`, value: 'Sans solde' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
             <div class="flex items-end pb-2">
               <div class="flex items-center space-x-2">
-                <input type="checkbox" id="justif" v-model="formAbsence.justificatif_fourni" class="rounded border-slate-300 text-green-600 focus:ring-green-500 h-4 w-4" />
+                <Checkbox id="justif" v-model="formAbsence.justificatif_fourni" binary />
                 <label for="justif" class="text-sm font-semibold text-slate-700">Justificatif fourni</label>
               </div>
             </div>
@@ -565,11 +631,11 @@ onMounted(chargerRubriques)
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Date de début</label>
-              <input type="date" v-model="formAbsence.date_debut_absence" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" />
+              <InputText type="date" v-model="formAbsence.date_debut_absence" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" />
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Date de fin</label>
-              <input type="date" v-model="formAbsence.date_fin_absence" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" />
+              <InputText type="date" v-model="formAbsence.date_fin_absence" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" />
             </div>
           </div>
           <div class="flex justify-end space-x-2">
@@ -583,36 +649,45 @@ onMounted(chargerRubriques)
           Aucune absence enregistrée.
         </div>
         <div v-else-if="!showAbsenceForm" class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-slate-200 text-sm">
-            <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-              <tr>
-                <th scope="col" class="px-6 py-3 text-left">Motif</th>
-                <th scope="col" class="px-6 py-3 text-left">Période</th>
-                <th scope="col" class="px-6 py-3 text-left">Justificatif</th>
-                <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-150 bg-white">
-              <tr v-for="item in absences" :key="item.id" class="hover:bg-slate-50">
-                <td class="px-6 py-4 font-medium text-slate-800">{{ item.type_absence }}</td>
-                <td class="px-6 py-4 font-mono text-xs text-slate-650">Du {{ item.date_debut_absence }} au {{ item.date_fin_absence }}</td>
-                <td class="px-6 py-4">
-                  <span 
-                    :class="[
-                      item.justificatif_fourni ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200',
-                      'px-2 py-0.5 rounded text-[10px] uppercase font-bold border'
-                    ]"
-                  >
-                    {{ item.justificatif_fourni ? 'Oui' : 'Non' }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 text-right space-x-2">
-                  <button @click="editAbsence(item)" class="text-navy-700 hover:text-navy-900 text-xs font-semibold">Modifier</button>
-                  <button @click="deleteAbsence(item.id)" class="text-red-600 hover:text-red-800 text-xs font-semibold">Supprimer</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <DataTable
+            :pt="{ thead: { class: 'bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]' }, tbody: { class: 'bg-white' } }"
+            class="min-w-full divide-y divide-slate-200 text-sm"
+            :value="absences"
+            data-key="id"
+            row-hover
+          >
+            <Column header="Motif" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-medium text-slate-800">
+              <template #body="{ data: item }">
+                {{ item.type_absence }}
+              </template>
+            </Column>
+            <Column header="Période" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-mono text-xs text-slate-650">
+              <template #body="{ data: item }">
+                Du {{ item.date_debut_absence }} au {{ item.date_fin_absence }}
+              </template>
+            </Column>
+            <Column header="Justificatif" header-class="px-6 py-3 text-left" body-class="px-6 py-4">
+              <template #body="{ data: item }">
+                <span
+                  :class="[
+                    item.justificatif_fourni ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200',
+                    'px-2 py-0.5 rounded text-[10px] uppercase font-bold border'
+                  ]"
+                >
+                  {{ item.justificatif_fourni ? 'Oui' : 'Non' }}
+                </span>
+              </template>
+            </Column>
+            <Column header-class="relative px-6 py-3" body-class="px-6 py-4 text-right space-x-2">
+              <template #header>
+                <span class="sr-only">Actions</span>
+              </template>
+              <template #body="{ data: item }">
+                <button @click="editAbsence(item)" class="text-navy-700 hover:text-navy-900 text-xs font-semibold">Modifier</button>
+                <button @click="deleteAbsence(item.id)" class="text-red-600 hover:text-red-800 text-xs font-semibold">Supprimer</button>
+              </template>
+            </Column>
+          </DataTable>
         </div>
       </div>
     </div>
@@ -642,19 +717,19 @@ onMounted(chargerRubriques)
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Montant total accordé (FCFA)</label>
-              <input type="number" v-model.number="formPret.montant_pret" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <InputText type="number" v-model.number="formPret.montant_pret" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Date de déblocage</label>
-              <input type="date" v-model="formPret.date_deblocage" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" />
+              <InputText type="date" v-model="formPret.date_deblocage" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" />
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Retenue mensuelle (FCFA)</label>
-              <input type="number" v-model.number="formPret.montant_mensualite" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <InputText type="number" v-model.number="formPret.montant_mensualite" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Reste à rembourser (FCFA)</label>
-              <input type="number" v-model.number="formPret.reste_a_rembourser" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <InputText type="number" v-model.number="formPret.reste_a_rembourser" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
           </div>
           <div class="flex justify-end space-x-2">
@@ -668,29 +743,43 @@ onMounted(chargerRubriques)
           Aucun prêt enregistré.
         </div>
         <div v-else-if="!showPretForm" class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-slate-200 text-sm">
-            <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-              <tr>
-                <th scope="col" class="px-6 py-3 text-left">Montant Prêt</th>
-                <th scope="col" class="px-6 py-3 text-left">Date Déblocage</th>
-                <th scope="col" class="px-6 py-3 text-left">Mensualité Retenue</th>
-                <th scope="col" class="px-6 py-3 text-left">Reste à Rembourser</th>
-                <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-150 bg-white">
-              <tr v-for="item in prets" :key="item.id" class="hover:bg-slate-50">
-                <td class="px-6 py-4 font-mono font-semibold text-slate-800">{{ item.montant_pret.toLocaleString() }} FCFA</td>
-                <td class="px-6 py-4 font-mono">{{ item.date_deblocage }}</td>
-                <td class="px-6 py-4 font-mono text-slate-650">{{ item.montant_mensualite.toLocaleString() }} FCFA</td>
-                <td class="px-6 py-4 font-mono text-red-650 font-bold">{{ item.reste_a_rembourser.toLocaleString() }} FCFA</td>
-                <td class="px-6 py-4 text-right space-x-2">
-                  <button @click="editPret(item)" class="text-navy-700 hover:text-navy-900 text-xs font-semibold">Modifier</button>
-                  <button @click="deletePret(item.id)" class="text-red-600 hover:text-red-800 text-xs font-semibold">Supprimer</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <DataTable
+            :pt="{ thead: { class: 'bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]' }, tbody: { class: 'bg-white' } }"
+            class="min-w-full divide-y divide-slate-200 text-sm"
+            :value="prets"
+            data-key="id"
+            row-hover
+          >
+            <Column header="Montant Prêt" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-mono font-semibold text-slate-800">
+              <template #body="{ data: item }">
+                {{ item.montant_pret.toLocaleString() }} FCFA
+              </template>
+            </Column>
+            <Column header="Date Déblocage" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-mono">
+              <template #body="{ data: item }">
+                {{ item.date_deblocage }}
+              </template>
+            </Column>
+            <Column header="Mensualité Retenue" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-mono text-slate-650">
+              <template #body="{ data: item }">
+                {{ item.montant_mensualite.toLocaleString() }} FCFA
+              </template>
+            </Column>
+            <Column header="Reste à Rembourser" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-mono text-red-650 font-bold">
+              <template #body="{ data: item }">
+                {{ item.reste_a_rembourser.toLocaleString() }} FCFA
+              </template>
+            </Column>
+            <Column header-class="relative px-6 py-3" body-class="px-6 py-4 text-right space-x-2">
+              <template #header>
+                <span class="sr-only">Actions</span>
+              </template>
+              <template #body="{ data: item }">
+                <button @click="editPret(item)" class="text-navy-700 hover:text-navy-900 text-xs font-semibold">Modifier</button>
+                <button @click="deletePret(item.id)" class="text-red-600 hover:text-red-800 text-xs font-semibold">Supprimer</button>
+              </template>
+            </Column>
+          </DataTable>
         </div>
       </div>
     </div>
@@ -720,24 +809,31 @@ onMounted(chargerRubriques)
           <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Type de contrat</label>
-              <select v-model="formContratHr.type_contrat" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select">
-                <option value="CDI">CDI</option>
-                <option value="CDD">CDD</option>
-                <option value="Apprentissage">Apprentissage</option>
-                <option value="Stage">Stage</option>
-              </select>
+              <Select
+                v-model="formContratHr.type_contrat"
+                required=""
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `CDI`, value: 'CDI' },
+                  { label: `CDD`, value: 'CDD' },
+                  { label: `Apprentissage`, value: 'Apprentissage' },
+                  { label: `Stage`, value: 'Stage' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Date d'embauche</label>
-              <input type="date" v-model="formContratHr.date_embauche" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" />
+              <InputText type="date" v-model="formContratHr.date_embauche" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" />
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Date de fin</label>
-              <input type="date" v-model="formContratHr.date_fin_contrat" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" />
+              <InputText type="date" v-model="formContratHr.date_fin_contrat" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" />
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Fin période d'essai</label>
-              <input type="date" v-model="formContratHr.fin_periode_essai" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" />
+              <InputText type="date" v-model="formContratHr.fin_periode_essai" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" />
             </div>
           </div>
           <div class="flex justify-end space-x-2">
@@ -751,29 +847,43 @@ onMounted(chargerRubriques)
           Aucun contrat HR enregistré.
         </div>
         <div v-else-if="!showContratHrForm" class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-slate-200 text-sm">
-            <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-              <tr>
-                <th scope="col" class="px-6 py-3 text-left">Type Contrat</th>
-                <th scope="col" class="px-6 py-3 text-left">Date Embauche</th>
-                <th scope="col" class="px-6 py-3 text-left">Date Fin</th>
-                <th scope="col" class="px-6 py-3 text-left">Fin Période Essai</th>
-                <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-150 bg-white">
-              <tr v-for="item in contratsHr" :key="item.id" class="hover:bg-slate-50">
-                <td class="px-6 py-4 font-semibold text-slate-800">{{ item.type_contrat }}</td>
-                <td class="px-6 py-4 font-mono">{{ item.date_embauche }}</td>
-                <td class="px-6 py-4 font-mono text-slate-650">{{ item.date_fin_contrat || 'Illimité (CDI)' }}</td>
-                <td class="px-6 py-4 font-mono text-slate-600">{{ item.fin_periode_essai || '-' }}</td>
-                <td class="px-6 py-4 text-right space-x-2">
-                  <button @click="editContratHr(item)" class="text-navy-700 hover:text-navy-900 text-xs font-semibold">Modifier</button>
-                  <button @click="deleteContratHr(item.id)" class="text-red-600 hover:text-red-800 text-xs font-semibold">Supprimer</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <DataTable
+            :pt="{ thead: { class: 'bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]' }, tbody: { class: 'bg-white' } }"
+            class="min-w-full divide-y divide-slate-200 text-sm"
+            :value="contratsHr"
+            data-key="id"
+            row-hover
+          >
+            <Column header="Type Contrat" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-semibold text-slate-800">
+              <template #body="{ data: item }">
+                {{ item.type_contrat }}
+              </template>
+            </Column>
+            <Column header="Date Embauche" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-mono">
+              <template #body="{ data: item }">
+                {{ item.date_embauche }}
+              </template>
+            </Column>
+            <Column header="Date Fin" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-mono text-slate-650">
+              <template #body="{ data: item }">
+                {{ item.date_fin_contrat || 'Illimité (CDI)' }}
+              </template>
+            </Column>
+            <Column header="Fin Période Essai" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-mono text-slate-600">
+              <template #body="{ data: item }">
+                {{ item.fin_periode_essai || '-' }}
+              </template>
+            </Column>
+            <Column header-class="relative px-6 py-3" body-class="px-6 py-4 text-right space-x-2">
+              <template #header>
+                <span class="sr-only">Actions</span>
+              </template>
+              <template #body="{ data: item }">
+                <button @click="editContratHr(item)" class="text-navy-700 hover:text-navy-900 text-xs font-semibold">Modifier</button>
+                <button @click="deleteContratHr(item.id)" class="text-red-600 hover:text-red-800 text-xs font-semibold">Supprimer</button>
+              </template>
+            </Column>
+          </DataTable>
         </div>
       </div>
     </div>
@@ -803,12 +913,18 @@ onMounted(chargerRubriques)
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Département / Service</label>
-              <select v-model="formService.departement" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select">
-                <option value="" disabled>-- Choisir un service --</option>
-                <option v-for="d in dossierDepartements" :key="d.id" :value="d.nom">
-                  {{ d.nom }} {{ d.code ? `(${d.code})` : '' }}
-                </option>
-              </select>
+              <Select
+                v-model="formService.departement"
+                required=""
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `-- Choisir un service --`, value: '', disabled: true },
+                  ...dossierDepartements.map(d => ({ label: `${d.nom} ${d.code ? `(${d.code})` : ''}`, value: d.nom }))
+                ]"
+                option-label="label"
+                option-value="value"
+                option-disabled="disabled"
+              />
               <p v-if="dossierDepartements.length === 0" class="mt-1 text-xs text-amber-600 font-medium">
                 <Icon name="i-lucide-alert-triangle" class="w-3.5 h-3.5 inline mr-1 align-text-bottom" />
                 Aucun département configuré pour ce dossier. Veuillez d'abord en ajouter dans la fiche du dossier client.
@@ -816,16 +932,16 @@ onMounted(chargerRubriques)
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Poste occupé</label>
-              <input type="text" v-model="formService.poste_occupe" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <InputText v-model="formService.poste_occupe" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Responsable hiérarchique</label>
-              <input type="text" v-model="formService.manager" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <InputText v-model="formService.manager" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
           </div>
           <div>
             <label class="block text-xs font-semibold text-slate-500 uppercase">Matériel confié (PC, Téléphone, Voiture...)</label>
-            <textarea v-model="formService.dotation_materiel" rows="3" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" placeholder="Ex: PC Dell Latitude, iPhone 13, Clés bureau..."></textarea>
+            <Textarea v-model="formService.dotation_materiel" rows="3" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" placeholder="Ex: PC Dell Latitude, iPhone 13, Clés bureau..." />
           </div>
           <div class="flex justify-end space-x-2">
             <button type="button" @click="cancelService" class="px-3 py-1.5 border border-slate-300 text-slate-600 hover:bg-slate-100 rounded-lg text-xs font-semibold">Annuler</button>
@@ -838,29 +954,43 @@ onMounted(chargerRubriques)
           Aucune affectation de service enregistrée.
         </div>
         <div v-else-if="!showServiceForm" class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-slate-200 text-sm">
-            <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-              <tr>
-                <th scope="col" class="px-6 py-3 text-left">Service</th>
-                <th scope="col" class="px-6 py-3 text-left">Poste</th>
-                <th scope="col" class="px-6 py-3 text-left">Responsable (Manager)</th>
-                <th scope="col" class="px-6 py-3 text-left">Matériel Dotation</th>
-                <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-150 bg-white">
-              <tr v-for="item in services" :key="item.id" class="hover:bg-slate-50">
-                <td class="px-6 py-4 font-semibold text-slate-800">{{ item.departement }}</td>
-                <td class="px-6 py-4 text-slate-700">{{ item.poste_occupe }}</td>
-                <td class="px-6 py-4 font-medium text-slate-650">{{ item.manager }}</td>
-                <td class="px-6 py-4 text-slate-500 max-w-xs truncate">{{ item.dotation_materiel || '-' }}</td>
-                <td class="px-6 py-4 text-right space-x-2">
-                  <button @click="editService(item)" class="text-navy-700 hover:text-navy-900 text-xs font-semibold">Modifier</button>
-                  <button @click="deleteService(item.id)" class="text-red-600 hover:text-red-800 text-xs font-semibold">Supprimer</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <DataTable
+            :pt="{ thead: { class: 'bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]' }, tbody: { class: 'bg-white' } }"
+            class="min-w-full divide-y divide-slate-200 text-sm"
+            :value="services"
+            data-key="id"
+            row-hover
+          >
+            <Column header="Service" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-semibold text-slate-800">
+              <template #body="{ data: item }">
+                {{ item.departement }}
+              </template>
+            </Column>
+            <Column header="Poste" header-class="px-6 py-3 text-left" body-class="px-6 py-4 text-slate-700">
+              <template #body="{ data: item }">
+                {{ item.poste_occupe }}
+              </template>
+            </Column>
+            <Column header="Responsable (Manager)" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-medium text-slate-650">
+              <template #body="{ data: item }">
+                {{ item.manager }}
+              </template>
+            </Column>
+            <Column header="Matériel Dotation" header-class="px-6 py-3 text-left" body-class="px-6 py-4 text-slate-500 max-w-xs truncate">
+              <template #body="{ data: item }">
+                {{ item.dotation_materiel || '-' }}
+              </template>
+            </Column>
+            <Column header-class="relative px-6 py-3" body-class="px-6 py-4 text-right space-x-2">
+              <template #header>
+                <span class="sr-only">Actions</span>
+              </template>
+              <template #body="{ data: item }">
+                <button @click="editService(item)" class="text-navy-700 hover:text-navy-900 text-xs font-semibold">Modifier</button>
+                <button @click="deleteService(item.id)" class="text-red-600 hover:text-red-800 text-xs font-semibold">Supprimer</button>
+              </template>
+            </Column>
+          </DataTable>
         </div>
       </div>
     </div>
@@ -890,11 +1020,11 @@ onMounted(chargerRubriques)
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Type de document</label>
-              <input type="text" v-model="formArchivage.type_document" placeholder="Ex: RIB, CNI, Diplôme..." required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <InputText v-model="formArchivage.type_document" placeholder="Ex: RIB, CNI, Diplôme..." required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Date de dépôt</label>
-              <input type="date" v-model="formArchivage.date_ajout" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" />
+              <InputText type="date" v-model="formArchivage.date_ajout" required class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white" />
             </div>
             <div>
               <label class="block text-xs font-semibold text-slate-500 uppercase">Fichier joint</label>
@@ -915,38 +1045,47 @@ onMounted(chargerRubriques)
           Aucun document archivé.
         </div>
         <div v-else-if="!showArchivageForm" class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-slate-200 text-sm">
-            <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-              <tr>
-                <th scope="col" class="px-6 py-3 text-left">Type de Document</th>
-                <th scope="col" class="px-6 py-3 text-left">Date de Dépôt</th>
-                <th scope="col" class="px-6 py-3 text-left">Fichier</th>
-                <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-150 bg-white">
-              <tr v-for="item in archivages" :key="item.id" class="hover:bg-slate-50">
-                <td class="px-6 py-4 font-semibold text-slate-800">{{ item.type_document }}</td>
-                <td class="px-6 py-4 font-mono">{{ item.date_ajout }}</td>
-                <td class="px-6 py-4">
-                  <button
-                    v-if="item.fichier_joint"
-                    type="button"
-                    class="inline-flex items-center gap-1 text-navy-700 hover:text-navy-900 font-semibold hover:underline"
-                    @click="telechargerDocument(item.fichier_joint)"
-                  >
-                    <Icon name="i-lucide-download" class="w-3.5 h-3.5" />
-                    Télécharger
-                  </button>
-                  <span v-else class="text-slate-400 italic">Aucun fichier</span>
-                </td>
-                <td class="px-6 py-4 text-right space-x-2">
-                  <button @click="editArchivage(item)" class="text-navy-700 hover:text-navy-900 text-xs font-semibold">Modifier</button>
-                  <button @click="deleteArchivage(item.id)" class="text-red-600 hover:text-red-800 text-xs font-semibold">Supprimer</button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <DataTable
+            :pt="{ thead: { class: 'bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]' }, tbody: { class: 'bg-white' } }"
+            class="min-w-full divide-y divide-slate-200 text-sm"
+            :value="archivages"
+            data-key="id"
+            row-hover
+          >
+            <Column header="Type de Document" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-semibold text-slate-800">
+              <template #body="{ data: item }">
+                {{ item.type_document }}
+              </template>
+            </Column>
+            <Column header="Date de Dépôt" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-mono">
+              <template #body="{ data: item }">
+                {{ item.date_ajout }}
+              </template>
+            </Column>
+            <Column header="Fichier" header-class="px-6 py-3 text-left" body-class="px-6 py-4">
+              <template #body="{ data: item }">
+                <button
+                  v-if="item.fichier_joint"
+                  type="button"
+                  class="inline-flex items-center gap-1 text-navy-700 hover:text-navy-900 font-semibold hover:underline"
+                  @click="telechargerDocument(item.fichier_joint)"
+                >
+                  <Icon name="i-lucide-download" class="w-3.5 h-3.5" />
+                  Télécharger
+                </button>
+                <span v-else class="text-slate-400 italic">Aucun fichier</span>
+              </template>
+            </Column>
+            <Column header-class="relative px-6 py-3" body-class="px-6 py-4 text-right space-x-2">
+              <template #header>
+                <span class="sr-only">Actions</span>
+              </template>
+              <template #body="{ data: item }">
+                <button @click="editArchivage(item)" class="text-navy-700 hover:text-navy-900 text-xs font-semibold">Modifier</button>
+                <button @click="deleteArchivage(item.id)" class="text-red-600 hover:text-red-800 text-xs font-semibold">Supprimer</button>
+              </template>
+            </Column>
+          </DataTable>
         </div>
       </div>
     </div>

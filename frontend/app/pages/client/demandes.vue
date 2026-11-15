@@ -193,12 +193,12 @@ onMounted(charger)
           {{ choix.libelle }}
         </button>
       </div>
-      <input
+      <InputText
         v-model="recherche"
         type="search"
         placeholder="Rechercher un salarié…"
         class="w-full sm:w-64 px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white"
-      >
+      />
     </div>
 
     <!-- Liste -->
@@ -225,113 +225,99 @@ onMounted(charger)
         v-else
         class="overflow-x-auto"
       >
-        <table class="min-w-full text-sm">
-          <thead class="bg-slate-50 text-slate-500 uppercase tracking-wider text-[11px]">
-            <tr>
-              <th class="px-5 py-3 text-left font-semibold">
-                Salarié
-              </th>
-              <th class="px-5 py-3 text-left font-semibold">
-                Type
-              </th>
-              <th class="px-5 py-3 text-left font-semibold">
-                Détail
-              </th>
-              <th class="px-5 py-3 text-left font-semibold">
-                Motif du salarié
-              </th>
-              <th class="px-5 py-3 text-left font-semibold">
-                Statut
-              </th>
-              <th class="px-5 py-3 text-right font-semibold">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-100">
-            <tr
-              v-for="demande in demandes"
-              :key="`${demande.type}-${demande.id}`"
-              class="hover:bg-slate-50"
-            >
-              <td class="px-5 py-3">
-                <p class="font-bold text-slate-900">
-                  {{ demande.salarie_prenom }} {{ demande.salarie_nom }}
-                </p>
-                <p class="text-[11px] text-slate-400 font-mono">
-                  {{ demande.matricule }}
-                </p>
-              </td>
-              <td class="px-5 py-3">
-                <span class="inline-flex items-center gap-1 text-xs font-semibold text-slate-600">
+        <DataTable
+          :pt="{ thead: { class: 'bg-slate-50 text-slate-500 uppercase tracking-wider text-[11px]' } }"
+          class="min-w-full text-sm"
+          :value="demandes"
+          row-hover
+        >
+          <Column header="Salarié" header-class="px-5 py-3 text-left font-semibold" body-class="px-5 py-3">
+            <template #body="{ data: demande }">
+              <p class="font-bold text-slate-900">
+                {{ demande.salarie_prenom }} {{ demande.salarie_nom }}
+              </p>
+              <p class="text-[11px] text-slate-400 font-mono">
+                {{ demande.matricule }}
+              </p>
+            </template>
+          </Column>
+          <Column header="Type" header-class="px-5 py-3 text-left font-semibold" body-class="px-5 py-3">
+            <template #body="{ data: demande }">
+              <span class="inline-flex items-center gap-1 text-xs font-semibold text-slate-600">
+                <Icon
+                  :name="demande.type === 'conge' ? 'i-lucide-palmtree' : 'i-lucide-hand-coins'"
+                  class="w-3.5 h-3.5"
+                />
+                {{ demande.type === 'conge' ? 'Congés' : 'Acompte' }}
+              </span>
+            </template>
+          </Column>
+          <Column header="Détail" header-class="px-5 py-3 text-left font-semibold" body-class="px-5 py-3 text-slate-700">
+            <template #body="{ data: demande }">
+              {{ detail(demande) }}
+            </template>
+          </Column>
+          <Column header="Motif du salarié" header-class="px-5 py-3 text-left font-semibold" body-class="px-5 py-3 text-slate-500 max-w-[16rem] truncate">
+            <template #body="{ data: demande }">
+              <div :title="demande.motif || ''" class="truncate">
+                {{ demande.motif || '—' }}
+              </div>
+            </template>
+          </Column>
+          <Column header="Statut" header-class="px-5 py-3 text-left font-semibold" body-class="px-5 py-3">
+            <template #body="{ data: demande }">
+              <span
+                class="inline-flex px-2 py-0.5 border text-[11px] font-bold uppercase tracking-wide"
+                :class="classeStatut(demande.statut)"
+              >
+                {{ libelleStatut(demande.statut) }}
+              </span>
+              <p
+                v-if="demande.commentaire_gestionnaire"
+                class="text-[11px] text-slate-400 mt-1 max-w-[14rem]"
+              >
+                {{ demande.commentaire_gestionnaire }}
+              </p>
+            </template>
+          </Column>
+          <Column header="Actions" header-class="px-5 py-3 text-right font-semibold" body-class="px-5 py-3 text-right">
+            <template #body="{ data: demande }">
+              <div
+                v-if="demande.statut === 'en_attente'"
+                class="flex justify-end gap-2"
+              >
+                <button
+                  :disabled="decisionEnCours === `${demande.type}-${demande.id}`"
+                  class="px-3 py-1.5 bg-green-600 hover:bg-green-700 disabled:bg-slate-300 text-white text-[11px] font-bold uppercase tracking-wider rounded-lg inline-flex items-center gap-1"
+                  @click="valider(demande)"
+                >
                   <Icon
-                    :name="demande.type === 'conge' ? 'i-lucide-palmtree' : 'i-lucide-hand-coins'"
+                    :name="decisionEnCours === `${demande.type}-${demande.id}` ? 'i-lucide-loader-2' : 'i-lucide-check'"
+                    class="w-3.5 h-3.5"
+                    :class="{ 'animate-spin': decisionEnCours === `${demande.type}-${demande.id}` }"
+                  />
+                  Valider
+                </button>
+                <button
+                  class="px-3 py-1.5 border border-red-200 text-red-600 hover:bg-red-50 text-[11px] font-bold uppercase tracking-wider rounded-lg inline-flex items-center gap-1"
+                  @click="ouvrirRefus(demande)"
+                >
+                  <Icon
+                    name="i-lucide-x"
                     class="w-3.5 h-3.5"
                   />
-                  {{ demande.type === 'conge' ? 'Congés' : 'Acompte' }}
-                </span>
-              </td>
-              <td class="px-5 py-3 text-slate-700">
-                {{ detail(demande) }}
-              </td>
-              <td
-                class="px-5 py-3 text-slate-500 max-w-[16rem] truncate"
-                :title="demande.motif || ''"
+                  Refuser
+                </button>
+              </div>
+              <span
+                v-else
+                class="text-[11px] text-slate-400"
               >
-                {{ demande.motif || '—' }}
-              </td>
-              <td class="px-5 py-3">
-                <span
-                  class="inline-flex px-2 py-0.5 border text-[11px] font-bold uppercase tracking-wide"
-                  :class="classeStatut(demande.statut)"
-                >
-                  {{ libelleStatut(demande.statut) }}
-                </span>
-                <p
-                  v-if="demande.commentaire_gestionnaire"
-                  class="text-[11px] text-slate-400 mt-1 max-w-[14rem]"
-                >
-                  {{ demande.commentaire_gestionnaire }}
-                </p>
-              </td>
-              <td class="px-5 py-3 text-right">
-                <div
-                  v-if="demande.statut === 'en_attente'"
-                  class="flex justify-end gap-2"
-                >
-                  <button
-                    :disabled="decisionEnCours === `${demande.type}-${demande.id}`"
-                    class="px-3 py-1.5 bg-green-600 hover:bg-green-700 disabled:bg-slate-300 text-white text-[11px] font-bold uppercase tracking-wider rounded-lg inline-flex items-center gap-1"
-                    @click="valider(demande)"
-                  >
-                    <Icon
-                      :name="decisionEnCours === `${demande.type}-${demande.id}` ? 'i-lucide-loader-2' : 'i-lucide-check'"
-                      class="w-3.5 h-3.5"
-                      :class="{ 'animate-spin': decisionEnCours === `${demande.type}-${demande.id}` }"
-                    />
-                    Valider
-                  </button>
-                  <button
-                    class="px-3 py-1.5 border border-red-200 text-red-600 hover:bg-red-50 text-[11px] font-bold uppercase tracking-wider rounded-lg inline-flex items-center gap-1"
-                    @click="ouvrirRefus(demande)"
-                  >
-                    <Icon
-                      name="i-lucide-x"
-                      class="w-3.5 h-3.5"
-                    />
-                    Refuser
-                  </button>
-                </div>
-                <span
-                  v-else
-                  class="text-[11px] text-slate-400"
-                >
-                  {{ demande.date_decision ? 'Traitée' : '—' }}
-                </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+                {{ demande.date_decision ? 'Traitée' : '—' }}
+              </span>
+            </template>
+          </Column>
+        </DataTable>
       </div>
     </div>
 
@@ -368,7 +354,7 @@ onMounted(charger)
           </p>
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Motif (facultatif)</label>
-            <textarea
+            <Textarea
               v-model="refus.motif"
               rows="3"
               maxlength="1000"

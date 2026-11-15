@@ -86,57 +86,64 @@ const handleSaveProcess = async () => {
         Aucune réclamation n'a été soumise pour le moment.
       </div>
       <div v-else class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-slate-200">
-          <thead class="bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-            <tr>
-              <th scope="col" class="px-6 py-3 text-left">Salarié</th>
-              <th scope="col" class="px-6 py-3 text-left">Bulletin concerné</th>
-              <th scope="col" class="px-6 py-3 text-left">Sujet / Motif</th>
-              <th scope="col" class="px-6 py-3 text-left">Description</th>
-              <th scope="col" class="px-6 py-3 text-center">Date d'envoi</th>
-              <th scope="col" class="px-6 py-3 text-center">Statut</th>
-              <th scope="col" class="px-6 py-3 text-center">Action</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-150 text-sm text-slate-700">
-            <tr v-for="c in claims" :key="c.id" class="hover:bg-slate-50/50 transition-colors">
-              <td class="px-6 py-4 font-bold text-slate-900">
-                {{ c.salarie_prenom }} {{ c.salarie_nom?.toUpperCase() }}
-              </td>
-              <td class="px-6 py-4 uppercase font-semibold text-slate-650">
-                {{ getPeriodLabel(c.bulletin_mois, c.bulletin_annee) }}
-              </td>
-              <td class="px-6 py-4 font-bold text-slate-800">
-                {{ c.sujet }}
-              </td>
-              <td class="px-6 py-4 text-slate-600 max-w-xs truncate" :title="c.description">
+        <DataTable
+          :pt="{ thead: { class: 'bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider' }, tbody: { class: 'text-sm text-slate-700' } }"
+          class="min-w-full divide-y divide-slate-200"
+          :value="claims"
+          data-key="id"
+          row-hover
+        >
+          <Column header="Salarié" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-bold text-slate-900">
+            <template #body="{ data: c }">
+              {{ c.salarie_prenom }} {{ c.salarie_nom?.toUpperCase() }}
+            </template>
+          </Column>
+          <Column header="Bulletin concerné" header-class="px-6 py-3 text-left" body-class="px-6 py-4 uppercase font-semibold text-slate-650">
+            <template #body="{ data: c }">
+              {{ getPeriodLabel(c.bulletin_mois, c.bulletin_annee) }}
+            </template>
+          </Column>
+          <Column header="Sujet / Motif" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-bold text-slate-800">
+            <template #body="{ data: c }">
+              {{ c.sujet }}
+            </template>
+          </Column>
+          <Column header="Description" header-class="px-6 py-3 text-left" body-class="px-6 py-4 text-slate-600 max-w-xs truncate">
+            <template #body="{ data: c }">
+              <div :title="c.description" class="truncate">
                 {{ c.description }}
-              </td>
-              <td class="px-6 py-4 text-center font-mono text-xs text-slate-500">
-                {{ new Date(c.created_at).toLocaleDateString('fr-FR') }}
-              </td>
-              <td class="px-6 py-4 text-center">
-                <span class="inline-block px-2.5 py-0.5 text-[9px] font-black uppercase border rounded-lg tracking-wider"
-                  :class="[
-                    c.statut === 'en_attente' ? 'bg-amber-50 border-amber-300 text-amber-700' :
-                    c.statut === 'traite' ? 'bg-green-50 border-green-300 text-green-700' :
-                    'bg-slate-100 border-slate-300 text-slate-650'
-                  ]"
-                >
-                  {{ c.statut === 'en_attente' ? 'À traiter' : c.statut === 'traite' ? 'Traitée' : 'Rejetée' }}
-                </span>
-              </td>
-              <td class="px-6 py-4 text-center">
-                <button 
-                  @click="handleOpenProcessModal(c)" 
-                  class="px-2.5 py-1 text-[11px] font-bold uppercase bg-slate-50 border-2 border-slate-200 text-slate-800 hover:bg-slate-100 rounded-lg shadow-sm transition-colors cursor-pointer"
-                >
-                  Traiter / Répondre
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+              </div>
+            </template>
+          </Column>
+          <Column header="Date d'envoi" header-class="px-6 py-3 text-center" body-class="px-6 py-4 text-center font-mono text-xs text-slate-500">
+            <template #body="{ data: c }">
+              {{ new Date(c.created_at).toLocaleDateString('fr-FR') }}
+            </template>
+          </Column>
+          <Column header="Statut" header-class="px-6 py-3 text-center" body-class="px-6 py-4 text-center">
+            <template #body="{ data: c }">
+              <span class="inline-block px-2.5 py-0.5 text-[9px] font-black uppercase border rounded-lg tracking-wider"
+                :class="[
+                  c.statut === 'en_attente' ? 'bg-amber-50 border-amber-300 text-amber-700' :
+                  c.statut === 'traite' ? 'bg-green-50 border-green-300 text-green-700' :
+                  'bg-slate-100 border-slate-300 text-slate-650'
+                ]"
+              >
+                {{ c.statut === 'en_attente' ? 'À traiter' : c.statut === 'traite' ? 'Traitée' : 'Rejetée' }}
+              </span>
+            </template>
+          </Column>
+          <Column header="Action" header-class="px-6 py-3 text-center" body-class="px-6 py-4 text-center">
+            <template #body="{ data: c }">
+              <button
+                @click="handleOpenProcessModal(c)"
+                class="px-2.5 py-1 text-[11px] font-bold uppercase bg-slate-50 border-2 border-slate-200 text-slate-800 hover:bg-slate-100 rounded-lg shadow-sm transition-colors cursor-pointer"
+              >
+                Traiter / Répondre
+              </button>
+            </template>
+          </Column>
+        </DataTable>
       </div>
     </div>
 
@@ -156,15 +163,21 @@ const handleSaveProcess = async () => {
           <div class="space-y-3">
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Statut du traitement</label>
-              <select v-model="claimStatus" class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white select">
-                <option value="en_attente">À traiter / En attente</option>
-                <option value="traite">Acceptée & Traitée</option>
-                <option value="rejete">Rejetée</option>
-              </select>
+              <Select
+                v-model="claimStatus"
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `À traiter / En attente`, value: 'en_attente' },
+                  { label: `Acceptée & Traitée`, value: 'traite' },
+                  { label: `Rejetée`, value: 'rejete' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
             <div>
               <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Commentaire / Réponse pour le salarié</label>
-              <textarea v-model="managerComment" rows="4" placeholder="Indiquez au salarié les mesures prises ou la justification du traitement..." class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white" required></textarea>
+              <Textarea v-model="managerComment" rows="4" placeholder="Indiquez au salarié les mesures prises ou la justification du traitement..." class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm bg-white" required />
             </div>
           </div>
 

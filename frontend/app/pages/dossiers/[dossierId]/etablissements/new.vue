@@ -249,22 +249,20 @@ onMounted(async () => {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Code Établissement <span class="text-red-500">*</span></label>
-              <input 
-                v-model="etabCode" 
-                type="text" 
+              <InputText
+                v-model="etabCode"
                 required
                 disabled
-                placeholder="Génération en cours..." 
+                placeholder="Génération en cours..."
                 class="mt-1 block w-full px-3 py-2 border border-slate-200 bg-slate-50 text-slate-450 rounded-lg focus:outline-none text-sm font-mono cursor-not-allowed"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Nom Établissement (Raison Sociale) <span class="text-red-500">*</span></label>
-              <input 
-                v-model="etabNom" 
-                type="text" 
+              <InputText
+                v-model="etabNom"
                 required
-                placeholder="Ex: Siège Social" 
+                placeholder="Ex: Siège Social"
                 :class="[
                   'mt-1 block w-full px-3 py-2 border rounded-lg focus:outline-none text-sm transition-colors',
                   fieldErrors.raison_sociale ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -277,27 +275,25 @@ onMounted(async () => {
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Sigle</label>
-              <input 
-                v-model="etabSigle" 
-                type="text" 
-                placeholder="Ex: ACME" 
+              <InputText
+                v-model="etabSigle"
+                placeholder="Ex: ACME"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">N° RCCM</label>
-              <input 
-                v-model="etabNumeroRccm" 
-                type="text" 
-                placeholder="Ex: CI-ABJ-01-202X-B12..." 
+              <InputText
+                v-model="etabNumeroRccm"
+                placeholder="Ex: CI-ABJ-01-202X-B12..."
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Date de création</label>
-              <input 
-                v-model="etabDateCreation" 
-                type="date" 
+              <InputText
+                v-model="etabDateCreation"
+                type="date"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
@@ -306,19 +302,22 @@ onMounted(async () => {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Secteur d'activité</label>
-              <input
+              <InputText
                 v-model="secteurRecherche"
                 type="search"
                 placeholder="Rechercher une activité…"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
               />
-              <select 
-                v-model="etabSecteurId" 
-                class="mt-2 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 w-full"
-              >
-                <option :value="null">-- Aucun secteur sélectionné --</option>
-                <option v-for="s in secteursFiltres" :key="s.id" :value="s.id">{{ s.nom }}</option>
-              </select>
+              <Select
+                v-model="etabSecteurId"
+                class="mt-2 block w-full text-sm w-full"
+                :options="[
+                  { label: `-- Aucun secteur sélectionné --`, value: null },
+                  ...secteursFiltres.map(s => ({ label: `${s.nom}`, value: s.id }))
+                ]"
+                option-label="label"
+                option-value="value"
+              />
               <p v-if="!secteursFiltres.length" class="mt-1 text-xs text-slate-500">
                 Aucune activité ne correspond à « {{ secteurRecherche }} ».
               </p>
@@ -333,27 +332,24 @@ onMounted(async () => {
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Pays</label>
-              <input 
-                v-model="etabAdressePays" 
-                type="text" 
+              <InputText
+                v-model="etabAdressePays"
                 placeholder="Ex: COTE D'IVOIRE"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Commune</label>
-              <input 
-                v-model="etabAdresseCommune" 
-                type="text" 
+              <InputText
+                v-model="etabAdresseCommune"
                 placeholder="Ex: Cocody"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Quartier</label>
-              <input 
-                v-model="etabAdresseQuartier" 
-                type="text" 
+              <InputText
+                v-model="etabAdresseQuartier"
                 placeholder="Ex: Angré"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
               />
@@ -363,27 +359,24 @@ onMounted(async () => {
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Rue</label>
-              <input 
-                v-model="etabAdresseRue" 
-                type="text" 
+              <InputText
+                v-model="etabAdresseRue"
                 placeholder="Ex: Rue des Banques"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Îlot</label>
-              <input 
-                v-model="etabAdresseIlot" 
-                type="text" 
+              <InputText
+                v-model="etabAdresseIlot"
                 placeholder="Ex: 12"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Lot</label>
-              <input 
-                v-model="etabAdresseLot" 
-                type="text" 
+              <InputText
+                v-model="etabAdresseLot"
                 placeholder="Ex: 45"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
               />
@@ -392,38 +385,34 @@ onMounted(async () => {
 
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Localisation détaillée / Indications</label>
-            <textarea 
+            <Textarea 
               v-model="etabAdresseLocalisation" 
               rows="2"
               placeholder="Ex: Non loin du rond-point, face à la pharmacie..."
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
-            ></textarea>
+              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white" />
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Boîte Postale / Adresse postale</label>
-              <input 
-                v-model="etabAdressePostale" 
-                type="text" 
+              <InputText
+                v-model="etabAdressePostale"
                 placeholder="Ex: BP 123 Abidjan"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Téléphone</label>
-              <input 
-                v-model="etabTelephone" 
-                type="text" 
+              <InputText
+                v-model="etabTelephone"
                 placeholder="Ex: +225 07 00 00 00 00"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Fax</label>
-              <input 
-                v-model="etabFax" 
-                type="text" 
+              <InputText
+                v-model="etabFax"
                 placeholder="Ex: +225 27 00 00 00 00"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
               />
@@ -433,18 +422,18 @@ onMounted(async () => {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">E-mail</label>
-              <input 
-                v-model="etabEmail" 
-                type="email" 
+              <InputText
+                v-model="etabEmail"
+                type="email"
                 placeholder="Ex: contact@entreprise.com"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Site Web</label>
-              <input 
-                v-model="etabSiteWeb" 
-                type="url" 
+              <InputText
+                v-model="etabSiteWeb"
+                type="url"
                 placeholder="Ex: https://www.entreprise.com"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
               />
@@ -458,27 +447,32 @@ onMounted(async () => {
           
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Adresse d'édition (sur le bulletin de paie)</label>
-            <textarea 
+            <Textarea 
               v-model="etabAdresseBulletinPaie" 
               rows="2"
               placeholder="Ex: Siège Social - Abidjan, Cocody..."
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
-            ></textarea>
+              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white" />
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Mode de décompte ancienneté</label>
-              <select v-model="etabModeDecompteAnciennete" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                <option value="Date anniversaire de la date d'entrée">Date anniversaire de la date d'entrée</option>
-                <option value="Année civile">Année civile</option>
-              </select>
+              <Select
+                v-model="etabModeDecompteAnciennete"
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Date anniversaire de la date d'entrée`, value: 'Date anniversaire de la date d\'entrée' },
+                  { label: `Année civile`, value: 'Année civile' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Période de référence congés (mois)</label>
-              <input 
-                v-model="etabCongesPeriodeReferenceMois" 
-                type="number" 
+              <InputText
+                v-model.number="etabCongesPeriodeReferenceMois"
+                type="number"
                 min="1"
                 max="12"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none text-sm transition-colors focus:ring-2 focus:ring-green-500 focus:border-green-500 bg-white"
@@ -486,16 +480,22 @@ onMounted(async () => {
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Mode de gestion du solde congés</label>
-              <select v-model="etabCongesModeGestionSolde" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                <option value="Jours calendaires">Jours calendaires</option>
-                <option value="Jours ouvrables">Jours ouvrables</option>
-                <option value="Jours ouvrés">Jours ouvrés</option>
-              </select>
+              <Select
+                v-model="etabCongesModeGestionSolde"
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Jours calendaires`, value: 'Jours calendaires' },
+                  { label: `Jours ouvrables`, value: 'Jours ouvrables' },
+                  { label: `Jours ouvrés`, value: 'Jours ouvrés' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
           </div>
 
           <div class="flex items-start space-x-3 rounded-lg border border-slate-200 bg-slate-50 p-4">
-            <input id="new-report-conges" v-model="etabReportConges" type="checkbox" class="mt-0.5 rounded border-slate-300 text-green-600 focus:ring-green-500 h-4 w-4" />
+            <Checkbox id="new-report-conges" v-model="etabReportConges" class="mt-0.5" binary />
             <div>
               <label for="new-report-conges" class="text-sm font-semibold text-slate-700 uppercase tracking-wider">Report des congés d'une année sur l'autre</label>
               <p class="text-xs text-slate-500 mt-1">
@@ -507,34 +507,31 @@ onMounted(async () => {
 
           <div class="space-y-4 pt-2">
             <div class="flex items-center space-x-2">
-              <input id="new-matricule-auto" v-model="etabMatriculeGenerationAuto" type="checkbox" class="rounded border-slate-300 text-green-600 focus:ring-green-500 h-4 w-4" />
+              <Checkbox id="new-matricule-auto" v-model="etabMatriculeGenerationAuto" binary />
               <label for="new-matricule-auto" class="text-sm font-semibold text-slate-700 uppercase tracking-wider">Génération automatique des matricules salariés</label>
             </div>
 
             <div v-if="etabMatriculeGenerationAuto" class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-slate-50 p-4 rounded-lg border border-slate-200">
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Préfixe matricule</label>
-                <input 
-                  v-model="etabMatriculePrefixe" 
-                  type="text" 
+                <InputText
+                  v-model="etabMatriculePrefixe"
                   placeholder="Ex: EMP-"
                   class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none text-sm bg-white"
                 />
               </div>
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Suffixe matricule</label>
-                <input 
-                  v-model="etabMatriculeSuffixe" 
-                  type="text" 
+                <InputText
+                  v-model="etabMatriculeSuffixe"
                   placeholder="Ex: -CI"
                   class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none text-sm bg-white"
                 />
               </div>
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Numéro séquentiel de départ</label>
-                <input 
-                  v-model="etabMatriculeNumeroSequentiel" 
-                  type="text" 
+                <InputText
+                  v-model="etabMatriculeNumeroSequentiel"
                   placeholder="Ex: 001"
                   class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none text-sm bg-white"
                 />
@@ -550,9 +547,8 @@ onMounted(async () => {
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Matricule employeur</label>
-              <input 
-                v-model="cnpsMatricule" 
-                type="text" 
+              <InputText
+                v-model="cnpsMatricule"
                 :class="[
                   'mt-1 block w-full px-3 py-2 border rounded-lg text-sm focus:outline-none font-mono transition-colors',
                   fieldErrors.cnps_matricule ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -562,9 +558,8 @@ onMounted(async () => {
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Code activité</label>
-              <input 
-                v-model="cnpsCodeActivite" 
-                type="text" 
+              <InputText
+                v-model="cnpsCodeActivite"
                 :class="[
                   'mt-1 block w-full px-3 py-2 border rounded-lg text-sm focus:outline-none font-mono transition-colors',
                   fieldErrors.cnps_code_activite ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -574,9 +569,8 @@ onMounted(async () => {
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Code agence</label>
-              <input 
-                v-model="cnpsCodeAgence" 
-                type="text" 
+              <InputText
+                v-model="cnpsCodeAgence"
                 :class="[
                   'mt-1 block w-full px-3 py-2 border rounded-lg text-sm focus:outline-none font-mono transition-colors',
                   fieldErrors.cnps_code_agence ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -586,9 +580,8 @@ onMounted(async () => {
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Code établissement</label>
-              <input 
-                v-model="cnpsCodeEtablissement" 
-                type="text" 
+              <InputText
+                v-model="cnpsCodeEtablissement"
                 :class="[
                   'mt-1 block w-full px-3 py-2 border rounded-lg text-sm focus:outline-none font-mono transition-colors',
                   fieldErrors.cnps_code_etablissement ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -600,9 +593,8 @@ onMounted(async () => {
 
           <div>
             <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Agence de rattachement</label>
-            <input 
-              v-model="cnpsAgenceRattachement" 
-              type="text" 
+            <InputText
+              v-model="cnpsAgenceRattachement"
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm focus:outline-none transition-colors',
                 fieldErrors.cnps_agence_rattachement ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -614,19 +606,31 @@ onMounted(async () => {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Périodicité de paiement - CNPS</label>
-              <select v-model="cnpsPeriodicitePaiement" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                <option value="Mensuelle">Mensuelle</option>
-                <option value="Trimestrielle">Trimestrielle</option>
-                <option value="Annuelle">Annuelle</option>
-              </select>
+              <Select
+                v-model="cnpsPeriodicitePaiement"
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Mensuelle`, value: 'Mensuelle' },
+                  { label: `Trimestrielle`, value: 'Trimestrielle' },
+                  { label: `Annuelle`, value: 'Annuelle' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Périodicité de paiement - CMU</label>
-              <select v-model="cmuPeriodicitePaiement" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                <option value="Mensuelle">Mensuelle</option>
-                <option value="Trimestrielle">Trimestrielle</option>
-                <option value="Annuelle">Annuelle</option>
-              </select>
+              <Select
+                v-model="cmuPeriodicitePaiement"
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Mensuelle`, value: 'Mensuelle' },
+                  { label: `Trimestrielle`, value: 'Trimestrielle' },
+                  { label: `Annuelle`, value: 'Annuelle' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
           </div>
         </div>
@@ -638,9 +642,8 @@ onMounted(async () => {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">N° de Compte contribuable</label>
-              <input 
-                v-model="dgiCompteContribuable" 
-                type="text" 
+              <InputText
+                v-model="dgiCompteContribuable"
                 placeholder="Ex: 2401502E"
                 :class="[
                   'mt-1 block w-full px-3 py-2 border rounded-lg text-sm focus:outline-none font-mono transition-colors',
@@ -651,9 +654,8 @@ onMounted(async () => {
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Centre des impôts</label>
-              <input 
-                v-model="dgiCentreImpots" 
-                type="text" 
+              <InputText
+                v-model="dgiCentreImpots"
                 placeholder="Ex: RIVIERA 2"
                 :class="[
                   'mt-1 block w-full px-3 py-2 border rounded-lg text-sm focus:outline-none transition-colors',
@@ -667,19 +669,31 @@ onMounted(async () => {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Périodicité des déclarations</label>
-              <select v-model="dgiPeriodiciteDeclaration" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                <option value="Mensuelle">Mensuelle</option>
-                <option value="Trimestrielle">Trimestrielle</option>
-                <option value="Annuelle">Annuelle</option>
-              </select>
+              <Select
+                v-model="dgiPeriodiciteDeclaration"
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Mensuelle`, value: 'Mensuelle' },
+                  { label: `Trimestrielle`, value: 'Trimestrielle' },
+                  { label: `Annuelle`, value: 'Annuelle' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Régime fiscal par défaut</label>
-              <select v-model="dgiRegimeFiscal" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500">
-                <option value="Régime général">Régime général</option>
-                <option value="Régime simplifié">Régime simplifié</option>
-                <option value="Impôt synthétique">Impôt synthétique</option>
-              </select>
+              <Select
+                v-model="dgiRegimeFiscal"
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Régime général`, value: 'Régime général' },
+                  { label: `Régime simplifié`, value: 'Régime simplifié' },
+                  { label: `Impôt synthétique`, value: 'Impôt synthétique' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
           </div>
         </div>
@@ -694,9 +708,8 @@ onMounted(async () => {
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Code CDI</label>
-              <input
+              <InputText
                 v-model="dfeCodeCdi"
-                type="text"
                 maxlength="10"
                 placeholder="Ex : 611"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
@@ -704,9 +717,8 @@ onMounted(async () => {
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Code activité (DFE)</label>
-              <input
+              <InputText
                 v-model="dfeCodeActivite"
-                type="text"
                 maxlength="20"
                 placeholder="Ex : CCE0802"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
@@ -714,21 +726,24 @@ onMounted(async () => {
             </div>
             <div>
               <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Régime d'imposition</label>
-              <select
+              <Select
                 v-model="dfeRegimeImposition"
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-              >
-                <option value="">-- Non précisé --</option>
-                <option value="RNI">RNI</option>
-                <option value="RSI">RSI</option>
-                <option value="IM">IM</option>
-                <option value="TEE">TEE</option>
-              </select>
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `-- Non précisé --`, value: '' },
+                  { label: `RNI`, value: 'RNI' },
+                  { label: `RSI`, value: 'RSI' },
+                  { label: `IM`, value: 'IM' },
+                  { label: `TEE`, value: 'TEE' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
           </div>
 
           <div class="flex items-center space-x-2">
-            <input id="dfe-employeur" v-model="dfeEstEmployeur" type="checkbox" class="rounded border-slate-300 text-green-600 focus:ring-green-500 h-4 w-4" />
+            <Checkbox id="dfe-employeur" v-model="dfeEstEmployeur" binary />
             <label for="dfe-employeur" class="text-sm font-semibold text-slate-700 uppercase tracking-wider">Employeur</label>
           </div>
 
@@ -736,11 +751,9 @@ onMounted(async () => {
             <label class="block text-[11px] font-semibold uppercase tracking-wider text-slate-500">Obligations fiscales</label>
             <div class="mt-2 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               <label v-for="obligation in OBLIGATIONS_FISCALES" :key="obligation.code" class="flex items-center gap-2 text-sm text-slate-700">
-                <input
+                <Checkbox
                   v-model="dfeObligations"
-                  type="checkbox"
                   :value="obligation.code"
-                  class="rounded border-slate-300 text-green-600 focus:ring-green-500 h-4 w-4"
                 />
                 {{ obligation.libelle }}
               </label>

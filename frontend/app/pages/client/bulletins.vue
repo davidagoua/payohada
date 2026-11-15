@@ -117,24 +117,26 @@ const handlePrint = () => {
       <!-- Filtres Période -->
       <div class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-lg border border-slate-200">
         <label class="text-xs font-bold text-slate-600 ml-1">Mois :</label>
-        <select 
-          v-model="selectedMois" 
-          class="bg-white border border-slate-250 rounded px-2.5 py-1 text-xs font-bold text-slate-800"
-        >
-          <option v-for="m in months" :key="m.value" :value="m.value">
-            {{ m.label }}
-          </option>
-        </select>
+        <Select
+          v-model="selectedMois"
+          class="text-xs"
+          :options="[
+            ...months.map(m => ({ label: `${m.label}`, value: m.value }))
+          ]"
+          option-label="label"
+          option-value="value"
+        />
 
         <label class="text-xs font-bold text-slate-600 ml-2">Année :</label>
-        <select 
-          v-model="selectedAnnee" 
-          class="bg-white border border-slate-250 rounded px-2.5 py-1 text-xs font-bold text-slate-800"
-        >
-          <option v-for="y in years" :key="y" :value="y">
-            {{ y }}
-          </option>
-        </select>
+        <Select
+          v-model="selectedAnnee"
+          class="text-xs"
+          :options="[
+            ...years.map(y => ({ label: `${y}`, value: y }))
+          ]"
+          option-label="label"
+          option-value="value"
+        />
       </div>
     </div>
 
@@ -164,9 +166,8 @@ const handlePrint = () => {
       <div class="p-4 border-b border-slate-200 flex items-center justify-between gap-4">
         <div class="relative w-full max-w-sm">
           <Icon name="i-lucide-search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
-          <input 
-            v-model="searchQuery" 
-            type="text" 
+          <InputText
+            v-model="searchQuery"
             placeholder="Rechercher un bulletin..."
             class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-4 py-1.5 text-xs text-slate-800"
           />
@@ -198,63 +199,68 @@ const handlePrint = () => {
       </div>
 
       <div v-else class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-slate-200 text-left">
-          <thead class="bg-slate-50 text-[11px] font-bold text-slate-600 uppercase tracking-wider">
-            <tr>
-              <th scope="col" class="px-4 py-3">Salarié</th>
-              <th scope="col" class="px-4 py-3">Brut</th>
-              <th scope="col" class="px-4 py-3">Charges Salariales</th>
-              <th scope="col" class="px-4 py-3">Charges Patronales</th>
-              <th scope="col" class="px-4 py-3">Net à Payer</th>
-              <th scope="col" class="px-4 py-3 text-center">Statut</th>
-              <th scope="col" class="px-4 py-3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-150 text-xs">
-            <tr v-for="b in filteredBulletins" :key="b.id" class="hover:bg-slate-50/70 transition-colors">
-              <td class="px-4 py-3.5">
-                <div class="font-bold text-slate-900">
-                  {{ b.salarie_nom }} {{ b.salarie_prenom }}
-                </div>
-                <div class="text-[11px] text-slate-500 font-mono">
-                  Matricule: {{ b.matricule || `EMP-${b.contrat_id}` }}
-                </div>
-              </td>
-              <td class="px-4 py-3.5 font-semibold text-slate-800">
-                {{ formatFCFA(b.salaire_brut) }}
-              </td>
-              <td class="px-4 py-3.5 text-slate-600">
-                {{ formatFCFA(b.total_retenues) }}
-              </td>
-              <td class="px-4 py-3.5 text-slate-600">
-                {{ formatFCFA(b.total_charges_patronales) }}
-              </td>
-              <td class="px-4 py-3.5 font-black text-green-700 text-sm">
-                {{ formatFCFA(b.net_a_payer) }}
-              </td>
-              <td class="px-4 py-3.5 text-center">
-                <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold" :class="[
-                  b.statut === 'valide' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
-                ]">
-                  {{ b.statut === 'valide' ? 'Validé' : 'Brouillon' }}
-                </span>
-              </td>
-              <td class="px-4 py-3.5 text-right">
-                <Button
-                  severity="secondary"
-                  text
-                  size="small"
-                  @click="handlePreview(b)"
-                  label="Visualiser"
-                >
-                  <template #icon>
-                    <Icon name="i-lucide-eye" class="w-4 h-4 text-slate-500" />
-                  </template>
-                </Button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+        <DataTable
+          :pt="{ thead: { class: 'bg-slate-50 text-[11px] font-bold text-slate-600 uppercase tracking-wider' }, tbody: { class: 'text-xs' } }"
+          class="min-w-full divide-y divide-slate-200 text-left"
+          :value="filteredBulletins"
+          data-key="id"
+          row-hover
+        >
+          <Column header="Salarié" header-class="px-4 py-3" body-class="px-4 py-3.5">
+            <template #body="{ data: b }">
+              <div class="font-bold text-slate-900">
+                {{ b.salarie_nom }} {{ b.salarie_prenom }}
+              </div>
+              <div class="text-[11px] text-slate-500 font-mono">
+                Matricule: {{ b.matricule || `EMP-${b.contrat_id}` }}
+              </div>
+            </template>
+          </Column>
+          <Column header="Brut" header-class="px-4 py-3" body-class="px-4 py-3.5 font-semibold text-slate-800">
+            <template #body="{ data: b }">
+              {{ formatFCFA(b.salaire_brut) }}
+            </template>
+          </Column>
+          <Column header="Charges Salariales" header-class="px-4 py-3" body-class="px-4 py-3.5 text-slate-600">
+            <template #body="{ data: b }">
+              {{ formatFCFA(b.total_retenues) }}
+            </template>
+          </Column>
+          <Column header="Charges Patronales" header-class="px-4 py-3" body-class="px-4 py-3.5 text-slate-600">
+            <template #body="{ data: b }">
+              {{ formatFCFA(b.total_charges_patronales) }}
+            </template>
+          </Column>
+          <Column header="Net à Payer" header-class="px-4 py-3" body-class="px-4 py-3.5 font-black text-green-700 text-sm">
+            <template #body="{ data: b }">
+              {{ formatFCFA(b.net_a_payer) }}
+            </template>
+          </Column>
+          <Column header="Statut" header-class="px-4 py-3 text-center" body-class="px-4 py-3.5 text-center">
+            <template #body="{ data: b }">
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold" :class="[
+                b.statut === 'valide' ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'
+              ]">
+                {{ b.statut === 'valide' ? 'Validé' : 'Brouillon' }}
+              </span>
+            </template>
+          </Column>
+          <Column header="Actions" header-class="px-4 py-3 text-right" body-class="px-4 py-3.5 text-right">
+            <template #body="{ data: b }">
+              <Button
+                severity="secondary"
+                text
+                size="small"
+                @click="handlePreview(b)"
+                label="Visualiser"
+              >
+                <template #icon>
+                  <Icon name="i-lucide-eye" class="w-4 h-4 text-slate-500" />
+                </template>
+              </Button>
+            </template>
+          </Column>
+        </DataTable>
       </div>
     </div>
 
@@ -277,28 +283,34 @@ const handlePrint = () => {
 
           <!-- Lignes du bulletin -->
           <div class="border border-slate-200 rounded-lg overflow-hidden">
-            <table class="min-w-full divide-y divide-slate-200 text-left">
-              <thead class="bg-slate-100 text-[10px] font-bold uppercase text-slate-600">
-                <tr>
-                  <th class="px-3 py-2">Code</th>
-                  <th class="px-3 py-2">Libellé</th>
-                  <th class="px-3 py-2 text-right">Gain</th>
-                  <th class="px-3 py-2 text-right">Retenue</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-150 text-[11px]">
-                <tr v-for="l in selectedBulletin.lignes" :key="l.id">
-                  <td class="px-3 py-1.5 font-mono text-slate-500">{{ l.code }}</td>
-                  <td class="px-3 py-1.5 font-medium text-slate-800">{{ l.libelle }}</td>
-                  <td class="px-3 py-1.5 text-right font-medium text-slate-900">
-                    {{ l.sens === 'Gain' ? formatFCFA(l.montant_s) : '-' }}
-                  </td>
-                  <td class="px-3 py-1.5 text-right font-medium text-red-700">
-                    {{ l.sens === 'Retenue' ? formatFCFA(l.montant_cs || l.montant_s) : '-' }}
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+            <DataTable
+              :pt="{ thead: { class: 'bg-slate-100 text-[10px] font-bold uppercase text-slate-600' }, tbody: { class: 'text-[11px]' } }"
+              class="min-w-full divide-y divide-slate-200 text-left"
+              :value="selectedBulletin.lignes"
+              data-key="id"
+              row-hover
+            >
+              <Column header="Code" header-class="px-3 py-2" body-class="px-3 py-1.5 font-mono text-slate-500">
+                <template #body="{ data: l }">
+                  {{ l.code }}
+                </template>
+              </Column>
+              <Column header="Libellé" header-class="px-3 py-2" body-class="px-3 py-1.5 font-medium text-slate-800">
+                <template #body="{ data: l }">
+                  {{ l.libelle }}
+                </template>
+              </Column>
+              <Column header="Gain" header-class="px-3 py-2 text-right" body-class="px-3 py-1.5 text-right font-medium text-slate-900">
+                <template #body="{ data: l }">
+                  {{ l.sens === 'Gain' ? formatFCFA(l.montant_s) : '-' }}
+                </template>
+              </Column>
+              <Column header="Retenue" header-class="px-3 py-2 text-right" body-class="px-3 py-1.5 text-right font-medium text-red-700">
+                <template #body="{ data: l }">
+                  {{ l.sens === 'Retenue' ? formatFCFA(l.montant_cs || l.montant_s) : '-' }}
+                </template>
+              </Column>
+            </DataTable>
           </div>
         </div>
       </template>

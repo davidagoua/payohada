@@ -157,16 +157,19 @@ onMounted(() => {
     <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
       <div class="flex items-center space-x-2">
         <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Filtrer par Pays :</label>
-        <select 
-          v-model="countryFilter" 
+        <Select
+          v-model="countryFilter"
           @change="fetchPlanItems"
-          class="block w-40 px-3 py-1.5 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
-        >
-          <option value="CI">Côte d'Ivoire (CI)</option>
-          <option value="SN">Sénégal (SN)</option>
-          <option value="BF">Burkina Faso (BF)</option>
-          <option value="ML">Mali (ML)</option>
-        </select>
+          class="block w-40 text-sm"
+          :options="[
+            { label: `Côte d'Ivoire (CI)`, value: 'CI' },
+            { label: `Sénégal (SN)`, value: 'SN' },
+            { label: `Burkina Faso (BF)`, value: 'BF' },
+            { label: `Mali (ML)`, value: 'ML' }
+          ]"
+          option-label="label"
+          option-value="value"
+        />
       </div>
       
       <div class="text-xs text-slate-450 italic">
@@ -186,66 +189,82 @@ onMounted(() => {
       </div>
 
       <div v-else class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-slate-200 text-sm">
-          <thead class="bg-slate-50 text-slate-600 font-bold text-xs uppercase tracking-wider">
-            <tr>
-              <th scope="col" class="px-6 py-3.5 text-left">Code</th>
-              <th scope="col" class="px-6 py-3.5 text-left">Type</th>
-              <th scope="col" class="px-6 py-3.5 text-left">Libellé</th>
-              <th scope="col" class="px-6 py-3.5 text-left">Calcul</th>
-              <th scope="col" class="px-6 py-3.5 text-center">Sens</th>
-              <th scope="col" class="px-6 py-3.5 text-center">Débit / Crédit</th>
-              <th scope="col" class="px-6 py-3.5 text-center">Statut</th>
-              <th v-if="estAdminPlateforme" scope="col" class="px-6 py-3.5 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-slate-150 text-slate-700">
-            <tr v-for="item in planItems" :key="item.id" class="hover:bg-slate-50 transition-colors">
-              <td class="px-6 py-4 font-mono font-bold text-slate-900 text-xs">{{ item.code }}</td>
-              <td class="px-6 py-4">
-                <span class="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-650 text-[10px] font-semibold">
-                  {{ getPosteTypeLabel(item.type) }}
-                </span>
-              </td>
-              <td class="px-6 py-4 text-xs font-semibold">{{ item.libelle }}</td>
-              <td class="px-6 py-4 text-xs text-slate-500">{{ item.mode_calcul }}</td>
-              <td class="px-6 py-4 text-center">
-                <span 
-                  :class="item.sens === 'Gain' ? 'text-green-700 font-semibold' : 'text-red-600 font-semibold'"
-                  class="text-xs"
-                >
-                  {{ item.sens }}
-                </span>
-              </td>
-              <td class="px-6 py-4 text-center font-mono text-xs text-slate-500">
-                {{ item.compte_debit || '-' }} / {{ item.compte_credit || '-' }}
-              </td>
-              <td class="px-6 py-4 text-center">
-                <span 
-                  :class="item.est_actif ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'"
-                  class="px-2 py-0.5 rounded-full text-[10px] font-bold border"
-                >
-                  {{ item.est_actif ? 'Actif' : 'Inactif' }}
-                </span>
-              </td>
-              <td v-if="estAdminPlateforme" class="px-6 py-4 text-right text-xs font-medium space-x-2">
-                <button 
-                  @click="openEditModal(item)"
-                  class="text-navy-700 hover:text-navy-900 hover:bg-navy-50 p-1.5 rounded transition-colors"
-                >
-                  <Icon name="i-lucide-pencil" class="w-4 h-4" />
-                </button>
-                <button 
-                  @click="handleDelete(item.id)"
-                  class="text-red-500 hover:text-red-750 hover:bg-red-50 p-1.5 rounded transition-colors"
-                >
-                  <Icon name="i-lucide-trash" class="w-4 h-4" />
-                </button>
-              </td>
-              <td v-else class="px-6 py-4 text-right text-xs text-slate-400">—</td>
-            </tr>
-          </tbody>
-        </table>
+        <DataTable
+          :pt="{ thead: { class: 'bg-slate-50 text-slate-600 font-bold text-xs uppercase tracking-wider' }, tbody: { class: 'text-slate-700' } }"
+          class="min-w-full divide-y divide-slate-200 text-sm"
+          :value="planItems"
+          data-key="id"
+          row-hover
+        >
+          <Column header="Code" header-class="px-6 py-3.5 text-left" body-class="px-6 py-4 font-mono font-bold text-slate-900 text-xs">
+            <template #body="{ data: item }">
+              {{ item.code }}
+            </template>
+          </Column>
+          <Column header="Type" header-class="px-6 py-3.5 text-left" body-class="px-6 py-4">
+            <template #body="{ data: item }">
+              <span class="px-2 py-0.5 rounded bg-slate-100 border border-slate-200 text-slate-650 text-[10px] font-semibold">
+                {{ getPosteTypeLabel(item.type) }}
+              </span>
+            </template>
+          </Column>
+          <Column header="Libellé" header-class="px-6 py-3.5 text-left" body-class="px-6 py-4 text-xs font-semibold">
+            <template #body="{ data: item }">
+              {{ item.libelle }}
+            </template>
+          </Column>
+          <Column header="Calcul" header-class="px-6 py-3.5 text-left" body-class="px-6 py-4 text-xs text-slate-500">
+            <template #body="{ data: item }">
+              {{ item.mode_calcul }}
+            </template>
+          </Column>
+          <Column header="Sens" header-class="px-6 py-3.5 text-center" body-class="px-6 py-4 text-center">
+            <template #body="{ data: item }">
+              <span
+                :class="item.sens === 'Gain' ? 'text-green-700 font-semibold' : 'text-red-600 font-semibold'"
+                class="text-xs"
+              >
+                {{ item.sens }}
+              </span>
+            </template>
+          </Column>
+          <Column header="Débit / Crédit" header-class="px-6 py-3.5 text-center" body-class="px-6 py-4 text-center font-mono text-xs text-slate-500">
+            <template #body="{ data: item }">
+              {{ item.compte_debit || '-' }} / {{ item.compte_credit || '-' }}
+            </template>
+          </Column>
+          <Column header="Statut" header-class="px-6 py-3.5 text-center" body-class="px-6 py-4 text-center">
+            <template #body="{ data: item }">
+              <span
+                :class="item.est_actif ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'"
+                class="px-2 py-0.5 rounded-full text-[10px] font-bold border"
+              >
+                {{ item.est_actif ? 'Actif' : 'Inactif' }}
+              </span>
+            </template>
+          </Column>
+          <Column v-if="estAdminPlateforme" header="Actions" header-class="px-6 py-3.5 text-right" body-class="px-6 py-4 text-right text-xs font-medium space-x-2">
+            <template #body="{ data: item }">
+              <button
+                @click="openEditModal(item)"
+                class="text-navy-700 hover:text-navy-900 hover:bg-navy-50 p-1.5 rounded transition-colors"
+              >
+                <Icon name="i-lucide-pencil" class="w-4 h-4" />
+              </button>
+              <button
+                @click="handleDelete(item.id)"
+                class="text-red-500 hover:text-red-750 hover:bg-red-50 p-1.5 rounded transition-colors"
+              >
+                <Icon name="i-lucide-trash" class="w-4 h-4" />
+              </button>
+            </template>
+          </Column>
+          <Column v-else body-class="px-6 py-4 text-right text-xs text-slate-400">
+            <template #body>
+              —
+            </template>
+          </Column>
+        </DataTable>
       </div>
     </div>
 
@@ -268,88 +287,98 @@ onMounted(() => {
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Code Unique</label>
-              <input 
-                v-model="form.code" 
-                type="text" 
-                required 
+              <InputText
+                v-model="form.code"
+                required
                 placeholder="ex: 1001"
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" 
+                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Pays de référence</label>
-              <select 
-                v-model="form.pays" 
-                required
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
-              >
-                <option value="CI">Côte d'Ivoire (CI)</option>
-                <option value="SN">Sénégal (SN)</option>
-                <option value="BF">Burkina Faso (BF)</option>
-                <option value="ML">Mali (ML)</option>
-              </select>
+              <Select
+                v-model="form.pays"
+                required=""
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Côte d'Ivoire (CI)`, value: 'CI' },
+                  { label: `Sénégal (SN)`, value: 'SN' },
+                  { label: `Burkina Faso (BF)`, value: 'BF' },
+                  { label: `Mali (ML)`, value: 'ML' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Type de Poste</label>
-              <select 
-                v-model="form.type" 
-                required
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
-              >
-                <option value="B">Brut (B)</option>
-                <option value="I">Impôt/Cotisation (I)</option>
-                <option value="NS">Non-Salarial (NS)</option>
-                <option value="C">Patronal (C)</option>
-                <option value="A">Avantage (A)</option>
-              </select>
+              <Select
+                v-model="form.type"
+                required=""
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Brut (B)`, value: 'B' },
+                  { label: `Impôt/Cotisation (I)`, value: 'I' },
+                  { label: `Non-Salarial (NS)`, value: 'NS' },
+                  { label: `Patronal (C)`, value: 'C' },
+                  { label: `Avantage (A)`, value: 'A' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Sens</label>
-              <select 
-                v-model="form.sens" 
-                required
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
-              >
-                <option value="Gain">Gain</option>
-                <option value="Retenue">Retenue</option>
-              </select>
+              <Select
+                v-model="form.sens"
+                required=""
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Gain`, value: 'Gain' },
+                  { label: `Retenue`, value: 'Retenue' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
           </div>
 
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Libellé</label>
-            <input 
-              v-model="form.libelle" 
-              type="text" 
-              required 
+            <InputText
+              v-model="form.libelle"
+              required
               placeholder="ex: Salaire de base"
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500" 
+              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
             />
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Mode de Calcul</label>
-              <select 
-                v-model="form.mode_calcul" 
-                required
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
-              >
-                <option value="Auto">Auto</option>
-                <option value="Sémi-auto">Sémi-auto</option>
-                <option value="Manuel">Manuel</option>
-              </select>
+              <Select
+                v-model="form.mode_calcul"
+                required=""
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Auto`, value: 'Auto' },
+                  { label: `Sémi-auto`, value: 'Sémi-auto' },
+                  { label: `Manuel`, value: 'Manuel' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
             <div class="flex items-center space-x-4 mt-6">
               <label class="flex items-center space-x-1.5 text-xs font-semibold text-slate-700 select-none">
-                <input v-model="form.masque_si_nul" type="checkbox" class="h-4 w-4 text-green-600 focus:ring-green-500 border-slate-300 rounded" />
+                <Checkbox v-model="form.masque_si_nul" binary />
                 <span>Masquer si nul</span>
               </label>
               <label class="flex items-center space-x-1.5 text-xs font-semibold text-slate-700 select-none">
-                <input v-model="form.imprimable" type="checkbox" class="h-4 w-4 text-green-600 focus:ring-green-500 border-slate-300 rounded" />
+                <Checkbox v-model="form.imprimable" binary />
                 <span>Imprimable</span>
               </label>
             </div>
@@ -358,30 +387,27 @@ onMounted(() => {
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Compte Débit</label>
-              <input 
-                v-model="form.compte_debit" 
-                type="text" 
+              <InputText
+                v-model="form.compte_debit"
                 placeholder="ex: 661200"
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" 
+                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Compte Crédit</label>
-              <input 
-                v-model="form.compte_credit" 
-                type="text" 
+              <InputText
+                v-model="form.compte_credit"
                 placeholder="ex: 447210"
-                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500" 
+                class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-500"
               />
             </div>
           </div>
 
           <div class="flex items-center space-x-2 pt-2">
-            <input 
-              v-model="form.est_actif" 
+            <Checkbox
+              v-model="form.est_actif"
               id="est_actif"
-              type="checkbox" 
-              class="h-4 w-4 text-green-600 focus:ring-green-500 border-slate-300 rounded" 
+              binary
             />
             <label for="est_actif" class="text-xs font-semibold text-slate-700 select-none">Ce poste est actif</label>
           </div>

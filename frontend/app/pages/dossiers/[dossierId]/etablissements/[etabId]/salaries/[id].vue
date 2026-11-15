@@ -296,21 +296,26 @@ onMounted(() => {
           <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Civilité</label>
-              <select v-model="salCivilite" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select">
-                <option value="M.">Monsieur (M.)</option>
-                <option value="MME">Madame (Mme)</option>
-              </select>
+              <Select
+                v-model="salCivilite"
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Monsieur (M.)`, value: 'M.' },
+                  { label: `Madame (Mme)`, value: 'MME' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Matricule Interne</label>
-              <input v-model="salMatricule" type="text" disabled class="mt-1 block w-full px-3 py-2 border border-slate-200 bg-slate-50 rounded-lg text-sm font-mono text-slate-500 cursor-not-allowed" />
+              <InputText v-model="salMatricule" disabled class="mt-1 block w-full px-3 py-2 border border-slate-200 bg-slate-50 rounded-lg text-sm font-mono text-slate-500 cursor-not-allowed" />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Prénom</label>
-              <input 
-                v-model="salPrenom" 
-                type="text" 
-                required 
+              <InputText
+                v-model="salPrenom"
+                required
                 :class="[
                   'mt-1 block w-full px-3 py-2 border rounded-lg text-sm transition-colors',
                   fieldErrors.prenom ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -320,10 +325,9 @@ onMounted(() => {
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Nom de famille</label>
-              <input 
-                v-model="salNom" 
-                type="text" 
-                required 
+              <InputText
+                v-model="salNom"
+                required
                 :class="[
                   'mt-1 block w-full px-3 py-2 border rounded-lg text-sm transition-colors',
                   fieldErrors.nom ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -336,14 +340,13 @@ onMounted(() => {
           <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Nom d'Usage (Optionnel)</label>
-              <input v-model="salNomUsage" type="text" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <InputText v-model="salNomUsage" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">N° Sécurité Sociale (NIR)</label>
-              <input 
-                v-model="salNir" 
-                type="text" 
-                placeholder="15 chiffres" 
+              <InputText
+                v-model="salNir"
+                placeholder="15 chiffres"
                 :class="[
                   'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono transition-colors',
                   fieldErrors.numero_securite_sociale ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -353,48 +356,60 @@ onMounted(() => {
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Nationalité</label>
-              <input v-model="salNationalite" type="text" placeholder="Ex: Ivoirienne" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <InputText v-model="salNationalite" placeholder="Ex: Ivoirienne" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Régime Expatrié</label>
-              <select v-model="salExpatrie" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select">
-                <option :value="false">Non (Local)</option>
-                <option :value="true">Oui (Expatrié)</option>
-              </select>
+              <Select
+                v-model="salExpatrie"
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Non (Local)`, value: false },
+                  { label: `Oui (Expatrié)`, value: true }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Date de Naissance</label>
-              <input v-model="salDateNaissance" type="date" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <InputText v-model="salDateNaissance" type="date" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Lieu de Naissance</label>
-              <input v-model="salLieuNaissance" type="text" placeholder="Ex: Abidjan" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <InputText v-model="salLieuNaissance" placeholder="Ex: Abidjan" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
           
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Pays Naissance</label>
-              <input v-model="salPaysNaissance" type="text" placeholder="Ex: Côte d'Ivoire" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <InputText v-model="salPaysNaissance" placeholder="Ex: Côte d'Ivoire" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Situation Matrimoniale</label>
-              <select v-model="salSituationMatrimoniale" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white select">
-                <option value="Célibataire">Célibataire</option>
-                <option value="Marié">Marié(e)</option>
-                <option value="Divorcé">Divorcé(e)</option>
-                <option value="Veuf">Veuf(ve)</option>
-              </select>
+              <Select
+                v-model="salSituationMatrimoniale"
+                class="mt-1 block w-full text-sm"
+                :options="[
+                  { label: `Célibataire`, value: 'Célibataire' },
+                  { label: `Marié(e)`, value: 'Marié' },
+                  { label: `Divorcé(e)`, value: 'Divorcé' },
+                  { label: `Veuf(ve)`, value: 'Veuf' }
+                ]"
+                option-label="label"
+                option-value="value"
+              />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Enfants à charge</label>
-              <input 
-                v-model.number="salEnfantsCharge" 
-                type="number" 
+              <InputText
+                v-model.number="salEnfantsCharge"
+                type="number"
                 min="0"
                 max="20"
                 class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm"
@@ -410,9 +425,9 @@ onMounted(() => {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Email Personnel</label>
-              <input 
-                v-model="salEmail" 
-                type="email" 
+              <InputText
+                v-model="salEmail"
+                type="email"
                 :class="[
                   'mt-1 block w-full px-3 py-2 border rounded-lg text-sm transition-colors',
                   fieldErrors.email ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -439,9 +454,8 @@ onMounted(() => {
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Téléphone</label>
-              <input 
-                v-model="salPhone" 
-                type="text" 
+              <InputText
+                v-model="salPhone"
                 :class="[
                   'mt-1 block w-full px-3 py-2 border rounded-lg text-sm transition-colors',
                   fieldErrors.telephone ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -454,26 +468,26 @@ onMounted(() => {
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="md:col-span-2">
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Adresse postale</label>
-              <input v-model="salAdresse" type="text" placeholder="Voie et rue" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <InputText v-model="salAdresse" placeholder="Voie et rue" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Adresse Complémentaire</label>
-              <input v-model="salAdresse2" type="text" placeholder="Escalier, appartement..." class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <InputText v-model="salAdresse2" placeholder="Escalier, appartement..." class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
           </div>
 
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Code Postal</label>
-              <input v-model="salCodePostal" type="text" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono" />
+              <InputText v-model="salCodePostal" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono" />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Ville</label>
-              <input v-model="salVille" type="text" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <InputText v-model="salVille" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Pays</label>
-              <input v-model="salPays" type="text" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
+              <InputText v-model="salPays" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
             </div>
           </div>
         </div>
@@ -484,10 +498,9 @@ onMounted(() => {
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">IBAN du salarié</label>
-              <input 
-                v-model="salIban" 
-                type="text" 
-                placeholder="FR76..." 
+              <InputText
+                v-model="salIban"
+                placeholder="FR76..."
                 :class="[
                   'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono transition-colors',
                   fieldErrors.iban ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -497,10 +510,9 @@ onMounted(() => {
             </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">BIC du salarié</label>
-              <input 
-                v-model="salBic" 
-                type="text" 
-                placeholder="Ex: CEIDFRPP..." 
+              <InputText
+                v-model="salBic"
+                placeholder="Ex: CEIDFRPP..."
                 :class="[
                   'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono transition-colors',
                   fieldErrors.bic ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
@@ -513,7 +525,7 @@ onMounted(() => {
 
         <div class="flex justify-end space-x-3">
           <div class="flex items-center space-x-2 mr-4">
-            <input id="sal-active" v-model="salIsActive" type="checkbox" class="rounded border-slate-300 text-green-600 focus:ring-green-500 h-4 w-4" />
+            <Checkbox id="sal-active" v-model="salIsActive" binary />
             <label for="sal-active" class="text-sm font-semibold text-slate-700">Fiche active</label>
           </div>
           <button type="submit" class="px-6 py-2.5 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg shadow transition-colors">
@@ -546,61 +558,70 @@ onMounted(() => {
           Aucun contrat créé pour ce salarié.
         </div>
         <div v-else class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-slate-200 text-sm">
-            <thead class="bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
-              <tr>
-                <th scope="col" class="px-6 py-3 text-left">N° Contrat</th>
-                <th scope="col" class="px-6 py-3 text-left">Poste / Emploi</th>
-                <th scope="col" class="px-6 py-3 text-left">Type Contrat</th>
-                <th scope="col" class="px-6 py-3 text-left">Rémunération</th>
-                <th scope="col" class="px-6 py-3 text-left">Date Début</th>
-                <th scope="col" class="px-6 py-3 text-left">Statut</th>
-                <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-150 bg-white">
-              <tr 
-                v-for="c in contrats" 
-                :key="c.id" 
-                @click="router.push(`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}/contrats/${c.id}`)"
-                class="hover:bg-slate-50 cursor-pointer group"
-              >
-                <td class="px-6 py-4 font-mono font-semibold text-slate-900">{{ c.numero_contrat }}</td>
-                <td class="px-6 py-4 font-medium text-slate-700 group-hover:text-navy-700 transition-colors">
-                  {{ c.emploi || 'Non renseigné' }}
-                </td>
-                <td class="px-6 py-4 text-slate-600 font-semibold">
-                  {{ c.type_contrat_travail === 10 ? 'CDI' : c.type_contrat_travail === 29 ? 'CDD' : 'Autre (code ' + c.type_contrat_travail + ')' }}
-                </td>
-                <td class="px-6 py-4 font-mono text-slate-600">
-                  {{ c.salaire_mensuel }} FCFA / {{ c.type_salaire }}
-                  <span
-                    :class="[
-                      c.mode_calcul === 'net' ? 'bg-navy-50 text-navy-700 border-navy-200' : 'bg-slate-100 text-slate-650 border-slate-200',
-                      'ml-1 px-1.5 py-0.5 rounded text-[9px] uppercase font-bold border'
-                    ]"
-                  >{{ c.mode_calcul === 'net' ? 'Net' : 'Brut' }}</span>
-                </td>
-                <td class="px-6 py-4 font-mono text-slate-500">{{ c.date_debut_contrat || '-' }}</td>
-                <td class="px-6 py-4">
-                  <span 
-                    :class="[
-                      c.statut === 'actif' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-150 text-slate-500 border-slate-200',
-                      'px-2 py-0.5 rounded text-[10px] uppercase font-bold border'
-                    ]"
-                  >
-                    {{ c.statut }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 text-right">
-                  <span class="text-navy-700 group-hover:underline text-xs font-semibold flex items-center justify-end gap-1">
-                    Gérer le Contrat
-                    <Icon name="i-lucide-chevron-right" class="w-4 h-4" />
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <DataTable
+            :pt="{ thead: { class: 'bg-slate-50 text-slate-500 font-semibold uppercase tracking-wider text-[11px]' }, tbody: { class: 'bg-white' } }"
+            class="min-w-full divide-y divide-slate-200 text-sm"
+            :value="contrats"
+            data-key="id"
+            @row-click="({ data: c }) => router.push(`/dossiers/${dossierId}/etablissements/${etabId}/salaries/${salarieId}/contrats/${c.id}`)"
+            :row-class="() => 'cursor-pointer group'"
+            row-hover
+          >
+            <Column header="N° Contrat" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-mono font-semibold text-slate-900">
+              <template #body="{ data: c }">
+                {{ c.numero_contrat }}
+              </template>
+            </Column>
+            <Column header="Poste / Emploi" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-medium text-slate-700 group-hover:text-navy-700 transition-colors">
+              <template #body="{ data: c }">
+                {{ c.emploi || 'Non renseigné' }}
+              </template>
+            </Column>
+            <Column header="Type Contrat" header-class="px-6 py-3 text-left" body-class="px-6 py-4 text-slate-600 font-semibold">
+              <template #body="{ data: c }">
+                {{ c.type_contrat_travail === 10 ? 'CDI' : c.type_contrat_travail === 29 ? 'CDD' : 'Autre (code ' + c.type_contrat_travail + ')' }}
+              </template>
+            </Column>
+            <Column header="Rémunération" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-mono text-slate-600">
+              <template #body="{ data: c }">
+                {{ c.salaire_mensuel }} FCFA / {{ c.type_salaire }}
+                <span
+                  :class="[
+                    c.mode_calcul === 'net' ? 'bg-navy-50 text-navy-700 border-navy-200' : 'bg-slate-100 text-slate-650 border-slate-200',
+                    'ml-1 px-1.5 py-0.5 rounded text-[9px] uppercase font-bold border'
+                  ]"
+                >{{ c.mode_calcul === 'net' ? 'Net' : 'Brut' }}</span>
+              </template>
+            </Column>
+            <Column header="Date Début" header-class="px-6 py-3 text-left" body-class="px-6 py-4 font-mono text-slate-500">
+              <template #body="{ data: c }">
+                {{ c.date_debut_contrat || '-' }}
+              </template>
+            </Column>
+            <Column header="Statut" header-class="px-6 py-3 text-left" body-class="px-6 py-4">
+              <template #body="{ data: c }">
+                <span
+                  :class="[
+                    c.statut === 'actif' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-slate-150 text-slate-500 border-slate-200',
+                    'px-2 py-0.5 rounded text-[10px] uppercase font-bold border'
+                  ]"
+                >
+                  {{ c.statut }}
+                </span>
+              </template>
+            </Column>
+            <Column header-class="relative px-6 py-3" body-class="px-6 py-4 text-right">
+              <template #header>
+                <span class="sr-only">Actions</span>
+              </template>
+              <template #body>
+                <span class="text-navy-700 group-hover:underline text-xs font-semibold flex items-center justify-end gap-1">
+                  Gérer le Contrat
+                  <Icon name="i-lucide-chevron-right" class="w-4 h-4" />
+                </span>
+              </template>
+            </Column>
+          </DataTable>
         </div>
 
       </div>

@@ -250,7 +250,7 @@ onMounted(() => {
             <div class="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
               <label class="flex items-start gap-3 p-3 border rounded-lg cursor-pointer"
                 :class="creation.type_cabinet === 'cabinet' ? 'border-green-600 bg-green-50' : 'border-slate-200'">
-                <input v-model="creation.type_cabinet" type="radio" value="cabinet" class="mt-0.5">
+                <RadioButton v-model="creation.type_cabinet" value="cabinet" class="mt-0.5" />
                 <span>
                   <span class="block text-sm font-bold text-navy-900">Cabinet de paie</span>
                   <span class="block text-xs text-slate-500">Gère la paie de plusieurs entreprises.</span>
@@ -258,7 +258,7 @@ onMounted(() => {
               </label>
               <label class="flex items-start gap-3 p-3 border rounded-lg cursor-pointer"
                 :class="creation.type_cabinet === 'entreprise' ? 'border-green-600 bg-green-50' : 'border-slate-200'">
-                <input v-model="creation.type_cabinet" type="radio" value="entreprise" class="mt-0.5">
+                <RadioButton v-model="creation.type_cabinet" value="entreprise" class="mt-0.5" />
                 <span>
                   <span class="block text-sm font-bold text-navy-900">Entreprise</span>
                   <span class="block text-xs text-slate-500">Gère sa propre paie : son dossier et son établissement sont créés avec le compte.</span>
@@ -268,18 +268,31 @@ onMounted(() => {
           </fieldset>
           <div class="md:col-span-2">
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500" for="cabinet_nom">{{ creation.type_cabinet === 'entreprise' ? 'Nom de l’entreprise' : 'Nom du cabinet' }}</label>
-            <input id="cabinet_nom" v-model="creation.cabinet_nom" type="text" required placeholder="Cabinet Audit & Paie"
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500">
+            <InputText
+              id="cabinet_nom"
+              v-model="creation.cabinet_nom"
+              required
+              placeholder="Cabinet Audit & Paie"
+              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
           </div>
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500" for="cabinet_ville">Ville</label>
-            <input id="cabinet_ville" v-model="creation.cabinet_ville" type="text" placeholder="Abidjan"
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500">
+            <InputText
+              id="cabinet_ville"
+              v-model="creation.cabinet_ville"
+              placeholder="Abidjan"
+              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
           </div>
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500" for="cabinet_telephone">Téléphone</label>
-            <input id="cabinet_telephone" v-model="creation.cabinet_telephone" type="text" placeholder="+225 07 00 00 00 00"
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500">
+            <InputText
+              id="cabinet_telephone"
+              v-model="creation.cabinet_telephone"
+              placeholder="+225 07 00 00 00 00"
+              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
           </div>
 
           <div class="md:col-span-2 border-t border-slate-100 pt-3">
@@ -287,23 +300,45 @@ onMounted(() => {
           </div>
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500" for="admin_prenom">Prénom</label>
-            <input id="admin_prenom" v-model="creation.prenom" type="text" required placeholder="Awa"
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500">
+            <InputText
+              id="admin_prenom"
+              v-model="creation.prenom"
+              required
+              placeholder="Awa"
+              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
           </div>
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500" for="admin_nom">Nom</label>
-            <input id="admin_nom" v-model="creation.nom" type="text" required placeholder="Kouassi"
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500">
+            <InputText
+              id="admin_nom"
+              v-model="creation.nom"
+              required
+              placeholder="Kouassi"
+              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
           </div>
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500" for="admin_email">Email professionnel</label>
-            <input id="admin_email" v-model="creation.email" type="email" required placeholder="direction@cabinet.ci"
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500">
+            <InputText
+              id="admin_email"
+              v-model="creation.email"
+              type="email"
+              required
+              placeholder="direction@cabinet.ci"
+              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
           </div>
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500" for="admin_password">Mot de passe (facultatif)</label>
-            <input id="admin_password" v-model="creation.password" type="password" minlength="8" placeholder="Généré et envoyé si vide"
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500">
+            <InputText
+              id="admin_password"
+              v-model="creation.password"
+              type="password"
+              minlength="8"
+              placeholder="Généré et envoyé si vide"
+              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
           </div>
           <div class="md:col-span-2 flex justify-end gap-3">
             <button type="button" class="px-4 py-2 border border-slate-300 text-slate-600 hover:bg-slate-50 text-xs font-bold uppercase tracking-wider"
@@ -334,23 +369,42 @@ onMounted(() => {
         <form class="grid grid-cols-1 md:grid-cols-2 gap-4" @submit.prevent="ajouterAdministrateur">
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500" for="co_prenom">Prénom</label>
-            <input id="co_prenom" v-model="adminForm.prenom" type="text" required
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500">
+            <InputText
+              id="co_prenom"
+              v-model="adminForm.prenom"
+              required
+              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
           </div>
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500" for="co_nom">Nom</label>
-            <input id="co_nom" v-model="adminForm.nom" type="text" required
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500">
+            <InputText
+              id="co_nom"
+              v-model="adminForm.nom"
+              required
+              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
           </div>
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500" for="co_email">Email professionnel</label>
-            <input id="co_email" v-model="adminForm.email" type="email" required
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500">
+            <InputText
+              id="co_email"
+              v-model="adminForm.email"
+              type="email"
+              required
+              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
           </div>
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500" for="co_password">Mot de passe (facultatif)</label>
-            <input id="co_password" v-model="adminForm.password" type="password" minlength="8" placeholder="Généré et envoyé si vide"
-              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500">
+            <InputText
+              id="co_password"
+              v-model="adminForm.password"
+              type="password"
+              minlength="8"
+              placeholder="Généré et envoyé si vide"
+              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
           </div>
           <div class="md:col-span-2 flex justify-end gap-3">
             <button type="button" class="px-4 py-2 border border-slate-300 text-slate-600 hover:bg-slate-50 text-xs font-bold uppercase tracking-wider" @click="adminCible = null">
@@ -378,75 +432,77 @@ onMounted(() => {
         </div>
 
         <div v-else class="overflow-x-auto">
-          <table class="min-w-full text-sm">
-            <thead>
-              <tr>
-                <th class="px-5 py-3 text-left">Cabinet</th>
-                <th class="px-5 py-3 text-left">Administrateurs</th>
-                <th class="px-5 py-3 text-left">Membres / Sociétés</th>
-                <th class="px-5 py-3 text-left">Statut</th>
-                <th class="px-5 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-slate-100">
-              <tr v-for="cabinet in cabinets" :key="cabinet.id" class="hover:bg-slate-50">
-                <td class="px-5 py-4">
-                  <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 bg-navy-50 border border-navy-200 text-navy-700 rounded-lg flex items-center justify-center font-bold text-xs shrink-0">
-                      {{ (cabinet.cabinet_nom || cabinet.email || '?').charAt(0).toUpperCase() }}
-                    </div>
-                    <div>
-                      <p class="font-bold text-navy-900">
-                        {{ cabinet.cabinet_nom || 'Cabinet sans nom' }}
-                        <span v-if="cabinet.type_cabinet === 'entreprise'"
-                          class="ml-1 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-green-50 text-green-700 border border-green-200 rounded">Entreprise</span>
-                      </p>
-                      <p class="text-xs text-slate-500">{{ cabinet.email }}</p>
-                      <p class="text-[11px] text-slate-400 mt-0.5">
-                        {{ cabinet.ville || '—' }} · créé le {{ formaterDate(cabinet.created_at) }}
-                      </p>
-                    </div>
+          <DataTable
+            class="min-w-full text-sm"
+            :value="cabinets"
+            data-key="id"
+            row-hover
+          >
+            <Column header="Cabinet" header-class="px-5 py-3 text-left" body-class="px-5 py-4">
+              <template #body="{ data: cabinet }">
+                <div class="flex items-center gap-3">
+                  <div class="w-9 h-9 bg-navy-50 border border-navy-200 text-navy-700 rounded-lg flex items-center justify-center font-bold text-xs shrink-0">
+                    {{ (cabinet.cabinet_nom || cabinet.email || '?').charAt(0).toUpperCase() }}
                   </div>
-                </td>
-                <td class="px-5 py-4">
-                  <div class="flex flex-wrap gap-1.5">
-                    <span v-for="admin in cabinet.administrateurs" :key="admin.id"
-                      class="px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                      {{ admin.prenom }} {{ admin.nom }}
-                      <span v-if="admin.est_proprietaire" class="text-navy-600">· propriétaire</span>
-                    </span>
+                  <div>
+                    <p class="font-bold text-navy-900">
+                      {{ cabinet.cabinet_nom || 'Cabinet sans nom' }}
+                      <span v-if="cabinet.type_cabinet === 'entreprise'"
+                        class="ml-1 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-green-50 text-green-700 border border-green-200 rounded">Entreprise</span>
+                    </p>
+                    <p class="text-xs text-slate-500">{{ cabinet.email }}</p>
+                    <p class="text-[11px] text-slate-400 mt-0.5">
+                      {{ cabinet.ville || '—' }} · créé le {{ formaterDate(cabinet.created_at) }}
+                    </p>
                   </div>
-                </td>
-                <td class="px-5 py-4 text-slate-600">
-                  <span class="font-bold text-navy-900">{{ cabinet.membres }}</span> membre(s)
-                  <span class="mx-1 text-slate-300">·</span>
-                  <span class="font-bold text-navy-900">{{ cabinet.dossiers }}</span> société(s)
-                </td>
-                <td class="px-5 py-4">
-                  <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border"
-                    :class="cabinet.suspendu
-                      ? 'bg-red-50 text-red-700 border-red-200'
-                      : 'bg-green-50 text-green-700 border-green-200'">
-                    {{ cabinet.suspendu ? 'Suspendu' : 'Actif' }}
+                </div>
+              </template>
+            </Column>
+            <Column header="Administrateurs" header-class="px-5 py-3 text-left" body-class="px-5 py-4">
+              <template #body="{ data: cabinet }">
+                <div class="flex flex-wrap gap-1.5">
+                  <span v-for="admin in cabinet.administrateurs" :key="admin.id"
+                    class="px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                    {{ admin.prenom }} {{ admin.nom }}
+                    <span v-if="admin.est_proprietaire" class="text-navy-600">· propriétaire</span>
                   </span>
-                </td>
-                <td class="px-5 py-4 text-right">
-                  <div class="flex flex-wrap items-center justify-end gap-3">
-                    <button type="button" class="text-xs font-semibold text-navy-700 hover:text-navy-900"
-                      @click="ouvrirFormulaireAdmin(cabinet)">
-                      + Administrateur
-                    </button>
-                    <button type="button"
-                      class="text-xs font-semibold"
-                      :class="cabinet.suspendu ? 'text-green-700 hover:text-green-900' : 'text-red-600 hover:text-red-800'"
-                      @click="changerStatut(cabinet)">
-                      {{ cabinet.suspendu ? 'Réactiver' : 'Suspendre' }}
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+                </div>
+              </template>
+            </Column>
+            <Column header="Membres / Sociétés" header-class="px-5 py-3 text-left" body-class="px-5 py-4 text-slate-600">
+              <template #body="{ data: cabinet }">
+                <span class="font-bold text-navy-900">{{ cabinet.membres }}</span> membre(s)
+                <span class="mx-1 text-slate-300">·</span>
+                <span class="font-bold text-navy-900">{{ cabinet.dossiers }}</span> société(s)
+              </template>
+            </Column>
+            <Column header="Statut" header-class="px-5 py-3 text-left" body-class="px-5 py-4">
+              <template #body="{ data: cabinet }">
+                <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border"
+                  :class="cabinet.suspendu
+                    ? 'bg-red-50 text-red-700 border-red-200'
+                    : 'bg-green-50 text-green-700 border-green-200'">
+                  {{ cabinet.suspendu ? 'Suspendu' : 'Actif' }}
+                </span>
+              </template>
+            </Column>
+            <Column header="Actions" header-class="px-5 py-3 text-right" body-class="px-5 py-4 text-right">
+              <template #body="{ data: cabinet }">
+                <div class="flex flex-wrap items-center justify-end gap-3">
+                  <button type="button" class="text-xs font-semibold text-navy-700 hover:text-navy-900"
+                    @click="ouvrirFormulaireAdmin(cabinet)">
+                    + Administrateur
+                  </button>
+                  <button type="button"
+                    class="text-xs font-semibold"
+                    :class="cabinet.suspendu ? 'text-green-700 hover:text-green-900' : 'text-red-600 hover:text-red-800'"
+                    @click="changerStatut(cabinet)">
+                    {{ cabinet.suspendu ? 'Réactiver' : 'Suspendre' }}
+                  </button>
+                </div>
+              </template>
+            </Column>
+          </DataTable>
         </div>
       </div>
 

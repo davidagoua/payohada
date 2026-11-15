@@ -173,7 +173,7 @@ const handleSubmit = async () => {
               Nouveau mot de passe
             </label>
             <div class="mt-1 relative">
-              <input
+              <InputText
                 id="nouveau"
                 v-model="nouveauMotDePasse"
                 :type="afficherMotDePasse ? 'text' : 'password'"
@@ -181,7 +181,7 @@ const handleSubmit = async () => {
                 required
                 placeholder="••••••••"
                 class="block w-full px-3.5 py-2.5 pr-10 border border-slate-300 focus:outline-none text-sm"
-              >
+              />
               <button
                 type="button"
                 class="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-400 hover:text-slate-600"
@@ -205,7 +205,7 @@ const handleSubmit = async () => {
             <label for="confirmation" class="block text-xs font-bold uppercase tracking-wider text-slate-700">
               Confirmer le mot de passe
             </label>
-            <input
+            <InputText
               id="confirmation"
               v-model="confirmation"
               :type="afficherMotDePasse ? 'text' : 'password'"
@@ -218,7 +218,7 @@ const handleSubmit = async () => {
                   ? 'border-slate-300'
                   : 'border-red-300 bg-red-50/30'
               ]"
-            >
+            />
             <p v-if="!correspond" class="mt-1.5 text-[11px] text-red-600 font-semibold">
               Les mots de passe ne correspondent pas.
             </p>

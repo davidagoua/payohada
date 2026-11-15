@@ -476,6 +476,49 @@ tbody tr:last-child td {
   border-left-width: 3px;
 }
 
+/* Liste déroulante : même champ Carbon que les saisies (fond gris clair,
+   filet inférieur seul, hauteur 40 px). */
+.p-select,
+.p-multiselect {
+  /* Passe devant un éventuel utilitaire `block` hérité du <select> natif. */
+  display: inline-flex;
+  min-height: 40px;
+  border-width: 0 0 1px 0;
+  border-color: var(--carbon-border-strong);
+  background-color: var(--carbon-layer);
+  box-shadow: none;
+}
+
+.p-select:not(.p-disabled):hover {
+  background-color: var(--carbon-layer-hover);
+  border-color: var(--carbon-border-strong);
+}
+
+.p-select.p-focus {
+  outline: 2px solid var(--carbon-primary);
+  outline-offset: -2px;
+}
+
+.p-select .p-select-label,
+.p-select-option {
+  padding-left: 16px;
+  font-size: 0.875rem;
+}
+
+/* Tableaux PrimeVue : l'alignement des en-têtes suit la classe de la
+   colonne, comme sur les tableaux natifs. */
+.p-datatable th.text-right .p-datatable-column-header-content {
+  justify-content: flex-end;
+}
+
+.p-datatable th.text-center .p-datatable-column-header-content {
+  justify-content: center;
+}
+
+.p-datatable thead th .p-datatable-column-title {
+  font-weight: inherit;
+}
+
 /* Une classe de couleur posée sur un élément de menu (ex. `text-red-600`
    pour « Se déconnecter ») colore aussi son libellé et son icône. */
 .p-menu .p-menu-item[class*="text-"] .p-menu-item-content,
