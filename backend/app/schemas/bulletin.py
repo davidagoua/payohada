@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import Optional, List
-from datetime import datetime
+from datetime import date, datetime
 
 
 # ─────────────────────────────────────────
@@ -107,6 +107,8 @@ class BulletinPaieOut(BulletinPaieBase):
     lignes: List[LigneBulletinPaieOut] = []
     variables_bulletin: List[VariableBulletinOut] = []
     cumuls: Optional[BulletinCumuls] = None
+    #: « Payé le » : jour de virement du dossier appliqué au mois du bulletin.
+    date_versement: Optional[date] = None
 
     class Config:
         from_attributes = True

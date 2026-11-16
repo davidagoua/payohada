@@ -194,7 +194,7 @@ const categorieEchelon = computed(() => {
         <div class="periode">{{ periode }}</div>
         <table class="entete-meta">
           <tbody>
-            <tr><td>Payé le</td><td>{{ dateFr(bulletin.date_paiement) }}</td></tr>
+            <tr><td>Payé le</td><td>{{ dateFr(bulletin.date_versement) }}</td></tr>
             <tr><td>Règlement</td><td>{{ reglement }}</td></tr>
           </tbody>
         </table>

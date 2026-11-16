@@ -11,7 +11,9 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.database import Base
+import calendar
 import enum
+from datetime import date
 
 
 # ─────────────────────────────────────────
@@ -778,6 +780,20 @@ class BulletinPaie(TimestampMixin, Base):
     lignes = relationship("LigneBulletinPaie", back_populates="bulletin", cascade="all, delete-orphan")
     variables_bulletin = relationship("VariableBulletin", back_populates="bulletin", cascade="all, delete-orphan")
     reclamations = relationship("Reclamation", back_populates="bulletin", cascade="all, delete-orphan")
+
+    @property
+    def date_versement(self) -> date | None:
+        """Date de paiement du salaire imprimée sur le bulletin (« Payé le »).
+
+        Jour de virement du dossier, appliqué au mois du bulletin ; ramené au
+        dernier jour du mois s'il le dépasse (un 31 en novembre → le 30).
+        `None` tant que le dossier n'a pas de jour de virement.
+        """
+        jour = getattr(self.dossier, "jour_virement", None)
+        if not jour or not self.mois or not self.annee:
+            return None
+        dernier = calendar.monthrange(int(self.annee), int(self.mois))[1]
+        return date(int(self.annee), int(self.mois), min(int(jour), dernier))
 
     __table_args__ = (
         UniqueConstraint("contrat_id", "mois", "annee", name="uq_bulletin_contrat_periode"),

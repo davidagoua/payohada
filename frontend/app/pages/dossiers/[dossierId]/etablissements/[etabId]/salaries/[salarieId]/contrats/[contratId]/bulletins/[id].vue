@@ -883,7 +883,7 @@ onMounted(() => {
         </div>
         <div>
           <span>DATE DE PAIEMENT : </span>
-          <span class="font-mono text-slate-900">{{ bulletin.date_paiement ? new Date(bulletin.date_paiement).toLocaleDateString('fr-FR') : '-' }}</span>
+          <span class="font-mono text-slate-900">{{ bulletin.date_versement ? new Date(bulletin.date_versement).toLocaleDateString('fr-FR') : '-' }}</span>
         </div>
         <div>
           <span>MODE DE RÈGLEMENT : </span>

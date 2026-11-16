@@ -438,6 +438,45 @@ onMounted(() => {
           </div>
         </div>
 
+        <!-- Paiement du salaire : mode et coordonnées bancaires -->
+        <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
+          <h3 class="text-md font-bold text-navy-900 border-b border-slate-100 pb-2">Paiement du salaire</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="md:col-span-2">
+              <SalarieModePaiement
+                v-model="salModePaiementId"
+                :modes="modesEtablissement"
+                :lien-etablissement="`/dossiers/${dossierId}/etablissements/${etabId}?tab=infos`"
+                :erreur="fieldErrors.mode_paiement_id"
+              />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">IBAN du salarié</label>
+              <InputText
+                v-model="salIban"
+                placeholder="FR76..."
+                :class="[
+                  'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono transition-colors',
+                  fieldErrors.iban ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                ]"
+              />
+              <p v-if="fieldErrors.iban" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.iban }}</p>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">BIC du salarié</label>
+              <InputText
+                v-model="salBic"
+                placeholder="Ex: CEIDFRPP..."
+                :class="[
+                  'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono transition-colors',
+                  fieldErrors.bic ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
+                ]"
+              />
+              <p v-if="fieldErrors.bic" class="mt-1 text-xs text-red-655 font-medium">{{ fieldErrors.bic }}</p>
+            </div>
+          </div>
+        </div>
+
         <!-- Coordonnees -->
         <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
           <h3 class="text-md font-bold text-navy-900 border-b border-slate-100 pb-2">Coordonnées de Contact & Adresse</h3>
@@ -508,45 +547,6 @@ onMounted(() => {
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Pays</label>
               <InputText v-model="salPays" class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
-            </div>
-          </div>
-        </div>
-
-        <!-- Banque -->
-        <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
-          <h3 class="text-md font-bold text-navy-900 border-b border-slate-100 pb-2">Paiement du salaire</h3>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="md:col-span-2">
-              <SalarieModePaiement
-                v-model="salModePaiementId"
-                :modes="modesEtablissement"
-                :lien-etablissement="`/dossiers/${dossierId}/etablissements/${etabId}?tab=infos`"
-                :erreur="fieldErrors.mode_paiement_id"
-              />
-            </div>
-            <div>
-              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">IBAN du salarié</label>
-              <InputText
-                v-model="salIban"
-                placeholder="FR76..."
-                :class="[
-                  'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono transition-colors',
-                  fieldErrors.iban ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
-                ]"
-              />
-              <p v-if="fieldErrors.iban" class="mt-1 text-xs text-red-650 font-medium">{{ fieldErrors.iban }}</p>
-            </div>
-            <div>
-              <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">BIC du salarié</label>
-              <InputText
-                v-model="salBic"
-                placeholder="Ex: CEIDFRPP..."
-                :class="[
-                  'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono transition-colors',
-                  fieldErrors.bic ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
-                ]"
-              />
-              <p v-if="fieldErrors.bic" class="mt-1 text-xs text-red-655 font-medium">{{ fieldErrors.bic }}</p>
             </div>
           </div>
         </div>

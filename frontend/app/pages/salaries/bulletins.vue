@@ -366,7 +366,7 @@ const handleChangePassword = async () => {
               </div>
               <div>
                 <span>DATE DE PAIEMENT : </span>
-                <span class="font-mono text-slate-900">{{ selectedBulletin.date_paiement ? new Date(selectedBulletin.date_paiement).toLocaleDateString('fr-FR') : '-' }}</span>
+                <span class="font-mono text-slate-900">{{ selectedBulletin.date_versement ? new Date(selectedBulletin.date_versement).toLocaleDateString('fr-FR') : '-' }}</span>
               </div>
             </div>
 

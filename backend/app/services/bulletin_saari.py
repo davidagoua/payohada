@@ -358,7 +358,7 @@ def _corps_bulletin(
           <div style="margin-top:3pt"><span class="periode">{_echappe(_libelle_periode(bulletin))}</span></div>
           <table class="ident" style="margin-top:3pt">
             <tr><th style="text-align:right">Payé le</th>
-                <td style="text-align:right">{_date(getattr(bulletin, 'date_paiement', None))}</td></tr>
+                <td style="text-align:right">{_date(getattr(bulletin, 'date_versement', None))}</td></tr>
             <tr><th style="text-align:right">Règlement</th>
                 <td style="text-align:right">{_echappe(reglement)}</td></tr>
           </table>
