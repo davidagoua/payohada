@@ -50,3 +50,28 @@ class DateVersementTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class DateVersementParLeFormulaireTests(unittest.TestCase):
+    """Chaîne complète : formulaire du dossier → bulletin déjà calculé."""
+
+    def setUp(self):
+        reset_database()
+        self.db = SessionLocal()
+        self.t = make_tenant(self.db, "cabinet-formulaire")
+        self.entetes = auth_headers(self.t["user"])
+
+    def tearDown(self):
+        self.db.close()
+
+    def test_modifier_le_jour_de_virement_met_a_jour_un_bulletin_existant(self):
+        bulletin = calculate_payslip(self.db, self.t["contrat"].id, 11, 2026)
+        lu = client.get(f"{API}/bulletins/{bulletin.id}", headers=self.entetes).json()
+        self.assertIsNone(lu["date_versement"])
+
+        r = client.put(f"{API}/dossiers/{self.t['dossier'].id}", headers=self.entetes,
+                       json={"jour_virement": 12})
+        self.assertEqual(r.status_code, 200, r.text[:300])
+
+        lu = client.get(f"{API}/bulletins/{bulletin.id}", headers=self.entetes).json()
+        self.assertEqual(lu["date_versement"], "2026-11-12")
