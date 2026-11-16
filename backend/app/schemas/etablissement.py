@@ -2,6 +2,8 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import date, datetime
 
+from app.schemas.mode_paiement import ModePaiementOut
+
 
 # ─────────────────────────────────────────
 #  SCHÉMAS ADRESSE ETABLISSEMENT
@@ -156,12 +158,16 @@ class EtablissementBase(BaseModel):
 
 
 class EtablissementCreate(EtablissementBase):
+    #: Modes de paiement des salaires acceptés (identifiants du référentiel).
+    mode_paiement_ids: Optional[list[int]] = None
     adresse: Optional[AdresseEtablissementCreate] = None
     banque: Optional[BanqueEtablissementCreate] = None
     gestion_conges: Optional[GestionCongesPayesCreate] = None
 
 
 class EtablissementUpdate(BaseModel):
+    #: Remplace la liste des modes de paiement acceptés ; absent = inchangée.
+    mode_paiement_ids: Optional[list[int]] = None
     raison_sociale: Optional[str] = None
     secteur_id: Optional[int] = None
     etablissement_principal: Optional[bool] = None
@@ -244,6 +250,7 @@ class EtablissementOut(EtablissementBase):
     adresse: Optional[AdresseEtablissementOut] = None
     banque: Optional[BanqueEtablissementOut] = None
     gestion_conges: Optional[GestionCongesPayesOut] = None
+    modes_paiement: list[ModePaiementOut] = []
 
     class Config:
         from_attributes = True

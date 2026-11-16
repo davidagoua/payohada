@@ -8,7 +8,7 @@ import logging
 
 from sqlalchemy.orm import Session
 
-from app.models.models import Constante, PlanPaie
+from app.models.models import Constante, ModePaiement, PlanPaie
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +58,15 @@ PLAN_PAIE_REFERENCE = [
 ]
 
 
+#: Modes de paiement proposés au départ (mêmes valeurs que schema.sql).
+MODES_PAIEMENT_REFERENCE = [
+    {"code": "VIREMENT", "libelle": "Virement bancaire", "description": "Versement sur le compte bancaire du salarié", "ordre": 1},
+    {"code": "MOBILE_MONEY", "libelle": "Mobile money", "description": "Orange Money, MTN MoMo, Moov Money, Wave…", "ordre": 2},
+    {"code": "ESPECES", "libelle": "Espèces", "description": "Paiement en liquide contre émargement", "ordre": 3},
+    {"code": "CHEQUE", "libelle": "Chèque", "description": "Chèque remis au salarié", "ordre": 4},
+]
+
+
 def seed_database(db: Session) -> bool:
     """Insère les constantes et le plan de paie manquants.
 
@@ -82,6 +91,13 @@ def seed_database(db: Session) -> bool:
         if not existing:
             db.add(PlanPaie(**item))
             created = True
+
+    # Uniquement sur un référentiel vide : un mode supprimé par
+    # l'administrateur plateforme ne doit pas réapparaître au redémarrage.
+    if db.query(ModePaiement.id).first() is None:
+        for item in MODES_PAIEMENT_REFERENCE:
+            db.add(ModePaiement(**item))
+        created = True
 
     if created:
         db.commit()

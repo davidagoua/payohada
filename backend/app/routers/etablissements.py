@@ -12,6 +12,7 @@ from app.schemas.etablissement import (
 from app.services.security import get_current_user
 
 from app.services.permissions import peut_gerer_dossier, require_staff
+from app.services.modes_paiement import definir_modes_etablissement
 
 router = APIRouter(tags=["Etablissements"])
 
@@ -112,7 +113,7 @@ def create_etablissement(
     # Création établissement avec code temporaire unique (max 15 caractères)
     temp_code = f"T_{uuid.uuid4().hex[:8]}"
 
-    etab_dict = etab_in.model_dump(exclude={"adresse", "banque", "gestion_conges"})
+    etab_dict = etab_in.model_dump(exclude={"adresse", "banque", "gestion_conges", "mode_paiement_ids"})
     etab_dict["code"] = temp_code
     etab = Etablissement(**etab_dict, dossier_id=dossier_id)
     db.add(etab)
@@ -120,6 +121,9 @@ def create_etablissement(
 
     # Numérotation propre à la société, et non à la base entière.
     etab.code = _prochain_code_etablissement(db, dossier_id)
+
+    if etab_in.mode_paiement_ids:
+        definir_modes_etablissement(db, etab, etab_in.mode_paiement_ids)
 
     # Création adresse
     if etab_in.adresse:
@@ -163,9 +167,12 @@ def update_etablissement(
     etab = check_etablissement_ownership(etablissement_id, current_user.id, db)
 
     # Mettre à jour les champs principaux de l'établissement
-    etab_dict = etab_in.model_dump(exclude_unset=True, exclude={"adresse", "banque"})
+    etab_dict = etab_in.model_dump(exclude_unset=True, exclude={"adresse", "banque", "mode_paiement_ids"})
     for field, value in etab_dict.items():
         setattr(etab, field, value)
+
+    if etab_in.mode_paiement_ids is not None:
+        definir_modes_etablissement(db, etab, etab_in.mode_paiement_ids)
 
     # Mettre à jour ou créer l'adresse
     if etab_in.adresse is not None:

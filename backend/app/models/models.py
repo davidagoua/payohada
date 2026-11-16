@@ -6,7 +6,7 @@ Architecture : Dossier > Etablissement > Salarié > Contrat > (Bulletins, Absenc
 from sqlalchemy import (
     Column, Integer, String, Boolean, Float, DateTime,
     ForeignKey, Text, Enum, UniqueConstraint, Index, Numeric,
-    Date
+    Date, Table
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -130,6 +130,31 @@ class PeriodePaie(TimestampMixin, Base):
 # ─────────────────────────────────────────
 #  SECTEURS & GRILLES DE POSTES
 # ─────────────────────────────────────────
+
+#: Modes de paiement acceptés par un établissement (référentiel plateforme).
+etablissements_modes_paiement = Table(
+    "etablissements_modes_paiement",
+    Base.metadata,
+    Column("etablissement_id", Integer, ForeignKey("etablissements.id", ondelete="CASCADE"), primary_key=True),
+    Column("mode_paiement_id", Integer, ForeignKey("modes_paiement.id"), primary_key=True),
+)
+
+
+class ModePaiement(TimestampMixin, Base):
+    """Mode de versement du salaire (virement, mobile money, espèces…).
+
+    Référentiel géré par l'administrateur plateforme. Chaque établissement
+    choisit ceux qu'il accepte ; chaque salarié est payé par l'un d'eux.
+    """
+    __tablename__ = "modes_paiement"
+
+    id = Column(Integer, primary_key=True, index=True)
+    code = Column(String(30), nullable=False, unique=True)
+    libelle = Column(String(100), nullable=False)
+    description = Column(String(255))
+    est_actif = Column(Boolean, default=True, nullable=False)
+    ordre = Column(Integer, default=0, nullable=False)
+
 
 class Secteur(Base):
     __tablename__ = "secteurs"
@@ -358,6 +383,11 @@ class Etablissement(TimestampMixin, Base):
     gestion_conges = relationship("GestionCongesPayes", back_populates="etablissement", uselist=False, cascade="all, delete-orphan")
     salaries = relationship("Salarie", back_populates="etablissement")
     caisses_cotisations = relationship("CaisseCotisation", back_populates="etablissement", cascade="all, delete-orphan")
+    modes_paiement = relationship(
+        "ModePaiement",
+        secondary=etablissements_modes_paiement,
+        order_by="(ModePaiement.ordre, ModePaiement.libelle)",
+    )
 
     __table_args__ = (
         UniqueConstraint("dossier_id", "code", name="uq_etablissement_dossier_code"),
@@ -418,6 +448,8 @@ class Salarie(TimestampMixin, Base):
     telephone = Column(String(15))
     iban = Column(String(34))
     bic = Column(String(11))
+    #: Mode de versement du salaire, parmi ceux acceptés par l'établissement.
+    mode_paiement_id = Column(Integer, ForeignKey("modes_paiement.id", ondelete="SET NULL"), nullable=True)
     is_active = Column(Boolean, default=True)
     expatrie = Column(Boolean, default=False)
     situation_matrimoniale = Column(String(50), nullable=True)
@@ -425,6 +457,7 @@ class Salarie(TimestampMixin, Base):
 
     # Relations
     etablissement = relationship("Etablissement", back_populates="salaries")
+    mode_paiement = relationship("ModePaiement")
     contrats = relationship("Contrat", back_populates="salarie", cascade="all, delete-orphan")
     utilisateur = relationship("Utilisateur", back_populates="salarie", uselist=False, cascade="all, delete-orphan")
     reclamations = relationship("Reclamation", back_populates="salarie", cascade="all, delete-orphan")

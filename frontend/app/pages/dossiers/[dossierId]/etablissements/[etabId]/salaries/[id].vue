@@ -10,6 +10,9 @@ const etabId = route.params.etabId
 const salarieId = route.params.id
 
 const sal = ref(null)
+// Modes de paiement acceptés par l'établissement du salarié.
+const modesEtablissement = ref([])
+const salModePaiementId = ref(null)
 const contrats = ref([])
 const loading = ref(true)
 const activeTab = ref('infos')
@@ -104,6 +107,13 @@ const fetchSalarieDetails = async () => {
     salExpatrie.value = data.expatrie ?? false
     salSituationMatrimoniale.value = data.situation_matrimoniale || 'Célibataire'
     salEnfantsCharge.value = data.enfants_charge ?? 0
+    salModePaiementId.value = data.mode_paiement_id ?? null
+
+    const etab = await get(`/etablissements/${etabId}`)
+    modesEtablissement.value = etab?.modes_paiement || []
+    if (!salModePaiementId.value && modesEtablissement.value.length === 1) {
+      salModePaiementId.value = modesEtablissement.value[0].id
+    }
 
     // Fetch Contracts
     const cts = await get(`/salaries/${salarieId}/contrats`)
@@ -124,6 +134,15 @@ const handleUpdateSalarie = async () => {
     toast.add({
       title: 'Validation',
       description: 'Le nom et le prénom du salarié sont obligatoires.',
+      color: 'warning'
+    })
+    return
+  }
+  if (modesEtablissement.value.length && !salModePaiementId.value) {
+    fieldErrors.value = { mode_paiement_id: 'Choisissez le mode de paiement du salarié.' }
+    toast.add({
+      title: 'Validation',
+      description: 'Le mode de paiement du salarié est obligatoire.',
       color: 'warning'
     })
     return
@@ -150,6 +169,7 @@ const handleUpdateSalarie = async () => {
       telephone: salPhone.value || null,
       iban: salIban.value || null,
       bic: salBic.value || null,
+      mode_paiement_id: salModePaiementId.value,
       is_active: salIsActive.value,
       expatrie: salExpatrie.value,
       situation_matrimoniale: salSituationMatrimoniale.value,
@@ -494,8 +514,16 @@ onMounted(() => {
 
         <!-- Banque -->
         <div class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
-          <h3 class="text-md font-bold text-navy-900 border-b border-slate-100 pb-2">Informations Bancaires de Versement</h3>
+          <h3 class="text-md font-bold text-navy-900 border-b border-slate-100 pb-2">Paiement du salaire</h3>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="md:col-span-2">
+              <SalarieModePaiement
+                v-model="salModePaiementId"
+                :modes="modesEtablissement"
+                :lien-etablissement="`/dossiers/${dossierId}/etablissements/${etabId}?tab=infos`"
+                :erreur="fieldErrors.mode_paiement_id"
+              />
+            </div>
             <div>
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">IBAN du salarié</label>
               <InputText

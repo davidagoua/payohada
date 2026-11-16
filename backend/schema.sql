@@ -1491,7 +1491,45 @@ END $$;
 COMMENT ON COLUMN utilisateurs.type_cabinet
     IS 'cabinet : plusieurs sociétés ; entreprise : une seule société, créée avec le compte';
 
--- 15. Contrôles post-migration (à exécuter manuellement) :
+-- 15. Modes de paiement des salaires (virement, mobile money, espèces…).
+--     Référentiel géré par l'administrateur plateforme ; chaque établissement
+--     choisit ceux qu'il accepte et chaque salarié est payé par l'un d'eux.
+
+CREATE TABLE IF NOT EXISTS modes_paiement (
+    id SERIAL PRIMARY KEY,
+    code VARCHAR(30) NOT NULL UNIQUE,
+    libelle VARCHAR(100) NOT NULL,
+    description VARCHAR(255),
+    est_actif BOOLEAN NOT NULL DEFAULT TRUE,
+    ordre INTEGER NOT NULL DEFAULT 0,
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS etablissements_modes_paiement (
+    etablissement_id INTEGER NOT NULL REFERENCES etablissements(id) ON DELETE CASCADE,
+    mode_paiement_id INTEGER NOT NULL REFERENCES modes_paiement(id),
+    PRIMARY KEY (etablissement_id, mode_paiement_id)
+);
+CREATE INDEX IF NOT EXISTS ix_etab_modes_paiement_mode ON etablissements_modes_paiement (mode_paiement_id);
+
+ALTER TABLE salaries
+    ADD COLUMN IF NOT EXISTS mode_paiement_id INTEGER REFERENCES modes_paiement(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS ix_salaries_mode_paiement ON salaries (mode_paiement_id);
+
+-- Modes proposés au départ ; l'administrateur plateforme les complète ou les
+-- désactive ensuite. Sans effet si les codes existent déjà.
+INSERT INTO modes_paiement (code, libelle, description, ordre) VALUES
+    ('VIREMENT', 'Virement bancaire', 'Versement sur le compte bancaire du salarié', 1),
+    ('MOBILE_MONEY', 'Mobile money', 'Orange Money, MTN MoMo, Moov Money, Wave…', 2),
+    ('ESPECES', 'Espèces', 'Paiement en liquide contre émargement', 3),
+    ('CHEQUE', 'Chèque', 'Chèque remis au salarié', 4)
+ON CONFLICT (code) DO NOTHING;
+
+COMMENT ON TABLE modes_paiement
+    IS 'Modes de versement des salaires, gérés par l''administrateur plateforme';
+
+-- 16. Contrôles post-migration (à exécuter manuellement) :
 --    -- Aucun compte sans mot de passe (sinon connexion impossible) :
 --    SELECT id, email, role FROM utilisateurs WHERE hashed_password IS NULL;
 --    -- La colonne et ses valeurs par défaut :

@@ -62,6 +62,26 @@ const etabPrincipal = ref(false)
 const etabSecteurId = ref(null)
 const secteurs = ref([])
 
+// Modes de paiement des salaires acceptés par l'établissement, choisis dans le
+// référentiel de la plateforme. Un mode désactivé depuis reste affiché tant
+// qu'il est sélectionné.
+const referentielModes = ref([])
+const etabModesIds = ref([])
+const modesActuels = ref([])
+const modesProposes = computed(() => {
+  const ids = new Set(referentielModes.value.map(m => m.id))
+  const desactives = modesActuels.value.filter(m => !ids.has(m.id))
+  return [...referentielModes.value, ...desactives]
+})
+
+const fetchModesPaiement = async () => {
+  try {
+    referentielModes.value = await get('/modes-paiement') || []
+  } catch (e) {
+    console.error('Chargement des modes de paiement impossible :', e)
+  }
+}
+
 const fetchSecteurs = async () => {
   try {
     secteurs.value = await get('/secteurs') || []
@@ -166,6 +186,8 @@ const remplirFormulaire = (data) => {
     etabNom.value = data.raison_sociale || ''
     etabPrincipal.value = data.etablissement_principal || false
     etabSecteurId.value = data.secteur_id || null
+    modesActuels.value = data.modes_paiement || []
+    etabModesIds.value = modesActuels.value.map(m => m.id)
 
     // Populate CNPS
     cnpsMatricule.value = data.cnps_matricule || ''
@@ -254,6 +276,7 @@ const handleUpdateEtab = async () => {
       raison_sociale: etabNom.value,
       code: etabCode.value,
       secteur_id: etabSecteurId.value ? Number(etabSecteurId.value) : null,
+      mode_paiement_ids: etabModesIds.value,
       siret: null,
       ape: null,
       ccn: null,
@@ -387,7 +410,10 @@ const handleDeleteCaisse = async (caisseId) => {
   }
 }
 
-onMounted(fetchSecteurs)
+onMounted(() => {
+  fetchSecteurs()
+  fetchModesPaiement()
+})
 </script>
 
 <template>
@@ -630,6 +656,41 @@ onMounted(fetchSecteurs)
               <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Code BIC (Swift)</label>
               <InputText v-model="bankBic" placeholder="Ex: UBAFRPP..." class="mt-1 block w-full px-3 py-2 border border-slate-350 rounded-lg text-sm font-mono focus:ring-green-500 focus:border-green-500 bg-white" />
             </div>
+          </div>
+        </div>
+
+        <!-- Modes de paiement des salaires -->
+        <div class="bg-white border-2 border-slate-200 rounded-lg p-6 shadow-flat space-y-4 border-t-4 border-t-navy-900">
+          <div class="border-b border-slate-200 pb-2">
+            <h3 class="text-sm font-bold text-navy-900 uppercase tracking-wider">Modes de paiement des salaires</h3>
+            <p class="text-xs text-slate-500 mt-1">
+              Cochez les modes acceptés par l'établissement : chaque salarié sera payé par l'un d'eux.
+            </p>
+          </div>
+
+          <p v-if="modesProposes.length === 0" class="text-xs text-slate-500 italic">
+            Aucun mode de paiement n'est encore proposé par la plateforme.
+          </p>
+          <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <!-- Libellé sans classe : la charte force `display: block` sur `label[class]`. -->
+            <label v-for="mode in modesProposes" :key="mode.id" :for="`mode-paiement-${mode.id}`">
+              <span
+                class="flex items-start gap-3 p-3 h-full border rounded-lg cursor-pointer transition-colors"
+                :class="etabModesIds.includes(mode.id) ? 'border-green-600 bg-green-50' : 'border-slate-200 hover:bg-slate-50'"
+              >
+                <Checkbox
+                  v-model="etabModesIds"
+                  :input-id="`mode-paiement-${mode.id}`"
+                  :value="mode.id"
+                  class="mt-0.5 shrink-0"
+                />
+                <span>
+                  <span class="block text-sm font-bold text-navy-900">{{ mode.libelle }}</span>
+                  <span v-if="mode.description" class="block text-xs text-slate-500">{{ mode.description }}</span>
+                  <span v-if="!mode.est_actif" class="block text-[11px] text-yellow-700 mt-0.5">Plus proposé par la plateforme</span>
+                </span>
+              </span>
+            </label>
           </div>
         </div>
 

@@ -247,21 +247,26 @@ onMounted(() => {
         <form class="grid grid-cols-1 md:grid-cols-2 gap-4" @submit.prevent="creerCabinet">
           <fieldset class="md:col-span-2">
             <legend class="block text-xs font-bold uppercase tracking-wider text-slate-500">Type de compte</legend>
+            <!-- Libellés sans classe : la charte force `display: block` sur `label[class]`. -->
             <div class="mt-1 grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <label class="flex items-start gap-3 p-3 border rounded-lg cursor-pointer"
-                :class="creation.type_cabinet === 'cabinet' ? 'border-green-600 bg-green-50' : 'border-slate-200'">
-                <RadioButton v-model="creation.type_cabinet" value="cabinet" class="mt-0.5" />
-                <span>
-                  <span class="block text-sm font-bold text-navy-900">Cabinet de paie</span>
-                  <span class="block text-xs text-slate-500">Gère la paie de plusieurs entreprises.</span>
+              <label for="type-cabinet">
+                <span class="flex items-start gap-3 p-3 h-full border rounded-lg cursor-pointer"
+                  :class="creation.type_cabinet === 'cabinet' ? 'border-green-600 bg-green-50' : 'border-slate-200'">
+                  <RadioButton v-model="creation.type_cabinet" input-id="type-cabinet" value="cabinet" class="mt-0.5 shrink-0" />
+                  <span>
+                    <span class="block text-sm font-bold text-navy-900">Cabinet de paie</span>
+                    <span class="block text-xs text-slate-500">Gère la paie de plusieurs entreprises.</span>
+                  </span>
                 </span>
               </label>
-              <label class="flex items-start gap-3 p-3 border rounded-lg cursor-pointer"
-                :class="creation.type_cabinet === 'entreprise' ? 'border-green-600 bg-green-50' : 'border-slate-200'">
-                <RadioButton v-model="creation.type_cabinet" value="entreprise" class="mt-0.5" />
-                <span>
-                  <span class="block text-sm font-bold text-navy-900">Entreprise</span>
-                  <span class="block text-xs text-slate-500">Gère sa propre paie : son dossier et son établissement sont créés avec le compte.</span>
+              <label for="type-entreprise">
+                <span class="flex items-start gap-3 p-3 h-full border rounded-lg cursor-pointer"
+                  :class="creation.type_cabinet === 'entreprise' ? 'border-green-600 bg-green-50' : 'border-slate-200'">
+                  <RadioButton v-model="creation.type_cabinet" input-id="type-entreprise" value="entreprise" class="mt-0.5 shrink-0" />
+                  <span>
+                    <span class="block text-sm font-bold text-navy-900">Entreprise</span>
+                    <span class="block text-xs text-slate-500">Gère sa propre paie : son dossier et son établissement sont créés avec le compte.</span>
+                  </span>
                 </span>
               </label>
             </div>

@@ -25,6 +25,12 @@ const salBic = ref('')
 const salExpatrie = ref(false)
 const salSituationMatrimoniale = ref('Célibataire')
 const salEnfantsCharge = ref(0)
+const salModePaiementId = ref(null)
+// Modes acceptés par l'établissement ; un seul mode est présélectionné.
+const modesEtablissement = computed(() => currentEtab.value?.modes_paiement || [])
+watch(modesEtablissement, (modes) => {
+  if (modes.length === 1 && !salModePaiementId.value) salModePaiementId.value = modes[0].id
+})
 
 const fetchContextDetails = async () => {
   loadingContext.value = true
@@ -53,6 +59,15 @@ const handleCreateSalarie = async () => {
     })
     return
   }
+  if (modesEtablissement.value.length && !salModePaiementId.value) {
+    fieldErrors.value = { mode_paiement_id: 'Choisissez le mode de paiement du salarié.' }
+    toast.add({
+      title: 'Validation',
+      description: 'Le mode de paiement du salarié est obligatoire.',
+      color: 'warning'
+    })
+    return
+  }
 
   try {
     const payload = {
@@ -64,6 +79,7 @@ const handleCreateSalarie = async () => {
       telephone: salPhone.value || null,
       iban: salIban.value || null,
       bic: salBic.value || null,
+      mode_paiement_id: salModePaiementId.value,
       expatrie: salExpatrie.value,
       situation_matrimoniale: salSituationMatrimoniale.value,
       enfants_charge: salEnfantsCharge.value
@@ -289,6 +305,14 @@ onMounted(() => {
               ]"
             />
             <p v-if="fieldErrors.bic" class="mt-1 text-xs text-red-655 font-medium">{{ fieldErrors.bic }}</p>
+          </div>
+          <div class="col-span-2">
+            <SalarieModePaiement
+              v-model="salModePaiementId"
+              :modes="modesEtablissement"
+              :lien-etablissement="`/dossiers/${dossierId}/etablissements/${etabId}?tab=infos`"
+              :erreur="fieldErrors.mode_paiement_id"
+            />
           </div>
         </div>
 

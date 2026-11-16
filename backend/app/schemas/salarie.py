@@ -2,6 +2,8 @@ from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
 
+from app.schemas.mode_paiement import ModePaiementOut
+
 
 class SalarieBase(BaseModel):
     matricule: Optional[str] = None
@@ -24,6 +26,8 @@ class SalarieBase(BaseModel):
     telephone: Optional[str] = None
     iban: Optional[str] = None
     bic: Optional[str] = None
+    #: Mode de versement du salaire, parmi ceux de l'établissement.
+    mode_paiement_id: Optional[int] = None
     is_active: Optional[bool] = True
     expatrie: Optional[bool] = False
     situation_matrimoniale: Optional[str] = None
@@ -54,6 +58,7 @@ class SalarieUpdate(BaseModel):
     telephone: Optional[str] = None
     iban: Optional[str] = None
     bic: Optional[str] = None
+    mode_paiement_id: Optional[int] = None
     is_active: Optional[bool] = None
     expatrie: Optional[bool] = None
     situation_matrimoniale: Optional[str] = None
@@ -65,6 +70,7 @@ class SalarieOut(SalarieBase):
     etablissement_id: int
     created_at: datetime
     updated_at: datetime
+    mode_paiement: Optional[ModePaiementOut] = None
     #: Résultat de l'envoi des identifiants d'accès par email (création d'un
     #: compte, renvoi). `None` lorsqu'aucun compte n'a été créé à cette occasion.
     acces_email_envoye: Optional[bool] = None

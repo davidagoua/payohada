@@ -17,6 +17,7 @@ from app.services.security import (
 from app.routers.etablissements import check_etablissement_ownership
 
 from app.services.permissions import ROLE_SALARIE, peut_gerer_dossier, require_staff
+from app.services.modes_paiement import verifier_mode_salarie
 
 router = APIRouter(tags=["Salariés"])
 
@@ -196,7 +197,8 @@ def create_salarie(
 ):
     """Crée un salarié pour un établissement."""
     require_staff(current_user)
-    check_etablissement_ownership(etablissement_id, current_user.id, db)
+    etab = check_etablissement_ownership(etablissement_id, current_user.id, db)
+    verifier_mode_salarie(etab, salarie_in.mode_paiement_id)
 
     # Génération dynamique et unique du matricule
     existing_count = db.query(Salarie).filter(Salarie.etablissement_id == etablissement_id).count()
@@ -244,7 +246,10 @@ def update_salarie(
     require_staff(current_user)
     salarie = check_salarie_ownership(salarie_id, current_user.id, db)
 
-    for field, value in salarie_in.model_dump(exclude_unset=True).items():
+    modifications = salarie_in.model_dump(exclude_unset=True)
+    if "mode_paiement_id" in modifications:
+        verifier_mode_salarie(salarie.etablissement, modifications["mode_paiement_id"])
+    for field, value in modifications.items():
         setattr(salarie, field, value)
 
     db.commit()

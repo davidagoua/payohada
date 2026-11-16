@@ -44,7 +44,10 @@ export const ESPACES = [
  * Routes ouvertes à l'administrateur plateforme. Il pilote le SaaS (cabinets,
  * référentiels, indicateurs) et n'accède à aucun espace de paie des cabinets.
  */
-export const ROUTES_PLATEFORME = ['/admin', '/admin/cabinets', '/admin/constantes', '/admin/plan-paie', '/simulation']
+export const ROUTES_PLATEFORME = ['/admin', '/admin/cabinets', '/admin/constantes', '/admin/plan-paie', '/admin/modes-paiement', '/simulation']
+
+/** Écrans de l'espace /admin réservés à la plateforme (fermés au cabinet). */
+export const ROUTES_PLATEFORME_SEULEMENT = ['/admin/cabinets', '/admin/modes-paiement']
 
 /**
  * Compte entreprise : un cabinet qui gère la paie de sa seule société. Il
@@ -144,7 +147,10 @@ export function deciderRedirection(params: {
       : rediriger(destinationParDefaut(utilisateur))
   }
   if (chemin === '/admin' || chemin.startsWith('/admin/')) {
-    return role === 'cabinet' && !chemin.startsWith('/admin/cabinets')
+    const reserveePlateforme = ROUTES_PLATEFORME_SEULEMENT.some(
+      route => chemin === route || chemin.startsWith(`${route}/`)
+    )
+    return role === 'cabinet' && !reserveePlateforme
       ? { action: 'laisser' }
       : rediriger(destinationParDefaut(utilisateur))
   }

@@ -144,6 +144,10 @@ verifier('admin plateforme ne voit pas les réclamations des salariés',
   deciderRedirection({ chemin: '/admin/reclamations', aJeton: true, utilisateur: ADMIN }), vers('/admin'))
 verifier('admin plateforme garde le simulateur',
   deciderRedirection({ chemin: '/simulation', aJeton: true, utilisateur: ADMIN }), laisser)
+verifier('admin accède aux modes de paiement',
+  deciderRedirection({ chemin: '/admin/modes-paiement', aJeton: true, utilisateur: ADMIN }), laisser)
+verifier('cabinet n\'ouvre pas les modes de paiement de la plateforme',
+  deciderRedirection({ chemin: '/admin/modes-paiement', aJeton: true, utilisateur: CABINET }), vers('/dossiers'))
 verifier('cabinet n\'ouvre pas la gestion des cabinets',
   deciderRedirection({ chemin: '/admin/cabinets', aJeton: true, utilisateur: CABINET }), vers('/dossiers'))
 verifier('admin connecté quittant /login va sur son tableau de bord',
