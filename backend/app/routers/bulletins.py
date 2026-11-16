@@ -17,7 +17,7 @@ from app.services.permissions import (
 from app.routers.contrats import check_contrat_ownership
 from app.services.bulletin_cumuls import compute_bulletin_cumuls
 from app.services.bulletin_saari import (
-    generer_pdf_lot_saari, generer_pdf_saari, nom_fichier_bulletin,
+    AffichageBulletin, generer_pdf_lot_saari, generer_pdf_saari, nom_fichier_bulletin,
 )
 from app.services.payroll import calculate_payslip
 from app.services.simulation_paie import simuler_bulletin
@@ -453,8 +453,13 @@ def telecharger_bulletins_pdf_lot(
     Un bulletin par page. Chaque bulletin est vérifié individuellement : la
     demande est rejetée si l'un d'eux appartient à un autre cabinet.
     """
+    affichage = (
+        AffichageBulletin.depuis(demande.affichage.infos_employeur, demande.affichage.signatures)
+        if demande.affichage
+        else None
+    )
     elements = []
-    for index, bulletin_id in enumerate(demande.bulletin_ids):
+    for bulletin_id in demande.bulletin_ids:
         # check_bulletin_ownership lève 403/404 : le lot entier est refusé
         # plutôt que de produire un document partiel.
         bulletin = check_bulletin_ownership(bulletin_id, current_user.id, db)
@@ -471,8 +476,7 @@ def telecharger_bulletins_pdf_lot(
             "etablissement": getattr(contrat, "etablissement", None),
             "dossier": getattr(bulletin, "dossier", None),
             "cumuls": compute_bulletin_cumuls(db, bulletin),
-            "rang": index + 1,
-            "total": len(demande.bulletin_ids),
+            "affichage": affichage,
         })
 
     try:

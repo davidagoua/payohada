@@ -14,6 +14,8 @@ from tests.base import (
 
 from app.models import models as M
 from app.services.bulletin_saari import (
+    LIGNES_CUMULS,
+    AffichageBulletin,
     construire_html_saari,
     generer_pdf_saari,
     html_vers_pdf,
@@ -65,7 +67,6 @@ class BulletinSaariHtmlTests(unittest.TestCase):
             "Net à payer",
             "Cumuls",
             "Congés payés",
-            "N° employeur CNPS",
         ):
             with self.subTest(attendu=attendu):
                 self.assertIn(attendu, html)
@@ -99,9 +100,40 @@ class BulletinSaariHtmlTests(unittest.TestCase):
         self.assertIn("Cumuls", html)
         self.assertIn("Net à payer", html)
 
-    def test_mention_du_numero_de_bulletin_dans_un_lot(self):
-        html = self._html(rang=2, total=5)
-        self.assertIn("2 / 5", html)
+    def test_informations_retirees_du_bulletin(self):
+        self.etablissement.siret = "CI-ABJ-2020-B-1234"
+        self.etablissement.numero_cotisant = "1234567"
+        self.etablissement.ape = "4711"
+        html = self._html()
+        for retire in (
+            "NIF", "Code établissement", "N° employeur CNPS", "Code activité",
+            "CI-ABJ-2020-B-1234", "1234567", "Situation familiale",
+            "Enfants à charge", "Date de naissance", "Régime",
+        ):
+            with self.subTest(retire=retire):
+                self.assertNotIn(retire, html)
+        self.assertNotIn(("RICF", "ricf"), LIGNES_CUMULS)
+
+    def test_affichage_par_defaut(self):
+        html = self._html()
+        self.assertIn(self.etablissement.raison_sociale.upper(), html.upper())
+        self.assertIn("(Signature et cachet)", html)
+
+    def test_choix_des_informations_employeur_et_des_signatures(self):
+        self.etablissement.telephone = "+225 27 20 00 00 00"
+        self.etablissement.sigle = "SIGLE-DEMO"
+        affichage = AffichageBulletin.depuis(["telephone", "inconnu"], signatures=False)
+        html = self._html(affichage=affichage)
+        self.assertIn("+225 27 20 00 00 00", html)
+        self.assertNotIn("SIGLE-DEMO", html)
+        self.assertNotIn(f'<div class="raison">', html)
+        self.assertNotIn("(Signature et cachet)", html)
+
+    def test_le_reglement_affiche_le_mode_de_paiement_du_salarie(self):
+        from app.models import models as M
+        mode = self.db.query(M.ModePaiement).filter_by(code="MOBILE_MONEY").first()
+        self.salarie.mode_paiement = mode
+        self.assertIn("Mobile money", self._html())
 
 
 class BulletinSaariPdfTests(unittest.TestCase):
@@ -215,7 +247,8 @@ class BulletinSaariPdfTests(unittest.TestCase):
         self.assertIn("Boulevard Valéry Giscard d&#x27;Estaing", html)
         self.assertIn("Zone 4, Immeuble Alpha", html)
         self.assertIn("01 BP 4521 Abidjan", html)
-        self.assertIn("Côte d&#x27;Ivoire", html)
+        # Le pays de l'établissement n'est plus imprimé.
+        self.assertNotIn("Côte d&#x27;Ivoire", html)
 
         # Le PDF doit se générer sans erreur avec une adresse réelle
         pdf = generer_pdf_saari(
@@ -234,7 +267,7 @@ class BulletinSaariPdfTests(unittest.TestCase):
         self.assertIn("Bulletin de paie", html)
 
     def test_les_cumuls_sont_repartis_en_deux_blocs_sans_perte(self):
-        """Les quatorze cumuls tiennent sur sept lignes à deux colonnes.
+        """Les treize cumuls tiennent sur sept lignes à deux colonnes.
 
         Régression : empilés, ils repoussaient la mention légale sur une seconde
         page. La répartition ne doit perdre aucune ligne au passage.
@@ -256,7 +289,8 @@ class BulletinSaariPdfTests(unittest.TestCase):
         # Six en-têtes : deux blocs de Libellé / Mensuel / Annuel
         entete = html.split('<div class="cadre-titre">Cumuls</div>')[1].split("</thead>")[0]
         self.assertEqual(entete.count("<th "), 6)
-        self.assertEqual(len(LIGNES_CUMULS), 14)
+        # Treize cumuls depuis le retrait du RICF.
+        self.assertEqual(len(LIGNES_CUMULS), 13)
 
     def test_la_premiere_page_n_est_pas_blanche(self):
         """Régression : un saut de page appliqué au premier élément laissait une
@@ -517,9 +551,26 @@ class BulletinPdfLotTests(unittest.TestCase):
         for index in range(3):
             with self.subTest(salarie=index):
                 self.assertIn(f"LOT{index}", texte)
-        # Chaque bulletin est numéroté sur le total du lot
-        self.assertIn("1 / 3", texte)
-        self.assertIn("3 / 3", texte)
+        # La numérotation « Bulletin 1 / 3 » n'apparaît plus.
+        self.assertNotIn("1 / 3", texte)
+
+    def test_le_lot_respecte_les_choix_d_affichage(self):
+        from io import BytesIO
+
+        r = client.post(
+            f"{API}/bulletins/pdf-lot", headers=self.entetes,
+            json={
+                "bulletin_ids": [b.id for b in self.bulletins],
+                "affichage": {"infos_employeur": ["adresse"], "signatures": False},
+            },
+        )
+        self.assertEqual(r.status_code, 200, r.text[:300])
+        try:
+            from pypdf import PdfReader
+        except ImportError:  # pragma: no cover
+            self.skipTest("pypdf indisponible")
+        texte = "".join(p.extract_text() for p in PdfReader(BytesIO(r.content)).pages)
+        self.assertNotIn("Signature et cachet", texte)
 
     def test_aucune_page_blanche_en_tete_du_lot(self):
         from io import BytesIO

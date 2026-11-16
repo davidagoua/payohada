@@ -16,8 +16,9 @@ from __future__ import annotations
 
 import html as _html
 from datetime import datetime
+from dataclasses import dataclass, field
 from io import BytesIO
-from typing import Any, Optional, Sequence
+from typing import Any, Iterable, Optional, Sequence
 
 MOIS_LABELS = (
     "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
@@ -42,7 +43,6 @@ LIGNES_CUMULS = (
     ("Brut CNPS", "brut_cnps"),
     ("Base congés payés", "brut_conges"),
     ("Impôt sur salaires (ITS)", "ibs"),
-    ("RICF", "ricf"),
     ("CMU", "cmu"),
     ("Retraite CNPS", "cot_retraite"),
     # Le « mensuel » est l'acquisition du mois, l'« annuel » le cumul depuis
@@ -51,6 +51,41 @@ LIGNES_CUMULS = (
     ("Congés pris (mois / cumul)", "conges_pris"),
     ("Solde de congés disponible", "conges_solde"),
 )
+
+#: Informations de l'employeur qu'on peut choisir d'afficher dans l'en-tête :
+#: (clé, libellé, affichée par défaut). Même liste que
+#: `frontend/app/utils/bulletinAffichage.ts`.
+INFOS_EMPLOYEUR = (
+    ("raison_sociale", "Raison sociale", True),
+    ("sigle", "Sigle", False),
+    ("adresse", "Adresse", True),
+    ("activite", "Activité", True),
+    ("numero_rccm", "N° RCCM", False),
+    ("telephone", "Téléphone", False),
+    ("email", "Email", False),
+    ("site_web", "Site web", False),
+)
+CLES_INFOS_EMPLOYEUR = tuple(cle for cle, _, _ in INFOS_EMPLOYEUR)
+
+
+@dataclass(frozen=True)
+class AffichageBulletin:
+    """Ce que l'utilisateur choisit d'afficher sur le bulletin imprimé."""
+
+    infos_employeur: frozenset = field(
+        default_factory=lambda: frozenset(cle for cle, _, defaut in INFOS_EMPLOYEUR if defaut)
+    )
+    signatures: bool = True
+
+    @classmethod
+    def depuis(cls, infos_employeur: Optional[Iterable[str]] = None, signatures: bool = True):
+        if infos_employeur is None:
+            return cls(signatures=signatures)
+        return cls(
+            infos_employeur=frozenset(c for c in infos_employeur if c in CLES_INFOS_EMPLOYEUR),
+            signatures=signatures,
+        )
+
 
 LIBELLES_TYPE_CONTRAT = {
     10: "CDI", 20: "CDD", 29: "CDD", 30: "CDD",
@@ -181,7 +216,6 @@ def _adresse_etablissement(etablissement: Any) -> list[str]:
         _champ(brut, "adresse_postale2"),
         _champ(brut, "complement_adresse"),
         ville_ligne,
-        _champ(brut, "pays"),
     ]
     return [str(m) for m in morceaux if m]
 
@@ -262,8 +296,7 @@ def _corps_bulletin(
     etablissement: Any = None,
     dossier: Any = None,
     cumuls: Any = None,
-    rang: Optional[int] = None,
-    total: Optional[int] = None,
+    affichage: Optional[AffichageBulletin] = None,
 ) -> str:
     """Produit le contenu HTML du bulletin (sans l'habillage du document).
 
@@ -290,34 +323,35 @@ def _corps_bulletin(
     cumul_annuel = getattr(cumuls, "annuel", None)
 
     # ── En-tête ──────────────────────────────────────────────────────
-    adresse = _adresse_etablissement(etablissement)
-    raison_sociale = (
-        getattr(etablissement, "raison_sociale", None)
-        or getattr(dossier, "nom_dossier", None)
-        or "—"
-    )
-    lignes_adresse = "".join(f"{_echappe(l)}<br/>" for l in adresse)
-    activite = getattr(etablissement, "activite", None)
+    affichage = affichage or AffichageBulletin()
+    infos = affichage.infos_employeur
+    lignes_employeur = []
+    if "raison_sociale" in infos:
+        raison_sociale = (
+            getattr(etablissement, "raison_sociale", None)
+            or getattr(dossier, "nom_dossier", None)
+            or "—"
+        )
+        lignes_employeur.append(f'<div class="raison">{_echappe(raison_sociale)}</div>')
+    if "sigle" in infos and getattr(etablissement, "sigle", None):
+        lignes_employeur.append(f"<div>{_echappe(etablissement.sigle)}</div>")
+    if "adresse" in infos:
+        lignes_employeur.extend(f"<div>{_echappe(l)}</div>" for l in _adresse_etablissement(etablissement))
+    for cle, libelle in (("activite", None), ("numero_rccm", "RCCM"), ("telephone", "Tél."),
+                         ("email", None), ("site_web", None)):
+        valeur = getattr(etablissement, cle, None) if cle in infos else None
+        if valeur:
+            texte = f"{libelle} : {valeur}" if libelle else valeur
+            lignes_employeur.append(f"<div>{_echappe(texte)}</div>")
+
+    mode_paiement = getattr(salarie, "mode_paiement", None)
+    reglement = getattr(mode_paiement, "libelle", None) or "—"
 
     entete = f"""
     <table class="entete">
       <tr>
         <td style="width:57%">
-          <div class="raison">{_echappe(raison_sociale)}</div>
-          <div>{lignes_adresse}</div>
-          {f'<div>{_echappe(activite)}</div>' if activite else ''}
-          <table class="ident">
-            <tr>
-              <th>NIF / RCCM</th><td>{_echappe(getattr(etablissement, 'siret', None) or '—')}</td>
-              <th style="width:26%">Code établissement</th>
-              <td>{_echappe(getattr(etablissement, 'code', None) or '—')}</td>
-            </tr>
-            <tr>
-              <th>N° employeur CNPS</th><td>{_echappe(getattr(etablissement, 'numero_cotisant', None) or '—')}</td>
-              <th>Code activité</th>
-              <td>{_echappe(getattr(etablissement, 'ape', None) or '—')}</td>
-            </tr>
-          </table>
+          {''.join(lignes_employeur)}
         </td>
         <td style="width:43%; text-align:right">
           <div class="titre-doc">Bulletin de paie</div>
@@ -326,8 +360,7 @@ def _corps_bulletin(
             <tr><th style="text-align:right">Payé le</th>
                 <td style="text-align:right">{_date(getattr(bulletin, 'date_paiement', None))}</td></tr>
             <tr><th style="text-align:right">Règlement</th>
-                <td style="text-align:right">Virement bancaire</td></tr>
-            {f'<tr><th style="text-align:right">Bulletin</th><td style="text-align:right">{rang} / {total}</td></tr>' if rang else ''}
+                <td style="text-align:right">{_echappe(reglement)}</td></tr>
           </table>
         </td>
       </tr>
@@ -373,16 +406,9 @@ def _corps_bulletin(
         <th>Base de temps</th><td>{_echappe(base_temps)}</td>
       </tr>
       <tr>
-        <th>Situation familiale</th><td>{_echappe(getattr(salarie, 'situation_matrimoniale', None) or '—')}</td>
-        <th>Enfants à charge</th><td>{_echappe(getattr(salarie, 'enfants_charge', 0) or 0)}</td>
         <th>N° CNPS salarié</th>
         <td class="code">{_echappe(getattr(salarie, 'numero_securite_sociale', None) or '—')}</td>
-      </tr>
-      <tr>
-        <th>Nationalité</th><td>{_echappe(getattr(salarie, 'nationalite', None) or '—')}</td>
-        <th>Date de naissance</th><td>{_date(getattr(salarie, 'date_naissance', None))}</td>
-        <th>Régime</th>
-        <td>{'Expatrié' if getattr(salarie, 'expatrie', False) else 'Local'}</td>
+        <th>Nationalité</th><td colspan="3">{_echappe(getattr(salarie, 'nationalite', None) or '—')}</td>
       </tr>
     </table>"""
 
@@ -477,6 +503,17 @@ def _corps_bulletin(
     </div>"""
 
     # ── Pied ─────────────────────────────────────────────────────────
+    signatures = """
+      <table style="margin-top:5pt">
+        <tr>
+          <td style="border:0; width:50%">
+            <div class="signature">Le salarié<br/><span style="font-size:6.5pt">(Signature)</span></div>
+          </td>
+          <td style="border:0; width:50%">
+            <div class="signature">L'employeur<br/><span style="font-size:6.5pt">(Signature et cachet)</span></div>
+          </td>
+        </tr>
+      </table>""" if affichage.signatures else ""
     pied = f"""
     <div class="cadre">
       <div class="cadre-titre">Congés payés</div>
@@ -490,16 +527,7 @@ def _corps_bulletin(
           <td class="num fort">{_nombre(_valeur(cumul_mensuel, 'conges_solde'))} j</td>
         </tr>
       </table>
-      <table style="margin-top:5pt">
-        <tr>
-          <td style="border:0; width:50%">
-            <div class="signature">Le salarié<br/><span style="font-size:6.5pt">(Signature)</span></div>
-          </td>
-          <td style="border:0; width:50%">
-            <div class="signature">L'employeur<br/><span style="font-size:6.5pt">(Signature et cachet)</span></div>
-          </td>
-        </tr>
-      </table>
+      {signatures}
       <div class="mentions" style="padding:2pt 3pt">
         Bulletin à conserver sans limitation de durée. Les cotisations sociales sont
         calculées sur la base des taux en vigueur ; l'impôt sur les traitements et
@@ -526,12 +554,11 @@ def construire_html_saari(
     etablissement: Any = None,
     dossier: Any = None,
     cumuls: Any = None,
-    rang: Optional[int] = None,
-    total: Optional[int] = None,
+    affichage: Optional[AffichageBulletin] = None,
 ) -> str:
     """Document HTML complet d'un bulletin, au format Sage Saari."""
     return _document(_corps_bulletin(
-        bulletin, contrat, salarie, etablissement, dossier, cumuls, rang, total
+        bulletin, contrat, salarie, etablissement, dossier, cumuls, affichage
     ))
 
 
@@ -540,7 +567,7 @@ def construire_html_lot_saari(elements: Sequence[dict]) -> str:
 
     `elements` : une suite de dictionnaires acceptés par `_corps_bulletin`
     (`bulletin`, `contrat`, `salarie`, `etablissement`, `dossier`, `cumuls`,
-    `rang`, `total`). Le saut de page n'est appliqué qu'à partir du deuxième
+    `affichage`). Le saut de page n'est appliqué qu'à partir du deuxième
     bulletin : sur le premier, il laisserait une page blanche en tête.
     """
     corps = []
@@ -577,12 +604,11 @@ def generer_pdf_saari(
     etablissement: Any = None,
     dossier: Any = None,
     cumuls: Any = None,
-    rang: Optional[int] = None,
-    total: Optional[int] = None,
+    affichage: Optional[AffichageBulletin] = None,
 ) -> bytes:
     """Bulletin de paie au format Sage Saari, sous forme de PDF."""
     html = construire_html_saari(
-        bulletin, contrat, salarie, etablissement, dossier, cumuls, rang, total
+        bulletin, contrat, salarie, etablissement, dossier, cumuls, affichage
     )
     return html_vers_pdf(html)
 

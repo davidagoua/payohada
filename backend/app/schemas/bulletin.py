@@ -115,6 +115,15 @@ class BulletinPaieOut(BulletinPaieBase):
 class LotPdfRequest(BaseModel):
     """Demande d'édition PDF groupée."""
     bulletin_ids: List[int] = Field(..., min_length=1, max_length=200)
+    #: Choix d'affichage de l'écran d'impression ; absent = affichage par défaut.
+    affichage: Optional["AffichageBulletinIn"] = None
+
+
+class AffichageBulletinIn(BaseModel):
+    """Informations de l'employeur et zone de signatures à imprimer."""
+    #: Clés parmi `bulletin_saari.CLES_INFOS_EMPLOYEUR` ; les autres sont ignorées.
+    infos_employeur: Optional[List[str]] = Field(default=None, max_length=20)
+    signatures: bool = True
 
 
 class ErreurCalculLot(BaseModel):

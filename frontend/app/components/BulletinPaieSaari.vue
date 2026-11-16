@@ -11,17 +11,39 @@
  * Composant purement présentationnel : il reçoit les objets déjà chargés et ne
  * fait aucun appel réseau, afin d'être réutilisable en impression unitaire
  * comme en impression par lot.
+ *
+ * Le gabarit PDF du serveur (`services/bulletin_saari.py`) suit la même
+ * présentation : toute modification doit être reportée des deux côtés.
  */
+import { affichageParDefaut } from '~/utils/bulletinAffichage'
+
 const props = defineProps({
   bulletin: { type: Object, required: true },
   contrat: { type: Object, default: null },
   salarie: { type: Object, default: null },
   etablissement: { type: Object, default: null },
   dossier: { type: Object, default: null },
-  //: Numéro d'ordre lorsqu'un lot de bulletins est imprimé.
-  rang: { type: Number, default: null },
-  total: { type: Number, default: null }
+  //: Informations de l'employeur et signatures à afficher (écran d'impression).
+  affichage: { type: Object, default: null }
 })
+
+const options = computed(() => props.affichage || affichageParDefaut())
+const montrer = (cle) => options.value.infos_employeur.includes(cle)
+
+//: Coordonnées de l'employeur affichées sous la raison sociale, dans l'ordre.
+const coordonneesEmployeur = computed(() => {
+  const e = props.etablissement || {}
+  return [
+    ['activite', e.activite],
+    ['numero_rccm', e.numero_rccm && `RCCM : ${e.numero_rccm}`],
+    ['telephone', e.telephone && `Tél. : ${e.telephone}`],
+    ['email', e.email],
+    ['site_web', e.site_web]
+  ].filter(([cle, valeur]) => valeur && montrer(cle)).map(([, valeur]) => valeur)
+})
+
+//: Mode de paiement du salarié, choisi parmi ceux de l'établissement.
+const reglement = computed(() => props.salarie?.mode_paiement?.libelle || '—')
 
 const MOIS_LABELS = [
   'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
@@ -69,7 +91,6 @@ const LIGNES_CUMULS = [
   { libelle: 'Brut CNPS', cle: 'brut_cnps' },
   { libelle: 'Base congés payés', cle: 'brut_conges' },
   { libelle: 'Impôt sur salaires (ITS)', cle: 'ibs' },
-  { libelle: 'RICF', cle: 'ricf' },
   { libelle: 'CMU', cle: 'cmu' },
   { libelle: 'Retraite CNPS', cle: 'cot_retraite' },
   // Le « mensuel » est l'acquisition du mois, l'« annuel » le cumul depuis
@@ -135,8 +156,8 @@ const adresseEtablissement = computed(() => {
   return [
     a.adresse_postale,
     a.adresse_postale2,
-    [a.code_postal, a.ville].filter(Boolean).join(' '),
-    a.pays
+    a.complement_adresse,
+    [a.code_postal, a.ville].filter(Boolean).join(' ')
   ].filter(Boolean)
 })
 
@@ -151,7 +172,6 @@ const categorieEchelon = computed(() => {
   return [p.categorie_professionnelle, p.echelon_categorie].filter(Boolean).join(' / ') || '—'
 })
 
-const estExpatrie = computed(() => !!props.salarie?.expatrie)
 </script>
 
 <template>
@@ -159,25 +179,14 @@ const estExpatrie = computed(() => !!props.salarie?.expatrie)
     <!-- ═══════════ EN-TÊTE ═══════════ -->
     <header class="entete">
       <div class="entete-employeur">
-        <div class="raison-sociale">{{ etablissement?.raison_sociale || dossier?.nom_dossier || '—' }}</div>
-        <div v-for="(ligne, i) in adresseEtablissement" :key="i">{{ ligne }}</div>
-        <div v-if="etablissement?.activite">{{ etablissement.activite }}</div>
-        <table class="identifiants">
-          <tbody>
-            <tr>
-              <td>NIF / RCCM</td>
-              <td>{{ etablissement?.siret || '—' }}</td>
-              <td>Code établissement</td>
-              <td>{{ etablissement?.code || '—' }}</td>
-            </tr>
-            <tr>
-              <td>N° employeur CNPS</td>
-              <td>{{ etablissement?.numero_cotisant || '—' }}</td>
-              <td>Code activité</td>
-              <td>{{ etablissement?.ape || '—' }}</td>
-            </tr>
-          </tbody>
-        </table>
+        <div v-if="montrer('raison_sociale')" class="raison-sociale">
+          {{ etablissement?.raison_sociale || dossier?.nom_dossier || '—' }}
+        </div>
+        <div v-if="montrer('sigle') && etablissement?.sigle">{{ etablissement.sigle }}</div>
+        <template v-if="montrer('adresse')">
+          <div v-for="(ligne, i) in adresseEtablissement" :key="i">{{ ligne }}</div>
+        </template>
+        <div v-for="(ligne, i) in coordonneesEmployeur" :key="`c-${i}`">{{ ligne }}</div>
       </div>
 
       <div class="entete-titre">
@@ -186,8 +195,7 @@ const estExpatrie = computed(() => !!props.salarie?.expatrie)
         <table class="entete-meta">
           <tbody>
             <tr><td>Payé le</td><td>{{ dateFr(bulletin.date_paiement) }}</td></tr>
-            <tr><td>Règlement</td><td>Virement bancaire</td></tr>
-            <tr v-if="rang"><td>Bulletin</td><td>{{ rang }} / {{ total }}</td></tr>
+            <tr><td>Règlement</td><td>{{ reglement }}</td></tr>
           </tbody>
         </table>
       </div>
@@ -224,20 +232,10 @@ const estExpatrie = computed(() => !!props.salarie?.expatrie)
             </td>
           </tr>
           <tr>
-            <th>Situation familiale</th>
-            <td>{{ salarie?.situation_matrimoniale || '—' }}</td>
-            <th>Enfants à charge</th>
-            <td>{{ salarie?.enfants_charge ?? 0 }}</td>
             <th>N° CNPS salarié</th>
             <td class="mono">{{ salarie?.numero_securite_sociale || '—' }}</td>
-          </tr>
-          <tr>
             <th>Nationalité</th>
-            <td>{{ salarie?.nationalite || '—' }}</td>
-            <th>Date de naissance</th>
-            <td class="mono">{{ dateFr(salarie?.date_naissance) }}</td>
-            <th>Régime</th>
-            <td>{{ estExpatrie ? 'Expatrié' : 'Local' }}</td>
+            <td colspan="3">{{ salarie?.nationalite || '—' }}</td>
           </tr>
         </tbody>
       </table>
@@ -399,7 +397,7 @@ const estExpatrie = computed(() => !!props.salarie?.expatrie)
         </table>
       </div>
 
-      <div class="signatures">
+      <div v-if="options.signatures" class="signatures">
         <div>
           <span>Le salarié</span>
           <small>(Signature)</small>
@@ -462,13 +460,9 @@ const estExpatrie = computed(() => !!props.salarie?.expatrie)
   display: inline-block;
   margin-bottom: 1.5mm;
 }
-.identifiants,
 .entete-meta { width: 100%; border-collapse: collapse; margin-top: 1.5mm; }
-.identifiants td,
 .entete-meta td { padding: 0.3mm 0; vertical-align: top; }
-.identifiants td:nth-child(odd),
 .entete-meta td:first-child { color: #444; padding-right: 2mm; }
-.identifiants td:nth-child(even),
 .entete-meta td:last-child { font-weight: bold; }
 .entete-meta td:last-child { text-align: right; }
 

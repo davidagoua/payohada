@@ -1,4 +1,6 @@
 <script setup>
+import { INFOS_EMPLOYEUR, normaliserAffichage } from '~/utils/bulletinAffichage'
+
 const route = useRoute()
 const router = useRouter()
 const { get } = useApi()
@@ -11,6 +13,25 @@ const ids = route.query.ids ? String(route.query.ids).split(',') : []
 const etablissement = ref(null)
 const bulletinsData = ref([])
 const loading = ref(true)
+
+// Informations de l'employeur et signatures à imprimer. Le choix est mémorisé
+// par établissement dans ce navigateur ; il s'applique aussi au PDF téléchargé.
+const CLE_MEMOIRE = `bulletin-affichage:${etabId}`
+const lireAffichage = () => {
+  try {
+    return normaliserAffichage(JSON.parse(localStorage.getItem(CLE_MEMOIRE) || 'null'))
+  } catch {
+    return normaliserAffichage(null)
+  }
+}
+const affichage = ref(lireAffichage())
+watch(affichage, (valeur) => {
+  try {
+    localStorage.setItem(CLE_MEMOIRE, JSON.stringify(valeur))
+  } catch {
+    // Stockage indisponible (navigation privée) : le choix vaut pour la page.
+  }
+}, { deep: true })
 
 const loadAllData = async () => {
   if (ids.length === 0) {
@@ -71,7 +92,7 @@ const telechargerPdfLot = async () => {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token.value}`
       },
-      body: JSON.stringify({ bulletin_ids: identifiants })
+      body: JSON.stringify({ bulletin_ids: identifiants, affichage: affichage.value })
     })
     if (!reponse.ok) throw new Error(`HTTP ${reponse.status}`)
 
@@ -165,18 +186,40 @@ onMounted(() => {
       </div>
     </div>
 
+    <!-- Options d'affichage, masquées à l'impression -->
+    <section
+      class="bg-white border-2 border-slate-200 p-4 shadow-flat no-print space-y-3"
+      aria-labelledby="titre-options-bulletin"
+    >
+      <h2 id="titre-options-bulletin" class="text-sm font-bold text-navy-900 uppercase tracking-wider">
+        Informations à afficher sur le bulletin
+      </h2>
+      <fieldset>
+        <legend class="text-xs text-slate-500 mb-2">Entreprise / établissement</legend>
+        <div class="flex flex-wrap gap-x-6 gap-y-2">
+          <div v-for="info in INFOS_EMPLOYEUR" :key="info.cle" class="flex items-center gap-2">
+            <Checkbox v-model="affichage.infos_employeur" :input-id="`info-${info.cle}`" :value="info.cle" />
+            <label :for="`info-${info.cle}`">{{ info.libelle }}</label>
+          </div>
+        </div>
+      </fieldset>
+      <div class="flex items-center gap-2 border-t border-slate-200 pt-3">
+        <Checkbox v-model="affichage.signatures" input-id="info-signatures" binary />
+        <label for="info-signatures">Afficher la zone des signatures</label>
+      </div>
+    </section>
+
     <!-- Printable Payslips -->
     <!-- Bulletins de paie au format Sage Saari -->
     <div class="space-y-8 print:space-y-0">
       <BulletinPaieSaari
-        v-for="(item, index) in bulletinsData"
+        v-for="item in bulletinsData"
         :key="item.bulletin.id"
         :bulletin="item.bulletin"
         :contrat="item.contrat"
         :salarie="item.salarie"
         :etablissement="etablissement"
-        :rang="index + 1"
-        :total="bulletinsData.length"
+        :affichage="affichage"
         class="print-payslip-page"
       />
     </div>

@@ -826,24 +826,8 @@ onMounted(() => {
             <p class="text-slate-650 leading-relaxed font-medium">
               {{ etablissement?.adresse?.adresse_postale }}<br />
               {{ etablissement?.adresse?.adresse_postale2 || '' }}<br />
-              {{ etablissement?.adresse?.code_postal }} {{ etablissement?.adresse?.ville }}<br />
-              {{ etablissement?.adresse?.pays }}
+              {{ etablissement?.adresse?.code_postal }} {{ etablissement?.adresse?.ville }}
             </p>
-          </div>
-          
-          <div class="grid grid-cols-2 gap-2 border-t border-slate-200 pt-2 font-mono text-[10px] text-slate-500">
-            <div>
-              <span class="block text-[8px] font-bold uppercase tracking-wider text-slate-450">N° SIRET</span>
-              <span class="font-bold text-slate-700">{{ etablissement?.siret || '-' }}</span>
-            </div>
-            <div>
-              <span class="block text-[8px] font-bold uppercase tracking-wider text-slate-450">Code APE / NAF</span>
-              <span class="font-bold text-slate-700">{{ etablissement?.ape || '-' }}</span>
-            </div>
-            <div class="col-span-2">
-              <span class="block text-[8px] font-bold uppercase tracking-wider text-slate-450">N° Cotisant</span>
-              <span class="font-bold text-slate-700">{{ etablissement?.numero_cotisant || '-' }}</span>
-            </div>
           </div>
         </div>
 
@@ -874,12 +858,6 @@ onMounted(() => {
               <div class="border-t border-slate-200 pt-1">
                 <span class="text-slate-450 block uppercase text-[8px] tracking-wide font-bold">N° Securité Sociale</span>
                 <span class="font-mono text-slate-800 font-semibold">{{ salarie?.numero_securite_sociale || '-' }}</span>
-              </div>
-              <div class="border-t border-slate-200 pt-1">
-                <span class="text-slate-450 block uppercase text-[8px] tracking-wide font-bold">Régime</span>
-                <span class="font-bold text-xs uppercase" :class="salarie?.expatrie ? 'text-amber-700' : 'text-slate-700'">
-                  {{ salarie?.expatrie ? 'EXPATRIÉ (8.0% CN)' : 'LOCAL (1.5% CN)' }}
-                </span>
               </div>
               <div class="border-t border-slate-200 pt-1">
                 <span class="text-slate-450 block uppercase text-[8px] tracking-wide font-bold">Base Temps de Travail</span>
