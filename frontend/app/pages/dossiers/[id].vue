@@ -588,6 +588,13 @@ onMounted(() => {
     <div v-show="activeTab === 'infos'" class="bg-white border-2 border-slate-200 p-6 shadow-flat border-t-4 border-t-navy-900">
       <form @submit.prevent="handleUpdateDossier" class="space-y-6">
         <h3 class="text-lg font-bold text-navy-900 border-b border-slate-100 pb-2">Modifier le profil de l'entreprise</h3>
+
+        <DossierLogo
+          :dossier-id="dossierId"
+          :a-logo="!!dossier?.a_logo"
+          class="pb-4 border-b border-slate-100"
+          @change="(maj) => { if (maj) { dossier = maj; currentDossier = maj } }"
+        />
         
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div>

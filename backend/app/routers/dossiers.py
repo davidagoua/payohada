@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+import base64
+
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from typing import List
@@ -130,6 +132,84 @@ def update_dossier(
     for field, value in dossier_in.model_dump(exclude_unset=True).items():
         setattr(dossier, field, value)
 
+    db.commit()
+    db.refresh(dossier)
+    return dossier
+
+
+# ─────────────────────────────────────────
+#  LOGO DE L'ENTREPRISE
+# ─────────────────────────────────────────
+#: Taille maximale d'un logo : il est stocké en base et lu à chaque impression.
+TAILLE_MAX_LOGO = 1024 * 1024
+
+
+def _type_image(contenu: bytes) -> str | None:
+    """Format réel de l'image d'après sa signature, sans se fier au nom du fichier.
+
+    Le SVG est volontairement refusé : il peut embarquer du script.
+    """
+    if contenu.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "image/png"
+    if contenu.startswith(b"\xff\xd8\xff"):
+        return "image/jpeg"
+    if contenu[:4] == b"RIFF" and contenu[8:12] == b"WEBP":
+        return "image/webp"
+    return None
+
+
+@router.put("/{dossier_id}/logo", response_model=DossierOut)
+async def deposer_logo(
+    dossier_id: int,
+    fichier: UploadFile = File(..., description="Logo PNG, JPEG ou WebP, 1 Mo au plus"),
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user),
+):
+    """Dépose ou remplace le logo de l'entreprise."""
+    dossier = _get_owned_dossier_for_write(dossier_id, current_user, db)
+    contenu = await fichier.read(TAILLE_MAX_LOGO + 1)
+    if len(contenu) > TAILLE_MAX_LOGO:
+        raise HTTPException(
+            status_code=status.HTTP_413_CONTENT_TOO_LARGE,
+            detail="Le logo ne doit pas dépasser 1 Mo.",
+        )
+    type_image = _type_image(contenu)
+    if type_image is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Format de logo non pris en charge : utilisez une image PNG, JPEG ou WebP.",
+        )
+    dossier.logo = contenu
+    dossier.logo_type = type_image
+    db.commit()
+    db.refresh(dossier)
+    return dossier
+
+
+@router.get("/{dossier_id}/logo")
+def lire_logo(
+    dossier_id: int,
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user),
+):
+    """Logo de l'entreprise, en data URL prête pour une balise `<img>`."""
+    dossier = check_dossier_ownership(dossier_id, current_user, db)
+    if not dossier.logo_type or not dossier.logo:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Aucun logo pour cette entreprise.")
+    encode = base64.b64encode(dossier.logo).decode("ascii")
+    return {"type": dossier.logo_type, "data_url": f"data:{dossier.logo_type};base64,{encode}"}
+
+
+@router.delete("/{dossier_id}/logo", response_model=DossierOut)
+def supprimer_logo(
+    dossier_id: int,
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user),
+):
+    """Retire le logo de l'entreprise."""
+    dossier = _get_owned_dossier_for_write(dossier_id, current_user, db)
+    dossier.logo = None
+    dossier.logo_type = None
     db.commit()
     db.refresh(dossier)
     return dossier

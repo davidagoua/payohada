@@ -14,6 +14,7 @@ La mise en page n'utilise donc que des tableaux, comme un état imprimé classiq
 """
 from __future__ import annotations
 
+import base64
 import html as _html
 from datetime import datetime
 from dataclasses import dataclass, field
@@ -56,6 +57,7 @@ LIGNES_CUMULS = (
 #: (clé, libellé, affichée par défaut). Même liste que
 #: `frontend/app/utils/bulletinAffichage.ts`.
 INFOS_EMPLOYEUR = (
+    ("logo", "Logo", True),
     ("raison_sociale", "Raison sociale", True),
     ("sigle", "Sigle", False),
     ("adresse", "Adresse", True),
@@ -198,6 +200,15 @@ def _champ(source: Any, cle: str) -> Any:
     return getattr(source, cle, None)
 
 
+def _logo_data_url(dossier: Any) -> Optional[str]:
+    """Logo de l'entreprise en data URL, ou `None` s'il n'y en a pas."""
+    type_image = getattr(dossier, "logo_type", None)
+    contenu = getattr(dossier, "logo", None) if type_image else None
+    if not contenu:
+        return None
+    return f"data:{type_image};base64,{base64.b64encode(contenu).decode('ascii')}"
+
+
 def _adresse_etablissement(etablissement: Any) -> list[str]:
     """Lignes d'adresse de l'établissement, dans l'ordre d'impression."""
     if etablissement is None:
@@ -242,6 +253,7 @@ th { background-color: #ececec; font-weight: bold; }
 .net td { background-color: #1a1a1a; color: #ffffff; font-weight: bold;
           font-size: 9.5pt; text-transform: uppercase; }
 .entete td { border: 0.8pt solid #000; }
+.logo { margin-bottom: 3pt; }
 .raison { font-size: 10.5pt; font-weight: bold; text-transform: uppercase; }
 .titre-doc { font-size: 12pt; font-weight: bold; text-transform: uppercase;
              text-align: right; }
@@ -326,6 +338,12 @@ def _corps_bulletin(
     affichage = affichage or AffichageBulletin()
     infos = affichage.infos_employeur
     lignes_employeur = []
+    if "logo" in infos:
+        logo = _logo_data_url(dossier)
+        if logo:
+            lignes_employeur.append(
+                f'<div class="logo"><img src="{logo}" style="max-height:38pt; max-width:130pt"/></div>'
+            )
     if "raison_sociale" in infos:
         raison_sociale = (
             getattr(etablissement, "raison_sociale", None)

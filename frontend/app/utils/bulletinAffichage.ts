@@ -12,6 +12,7 @@ export interface InfoEmployeur {
 }
 
 export const INFOS_EMPLOYEUR: InfoEmployeur[] = [
+  { cle: 'logo', libelle: 'Logo', parDefaut: true },
   { cle: 'raison_sociale', libelle: 'Raison sociale', parDefaut: true },
   { cle: 'sigle', libelle: 'Sigle', parDefaut: false },
   { cle: 'adresse', libelle: 'Adresse', parDefaut: true },

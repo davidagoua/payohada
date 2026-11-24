@@ -201,6 +201,8 @@ class ContratOut(ContratBase):
     horaires: Optional[HorairesOut] = None
     depart_salarie: Optional[DepartSalarieOut] = None
     mois_a_exclure: Optional[MoisAExclureOut] = None
+    #: Salaire minimum de la catégorie (contrat, sinon grille du poste), en lecture.
+    smhc_reference: Optional[float] = None
 
     class Config:
         from_attributes = True

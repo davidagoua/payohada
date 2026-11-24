@@ -27,6 +27,7 @@ from app.schemas.calculs_ci import (
     AvantageNatureIn, AvantageNatureOut, CongesOut, CongesRequest, DecesRequest,
     FinCddRequest, GratificationOut, GratificationRequest, IndemniteDecesOut,
     IndemniteFinCddOut, IndemniteRuptureOut, RuptureRequest,
+    SimulationDepartOut, SimulationDepartRequest,
     SoldeToutCompteCompletOut, SoldeToutCompteCompletRequest,
 )
 from app.services.avantages_nature import (
@@ -154,6 +155,101 @@ def _salaire_imposable_du_contrat(contrat: Contrat) -> float:
     composante et ne s'y ajoute pas.
     """
     return float(contrat.salaire_mensuel or 0.0)
+
+
+# ─────────────────────────────────────────────
+#  SIMULATION DE DÉPART (BOÎTE À OUTILS)
+# ─────────────────────────────────────────────
+
+@router.post("/simulations/depart", response_model=SimulationDepartOut)
+def simuler_depart(
+    demande: SimulationDepartRequest,
+    current_user: Utilisateur = Depends(get_current_user),
+):
+    """Estime les droits de sortie à partir de valeurs saisies.
+
+    Outil de simulation, distinct du processus de départ : aucun contrat n'est
+    lu et rien n'est enregistré. Les barèmes sont ceux des calculs du contrat.
+    """
+    if demande.date_sortie < demande.date_entree:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="La date de sortie précède la date d'entrée.",
+        )
+    anciennete = (
+        demande.anciennete_mois
+        if demande.anciennete_mois is not None
+        else anciennete_en_mois(demande.date_entree, demande.date_sortie)
+    )
+    salaire = demande.salaire_mensuel_moyen
+    salaires = demande.salaires_12_mois or [salaire] * NOMBRE_SALAIRES_REFERENCE
+    smhc = demande.smhc_mensuel or 0.0
+    alertes: list[str] = []
+    resultat = SimulationDepartOut(motif=demande.motif, anciennete_mois=anciennete, total=0.0)
+
+    if demande.motif in ("licenciement", "retraite"):
+        rupture = calculer_indemnite_rupture(
+            salaires, anciennete,
+            faute_lourde=demande.faute_lourde,
+            depart_retraite=demande.motif == "retraite",
+        )
+        resultat.rupture = IndemniteRuptureOut(**rupture.__dict__)
+    elif demande.motif == "deces":
+        if not smhc:
+            alertes.append("Frais funéraires non calculés : renseignez le salaire minimum de la catégorie.")
+        deces = calculer_indemnite_deces(
+            salaires, anciennete, smhc,
+            conditions_retraite_remplies=demande.conditions_retraite_remplies,
+        )
+        resultat.deces = IndemniteDecesOut(**deces.__dict__, total_ayants_droit=deces.total)
+    elif demande.motif == "fin_cdd":
+        total_cdd = demande.total_brut_cdd
+        if total_cdd is None:
+            total_cdd = salaire * max(anciennete, 1)
+        fin_cdd = calculer_indemnite_fin_cdd(total_cdd, demande.sous_motif_fin_cdd)
+        resultat.fin_cdd = IndemniteFinCddOut(**fin_cdd.__dict__)
+
+    if demande.gratification_active:
+        if smhc:
+            from app.services.conges_gratification import jours_service_annuels
+            jours = float(jours_service_annuels(
+                demande.date_entree, demande.date_sortie, demande.date_sortie.year,
+            ))
+            gratification = calculer_gratification(
+                smhc, jours, taux_entreprise=demande.gratification_taux_entreprise,
+            )
+            resultat.gratification = GratificationOut(**gratification.__dict__)
+        else:
+            alertes.append("Gratification non calculée : renseignez le salaire minimum de la catégorie.")
+
+    mois_conges = demande.conges_mois_service
+    if mois_conges is None:
+        mois_conges = float(min(anciennete, MOIS_PAR_AN))
+    if mois_conges > 0:
+        conges = calculer_conges_payes(
+            [salaire] * max(1, int(mois_conges)),
+            mois_conges,
+            jours_pris=demande.conges_jours_pris,
+            anciennete_annees=anciennete / MOIS_PAR_AN,
+        )
+        resultat.conges = CongesOut(**conges.__dict__)
+
+    resultat.indemnite_preavis = demande.indemnite_preavis
+    resultat.indemnite_autre = demande.indemnite_autre
+    total = demande.indemnite_preavis + demande.indemnite_autre
+    if resultat.rupture:
+        total += resultat.rupture.montant
+    if resultat.deces:
+        total += resultat.deces.total
+    if resultat.fin_cdd:
+        total += resultat.fin_cdd.indemnite_due
+    if resultat.gratification:
+        total += resultat.gratification.gratification_retenue
+    if resultat.conges:
+        total += resultat.conges.montant_retenu
+    resultat.total = round(total, 2)
+    resultat.alertes = alertes
+    return resultat
 
 
 # ─────────────────────────────────────────────

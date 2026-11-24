@@ -11,6 +11,7 @@ const etabId = route.params.etabId
 const ids = route.query.ids ? String(route.query.ids).split(',') : []
 
 const etablissement = ref(null)
+const logo = ref(null)
 const bulletinsData = ref([])
 const loading = ref(true)
 
@@ -40,6 +41,11 @@ const loadAllData = async () => {
   }
   try {
     etablissement.value = await get(`/etablissements/${etabId}`)
+    // Logo de l'entreprise : demandé seulement s'il existe (un 404 afficherait une erreur).
+    const dossier = await get(`/dossiers/${dossierId}`)
+    if (dossier?.a_logo) {
+      logo.value = (await get(`/dossiers/${dossierId}/logo`))?.data_url || null
+    }
     const promises = ids.map(async (bId) => {
       try {
         const b = await get(`/bulletins/${bId}`)
@@ -220,6 +226,7 @@ onMounted(() => {
         :salarie="item.salarie"
         :etablissement="etablissement"
         :affichage="affichage"
+        :logo="logo"
         class="print-payslip-page"
       />
     </div>

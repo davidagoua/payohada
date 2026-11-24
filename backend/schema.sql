@@ -1529,7 +1529,17 @@ ON CONFLICT (code) DO NOTHING;
 COMMENT ON TABLE modes_paiement
     IS 'Modes de versement des salaires, gérés par l''administrateur plateforme';
 
--- 16. Contrôles post-migration (à exécuter manuellement) :
+-- 16. Logo de l'entreprise, stocké en base (le disque des conteneurs est
+--     effacé à chaque déploiement). PNG, JPEG ou WebP, 1 Mo au plus.
+
+ALTER TABLE dossiers
+    ADD COLUMN IF NOT EXISTS logo BYTEA,
+    ADD COLUMN IF NOT EXISTS logo_type VARCHAR(50);
+
+COMMENT ON COLUMN dossiers.logo
+    IS 'Logo de l''entreprise (PNG, JPEG ou WebP) ; format dans logo_type';
+
+-- 17. Contrôles post-migration (à exécuter manuellement) :
 --    -- Aucun compte sans mot de passe (sinon connexion impossible) :
 --    SELECT id, email, role FROM utilisateurs WHERE hashed_password IS NULL;
 --    -- La colonne et ses valeurs par défaut :

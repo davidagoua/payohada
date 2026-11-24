@@ -455,6 +455,28 @@ const handleLogout = async () => {
                 Bulletins de Salaire
               </NuxtLink>
               <NuxtLink
+                :to="`/dossiers/${routeInfo.dossierId}/etablissements/${routeInfo.etabId}?tab=outils`"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 rounded-t-lg border-b-2 text-xs font-bold uppercase tracking-wider transition-all"
+                :class="[
+                  route.query.tab === 'outils'
+                    ? 'border-b-green-600 text-navy-900 bg-white font-bold'
+                    : 'border-transparent text-slate-300 hover:text-white hover:bg-white/5'
+                ]"
+              >
+                Boîte à outils
+              </NuxtLink>
+              <NuxtLink
+                :to="`/dossiers/${routeInfo.dossierId}/etablissements/${routeInfo.etabId}?tab=dsn`"
+                class="px-4 py-3.5 whitespace-nowrap shrink-0 rounded-t-lg border-b-2 text-xs font-bold uppercase tracking-wider transition-all"
+                :class="[
+                  route.query.tab === 'dsn'
+                    ? 'border-b-green-600 text-navy-900 bg-white font-bold'
+                    : 'border-transparent text-slate-300 hover:text-white hover:bg-white/5'
+                ]"
+              >
+                DSN
+              </NuxtLink>
+              <NuxtLink
                 :to="`/dossiers/${routeInfo.dossierId}/etablissements/${routeInfo.etabId}?tab=infos`"
                 class="px-4 py-3.5 whitespace-nowrap shrink-0 rounded-t-lg border-b-2 text-xs font-bold uppercase tracking-wider transition-all"
                 :class="[

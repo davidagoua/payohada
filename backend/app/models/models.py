@@ -6,9 +6,9 @@ Architecture : Dossier > Etablissement > Salarié > Contrat > (Bulletins, Absenc
 from sqlalchemy import (
     Column, Integer, String, Boolean, Float, DateTime,
     ForeignKey, Text, Enum, UniqueConstraint, Index, Numeric,
-    Date, Table
+    Date, Table, LargeBinary
 )
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import deferred, relationship
 from sqlalchemy.sql import func
 from app.database import Base
 import calendar
@@ -208,11 +208,20 @@ class Dossier(TimestampMixin, Base):
     qualite = Column(Integer)         # Code qualité du contact
     annee = Column(String(4))         # Année courante de gestion
     pays = Column(String(100), default="Côte d'Ivoire")
+    #: Logo de l'entreprise, stocké en base : le disque des conteneurs est
+    #: effacé à chaque déploiement. Chargé à la demande (`deferred`) pour ne
+    #: pas alourdir les listes de dossiers.
+    logo = deferred(Column(LargeBinary, nullable=True))
+    logo_type = Column(String(50), nullable=True)
 
     # Clé étrangère vers le propriétaire/gestionnaire
     utilisateur_id = Column(Integer, ForeignKey("utilisateurs.id"), nullable=False)
 
     # Relations
+    @property
+    def a_logo(self) -> bool:
+        return bool(self.logo_type)
+
     proprietaire = relationship("Utilisateur", back_populates="dossiers", foreign_keys=[utilisateur_id])
     etablissements = relationship("Etablissement", back_populates="dossier", cascade="all, delete-orphan")
     net_entreprise = relationship("NetEntreprise", back_populates="dossier", uselist=False)
@@ -640,6 +649,16 @@ class Contrat(TimestampMixin, Base):
     # Relations
     dossier = relationship("Dossier")
     poste_salaire = relationship("PosteSalaire")
+
+    @property
+    def smhc_reference(self) -> float | None:
+        """Salaire minimum de la catégorie retenu : celui du contrat, sinon la grille du poste."""
+        if self.smhc_mensuel and self.smhc_mensuel > 0:
+            return float(self.smhc_mensuel)
+        poste = self.poste_salaire
+        if poste is not None and poste.salaire_mensuel_fcfa:
+            return float(poste.salaire_mensuel_fcfa)
+        return None
     salarie = relationship("Salarie", back_populates="contrats")
     etablissement = relationship("Etablissement")
     jours_hebdomadaires = relationship("JoursHebdomadaires", back_populates="contrat", uselist=False, cascade="all, delete-orphan")

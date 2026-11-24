@@ -289,3 +289,54 @@ class SoldeToutCompteCompletOut(BaseModel):
     total: float
     details: dict = {}
     alertes: List[str] = []
+
+
+# ─────────────────────────────────────────────
+#  SIMULATION DE DÉPART (BOÎTE À OUTILS)
+# ─────────────────────────────────────────────
+
+MOTIFS_SIMULATION_DEPART = ("licenciement", "retraite", "deces", "fin_cdd", "demission", "rupture")
+
+
+class SimulationDepartRequest(BaseModel):
+    """Simulation libre d'un départ, sans contrat ni enregistrement.
+
+    Les montants sont estimés à partir d'un salaire mensuel moyen saisi
+    (ou des douze derniers salaires) et des dates d'entrée et de sortie.
+    """
+    motif: str = Field(pattern="^(licenciement|retraite|deces|fin_cdd|demission|rupture)$")
+    date_entree: date
+    date_sortie: date
+    #: Remplace l'ancienneté déduite des dates.
+    anciennete_mois: Optional[int] = Field(default=None, ge=0)
+    salaire_mensuel_moyen: float = Field(ge=0)
+    #: Douze derniers salaires bruts ; à défaut, le salaire moyen est répété.
+    salaires_12_mois: Optional[List[Optional[float]]] = Field(default=None, max_length=12)
+    #: Salaire minimum de la catégorie : frais funéraires et gratification.
+    smhc_mensuel: Optional[float] = Field(default=None, ge=0)
+    faute_lourde: bool = False
+    conditions_retraite_remplies: bool = False
+    sous_motif_fin_cdd: str = "terme_normal_sans_cdi"
+    #: Total brut du CDD ; à défaut, salaire moyen × durée du contrat.
+    total_brut_cdd: Optional[float] = Field(default=None, ge=0)
+    gratification_active: bool = True
+    gratification_taux_entreprise: float = Field(default=0.0, ge=0, le=5)
+    #: Mois de service depuis les derniers congés ; à défaut, ancienneté bornée à 12.
+    conges_mois_service: Optional[float] = Field(default=None, ge=0)
+    conges_jours_pris: float = Field(default=0.0, ge=0)
+    indemnite_preavis: float = Field(default=0.0, ge=0)
+    indemnite_autre: float = Field(default=0.0, ge=0)
+
+
+class SimulationDepartOut(BaseModel):
+    motif: str
+    anciennete_mois: int
+    rupture: Optional[IndemniteRuptureOut] = None
+    deces: Optional[IndemniteDecesOut] = None
+    fin_cdd: Optional[IndemniteFinCddOut] = None
+    gratification: Optional[GratificationOut] = None
+    conges: Optional[CongesOut] = None
+    indemnite_preavis: float = 0.0
+    indemnite_autre: float = 0.0
+    total: float
+    alertes: List[str] = []

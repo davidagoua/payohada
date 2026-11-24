@@ -516,5 +516,15 @@ onMounted(fetchEtabDetails)
         :salaries="salaries"
       />
     </div>
+
+    <!-- Tab 5: Boîte à outils (simulateurs, sans enregistrement) -->
+    <div v-if="activeTab === 'outils'" class="space-y-6">
+      <EtablissementBoiteOutils :contracts="contracts" :salaries="salaries" />
+    </div>
+
+    <!-- Tab 6: DSN (déclarations) -->
+    <div v-if="activeTab === 'dsn'" class="space-y-6">
+      <EtablissementDsn />
+    </div>
   </div>
 </template>

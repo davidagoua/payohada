@@ -72,6 +72,8 @@ class DossierOut(DossierBase):
     created_at: datetime
     updated_at: datetime
     net_entreprise: Optional[NetEntrepriseOut] = None
+    #: Un logo a été déposé (il se lit sur `GET /dossiers/{id}/logo`).
+    a_logo: bool = False
 
     class Config:
         from_attributes = True

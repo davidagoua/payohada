@@ -24,7 +24,9 @@ const props = defineProps({
   etablissement: { type: Object, default: null },
   dossier: { type: Object, default: null },
   //: Informations de l'employeur et signatures à afficher (écran d'impression).
-  affichage: { type: Object, default: null }
+  affichage: { type: Object, default: null },
+  //: Logo de l'entreprise en data URL (`GET /dossiers/{id}/logo`).
+  logo: { type: String, default: null }
 })
 
 const options = computed(() => props.affichage || affichageParDefaut())
@@ -179,6 +181,7 @@ const categorieEchelon = computed(() => {
     <!-- ═══════════ EN-TÊTE ═══════════ -->
     <header class="entete">
       <div class="entete-employeur">
+        <img v-if="montrer('logo') && logo" :src="logo" alt="Logo de l'entreprise" class="logo-employeur">
         <div v-if="montrer('raison_sociale')" class="raison-sociale">
           {{ etablissement?.raison_sociale || dossier?.nom_dossier || '—' }}
         </div>
@@ -442,6 +445,7 @@ const categorieEchelon = computed(() => {
 }
 .entete-employeur { flex: 1 1 58%; }
 .entete-titre { flex: 1 1 42%; text-align: right; }
+.logo-employeur { display: block; max-height: 14mm; max-width: 45mm; object-fit: contain; margin-bottom: 1.5mm; }
 .raison-sociale { font-weight: bold; font-size: 11px; text-transform: uppercase; }
 .entete-titre h1 {
   font-size: 12px;
