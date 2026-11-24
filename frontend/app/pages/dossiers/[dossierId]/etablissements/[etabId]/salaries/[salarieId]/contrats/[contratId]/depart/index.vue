@@ -1,18 +1,25 @@
 <script setup>
 /**
- * Déclaration de départ et calcul du solde de tout compte.
+ * Départ d'un salarié, en deux étapes :
+ *  1. la déclaration du départ (motif codifié, dates, préavis…), enregistrée
+ *     par `POST`/`PUT /contrats/{id}/depart` ;
+ *  2. le solde de tout compte, calculé une fois le départ déclaré.
+ *
+ * Les simulations libres se font dans la boîte à outils de l'établissement.
  *
  * L'aperçu est calculé par les simulateurs (`/calculs/...`, sans écriture) :
  * barème 30/35/40 % du décret n° 2017-210, frais funéraires, indemnité de
  * fin de CDD, gratification annuelle et congés payés. L'enregistrement passe
  * par `/solde-tout-compte/complet`, qui fige le détail du calcul.
  */
+import { MOTIFS_SORTIE, TYPES_PREAVIS, libelleMotifSortie, motifCalcul } from '~/utils/departSalarie'
+
 definePageMeta({ layout: 'default' })
 
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
-const { get, post, delete: apiDelete } = useApi()
+const { get, post, put, delete: apiDelete } = useApi()
 
 const dossierId = route.params.dossierId
 const etabId = route.params.etabId
@@ -69,6 +76,98 @@ const form = ref({
   conges_montant_manuel: null,
   indemnite_preavis: 0,
   indemnite_autre: 0
+})
+
+// ── Étape 1 : déclaration du départ ──────────────────────────────────
+const declarationVide = () => ({
+  date_sortie: '',
+  motif_sortie: null,
+  date_notification_rupture: '',
+  date_notification_signature: '',
+  date_engagement_procedure: '',
+  preavis: [1, 2, 3].map(() => ({ type: null, du: '', au: '' })),
+  maintien_affiliation: false,
+  transaction_en_cours: false,
+  dernier_jour_travaille: ''
+})
+const declaration = ref(declarationVide())
+const enregistrementDepart = ref(false)
+
+const optionsMotifs = MOTIFS_SORTIE.map(m => ({ label: libelleMotifSortie(m), value: m.code }))
+const optionsPreavis = [
+  { label: '-', value: null },
+  ...TYPES_PREAVIS.map(t => ({ label: t.libelle, value: t.code }))
+]
+
+const remplirDeclaration = (depart) => {
+  const v = declarationVide()
+  if (!depart) {
+    declaration.value = v
+    return
+  }
+  const date = (x) => (x || '').slice(0, 10)
+  declaration.value = {
+    date_sortie: date(depart.date_sortie),
+    motif_sortie: depart.motif_sortie ?? null,
+    date_notification_rupture: date(depart.date_notification_rupture),
+    date_notification_signature: date(depart.date_notification_signature),
+    date_engagement_procedure: date(depart.date_engagement_procedure),
+    preavis: ['01', '02', '03'].map(n => ({
+      type: depart[`type_paiement_preavis${n}`] ?? null,
+      du: date(depart[`preavis_de${n}`]),
+      au: date(depart[`preavis_au${n}`])
+    })),
+    maintien_affiliation: !!depart.maintien_affiliation,
+    transaction_en_cours: !!depart.transaction_en_cours,
+    dernier_jour_travaille: date(depart.dernier_jour_travaille)
+  }
+}
+
+const enregistrerDepart = async () => {
+  const d = declaration.value
+  if (!d.date_sortie || !d.motif_sortie) {
+    toast.add({ title: 'Champs requis', description: 'La date et le motif de sortie sont obligatoires.', color: 'warning' })
+    return
+  }
+  const vide = (x) => x || null
+  const payload = {
+    date_sortie: d.date_sortie,
+    motif_sortie: d.motif_sortie,
+    date_notification_rupture: vide(d.date_notification_rupture),
+    date_notification_signature: vide(d.date_notification_signature),
+    date_engagement_procedure: vide(d.date_engagement_procedure),
+    maintien_affiliation: d.maintien_affiliation,
+    transaction_en_cours: d.transaction_en_cours,
+    dernier_jour_travaille: vide(d.dernier_jour_travaille)
+  }
+  d.preavis.forEach((p, i) => {
+    const n = `0${i + 1}`
+    payload[`type_paiement_preavis${n}`] = p.type
+    payload[`preavis_de${n}`] = vide(p.du)
+    payload[`preavis_au${n}`] = vide(p.au)
+  })
+  enregistrementDepart.value = true
+  try {
+    if (departExistant.value) {
+      await put(`${urlBase.value}/depart`, payload)
+    } else {
+      await post(`${urlBase.value}/depart`, payload)
+    }
+    toast.add({ title: 'Départ enregistré', description: 'Vous pouvez établir le solde de tout compte.', color: 'success' })
+    await charger()
+    await simuler()
+  } catch (e) {
+    console.error('Enregistrement du départ impossible :', e)
+  } finally {
+    enregistrementDepart.value = false
+  }
+}
+
+// Le motif de sortie choisi pilote le motif des calculs du solde, s'il le précise.
+watch(() => declaration.value.motif_sortie, (code) => {
+  const calcul = motifCalcul(code)
+  if (calcul) form.value.motif_fin_contrat = calcul
+  if (code === 25) form.value.faute_lourde = true
 })
 
 const apercuRupture = ref(null)
@@ -132,8 +231,15 @@ const charger = async () => {
     form.value.smhc_mensuel = contrat.value?.smhc_mensuel || contrat.value?.poste_salaire?.salaire_mensuel_fcfa || null
 
     departExistant.value = await get(`${urlBase.value}/depart`)
+    remplirDeclaration(departExistant.value)
+    if (!departExistant.value) {
+      // Fin de CDD : la date de fin prévue propose la date de sortie.
+      const finPrevue = (contrat.value?.date_fin_previsionnelle_contrat || '').slice(0, 10)
+      declaration.value.date_sortie = finPrevue
+      declaration.value.dernier_jour_travaille = finPrevue
+    }
     if (departExistant.value) {
-      form.value.date_sortie = departExistant.value.date_sortie || ''
+      form.value.date_sortie = (departExistant.value.date_sortie || '').slice(0, 10)
       if (departExistant.value.motif_fin_contrat) {
         form.value.motif_fin_contrat = departExistant.value.motif_fin_contrat
       }
@@ -318,10 +424,9 @@ onMounted(async () => {
           <Icon name="i-lucide-arrow-left" class="w-3.5 h-3.5" />
           Retour au contrat
         </button>
-        <h1 class="text-lg font-bold text-navy-900">Départ et solde de tout compte</h1>
-        <p v-if="salarie" class="text-xs text-slate-500 mt-0.5">
-          {{ salarie.prenom }} {{ salarie.nom }} · matricule {{ salarie.matricule }}
-        </p>
+        <h1 class="text-lg font-bold text-navy-900">
+          Départ salarié<template v-if="salarie"> — {{ salarie.matricule }} — {{ salarie.nom?.toUpperCase() }} {{ salarie.prenom }}</template>
+        </h1>
       </div>
       <div class="flex flex-wrap items-center gap-2">
         <button class="px-3 py-2 border border-slate-300 text-slate-700 text-xs font-bold rounded-lg inline-flex items-center gap-1.5 hover:bg-slate-50" @click="imprimer('stc')">
@@ -339,20 +444,80 @@ onMounted(async () => {
       </div>
     </div>
 
-    <div v-if="departExistant" class="p-3.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-start gap-2">
-      <Icon name="i-lucide-info" class="w-4 h-4 shrink-0 mt-0.5" />
-      <span>
-        Un départ est déjà enregistré pour ce contrat le
-        <strong>{{ departExistant.date_sortie }}</strong>. Un nouvel enregistrement remplacera le solde de tout compte.
-      </span>
+    <!-- ═══ Étape 1 : déclaration du départ ═══ -->
+    <form class="bg-white border border-slate-200 rounded-xl p-5 sm:p-6" @submit.prevent="enregistrerDepart">
+      <div class="flex items-center justify-between gap-3 border-b border-slate-200 pb-3 mb-5">
+        <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider">1. Déclaration du départ</h2>
+        <span v-if="departExistant" class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-green-50 text-green-700 border border-green-200 rounded">Enregistré</span>
+      </div>
+
+      <div class="space-y-3 depart-lignes">
+        <div class="depart-ligne">
+          <label for="dep-date-sortie">Date de sortie *</label>
+          <InputText id="dep-date-sortie" v-model="declaration.date_sortie" type="date" required class="w-full text-sm" />
+        </div>
+        <div class="depart-ligne">
+          <label for="dep-motif">Motif de sortie *</label>
+          <Select v-model="declaration.motif_sortie" input-id="dep-motif" :options="optionsMotifs" option-label="label" option-value="value" placeholder="Choisir un motif" filter class="w-full text-sm" />
+        </div>
+        <div class="depart-ligne">
+          <label for="dep-notif-rupture">Date de notification de la rupture de contrat</label>
+          <InputText id="dep-notif-rupture" v-model="declaration.date_notification_rupture" type="date" class="w-full text-sm" />
+        </div>
+        <div class="depart-ligne">
+          <label for="dep-notif-convention">Date de notification de signature de la convention de rupture</label>
+          <InputText id="dep-notif-convention" v-model="declaration.date_notification_signature" type="date" class="w-full text-sm" />
+        </div>
+        <div class="depart-ligne">
+          <label for="dep-engagement">Date d'engagement de la procédure de licenciement</label>
+          <InputText id="dep-engagement" v-model="declaration.date_engagement_procedure" type="date" class="w-full text-sm" />
+        </div>
+        <div v-for="(preavis, i) in declaration.preavis" :key="i" class="depart-ligne">
+          <label :for="`dep-preavis-${i}`">Préavis {{ i + 1 }}</label>
+          <div class="grid grid-cols-1 sm:grid-cols-[minmax(0,2fr)_auto_minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2 sm:gap-3">
+            <Select v-model="preavis.type" :input-id="`dep-preavis-${i}`" :options="optionsPreavis" option-label="label" option-value="value" placeholder="-" class="w-full text-sm" />
+            <label :for="`dep-preavis-du-${i}`" class="sm:text-right">Du</label>
+            <InputText :id="`dep-preavis-du-${i}`" v-model="preavis.du" type="date" :disabled="!preavis.type" class="w-full text-sm" />
+            <label :for="`dep-preavis-au-${i}`" class="sm:text-right">Au</label>
+            <InputText :id="`dep-preavis-au-${i}`" v-model="preavis.au" type="date" :disabled="!preavis.type" class="w-full text-sm" />
+          </div>
+        </div>
+        <div class="depart-ligne">
+          <label for="dep-affiliation">Maintien de l'affiliation du salarié au contrat collectif</label>
+          <Checkbox v-model="declaration.maintien_affiliation" input-id="dep-affiliation" binary />
+        </div>
+        <div class="depart-ligne">
+          <label for="dep-transaction">Transaction en cours</label>
+          <Checkbox v-model="declaration.transaction_en_cours" input-id="dep-transaction" binary />
+        </div>
+        <div class="depart-ligne">
+          <label for="dep-dernier-jour">Dernier jour travaillé et payé au salaire habituel</label>
+          <InputText id="dep-dernier-jour" v-model="declaration.dernier_jour_travaille" type="date" class="w-full text-sm" />
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-2 border-t border-slate-200 pt-4 mt-5">
+        <button type="submit" :disabled="enregistrementDepart" class="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white text-sm font-bold rounded-lg inline-flex items-center gap-2">
+          <Icon :name="enregistrementDepart ? 'i-lucide-loader-2' : 'i-lucide-save'" class="w-4 h-4" :class="{ 'animate-spin': enregistrementDepart }" />
+          {{ departExistant ? 'Mettre à jour le départ' : 'Enregistrer le départ' }}
+        </button>
+      </div>
+    </form>
+
+    <!-- ═══ Étape 2 : solde de tout compte ═══ -->
+    <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider pt-2">2. Solde de tout compte</h2>
+    <div v-if="!departExistant" class="p-4 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-600 flex items-start gap-2">
+      <Icon name="i-lucide-lock" class="w-4 h-4 shrink-0 mt-0.5 text-slate-400" />
+      <span>Enregistrez d'abord le départ : le solde de tout compte se calcule à partir de sa date et de son motif.</span>
     </div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div v-else class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Colonne saisie -->
       <div class="lg:col-span-2 space-y-5">
         <!-- Motif -->
         <section class="bg-white border border-slate-200 rounded-xl p-5">
-          <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider mb-4">Motif de fin de contrat</h2>
+          <h2 class="text-sm font-bold text-navy-900 uppercase tracking-wider mb-1">Motif retenu pour le calcul</h2>
+          <p class="text-[11px] text-slate-500 mb-4">Déduit du motif de sortie ; à préciser pour une fin de période d'essai ou un autre motif.</p>
           <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
             <button
               v-for="motif in MOTIFS"
@@ -388,10 +553,6 @@ onMounted(async () => {
           </div>
 
           <div class="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">Date de sortie *</label>
-              <InputText v-model="form.date_sortie" type="date" class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm" />
-            </div>
             <div>
               <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-600 mb-1">
                 Ancienneté (mois)
@@ -659,3 +820,28 @@ onMounted(async () => {
     </div>
   </div>
 </template>
+
+<style scoped>
+/* Formulaire de départ : libellé à gauche, champ à droite (pleine largeur sur mobile). */
+.depart-ligne {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.25rem;
+  align-items: center;
+}
+@media (min-width: 640px) {
+  .depart-ligne {
+    grid-template-columns: 17rem minmax(0, 1fr);
+    gap: 1.5rem;
+  }
+  .depart-ligne > label {
+    text-align: right;
+  }
+}
+.depart-ligne > label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #334155;
+  margin: 0;
+}
+</style>

@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import Optional
 from datetime import datetime
 
@@ -67,7 +67,12 @@ class DepartSalarieBase(BaseModel):
     bulletin_post_contrat: Optional[bool] = False
     bulletin_post_contrat_du: Optional[str] = None
     bulletin_post_contrat_au: Optional[str] = None
+    #: Code du motif de sortie (`services/depart.MOTIFS_SORTIE`).
     motif_sortie: Optional[int] = None
+    #: Motif normalisé des calculs ; déduit du motif de sortie s'il est absent.
+    motif_fin_contrat: Optional[str] = None
+    sous_motif_fin_cdd: Optional[str] = None
+    conditions_retraite_remplies: Optional[bool] = False
     date_notification_rupture: Optional[str] = None
     date_notification_signature: Optional[str] = None
     date_engagement_procedure: Optional[str] = None
@@ -78,6 +83,28 @@ class DepartSalarieBase(BaseModel):
     type_paiement_preavis01: Optional[int] = None
     preavis_de01: Optional[str] = None
     preavis_au01: Optional[str] = None
+    type_paiement_preavis02: Optional[int] = None
+    preavis_de02: Optional[str] = None
+    preavis_au02: Optional[str] = None
+    type_paiement_preavis03: Optional[int] = None
+    preavis_de03: Optional[str] = None
+    preavis_au03: Optional[str] = None
+
+    @field_validator("motif_sortie")
+    @classmethod
+    def _motif_connu(cls, valeur):
+        from app.services.depart import MOTIFS_SORTIE
+        if valeur is not None and valeur not in MOTIFS_SORTIE:
+            raise ValueError("Motif de sortie inconnu.")
+        return valeur
+
+    @field_validator("type_paiement_preavis01", "type_paiement_preavis02", "type_paiement_preavis03")
+    @classmethod
+    def _preavis_connu(cls, valeur):
+        from app.services.depart import TYPES_PREAVIS
+        if valeur is not None and valeur not in TYPES_PREAVIS:
+            raise ValueError("Type de préavis inconnu.")
+        return valeur
 
 
 class DepartSalarieCreate(DepartSalarieBase):

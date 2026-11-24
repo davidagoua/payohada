@@ -87,7 +87,8 @@ class AutorisationsEcritureTests(unittest.TestCase):
     def test_declaration_de_depart_refusee_au_salarie(self):
         r = client.post(
             f"{API}/contrats/{self.contrat.id}/depart", headers=self.entetes_salarie,
-            json={"date_sortie": "2025-12-31", "motif_sortie": 10},
+            # Motif valide (démission) : seul le rôle doit provoquer le refus.
+            json={"date_sortie": "2025-12-31", "motif_sortie": 59},
         )
         self.assertEqual(r.status_code, 403)
 

@@ -21,6 +21,7 @@ from app.routers.etablissements import check_etablissement_ownership
 from app.routers.salaries import check_salarie_ownership
 
 from app.services.permissions import ROLE_SALARIE, peut_gerer_dossier, require_staff
+from app.services.depart import motif_calcul
 
 router = APIRouter(tags=["Contrats"])
 
@@ -225,7 +226,9 @@ def create_depart_salarie(
         contrat.date_fin_previsionnelle_contrat = depart_in.date_sortie
 
     # 2. Créer l'enregistrement DepartSalarie
-    depart = DepartSalarie(**depart_in.model_dump(), contrat_id=contrat_id)
+    donnees = depart_in.model_dump()
+    donnees["motif_fin_contrat"] = donnees.get("motif_fin_contrat") or motif_calcul(depart_in.motif_sortie)
+    depart = DepartSalarie(**donnees, contrat_id=contrat_id)
     db.add(depart)
     db.commit()
     db.refresh(depart)
@@ -260,6 +263,40 @@ def create_depart_salarie(
         db.add(stc)
         db.commit()
 
+    return depart
+
+
+@router.put("/contrats/{contrat_id}/depart", response_model=DepartSalarieOut)
+def update_depart_salarie(
+    contrat_id: int,
+    depart_in: DepartSalarieCreate,
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user)
+):
+    """Modifie la déclaration de départ (dates, motif, préavis…).
+
+    Le solde de tout compte déjà calculé n'est pas recalculé : il se met à jour
+    depuis l'étape « Solde de tout compte ».
+    """
+    require_staff(current_user)
+    contrat = check_contrat_ownership(contrat_id, current_user.id, db)
+    depart = db.query(DepartSalarie).filter(DepartSalarie.contrat_id == contrat_id).first()
+    if not depart:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Aucun départ n'est déclaré pour ce contrat."
+        )
+
+    modifications = depart_in.model_dump(exclude_unset=True)
+    if "motif_sortie" in modifications and not modifications.get("motif_fin_contrat"):
+        modifications["motif_fin_contrat"] = motif_calcul(depart_in.motif_sortie) or depart.motif_fin_contrat
+    for champ, valeur in modifications.items():
+        setattr(depart, champ, valeur)
+    if depart_in.date_sortie:
+        contrat.date_fin_previsionnelle_contrat = depart_in.date_sortie
+
+    db.commit()
+    db.refresh(depart)
     return depart
 
 
