@@ -1553,7 +1553,54 @@ BEGIN
     END IF;
 END $$;
 
--- 18. Contrôles post-migration (à exécuter manuellement) :
+-- 18. Déclarations CNPS mensuelles (cotisation nominative e-CNPS).
+--     L'en-tête réutilise la table `dsns` ; les lignes sont figées à la
+--     génération pour qu'une déclaration déposée ne bouge plus.
+ALTER TABLE dsns
+    ADD COLUMN IF NOT EXISTS type_declaration VARCHAR(30) NOT NULL DEFAULT 'cnps_mensuelle',
+    ADD COLUMN IF NOT EXISTS effectif INTEGER DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS masse_salariale DOUBLE PRECISION DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS total_cotisations DOUBLE PRECISION DEFAULT 0,
+    ADD COLUMN IF NOT EXISTS totaux TEXT;
+
+-- Une déclaration par établissement, par nature et par période.
+ALTER TABLE dsns DROP CONSTRAINT IF EXISTS uq_dsn_etablissement_periode;
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'uq_dsn_etablissement_type_periode') THEN
+        ALTER TABLE dsns
+            ADD CONSTRAINT uq_dsn_etablissement_type_periode
+            UNIQUE (etablissement_id, type_declaration, mois, annee);
+    END IF;
+END $$;
+
+CREATE TABLE IF NOT EXISTS lignes_declarations_cnps (
+    id SERIAL PRIMARY KEY,
+    declaration_id INTEGER NOT NULL REFERENCES dsns(id) ON DELETE CASCADE,
+    salarie_id INTEGER REFERENCES salaries(id) ON DELETE SET NULL,
+    contrat_id INTEGER REFERENCES contrats(id) ON DELETE SET NULL,
+    bulletin_id INTEGER REFERENCES bulletins_paies(id) ON DELETE SET NULL,
+    ordre INTEGER DEFAULT 0,
+    numero_cnps VARCHAR(15),
+    nom VARCHAR(100),
+    prenoms VARCHAR(100),
+    date_naissance DATE,
+    date_embauche DATE,
+    date_depart DATE,
+    type_salarie VARCHAR(1),
+    duree_travaillee DOUBLE PRECISION DEFAULT 0,
+    salaire_brut DOUBLE PRECISION DEFAULT 0,
+    branches VARCHAR(3),
+    base_retraite DOUBLE PRECISION DEFAULT 0,
+    base_pf_at_am DOUBLE PRECISION DEFAULT 0,
+    cotisation_retraite DOUBLE PRECISION DEFAULT 0,
+    cotisation_pf DOUBLE PRECISION DEFAULT 0,
+    cotisation_at DOUBLE PRECISION DEFAULT 0,
+    cotisation_am DOUBLE PRECISION DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS ix_lignes_declarations_cnps_declaration ON lignes_declarations_cnps (declaration_id);
+
+-- 19. Contrôles post-migration (à exécuter manuellement) :
 --    -- Aucun compte sans mot de passe (sinon connexion impossible) :
 --    SELECT id, email, role FROM utilisateurs WHERE hashed_password IS NULL;
 --    -- La colonne et ses valeurs par défaut :

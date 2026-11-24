@@ -524,7 +524,7 @@ onMounted(fetchEtabDetails)
 
     <!-- Tab 6: DSN (déclarations) -->
     <div v-if="activeTab === 'dsn'" class="space-y-6">
-      <EtablissementDsn />
+      <EtablissementDsn :etab-id="etabId" />
     </div>
   </div>
 </template>

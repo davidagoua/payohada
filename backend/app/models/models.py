@@ -935,17 +935,68 @@ class DSN(TimestampMixin, Base):
     etablissement_id = Column(Integer, ForeignKey("etablissements.id"), nullable=False)
     mois = Column(Integer, nullable=False)
     annee = Column(Integer, nullable=False)
-    statut = Column(String(30), default="en_attente")  # en_attente | envoye | accepte | rejete
+    #: Déclaration CNPS : generee (modifiable) | deposee (figée).
+    statut = Column(String(30), default="en_attente")
     contenu_txt = Column(Text)
+    #: Date de dépôt sur e-CNPS et référence du reçu (n° de dossier).
     date_envoi = Column(DateTime(timezone=True))
     reference_envoi = Column(String(100))
+    #: Nature de la déclaration : `cnps_mensuelle` (cotisation nominative).
+    type_declaration = Column(String(30), nullable=False, default="cnps_mensuelle", server_default="cnps_mensuelle")
+    effectif = Column(Integer, default=0)
+    masse_salariale = Column(Float, default=0.0)
+    total_cotisations = Column(Float, default=0.0)
+    #: Totaux par branche figés à la génération (JSON).
+    totaux = Column(Text)
 
     dossier = relationship("Dossier")
     etablissement = relationship("Etablissement")
+    lignes = relationship(
+        "LigneDeclarationCnps", back_populates="declaration",
+        cascade="all, delete-orphan", order_by="LigneDeclarationCnps.ordre",
+    )
 
     __table_args__ = (
-        UniqueConstraint("etablissement_id", "mois", "annee", name="uq_dsn_etablissement_periode"),
+        UniqueConstraint(
+            "etablissement_id", "type_declaration", "mois", "annee",
+            name="uq_dsn_etablissement_type_periode",
+        ),
     )
+
+
+class LigneDeclarationCnps(Base):
+    """Ligne d'une déclaration CNPS, figée à la génération.
+
+    Elle reprend les colonnes du fichier de cotisation nominative e-CNPS et
+    les bases et cotisations du bulletin : une correction ultérieure du
+    bulletin ne modifie pas une déclaration déjà déposée.
+    """
+    __tablename__ = "lignes_declarations_cnps"
+
+    id = Column(Integer, primary_key=True, index=True)
+    declaration_id = Column(Integer, ForeignKey("dsns.id", ondelete="CASCADE"), nullable=False, index=True)
+    salarie_id = Column(Integer, ForeignKey("salaries.id", ondelete="SET NULL"), nullable=True)
+    contrat_id = Column(Integer, ForeignKey("contrats.id", ondelete="SET NULL"), nullable=True)
+    bulletin_id = Column(Integer, ForeignKey("bulletins_paies.id", ondelete="SET NULL"), nullable=True)
+    ordre = Column(Integer, default=0)
+    numero_cnps = Column(String(15))
+    nom = Column(String(100))
+    prenoms = Column(String(100))
+    date_naissance = Column(Date)
+    date_embauche = Column(Date)
+    date_depart = Column(Date)
+    type_salarie = Column(String(1))
+    duree_travaillee = Column(Float, default=0.0)
+    salaire_brut = Column(Float, default=0.0)
+    branches = Column(String(3))
+    base_retraite = Column(Float, default=0.0)
+    base_pf_at_am = Column(Float, default=0.0)
+    cotisation_retraite = Column(Float, default=0.0)
+    cotisation_pf = Column(Float, default=0.0)
+    cotisation_at = Column(Float, default=0.0)
+    cotisation_am = Column(Float, default=0.0)
+
+    declaration = relationship("DSN", back_populates="lignes")
 
 
 # ─────────────────────────────────────────

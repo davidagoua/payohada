@@ -11,7 +11,7 @@ from app.routers import (
     auth, dossiers, etablissements, salaries, contrats, variables, bulletins,
     constantes, plan_paie, reclamations, secteurs, salaries_hr, departements,
     import_export_excel, calculs_ci, editions, demandes, admin, imports, platform,
-    modes_paiement,
+    modes_paiement, declarations_cnps,
 )
 from app.database import Base, engine, SessionLocal
 from app.database_seeder import seed_database
@@ -120,6 +120,7 @@ api_router.include_router(admin.router)
 api_router.include_router(imports.router)
 api_router.include_router(platform.router)
 api_router.include_router(modes_paiement.router)
+api_router.include_router(declarations_cnps.router)
 
 app.include_router(api_router)
 
