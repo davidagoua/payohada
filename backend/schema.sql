@@ -1137,21 +1137,8 @@ WHERE NOT EXISTS (
     SELECT 1 FROM plan_paie WHERE code = 'HS_100' AND pays = 'CI'
 );
 
--- 4. Constantes CNPS : plafonds Prestations Familiales / Accident du Travail /
---    Maternité portés de 75 000 à 70 000 FCFA par mois.
---
---    ⚠️ CORRECTION SOUMISE À VALIDATION MÉTIER ⚠️
---    Cette mise à jour MODIFIE le montant des cotisations patronales calculées.
---    Le plafond usuel en Côte d'Ivoire est de 70 000 FCFA/mois, mais il doit
---    être confirmé contre les textes officiels (CGI / CNPS) en vigueur avant
---    d'être appliqué. Décommenter la requête ci-dessous après validation :
---
--- UPDATE constantes
---    SET montant = 70000.00,
---        date_modification = CURRENT_TIMESTAMP
---  WHERE code IN ('CNPS_PF_PLAFOND', 'CNPS_AT_PLAFOND', 'CNPS_MATERNITE_PLAFOND')
---    AND pays = 'CI'
---    AND montant = 75000.00;
+-- 4. Constantes CNPS : plafonds PF / AT / maternité — voir la section 17
+--    (75 000 FCFA par mois, confirmé par la DISA 2025 d'un client).
 
 -- 5. Nettoyage facultatif : la constante IBS_MONTANT n'est plus lue par le
 --    moteur de calcul (le barème ITS progressif la remplace). Elle est laissée
@@ -1539,7 +1526,34 @@ ALTER TABLE dossiers
 COMMENT ON COLUMN dossiers.logo
     IS 'Logo de l''entreprise (PNG, JPEG ou WebP) ; format dans logo_type';
 
--- 17. Contrôles post-migration (à exécuter manuellement) :
+-- 17. Déclarations CNPS — fondations.
+--     a) Plafonds mensuels PF, AT et assurance maternité : 75 000 FCFA (égal
+--        au SMIG depuis 2023), tel qu'appliqué par la CNPS dans la DISA 2025.
+--        Seules les valeurs encore à 70 000 sont corrigées : un montant saisi
+--        par l'administrateur plateforme est conservé.
+UPDATE constantes
+   SET montant = 75000.00,
+       date_modification = CURRENT_TIMESTAMP
+ WHERE code IN ('CNPS_PF_PLAFOND', 'CNPS_AT_PLAFOND', 'CNPS_MATERNITE_PLAFOND')
+   AND pays = 'CI'
+   AND montant = 70000.00;
+
+--     b) Contrat : type de salarié déclaré (M, J, H ; vide = déduit du type de
+--        salaire) et branches cotisées (1 retraite, 2 AT/MP, 3 PF et maternité).
+ALTER TABLE contrats
+    ADD COLUMN IF NOT EXISTS cnps_type_salarie VARCHAR(1),
+    ADD COLUMN IF NOT EXISTS cnps_branches VARCHAR(3) NOT NULL DEFAULT '123';
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'ck_contrats_cnps_type_salarie') THEN
+        ALTER TABLE contrats
+            ADD CONSTRAINT ck_contrats_cnps_type_salarie
+            CHECK (cnps_type_salarie IS NULL OR cnps_type_salarie IN ('M', 'J', 'H'));
+    END IF;
+END $$;
+
+-- 18. Contrôles post-migration (à exécuter manuellement) :
 --    -- Aucun compte sans mot de passe (sinon connexion impossible) :
 --    SELECT id, email, role FROM utilisateurs WHERE hashed_password IS NULL;
 --    -- La colonne et ses valeurs par défaut :

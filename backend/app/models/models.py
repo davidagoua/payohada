@@ -645,10 +645,23 @@ class Contrat(TimestampMixin, Base):
     #: gratification annuelle (art. 53) et aux frais funéraires. Laisser à 0
     #: pour utiliser la grille du poste de salaire rattaché.
     smhc_mensuel = Column(Float, default=0.0)
+    #: Type de salarié déclaré à la CNPS : M (mensuel), J (journalier) ou
+    #: H (horaire). Vide : déduit du type de salaire (`type_salarie_cnps`).
+    cnps_type_salarie = Column(String(1), nullable=True)
+    #: Branches cotisées : 1 retraite, 2 accidents du travail et maladies
+    #: professionnelles, 3 prestations familiales et assurance maternité.
+    cnps_branches = Column(String(3), default="123", nullable=False, server_default="123")
 
     # Relations
     dossier = relationship("Dossier")
     poste_salaire = relationship("PosteSalaire")
+
+    @property
+    def type_salarie_cnps(self) -> str:
+        """Type de salarié déclaré : choisi sur le contrat, sinon déduit du salaire."""
+        if self.cnps_type_salarie:
+            return self.cnps_type_salarie
+        return "M" if (self.type_salaire or "Mensuel") == "Mensuel" else "H"
 
     @property
     def smhc_reference(self) -> float | None:

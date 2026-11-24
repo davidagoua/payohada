@@ -25,6 +25,8 @@ const editTypeSalaire = ref('Mensuel')
 const editModeCalcul = ref('brut')
 const editStatut = ref('actif')
 const editUniteTemps = ref('Heures')
+const editTypeSalarieCnps = ref(null)
+const editBranchesCnps = ref('123')
 const editSursalaire = ref(0.0)
 const editIndemniteTransport = ref(0.0)
 const editDotationTelephonique = ref(0.0)
@@ -139,6 +141,8 @@ const fetchContratDetails = async () => {
     editPosteSalaireId.value = data.poste_salaire_id || null
     editStatut.value = data.statut || 'actif'
     editUniteTemps.value = data.unite_temps || 'Heures'
+    editTypeSalarieCnps.value = data.cnps_type_salarie || null
+    editBranchesCnps.value = data.cnps_branches || '123'
     editDateDebutContrat.value = data.date_debut_contrat || ''
     editDateAnciennete.value = data.date_anciennete || ''
     editSursalaire.value = data.sursalaire || 0.0
@@ -173,6 +177,8 @@ const handleUpdateContrat = async () => {
       mode_calcul: editModeCalcul.value,
       statut: editStatut.value,
       unite_temps: editUniteTemps.value,
+      cnps_type_salarie: editTypeSalarieCnps.value,
+      cnps_branches: editBranchesCnps.value,
       sursalaire: Number(editSursalaire.value) || 0.0,
       indemnite_transport: Number(editIndemniteTransport.value) || 0.0,
       dotation_telephonique: Number(editDotationTelephonique.value) || 0.0,
@@ -556,6 +562,7 @@ onMounted(() => {
               </div>
             </div>
 
+            <ContratCnps v-model:type-salarie="editTypeSalarieCnps" v-model:branches="editBranchesCnps" :type-salaire="editTypeSalaire" />
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-slate-100 pt-4">
               <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Unité de Temps</label>

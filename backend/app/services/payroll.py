@@ -728,17 +728,17 @@ def _calculate_cnps_cotisations(
         return const.montant if const else default
 
     # Plafonds
-    cnps_pf_plafond = get_val("CNPS_PF_PLAFOND", 70000.0)
+    cnps_pf_plafond = get_val("CNPS_PF_PLAFOND", 75000.0)
     cnps_pf_taux_p = get_val("CNPS_PF_TAUX_P", 5.0)
 
     cnps_retraite_plafond = get_val("CNPS_RETRAITE_PLAFOND", 3375000.0)
     cnps_retraite_taux_s = get_val("CNPS_RETRAITE_TAUX_S", 6.3)
     cnps_retraite_taux_p = get_val("CNPS_RETRAITE_TAUX_P", 7.7)
 
-    cnps_at_plafond = get_val("CNPS_AT_PLAFOND", 70000.0)
+    cnps_at_plafond = get_val("CNPS_AT_PLAFOND", 75000.0)
     taux_at_patronal = etab.taux_at if (etab and etab.taux_at and etab.taux_at > 0) else 2.0
 
-    cnps_maternite_plafond = get_val("CNPS_MATERNITE_PLAFOND", 70000.0)
+    cnps_maternite_plafond = get_val("CNPS_MATERNITE_PLAFOND", 75000.0)
     cnps_maternite_taux_p = get_val("CNPS_MATERNITE_TAUX_P", 0.75)
 
     # CMU Constants

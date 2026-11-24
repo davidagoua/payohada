@@ -16,13 +16,13 @@ logger = logging.getLogger(__name__)
 #: Valeurs de référence Côte d'Ivoire (FCFA / %), modifiables via /constantes.
 CONSTANTES_REFERENCE = [
     {"code": "SMIG", "description": "Salaire Minimum Interprofessionnel Garanti", "montant": 75000.0, "unite": "FCFA", "pays": "CI"},
-    {"code": "CNPS_PF_PLAFOND", "description": "Plafond mensuel pour les Prestations Familiales", "montant": 70000.0, "unite": "FCFA", "pays": "CI"},
+    {"code": "CNPS_PF_PLAFOND", "description": "Plafond mensuel pour les Prestations Familiales", "montant": 75000.0, "unite": "FCFA", "pays": "CI"},
     {"code": "CNPS_PF_TAUX_P", "description": "Taux patronal Prestations Familiales", "montant": 5.0, "unite": "%", "pays": "CI"},
     {"code": "CNPS_RETRAITE_PLAFOND", "description": "Plafond mensuel pour la Retraite", "montant": 3375000.0, "unite": "FCFA", "pays": "CI"},
     {"code": "CNPS_RETRAITE_TAUX_S", "description": "Taux salarial Retraite", "montant": 6.3, "unite": "%", "pays": "CI"},
     {"code": "CNPS_RETRAITE_TAUX_P", "description": "Taux patronal Retraite", "montant": 7.7, "unite": "%", "pays": "CI"},
-    {"code": "CNPS_AT_PLAFOND", "description": "Plafond mensuel Accident du Travail", "montant": 70000.0, "unite": "FCFA", "pays": "CI"},
-    {"code": "CNPS_MATERNITE_PLAFOND", "description": "Plafond mensuel Assurance Maternité", "montant": 70000.0, "unite": "FCFA", "pays": "CI"},
+    {"code": "CNPS_AT_PLAFOND", "description": "Plafond mensuel Accident du Travail", "montant": 75000.0, "unite": "FCFA", "pays": "CI"},
+    {"code": "CNPS_MATERNITE_PLAFOND", "description": "Plafond mensuel Assurance Maternité", "montant": 75000.0, "unite": "FCFA", "pays": "CI"},
     {"code": "CNPS_MATERNITE_TAUX_P", "description": "Taux patronal Assurance Maternité", "montant": 0.75, "unite": "%", "pays": "CI"},
     {"code": "CN_TAUX_P_LOC", "description": "Taux Contribution Nationale patronale locaux", "montant": 1.5, "unite": "%", "pays": "CI"},
     {"code": "CN_TAUX_P_EXP", "description": "Taux Contribution Nationale patronale expatriés", "montant": 8.0, "unite": "%", "pays": "CI"},

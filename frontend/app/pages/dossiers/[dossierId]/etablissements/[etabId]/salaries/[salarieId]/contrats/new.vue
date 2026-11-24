@@ -27,6 +27,8 @@ const cDateFin = ref('')
 const cEmploi = ref('')
 const cIdcc = ref(1486) // Bureau d'études (Syntec) by default
 const cUniteTemps = ref('Heures')
+const cTypeSalarieCnps = ref(null)
+const cBranchesCnps = ref('123')
 const cSursalaire = ref(0.0)
 const cIndemniteTransport = ref(0.0)
 const cDotationTelephonique = ref(0.0)
@@ -124,6 +126,8 @@ const handleCreateContract = async () => {
       emploi: cEmploi.value || null,
       idcc: cIdcc.value ? Number(cIdcc.value) : null,
       unite_temps: cUniteTemps.value,
+      cnps_type_salarie: cTypeSalarieCnps.value,
+      cnps_branches: cBranchesCnps.value,
       sursalaire: Number(cSursalaire.value) || 0.0,
       indemnite_transport: Number(cIndemniteTransport.value) || 0.0,
       dotation_telephonique: Number(cDotationTelephonique.value) || 0.0,
@@ -341,6 +345,7 @@ onMounted(() => {
             />
           </div>
         </div>
+        <ContratCnps v-model:type-salarie="cTypeSalarieCnps" v-model:branches="cBranchesCnps" :type-salaire="cTypeSalaire" />
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 border-t border-slate-100 pt-4">
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Unité de Temps</label>

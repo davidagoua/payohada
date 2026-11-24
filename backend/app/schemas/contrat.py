@@ -3,6 +3,28 @@ from typing import Optional
 from datetime import datetime
 
 
+TYPES_SALARIE_CNPS = ("M", "J", "H")
+
+
+def _valider_type_salarie_cnps(valeur):
+    if valeur in (None, ""):
+        return None
+    valeur = str(valeur).strip().upper()
+    if valeur not in TYPES_SALARIE_CNPS:
+        raise ValueError("Type de salarié CNPS : M (mensuel), J (journalier) ou H (horaire).")
+    return valeur
+
+
+def _valider_branches_cnps(valeur):
+    """« 123 », « 23 »… : branches distinctes parmi 1, 2 et 3, dans l'ordre."""
+    if valeur in (None, ""):
+        return None
+    chiffres = sorted(set(str(valeur).replace(" ", "")))
+    if not chiffres or any(c not in "123" for c in chiffres):
+        raise ValueError("Branches cotisées : combinaison de 1 (retraite), 2 (AT/MP) et 3 (PF et maternité).")
+    return "".join(chiffres)
+
+
 # ─────────────────────────────────────────
 #  SCHÉMAS JOURS HEBDOMADAIRES
 # ─────────────────────────────────────────
@@ -185,6 +207,18 @@ class ContratBase(BaseModel):
     indemnite_transport: Optional[float] = 0.0
     dotation_telephonique: Optional[float] = 0.0
     mode_calcul: Optional[str] = "brut"
+    cnps_type_salarie: Optional[str] = None
+    cnps_branches: Optional[str] = "123"
+
+    @field_validator("cnps_type_salarie")
+    @classmethod
+    def _type_cnps(cls, valeur):
+        return _valider_type_salarie_cnps(valeur)
+
+    @field_validator("cnps_branches")
+    @classmethod
+    def _branches_cnps(cls, valeur):
+        return _valider_branches_cnps(valeur) or "123"
 
 
 class ContratCreate(ContratBase):
@@ -213,6 +247,19 @@ class ContratUpdate(BaseModel):
     #: fausse l'ancienneté, donc l'acquisition des congés.
     date_debut_contrat: Optional[str] = None
     date_anciennete: Optional[str] = None
+    cnps_type_salarie: Optional[str] = None
+    cnps_branches: Optional[str] = None
+
+    @field_validator("cnps_type_salarie")
+    @classmethod
+    def _type_cnps(cls, valeur):
+        return _valider_type_salarie_cnps(valeur)
+
+    @field_validator("cnps_branches")
+    @classmethod
+    def _branches_cnps(cls, valeur):
+        # Vider le champ revient à la valeur par défaut : toutes les branches.
+        return _valider_branches_cnps(valeur) or "123"
 
 
 class ContratOut(ContratBase):
@@ -230,6 +277,8 @@ class ContratOut(ContratBase):
     mois_a_exclure: Optional[MoisAExclureOut] = None
     #: Salaire minimum de la catégorie (contrat, sinon grille du poste), en lecture.
     smhc_reference: Optional[float] = None
+    #: Type de salarié déclaré à la CNPS (choisi, sinon déduit du salaire).
+    type_salarie_cnps: Optional[str] = None
 
     class Config:
         from_attributes = True

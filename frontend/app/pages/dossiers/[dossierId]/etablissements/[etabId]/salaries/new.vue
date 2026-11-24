@@ -199,16 +199,18 @@ onMounted(() => {
 
         <div class="grid grid-cols-3 gap-4">
           <div class="col-span-2">
-            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Numéro de Sécurité Sociale (NIR)</label>
+            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">N° CNPS du salarié</label>
             <InputText
               v-model="salNir"
-              placeholder="15 chiffres (Ex: 180017500123456)"
+              inputmode="numeric"
+              placeholder="12 chiffres (ex. 202100108350)"
               :class="[
                 'mt-1 block w-full px-3 py-2 border rounded-lg text-sm font-mono transition-colors',
                 fieldErrors.numero_securite_sociale ? 'border-red-300 focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-red-50/30' : 'border-slate-300 focus:ring-2 focus:ring-green-500 focus:border-green-500'
               ]"
             />
             <p v-if="fieldErrors.numero_securite_sociale" class="mt-1 text-xs text-red-600 font-medium">{{ fieldErrors.numero_securite_sociale }}</p>
+            <p v-else-if="alerteNumeroCnps(salNir)" class="mt-1 text-xs text-yellow-700">{{ alerteNumeroCnps(salNir) }}</p>
           </div>
           <div>
             <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500">Régime Expatrié</label>

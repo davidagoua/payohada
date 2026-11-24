@@ -1,8 +1,30 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from typing import Optional
 from datetime import datetime
 
 from app.schemas.mode_paiement import ModePaiementOut
+
+
+#: Longueur usuelle d'un numéro d'immatriculation CNPS.
+LONGUEUR_NUMERO_CNPS = 12
+
+
+def normaliser_numero_cnps(valeur):
+    """« 2021 0010 8350 » → « 202100108350 » ; refuse tout caractère non numérique.
+
+    La longueur n'est pas imposée (anciens numéros), mais la déclaration
+    signale un numéro qui n'a pas 12 chiffres.
+    """
+    if valeur is None:
+        return None
+    numero = "".join(c for c in str(valeur) if c not in " .-/")
+    if not numero:
+        return None
+    if not numero.isdigit():
+        raise ValueError("Le N° CNPS ne contient que des chiffres.")
+    if len(numero) > 15:
+        raise ValueError("Le N° CNPS comporte au plus 15 chiffres.")
+    return numero
 
 
 class SalarieBase(BaseModel):
@@ -35,7 +57,10 @@ class SalarieBase(BaseModel):
 
 
 class SalarieCreate(SalarieBase):
-    pass
+    @field_validator("numero_securite_sociale")
+    @classmethod
+    def _numero_cnps(cls, valeur):
+        return normaliser_numero_cnps(valeur)
 
 
 class SalarieUpdate(BaseModel):
@@ -63,6 +88,11 @@ class SalarieUpdate(BaseModel):
     expatrie: Optional[bool] = None
     situation_matrimoniale: Optional[str] = None
     enfants_charge: Optional[int] = None
+
+    @field_validator("numero_securite_sociale")
+    @classmethod
+    def _numero_cnps(cls, valeur):
+        return normaliser_numero_cnps(valeur)
 
 
 class SalarieOut(SalarieBase):
