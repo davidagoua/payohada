@@ -27,6 +27,67 @@ const apercu = ref(null)
 const apercuEnCours = ref(false)
 const generationEnCours = ref(false)
 
+// Paiements d'une déclaration
+const MODES_PAIEMENT = [
+  { label: 'Paiement en ligne e-CNPS', value: 'e_cnps' },
+  { label: 'Virement', value: 'virement' },
+  { label: 'Chèque', value: 'cheque' },
+  { label: 'Espèces', value: 'especes' },
+  { label: 'Autre', value: 'autre' }
+]
+const libelleMode = (mode) => MODES_PAIEMENT.find(m => m.value === mode)?.label || mode
+const paiementsOuverts = ref(null)
+const nouveauPaiement = ref({ date_paiement: '', montant: null, mode: 'e_cnps', reference: '' })
+const enregistrementPaiement = ref(false)
+
+const ouvrirPaiements = async (declaration) => {
+  try {
+    paiementsOuverts.value = await get(`/declarations-cnps/${declaration.id}`)
+    nouveauPaiement.value = {
+      date_paiement: new Date().toISOString().slice(0, 10),
+      montant: Math.round(paiementsOuverts.value.reste_a_payer) || null,
+      mode: 'e_cnps',
+      reference: ''
+    }
+  } catch (e) {
+    console.error('Chargement des paiements impossible :', e)
+  }
+}
+
+const ajouterPaiement = async () => {
+  const montant = Number(nouveauPaiement.value.montant)
+  if (!nouveauPaiement.value.date_paiement || !(montant > 0)) {
+    toast.add({ title: 'Champs requis', description: 'Renseignez la date et un montant positif.', color: 'warning' })
+    return
+  }
+  enregistrementPaiement.value = true
+  try {
+    paiementsOuverts.value = await post(`/declarations-cnps/${paiementsOuverts.value.id}/paiements`, {
+      ...nouveauPaiement.value,
+      montant,
+      reference: nouveauPaiement.value.reference || null
+    })
+    nouveauPaiement.value.montant = Math.round(paiementsOuverts.value.reste_a_payer) || null
+    nouveauPaiement.value.reference = ''
+    toast.add({ title: 'Paiement enregistré', description: formatFcfa(montant), color: 'success' })
+    await charger()
+  } catch (e) {
+    console.error('Enregistrement du paiement impossible :', e)
+  } finally {
+    enregistrementPaiement.value = false
+  }
+}
+
+const supprimerPaiement = async (paiement) => {
+  if (!confirm(`Supprimer le paiement de ${formatFcfa(paiement.montant)} du ${dateFr(paiement.date_paiement)} ?`)) return
+  try {
+    paiementsOuverts.value = await apiDelete(`/paiements-cnps/${paiement.id}`)
+    await charger()
+  } catch (e) {
+    console.error('Suppression du paiement impossible :', e)
+  }
+}
+
 const depotOuvert = ref(null)
 const depot = ref({ date_depot: '', reference_depot: '' })
 
@@ -163,6 +224,7 @@ const LIBELLES_COTISATIONS = {
             <th scope="col" class="px-4 py-3 text-right">Effectif</th>
             <th scope="col" class="px-4 py-3 text-right">Masse salariale</th>
             <th scope="col" class="px-4 py-3 text-right">Cotisations</th>
+            <th scope="col" class="px-4 py-3 text-right">Payé</th>
             <th scope="col" class="px-4 py-3">Statut</th>
             <th scope="col" class="px-4 py-3 text-right">Actions</th>
           </tr>
@@ -176,6 +238,16 @@ const LIBELLES_COTISATIONS = {
             <td class="px-4 py-3 text-right font-mono">{{ ligne.declaration?.effectif ?? '—' }}</td>
             <td class="px-4 py-3 text-right font-mono">{{ ligne.declaration ? formatFcfa(ligne.declaration.masse_salariale) : '—' }}</td>
             <td class="px-4 py-3 text-right font-mono">{{ ligne.declaration ? formatFcfa(ligne.declaration.total_cotisations) : '—' }}</td>
+            <td class="px-4 py-3 text-right">
+              <template v-if="ligne.declaration">
+                <span class="font-mono">{{ formatFcfa(ligne.declaration.montant_paye) }}</span>
+                <span class="block text-[10px] font-bold uppercase"
+                      :class="{ 'text-green-700': ligne.declaration.statut_paiement === 'paye', 'text-yellow-700': ligne.declaration.statut_paiement === 'partiel', 'text-slate-400': ligne.declaration.statut_paiement === 'non_paye' }">
+                  {{ { paye: 'Soldée', partiel: `Reste ${formatFcfa(ligne.declaration.reste_a_payer)}`, non_paye: 'Non payée' }[ligne.declaration.statut_paiement] }}
+                </span>
+              </template>
+              <span v-else class="text-slate-400">—</span>
+            </td>
             <td class="px-4 py-3">
               <span v-if="!ligne.declaration" class="text-xs text-slate-400">À déclarer</span>
               <span v-else-if="ligne.declaration.statut === 'deposee'" class="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-green-50 text-green-700 border border-green-200">
@@ -194,6 +266,9 @@ const LIBELLES_COTISATIONS = {
                 </button>
                 <button v-if="ligne.declaration?.statut === 'generee'" type="button" class="px-2.5 py-1 text-xs font-semibold bg-green-600 hover:bg-green-700 text-white rounded-lg" @click="ouvrirDepot(ligne.declaration)">
                   Marquer déposée
+                </button>
+                <button v-if="ligne.declaration" type="button" class="px-2.5 py-1 text-xs font-semibold border border-slate-300 rounded-lg hover:bg-slate-50 inline-flex items-center gap-1" @click="ouvrirPaiements(ligne.declaration)">
+                  <Icon name="i-lucide-wallet" class="w-3.5 h-3.5" /> Paiements
                 </button>
                 <button v-if="ligne.declaration?.statut === 'deposee'" type="button" class="px-2.5 py-1 text-xs font-semibold text-red-700 border border-red-200 rounded-lg hover:bg-red-50" @click="annulerDepot(ligne.declaration)">
                   Annuler le dépôt
@@ -279,6 +354,76 @@ const LIBELLES_COTISATIONS = {
         </div>
       </template>
     </section>
+
+    <!-- Paiements d'une déclaration -->
+    <div v-if="paiementsOuverts" class="fixed inset-0 z-50 bg-slate-900/40 flex items-center justify-center p-4">
+      <div class="bg-white rounded-xl shadow-xl border border-slate-200 max-w-2xl w-full p-6 space-y-4" role="dialog" aria-modal="true" aria-labelledby="titre-paiements-dsn">
+        <div class="flex items-start justify-between gap-3">
+          <div>
+            <h3 id="titre-paiements-dsn" class="text-sm font-bold text-navy-900 uppercase tracking-wider">
+              Paiements — {{ MOIS[paiementsOuverts.mois - 1] }} {{ paiementsOuverts.annee }}
+            </h3>
+            <p class="text-xs text-slate-500 mt-1">
+              Dû {{ formatFcfa(paiementsOuverts.total_cotisations) }} · payé {{ formatFcfa(paiementsOuverts.montant_paye) }} ·
+              reste <strong>{{ formatFcfa(paiementsOuverts.reste_a_payer) }}</strong>
+            </p>
+          </div>
+          <button type="button" class="text-slate-400 hover:text-slate-600" aria-label="Fermer" @click="paiementsOuverts = null">
+            <Icon name="i-lucide-x" class="w-5 h-5" />
+          </button>
+        </div>
+
+        <table v-if="paiementsOuverts.paiements.length" class="w-full text-xs border border-slate-200 rounded-lg">
+          <thead class="bg-slate-50 text-slate-600 font-bold uppercase text-[10px] tracking-wider text-left">
+            <tr>
+              <th scope="col" class="px-3 py-2">Date</th>
+              <th scope="col" class="px-3 py-2 text-right">Montant</th>
+              <th scope="col" class="px-3 py-2">Mode</th>
+              <th scope="col" class="px-3 py-2">Référence</th>
+              <th scope="col" class="px-3 py-2"><span class="sr-only">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-slate-100">
+            <tr v-for="p in paiementsOuverts.paiements" :key="p.id">
+              <td class="px-3 py-2">{{ dateFr(p.date_paiement) }}</td>
+              <td class="px-3 py-2 text-right font-mono">{{ formatFcfa(p.montant) }}</td>
+              <td class="px-3 py-2">{{ libelleMode(p.mode) }}</td>
+              <td class="px-3 py-2">{{ p.reference || '—' }}</td>
+              <td class="px-3 py-2 text-right">
+                <button type="button" class="text-red-600 hover:text-red-800" :aria-label="`Supprimer le paiement du ${dateFr(p.date_paiement)}`" @click="supprimerPaiement(p)">
+                  <Icon name="i-lucide-trash" class="w-4 h-4" />
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+        <p v-else class="text-xs text-slate-500">Aucun paiement enregistré.</p>
+
+        <form class="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end border-t border-slate-200 pt-4" @submit.prevent="ajouterPaiement">
+          <div>
+            <label for="dsn-paiement-date" class="block text-xs font-semibold text-slate-500">Date</label>
+            <InputText id="dsn-paiement-date" v-model="nouveauPaiement.date_paiement" type="date" required class="mt-1 w-full text-sm" />
+          </div>
+          <div>
+            <label for="dsn-paiement-montant" class="block text-xs font-semibold text-slate-500">Montant (F CFA)</label>
+            <InputText id="dsn-paiement-montant" v-model="nouveauPaiement.montant" type="number" min="1" required class="mt-1 w-full text-sm" />
+          </div>
+          <div>
+            <label for="dsn-paiement-mode" class="block text-xs font-semibold text-slate-500">Mode</label>
+            <Select v-model="nouveauPaiement.mode" input-id="dsn-paiement-mode" :options="MODES_PAIEMENT" option-label="label" option-value="value" class="mt-1 w-full text-sm" />
+          </div>
+          <div>
+            <label for="dsn-paiement-reference" class="block text-xs font-semibold text-slate-500">Référence</label>
+            <InputText id="dsn-paiement-reference" v-model="nouveauPaiement.reference" class="mt-1 w-full text-sm" />
+          </div>
+          <div class="sm:col-span-4 flex justify-end">
+            <button type="submit" :disabled="enregistrementPaiement" class="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:opacity-60 text-white rounded-lg text-sm font-semibold">
+              Ajouter le paiement
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
 
     <!-- Saisie du dépôt -->
     <div v-if="depotOuvert" class="fixed inset-0 z-50 bg-slate-900/40 flex items-center justify-center p-4">

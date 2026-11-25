@@ -18,11 +18,13 @@ from sqlalchemy import case, func
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models.models import DSN, BulletinPaie, Contrat, LigneDeclarationCnps, Utilisateur
+from app.models.models import (
+    DSN, BulletinPaie, Contrat, LigneDeclarationCnps, PaiementCotisationCnps, Utilisateur,
+)
 from app.routers.etablissements import check_etablissement_ownership
 from app.schemas.declaration_cnps import (
     ApercuDeclarationOut, DeclarationDetailOut, DeclarationOut, DepotDeclarationIn,
-    LigneDeclarationOut, MoisDeclarationOut,
+    LigneDeclarationOut, MoisDeclarationOut, PaiementCnpsIn, PaiementCnpsOut,
 )
 from app.services.declarations_cnps import (
     ENTETES_FICHIER, STATUT_DEPOSEE, STATUT_GENEREE, TYPE_CNPS_MENSUELLE,
@@ -73,8 +75,29 @@ def _masse_actuelle(db: Session, declaration: DSN) -> float:
     return round(float(total or 0.0), 2)
 
 
+#: Écart toléré (arrondis) pour considérer une déclaration comme soldée.
+TOLERANCE_PAIEMENT = 0.5
+
+
+def _etat_paiement(declaration: DSN) -> tuple[float, float, str]:
+    du = round(declaration.total_cotisations or 0.0, 2)
+    paye = declaration.montant_paye
+    reste = round(max(0.0, du - paye), 2)
+    if paye <= 0:
+        etat = "non_paye"
+    elif reste <= TOLERANCE_PAIEMENT:
+        etat = "paye"
+    else:
+        etat = "partiel"
+    return paye, reste, etat
+
+
 def _sortie(db: Session, declaration: DSN, avec_lignes: bool = False):
+    paye, reste, etat = _etat_paiement(declaration)
     donnees = dict(
+        montant_paye=paye,
+        reste_a_payer=reste,
+        statut_paiement=etat,
         id=declaration.id,
         etablissement_id=declaration.etablissement_id,
         annee=declaration.annee,
@@ -92,7 +115,9 @@ def _sortie(db: Session, declaration: DSN, avec_lignes: bool = False):
     )
     if avec_lignes:
         return DeclarationDetailOut(
-            **donnees, lignes=[LigneDeclarationOut.model_validate(l) for l in declaration.lignes]
+            **donnees,
+            lignes=[LigneDeclarationOut.model_validate(l) for l in declaration.lignes],
+            paiements=[PaiementCnpsOut.model_validate(p) for p in declaration.paiements],
         )
     return DeclarationOut(**donnees)
 
@@ -287,9 +312,62 @@ def supprimer_declaration(
             status_code=status.HTTP_409_CONFLICT,
             detail="Une déclaration déposée ne se supprime pas : annulez d'abord le dépôt.",
         )
+    if declaration.paiements:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Cette déclaration a des paiements enregistrés : supprimez-les d'abord.",
+        )
     db.delete(declaration)
     db.commit()
     return None
+
+
+@router.get("/declarations-cnps/{declaration_id}/paiements", response_model=List[PaiementCnpsOut])
+def lister_paiements(
+    declaration_id: int,
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user),
+):
+    return _declaration_ou_404(declaration_id, current_user, db).paiements
+
+
+@router.post(
+    "/declarations-cnps/{declaration_id}/paiements",
+    response_model=DeclarationDetailOut,
+    status_code=status.HTTP_201_CREATED,
+)
+def ajouter_paiement(
+    declaration_id: int,
+    paiement: PaiementCnpsIn,
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user),
+):
+    """Enregistre un paiement à la CNPS ; renvoie la déclaration et son solde."""
+    declaration = _declaration_ou_404(declaration_id, current_user, db)
+    donnees = paiement.model_dump()
+    donnees["reference"] = (donnees.get("reference") or "").strip() or None
+    declaration.paiements.append(PaiementCotisationCnps(**donnees))
+    db.commit()
+    db.refresh(declaration)
+    return _sortie(db, declaration, avec_lignes=True)
+
+
+@router.delete("/paiements-cnps/{paiement_id}", response_model=DeclarationDetailOut)
+def supprimer_paiement(
+    paiement_id: int,
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user),
+):
+    """Supprime un paiement saisi par erreur ; renvoie la déclaration à jour."""
+    require_staff(current_user)
+    paiement = db.query(PaiementCotisationCnps).filter(PaiementCotisationCnps.id == paiement_id).first()
+    if not paiement:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Paiement introuvable.")
+    declaration = _declaration_ou_404(paiement.declaration_id, current_user, db)
+    db.delete(paiement)
+    db.commit()
+    db.refresh(declaration)
+    return _sortie(db, declaration, avec_lignes=True)
 
 
 @router.get("/declarations-cnps/{declaration_id}/fichier")

@@ -176,3 +176,75 @@ class DeclarationsCnpsTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class PaiementsCnpsTests(unittest.TestCase):
+    def setUp(self):
+        reset_database()
+        self.db = SessionLocal()
+        self.t = make_tenant(self.db, "cabinet-paiement")
+        self.entetes = auth_headers(self.t["user"])
+        self.t["salarie"].numero_securite_sociale = "202100108350"
+        self.db.commit()
+        bulletin = calculate_payslip(self.db, self.t["contrat"].id, 10, 2026)
+        bulletin.statut = "valide"
+        self.db.commit()
+        r = client.post(f"{API}/etablissements/{self.t['etablissement'].id}/declarations-cnps/2026/10", headers=self.entetes)
+        self.declaration = r.json()
+        self.url = f"{API}/declarations-cnps/{self.declaration['id']}"
+
+    def tearDown(self):
+        self.db.close()
+
+    def _payer(self, montant, **valeurs):
+        donnees = {"date_paiement": "2026-11-15", "montant": montant, "mode": "e_cnps", "reference": "PAY-1"}
+        donnees.update(valeurs)
+        return client.post(f"{self.url}/paiements", headers=self.entetes, json=donnees)
+
+    def test_sans_paiement(self):
+        self.assertEqual(self.declaration["statut_paiement"], "non_paye")
+        self.assertEqual(self.declaration["reste_a_payer"], self.declaration["total_cotisations"])
+
+    def test_paiement_partiel_puis_solde(self):
+        du = self.declaration["total_cotisations"]
+        r = self._payer(round(du / 2, 2))
+        self.assertEqual(r.status_code, 201, r.text[:300])
+        self.assertEqual(r.json()["statut_paiement"], "partiel")
+        r = self._payer(round(du - du / 2, 2), mode="virement", reference=None)
+        corps = r.json()
+        self.assertEqual(corps["statut_paiement"], "paye")
+        self.assertEqual(corps["reste_a_payer"], 0)
+        self.assertEqual(len(corps["paiements"]), 2)
+
+    def test_montant_et_mode_controles(self):
+        self.assertEqual(self._payer(0).status_code, 422)
+        self.assertEqual(self._payer(1000, mode="carte").status_code, 422)
+
+    def test_suppression_d_un_paiement(self):
+        paiement_id = self._payer(1000).json()["paiements"][0]["id"]
+        r = client.delete(f"{API}/paiements-cnps/{paiement_id}", headers=self.entetes)
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json()["statut_paiement"], "non_paye")
+
+    def test_declaration_payee_non_supprimable(self):
+        self._payer(1000)
+        self.assertEqual(client.delete(self.url, headers=self.entetes).status_code, 409)
+
+    def test_regeneration_conserve_les_paiements(self):
+        self._payer(1000)
+        r = client.post(f"{API}/etablissements/{self.t['etablissement'].id}/declarations-cnps/2026/10", headers=self.entetes)
+        self.assertEqual(r.json()["montant_paye"], 1000)
+
+    def test_liste_annuelle_avec_soldes(self):
+        self._payer(1000)
+        mois = client.get(f"{API}/etablissements/{self.t['etablissement'].id}/declarations-cnps?annee=2026",
+                          headers=self.entetes).json()
+        self.assertEqual(mois[9]["declaration"]["montant_paye"], 1000)
+
+    def test_un_autre_cabinet_ne_paie_pas(self):
+        autre = auth_headers(make_tenant(self.db, "autre-cabinet-paiement")["user"])
+        r = client.post(f"{self.url}/paiements", headers=autre,
+                        json={"date_paiement": "2026-11-15", "montant": 1000})
+        self.assertIn(r.status_code, (403, 404))
+        paiement_id = self._payer(1000).json()["paiements"][0]["id"]
+        self.assertIn(client.delete(f"{API}/paiements-cnps/{paiement_id}", headers=autre).status_code, (403, 404))

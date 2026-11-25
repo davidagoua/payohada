@@ -1,6 +1,6 @@
 """Schémas des déclarations CNPS mensuelles."""
 from datetime import date, datetime
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -48,6 +48,20 @@ class ApercuDeclarationOut(BaseModel):
     lignes: list[LigneDeclarationOut] = []
 
 
+class PaiementCnpsIn(BaseModel):
+    date_paiement: date
+    montant: float = Field(gt=0)
+    mode: Literal["e_cnps", "virement", "cheque", "especes", "autre"] = "e_cnps"
+    reference: Optional[str] = Field(default=None, max_length=100)
+
+
+class PaiementCnpsOut(PaiementCnpsIn):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    declaration_id: int
+
+
 class DeclarationOut(BaseModel):
     id: int
     etablissement_id: int
@@ -62,12 +76,17 @@ class DeclarationOut(BaseModel):
     reference_depot: Optional[str] = None
     #: Les bulletins du mois ont changé depuis la génération.
     ecart_bulletins: bool = False
+    montant_paye: float = 0.0
+    reste_a_payer: float = 0.0
+    #: non_paye | partiel | paye
+    statut_paiement: str = "non_paye"
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
 
 class DeclarationDetailOut(DeclarationOut):
     lignes: list[LigneDeclarationOut] = []
+    paiements: list[PaiementCnpsOut] = []
 
 
 class MoisDeclarationOut(BaseModel):

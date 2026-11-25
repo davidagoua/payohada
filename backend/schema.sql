@@ -1600,7 +1600,21 @@ CREATE TABLE IF NOT EXISTS lignes_declarations_cnps (
 );
 CREATE INDEX IF NOT EXISTS ix_lignes_declarations_cnps_declaration ON lignes_declarations_cnps (declaration_id);
 
--- 19. Contrôles post-migration (à exécuter manuellement) :
+-- 19. Paiements des cotisations CNPS (plusieurs par déclaration).
+--     Alimentent le total II « paiements effectués » de la DASC.
+CREATE TABLE IF NOT EXISTS paiements_cotisations_cnps (
+    id SERIAL PRIMARY KEY,
+    declaration_id INTEGER NOT NULL REFERENCES dsns(id) ON DELETE CASCADE,
+    date_paiement DATE NOT NULL,
+    montant DOUBLE PRECISION NOT NULL CHECK (montant > 0),
+    mode VARCHAR(20) NOT NULL DEFAULT 'e_cnps',
+    reference VARCHAR(100),
+    created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX IF NOT EXISTS ix_paiements_cnps_declaration ON paiements_cotisations_cnps (declaration_id);
+
+-- 20. Contrôles post-migration (à exécuter manuellement) :
 --    -- Aucun compte sans mot de passe (sinon connexion impossible) :
 --    SELECT id, email, role FROM utilisateurs WHERE hashed_password IS NULL;
 --    -- La colonne et ses valeurs par défaut :

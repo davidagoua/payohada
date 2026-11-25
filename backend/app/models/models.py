@@ -955,6 +955,14 @@ class DSN(TimestampMixin, Base):
         "LigneDeclarationCnps", back_populates="declaration",
         cascade="all, delete-orphan", order_by="LigneDeclarationCnps.ordre",
     )
+    paiements = relationship(
+        "PaiementCotisationCnps", back_populates="declaration",
+        cascade="all, delete-orphan", order_by="PaiementCotisationCnps.date_paiement",
+    )
+
+    @property
+    def montant_paye(self) -> float:
+        return round(sum(p.montant or 0.0 for p in self.paiements), 2)
 
     __table_args__ = (
         UniqueConstraint(
@@ -962,6 +970,24 @@ class DSN(TimestampMixin, Base):
             name="uq_dsn_etablissement_type_periode",
         ),
     )
+
+
+class PaiementCotisationCnps(TimestampMixin, Base):
+    """Paiement versé à la CNPS pour une déclaration (plusieurs possibles).
+
+    Alimente le « montant des paiements effectués » (total II) de la DASC.
+    """
+    __tablename__ = "paiements_cotisations_cnps"
+
+    id = Column(Integer, primary_key=True, index=True)
+    declaration_id = Column(Integer, ForeignKey("dsns.id", ondelete="CASCADE"), nullable=False, index=True)
+    date_paiement = Column(Date, nullable=False)
+    montant = Column(Float, nullable=False)
+    #: e_cnps (paiement en ligne), virement, cheque, especes, autre.
+    mode = Column(String(20), nullable=False, default="e_cnps")
+    reference = Column(String(100))
+
+    declaration = relationship("DSN", back_populates="paiements")
 
 
 class LigneDeclarationCnps(Base):
