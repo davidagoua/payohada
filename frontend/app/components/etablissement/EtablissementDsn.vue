@@ -70,7 +70,7 @@ const ajouterPaiement = async () => {
     nouveauPaiement.value.montant = Math.round(paiementsOuverts.value.reste_a_payer) || null
     nouveauPaiement.value.reference = ''
     toast.add({ title: 'Paiement enregistré', description: formatFcfa(montant), color: 'success' })
-    await charger()
+    await rafraichir()
   } catch (e) {
     console.error('Enregistrement du paiement impossible :', e)
   } finally {
@@ -82,7 +82,7 @@ const supprimerPaiement = async (paiement) => {
   if (!confirm(`Supprimer le paiement de ${formatFcfa(paiement.montant)} du ${dateFr(paiement.date_paiement)} ?`)) return
   try {
     paiementsOuverts.value = await apiDelete(`/paiements-cnps/${paiement.id}`)
-    await charger()
+    await rafraichir()
   } catch (e) {
     console.error('Suppression du paiement impossible :', e)
   }
@@ -91,7 +91,8 @@ const supprimerPaiement = async (paiement) => {
 const depotOuvert = ref(null)
 const depot = ref({ date_depot: '', reference_depot: '' })
 
-const formatFcfa = (v) => `${Math.round(Number(v) || 0).toLocaleString('fr-FR')} F`
+// `+ 0` ramène un « -0 » (écart d'arrondi de 0,5 F) à 0.
+const formatFcfa = (v) => `${(Math.round(Number(v) || 0) + 0).toLocaleString('fr-FR')} F`
 const dateFr = (v) => (v ? new Date(v).toLocaleDateString('fr-FR') : '—')
 
 const charger = async () => {
@@ -105,12 +106,60 @@ const charger = async () => {
   }
 }
 
+// ── Déclaration annuelle : DISA et DASC ─────────────────────────────
+const annuel = ref(null)
+const chargementAnnuel = ref(false)
+
+const chargerAnnuel = async () => {
+  chargementAnnuel.value = true
+  try {
+    annuel.value = await get(`/etablissements/${props.etabId}/declarations-annuelles/${annee.value}`)
+  } catch (e) {
+    console.error('Calcul annuel impossible :', e)
+  } finally {
+    chargementAnnuel.value = false
+  }
+}
+
+const MONTANTS_E_CNPS = [
+  { cle: 'effectif_disa', libelle: 'Effectif DISA', entier: true },
+  { cle: 'salaire_brut_non_plafonne', libelle: 'Salaire brut non plafonné' },
+  { cle: 'salaire_pf', libelle: 'Salaire PF' },
+  { cle: 'salaire_at', libelle: 'Salaire AT' },
+  { cle: 'salaire_am', libelle: 'Salaire AM' },
+  { cle: 'salaire_retraite', libelle: 'Salaire retraite' },
+  { cle: 'solde_dasc', libelle: 'Solde DASC' }
+]
+
+const telechargerAnnuel = async (document) => {
+  const extension = document === 'disa' ? 'xlsx' : 'pdf'
+  try {
+    const config = useRuntimeConfig()
+    const { token } = useSupabase()
+    const reponse = await fetch(
+      `${resoudreApiBase(config.public.apiBase)}/etablissements/${props.etabId}/declarations-annuelles/${annee.value}/${document}`,
+      { headers: { Authorization: `Bearer ${token.value}` } }
+    )
+    if (!reponse.ok) throw new Error(`HTTP ${reponse.status}`)
+    const lien = window.document.createElement('a')
+    lien.href = URL.createObjectURL(await reponse.blob())
+    lien.download = `${document.toUpperCase()}_${annee.value}.${extension}`
+    lien.click()
+    URL.revokeObjectURL(lien.href)
+  } catch (e) {
+    console.error('Téléchargement impossible :', e)
+    toast.add({ title: 'Téléchargement impossible', description: 'Le document n\'a pas pu être produit.', color: 'danger' })
+  }
+}
+
+const rafraichir = () => Promise.all([charger(), chargerAnnuel()])
+
 watch(annee, () => {
   moisOuvert.value = null
   apercu.value = null
-  charger()
+  rafraichir()
 })
-onMounted(charger)
+onMounted(rafraichir)
 
 const ouvrirApercu = async (mois) => {
   moisOuvert.value = mois
@@ -132,7 +181,7 @@ const generer = async () => {
     toast.add({ title: 'Déclaration générée', description: `${MOIS[moisOuvert.value - 1]} ${annee.value}`, color: 'success' })
     moisOuvert.value = null
     apercu.value = null
-    await charger()
+    await rafraichir()
   } catch (e) {
     console.error('Génération impossible :', e)
   } finally {
@@ -170,7 +219,7 @@ const enregistrerDepot = async () => {
     await put(`/declarations-cnps/${depotOuvert.value.id}/depot`, depot.value)
     toast.add({ title: 'Dépôt enregistré', description: 'La déclaration est verrouillée.', color: 'success' })
     depotOuvert.value = null
-    await charger()
+    await rafraichir()
   } catch (e) {
     console.error('Enregistrement du dépôt impossible :', e)
   }
@@ -180,7 +229,7 @@ const annulerDepot = async (declaration) => {
   if (!confirm('Annuler le dépôt ? La déclaration redevient modifiable.')) return
   try {
     await apiDelete(`/declarations-cnps/${declaration.id}/depot`)
-    await charger()
+    await rafraichir()
   } catch (e) {
     console.error('Annulation du dépôt impossible :', e)
   }
@@ -351,6 +400,89 @@ const LIBELLES_COTISATIONS = {
             <Icon :name="generationEnCours ? 'i-lucide-loader-2' : 'i-lucide-file-check'" class="w-4 h-4" :class="{ 'animate-spin': generationEnCours }" />
             {{ declarationOuverte ? 'Regénérer la déclaration' : 'Générer la déclaration' }}
           </button>
+        </div>
+      </template>
+    </section>
+
+    <!-- ═══ Déclaration annuelle : DISA et DASC ═══ -->
+    <section class="bg-white border-2 border-slate-200 p-5 shadow-flat border-t-4 border-t-navy-900 space-y-4" aria-labelledby="titre-annuel-dsn">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div>
+          <h2 id="titre-annuel-dsn" class="text-lg font-bold text-navy-900 uppercase tracking-wider">DISA et DASC {{ annee }}</h2>
+          <p class="text-xs text-slate-500 mt-1">
+            Calculées à partir des déclarations mensuelles et des paiements de l'exercice. La DASC se dépose signée, en PDF.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <button type="button" class="px-3 py-2 text-xs font-semibold border border-slate-300 rounded-lg hover:bg-slate-50 inline-flex items-center gap-1.5" @click="telechargerAnnuel('disa')">
+            <Icon name="i-lucide-file-spreadsheet" class="w-4 h-4" /> DISA (Excel)
+          </button>
+          <button type="button" class="px-3 py-2 text-xs font-semibold border border-slate-300 rounded-lg hover:bg-slate-50 inline-flex items-center gap-1.5" @click="telechargerAnnuel('dasc')">
+            <Icon name="i-lucide-file-text" class="w-4 h-4" /> DASC (PDF à signer)
+          </button>
+        </div>
+      </div>
+
+      <div v-if="chargementAnnuel" class="py-6 flex justify-center">
+        <Icon name="i-lucide-loader-2" class="w-6 h-6 animate-spin text-green-600" />
+      </div>
+      <template v-else-if="annuel">
+        <ul v-if="annuel.anomalies.length" class="space-y-1">
+          <li v-for="(a, i) in annuel.anomalies" :key="i" class="text-xs px-3 py-1.5 rounded border"
+              :class="a.niveau === 'bloquant' ? 'bg-red-50 border-red-200 text-red-800' : 'bg-yellow-50 border-yellow-200 text-yellow-800'">
+            {{ a.salarie !== '—' ? `${a.salarie} : ` : '' }}{{ a.message }}
+          </li>
+        </ul>
+
+        <div>
+          <h3 class="text-xs font-bold text-navy-900 uppercase tracking-wider mb-2">À reporter sur e-CNPS</h3>
+          <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-7 gap-3 text-xs">
+            <div v-for="m in MONTANTS_E_CNPS" :key="m.cle" class="p-3 rounded-lg" :class="m.cle === 'solde_dasc' ? 'bg-navy-900 text-white' : 'bg-slate-50'">
+              <p :class="m.cle === 'solde_dasc' ? 'opacity-80' : 'text-slate-500'">{{ m.libelle }}</p>
+              <p class="font-bold font-mono">{{ m.entier ? annuel.totaux.e_cnps[m.cle] : formatFcfa(annuel.totaux.e_cnps[m.cle]) }}</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 text-xs">
+          <div class="p-3 border border-slate-200 rounded-lg"><p class="text-slate-500">Total I — déclaré</p><p class="font-bold font-mono">{{ formatFcfa(annuel.totaux.total_i) }}</p></div>
+          <div class="p-3 border border-slate-200 rounded-lg"><p class="text-slate-500">Total II — payé</p><p class="font-bold font-mono">{{ formatFcfa(annuel.totaux.total_ii) }}</p></div>
+          <div class="p-3 border border-slate-200 rounded-lg"><p class="text-slate-500">Total III — annuel</p><p class="font-bold font-mono">{{ formatFcfa(annuel.totaux.total_iii) }}</p></div>
+          <div class="p-3 border border-slate-200 rounded-lg"><p class="text-slate-500">Total IV — régularisation</p><p class="font-bold font-mono">{{ formatFcfa(annuel.totaux.total_iv) }}</p></div>
+          <div class="p-3 border border-slate-200 rounded-lg"><p class="text-slate-500">Total V — solde de l'exercice</p><p class="font-bold font-mono">{{ formatFcfa(annuel.totaux.total_v) }}</p></div>
+        </div>
+
+        <div v-if="annuel.lignes.length" class="overflow-x-auto border border-slate-200 rounded-lg">
+          <table class="min-w-full text-xs">
+            <thead class="bg-slate-50 text-slate-600 font-bold uppercase text-[10px] tracking-wider text-left">
+              <tr>
+                <th scope="col" class="px-3 py-2">N°</th>
+                <th scope="col" class="px-3 py-2">Nom et prénoms</th>
+                <th scope="col" class="px-3 py-2">N° CNPS</th>
+                <th scope="col" class="px-3 py-2">Embauche</th>
+                <th scope="col" class="px-3 py-2">Départ</th>
+                <th scope="col" class="px-3 py-2 text-right">Brut annuel</th>
+                <th scope="col" class="px-3 py-2 text-right">Mois</th>
+                <th scope="col" class="px-3 py-2 text-right">PF / AT</th>
+                <th scope="col" class="px-3 py-2 text-right">Retraite</th>
+                <th scope="col" class="px-3 py-2">Régime</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100">
+              <tr v-for="l in annuel.lignes" :key="l.ordre">
+                <td class="px-3 py-2">{{ l.ordre }}</td>
+                <td class="px-3 py-2">{{ l.nom }} {{ l.prenoms }}</td>
+                <td class="px-3 py-2 font-mono">{{ l.numero_cnps || '—' }}</td>
+                <td class="px-3 py-2">{{ dateFr(l.date_embauche) }}</td>
+                <td class="px-3 py-2">{{ dateFr(l.date_depart) }}</td>
+                <td class="px-3 py-2 text-right font-mono">{{ formatFcfa(l.salaire_brut) }}</td>
+                <td class="px-3 py-2 text-right font-mono">{{ l.duree_activite }}</td>
+                <td class="px-3 py-2 text-right font-mono">{{ formatFcfa(l.montant_pf_at) }}</td>
+                <td class="px-3 py-2 text-right font-mono">{{ formatFcfa(l.montant_retraite) }}</td>
+                <td class="px-3 py-2 font-mono">{{ l.regime }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </template>
     </section>
