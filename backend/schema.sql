@@ -1614,7 +1614,14 @@ CREATE TABLE IF NOT EXISTS paiements_cotisations_cnps (
 );
 CREATE INDEX IF NOT EXISTS ix_paiements_cnps_declaration ON paiements_cotisations_cnps (declaration_id);
 
--- 20. Contrôles post-migration (à exécuter manuellement) :
+-- 20. Cloisonnement par cabinet : un sous-domaine par cabinet.
+--     Porté par le propriétaire du cabinet ; ses comptes (membres, clients,
+--     salariés) ne se connectent que sur ce sous-domaine. Les cabinets sans
+--     sous-domaine en reçoivent un, déduit de leur nom, au démarrage de l'API.
+ALTER TABLE utilisateurs ADD COLUMN IF NOT EXISTS sous_domaine VARCHAR(63);
+CREATE UNIQUE INDEX IF NOT EXISTS ux_utilisateurs_sous_domaine ON utilisateurs (sous_domaine);
+
+-- 21. Contrôles post-migration (à exécuter manuellement) :
 --    -- Aucun compte sans mot de passe (sinon connexion impossible) :
 --    SELECT id, email, role FROM utilisateurs WHERE hashed_password IS NULL;
 --    -- La colonne et ses valeurs par défaut :

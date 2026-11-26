@@ -26,6 +26,21 @@ const email = ref('')
 const password = ref('')
 const passwordConfirm = ref('')
 
+// Espace désigné par l'adresse : cabinet (sous-domaine), plateforme ou local.
+const espace = ref(null)
+const espaceInconnu = ref(false)
+const chargerEspace = async () => {
+  try {
+    const config = useRuntimeConfig()
+    espace.value = await $fetch(`${resoudreApiBase(config.public.apiBase)}/auth/espace`)
+    // Sur l'adresse d'un cabinet, on ne propose que la connexion.
+    if (espace.value?.type === 'cabinet') isRegister.value = false
+  } catch (e) {
+    if (e?.status === 404 || e?.response?.status === 404) espaceInconnu.value = true
+  }
+}
+const espaceCabinet = computed(() => espace.value?.type === 'cabinet')
+
 const showPassword = ref(false)
 const errorMsg = ref('')
 const successMsg = ref('')
@@ -143,6 +158,12 @@ const handleRegisterCabinet = async () => {
 
   if (res.error) {
     errorMsg.value = res.error
+  } else if (res.urlEspace && new URL(res.urlEspace).origin !== window.location.origin) {
+    // Cloisonnement : le cabinet se connecte désormais sur son propre sous-domaine.
+    successMsg.value = `Votre espace Cabinet a été créé : ${res.urlEspace}. Redirection vers votre page de connexion…`
+    setTimeout(() => {
+      window.location.href = `${res.urlEspace}/login`
+    }, 1800)
   } else {
     successMsg.value = 'Votre espace Cabinet a été créé avec succès ! Redirection en cours...'
     setTimeout(() => {
@@ -152,6 +173,7 @@ const handleRegisterCabinet = async () => {
 }
 
 onMounted(() => {
+  chargerEspace()
   if (user.value) {
     redirectToPlatform()
   }
@@ -180,15 +202,21 @@ onMounted(() => {
 
       <template v-else>
         <h1 class="text-2xl sm:text-3xl font-extrabold text-navy-900 tracking-tight">
-          Connexion à payohada
+          {{ espaceCabinet ? espace.cabinet_nom : 'Connexion à payohada' }}
         </h1>
         <p class="mt-2 text-sm text-slate-600">
-          Accédez à vos dossiers d'entreprises, vos simulations et bulletins de paie.
+          <template v-if="espaceCabinet">Connectez-vous à l'espace de paie de votre {{ espace.type_cabinet === 'entreprise' ? 'entreprise' : 'cabinet' }}.</template>
+          <template v-else-if="espace?.type === 'plateforme'">Administration de la plateforme payohada.</template>
+          <template v-else>Accédez à vos dossiers d'entreprises, vos simulations et bulletins de paie.</template>
+        </p>
+        <p v-if="espaceInconnu" role="alert" class="mt-3 text-sm px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-red-800">
+          Cette adresse ne correspond à aucun cabinet. Vérifiez l'adresse de connexion transmise par votre cabinet.
         </p>
       </template>
 
-      <!-- Toggle inscription / connexion -->
-      <div class="mt-3 text-sm">
+      <!-- Toggle inscription / connexion : l'inscription d'un cabinet se fait
+           sur l'adresse principale, pas sur le sous-domaine d'un autre cabinet. -->
+      <div v-if="!espaceCabinet && !espaceInconnu" class="mt-3 text-sm">
         <span class="text-slate-500">
           {{ isRegister ? "Vous avez déjà un compte ?" : "Vous représentez un cabinet ou un gestionnaire ?" }}
         </span>

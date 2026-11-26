@@ -5,7 +5,7 @@ import os
 from datetime import datetime, timedelta, timezone
 from typing import Optional
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import jwt
 from jwt import InvalidTokenError
@@ -21,6 +21,7 @@ security = HTTPBearer()
 
 
 def get_current_user(
+    request: Request,
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: Session = Depends(get_db)
 ) -> Utilisateur:
@@ -80,7 +81,38 @@ def get_current_user(
             detail="Le cabinet est suspendu. Contactez l'administrateur de la plateforme.",
         )
 
+    verifier_espace_du_jeton(request, payload, user, db)
     return user
+
+
+def verifier_espace_du_jeton(request: Request, payload: dict, user: Utilisateur, db: Session) -> None:
+    """Cloisonnement : le jeton n'est valable que sur l'adresse de son cabinet.
+
+    Un jeton émis par PayOHADA porte l'espace (`dom`) : il doit correspondre à
+    l'adresse appelée. Un jeton sans `dom` (Supabase, ou émis avant
+    l'activation du cloisonnement) est accepté si le compte appartient à
+    l'espace de l'adresse.
+    """
+    from app.services.espaces import compte_autorise_sur, espace_de_la_requete
+
+    espace = espace_de_la_requete(request)
+    if espace.type == "local":
+        return
+    domaine_jeton = payload.get("dom")
+    if domaine_jeton is not None:
+        valide = espace.type != "inconnu" and domaine_jeton == espace.cle_jeton
+    else:
+        valide = compte_autorise_sur(user, espace, db)
+    if not valide:
+        logger.warning(
+            "Jeton refusé : compte %s utilisé sur %s (espace du jeton : %s)",
+            user.email, request.headers.get("host"), domaine_jeton,
+        )
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Session non valable sur cette adresse. Connectez-vous sur l'espace de votre cabinet.",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
 
 
 def cabinet_est_suspendu(db: Session, user: "Utilisateur") -> bool:

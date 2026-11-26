@@ -19,7 +19,13 @@ class CabinetCreate(BaseModel):
     #: `entreprise` : une seule société, créée avec le compte (dossier et
     #: établissement au nom du cabinet).
     type_cabinet: Literal["cabinet", "entreprise"] = "cabinet"
+    #: Sous-domaine de connexion (cabinet-x) ; déduit du nom s'il est absent.
+    sous_domaine: Optional[str] = Field(default=None, max_length=63)
     administrateur: CabinetAdminCreate
+
+
+class CabinetSousDomaineUpdate(BaseModel):
+    sous_domaine: str = Field(min_length=3, max_length=63)
 
 
 class CabinetStatutUpdate(BaseModel):
@@ -54,6 +60,9 @@ class CabinetOut(BaseModel):
     telephone: Optional[str] = None
     ville: Optional[str] = None
     type_cabinet: str = "cabinet"
+    sous_domaine: Optional[str] = None
+    #: Adresse de connexion du cabinet (sous-domaine).
+    url_espace: Optional[str] = None
     suspendu: bool = False
     is_active: bool = True
     membres: int = 0

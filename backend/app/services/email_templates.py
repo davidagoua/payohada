@@ -4,10 +4,15 @@ import html
 from app.config import settings
 
 
-def lien_connexion() -> str:
-    """URL de la page de connexion, reprise dans les emails d'accès."""
-    base = (settings.FRONTEND_BASE_URL or "").rstrip("/")
-    return f"{base}/login"
+def lien_connexion(sous_domaine: str | None = None) -> str:
+    """URL de la page de connexion, reprise dans les emails d'accès.
+
+    `sous_domaine` : celui du cabinet du compte, qui ne peut se connecter
+    qu'à cette adresse (cloisonnement, `services/espaces.py`).
+    """
+    from app.services.espaces import url_espace
+
+    return f"{url_espace(sous_domaine)}/login"
 
 
 def _habillage(titre: str, intro: str, corps: str, pied: str = "") -> str:

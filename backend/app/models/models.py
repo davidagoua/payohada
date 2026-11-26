@@ -85,6 +85,9 @@ class Utilisateur(TimestampMixin, Base):
     #: `cabinet` (plusieurs sociétés) ou `entreprise` (une seule société, créée
     #: avec le compte). Porté par le propriétaire ; les membres en héritent.
     type_cabinet = Column(String(20), default="cabinet", nullable=False, server_default="cabinet")
+    #: Sous-domaine du cabinet (`cabinet-x` → cabinet-x.<domaine>) : ses comptes
+    #: ne se connectent que là. Porté par le propriétaire (`services/espaces.py`).
+    sous_domaine = Column(String(63), unique=True, nullable=True, index=True)
 
     # Relations
     dossiers = relationship("Dossier", back_populates="proprietaire", foreign_keys="[Dossier.utilisateur_id]")

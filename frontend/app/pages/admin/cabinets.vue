@@ -27,6 +27,7 @@ const compteCree = ref(null)
 
 const creation = ref({
   type_cabinet: 'cabinet',
+  sous_domaine: '',
   cabinet_nom: '',
   cabinet_telephone: '',
   cabinet_ville: '',
@@ -63,7 +64,7 @@ const charger = async () => {
 
 const reinitialiserCreation = () => {
   creation.value = {
-    type_cabinet: 'cabinet', cabinet_nom: '', cabinet_telephone: '', cabinet_ville: '',
+    type_cabinet: 'cabinet', sous_domaine: '', cabinet_nom: '', cabinet_telephone: '', cabinet_ville: '',
     prenom: '', nom: '', email: '', password: ''
   }
 }
@@ -85,6 +86,7 @@ const creerCabinet = async () => {
       cabinet_nom: creation.value.cabinet_nom.trim(),
       cabinet_telephone: creation.value.cabinet_telephone || null,
       cabinet_ville: creation.value.cabinet_ville || null,
+      sous_domaine: creation.value.sous_domaine.trim() || null,
       type_cabinet: creation.value.type_cabinet,
       administrateur: {
         prenom: creation.value.prenom.trim(),
@@ -150,6 +152,30 @@ const ajouterAdministrateur = async () => {
     console.error('Ajout de l’administrateur impossible :', e)
   } finally {
     adminEnCours.value = false
+  }
+}
+
+// Adresse de connexion du cabinet (sous-domaine) : proposée à partir du nom.
+const suggestionSousDomaine = computed(() =>
+  (creation.value.cabinet_nom || '')
+    .normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 63)
+)
+
+const changerSousDomaine = async (cabinet) => {
+  const saisie = prompt(
+    `Nouvelle adresse de connexion du cabinet « ${cabinet.cabinet_nom || cabinet.email} » (sous-domaine).\n` +
+    'Les comptes du cabinet devront se reconnecter à la nouvelle adresse.',
+    cabinet.sous_domaine || ''
+  )
+  if (!saisie || saisie.trim() === cabinet.sous_domaine) return
+  try {
+    const maj = await put(`/platform/cabinets/${cabinet.id}/sous-domaine`, { sous_domaine: saisie.trim() })
+    const index = cabinets.value.findIndex(c => c.id === cabinet.id)
+    if (index !== -1) cabinets.value[index] = maj
+    toast.add({ title: 'Adresse modifiée', description: maj.url_espace || maj.sous_domaine, color: 'success' })
+  } catch (e) {
+    console.error('Changement d’adresse impossible :', e)
   }
 }
 
@@ -280,6 +306,19 @@ onMounted(() => {
               placeholder="Cabinet Audit & Paie"
               class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
             />
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-500" for="cabinet_sous_domaine">Adresse de connexion (sous-domaine)</label>
+            <InputText
+              id="cabinet_sous_domaine"
+              v-model="creation.sous_domaine"
+              :placeholder="suggestionSousDomaine || 'cabinet-audit-paie'"
+              class="mt-1 block w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-mono bg-white focus:outline-none focus:ring-2 focus:ring-green-500"
+            />
+            <p class="mt-1 text-[11px] text-slate-500">
+              Les comptes du cabinet ne se connecteront qu'à cette adresse. Laissez vide pour la déduire du nom
+              (« {{ suggestionSousDomaine || '…' }} »).
+            </p>
           </div>
           <div>
             <label class="block text-xs font-bold uppercase tracking-wider text-slate-500" for="cabinet_ville">Ville</label>
@@ -459,6 +498,11 @@ onMounted(() => {
                     <p class="text-[11px] text-slate-400 mt-0.5">
                       {{ cabinet.ville || '—' }} · créé le {{ formaterDate(cabinet.created_at) }}
                     </p>
+                    <p v-if="cabinet.sous_domaine" class="text-[11px] mt-0.5">
+                      <a v-if="cabinet.url_espace" :href="`${cabinet.url_espace}/login`" target="_blank" rel="noopener"
+                        class="font-mono text-green-700 hover:underline">{{ cabinet.url_espace.replace(/^https?:\/\//, '') }}</a>
+                      <span v-else class="font-mono text-slate-500">{{ cabinet.sous_domaine }}</span>
+                    </p>
                   </div>
                 </div>
               </template>
@@ -497,6 +541,10 @@ onMounted(() => {
                   <button type="button" class="text-xs font-semibold text-navy-700 hover:text-navy-900"
                     @click="ouvrirFormulaireAdmin(cabinet)">
                     + Administrateur
+                  </button>
+                  <button type="button" class="text-xs font-semibold text-navy-700 hover:text-navy-900"
+                    @click="changerSousDomaine(cabinet)">
+                    Adresse
                   </button>
                   <button type="button"
                     class="text-xs font-semibold"

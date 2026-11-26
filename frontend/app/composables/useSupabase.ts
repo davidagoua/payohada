@@ -323,7 +323,9 @@ export const useSupabase = () => {
           localStorage.setItem('sb-token-cache', response.access_token)
           localStorage.setItem('sb-user-cache', JSON.stringify(user.value))
         }
-        return { error: null }
+        // Adresse de l'espace du nouveau cabinet (sous-domaine, si le
+        // cloisonnement est actif) : la page de connexion y redirige.
+        return { error: null, urlEspace: response.url_espace as string | undefined }
       }
       return { error: 'Une réponse inattendue a été reçue du serveur.' }
     } catch (e: any) {

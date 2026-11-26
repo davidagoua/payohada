@@ -48,6 +48,21 @@ except Exception:  # pragma: no cover - le démarrage ne doit pas échouer
 finally:
     db.close()
 
+# Cloisonnement : chaque cabinet reçoit un sous-domaine, déduit de son nom,
+# s'il n'en a pas encore (cabinets créés avant la fonctionnalité).
+db = SessionLocal()
+try:
+    from app.services.espaces import attribuer_sous_domaines_manquants
+    attribues = attribuer_sous_domaines_manquants(db)
+    db.commit()
+    if attribues:
+        logger.info("Sous-domaine attribué à %d cabinet(s).", attribues)
+except Exception:  # pragma: no cover - colonne absente avant la migration
+    db.rollback()
+    logger.exception("Attribution des sous-domaines impossible (section 20 de schema.sql exécutée ?)")
+finally:
+    db.close()
+
 app = FastAPI(
     title=settings.APP_NAME,
     version=settings.APP_VERSION,

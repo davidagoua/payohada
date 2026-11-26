@@ -27,6 +27,7 @@ from app.schemas.platform import (
     CabinetCreate,
     CabinetCreationOut,
     CabinetOut,
+    CabinetSousDomaineUpdate,
     CabinetStatutUpdate,
     ActiviteMensuelle,
     IndicateursCabinets,
@@ -34,6 +35,9 @@ from app.schemas.platform import (
     UsageCabinet,
 )
 from app.services.email import send_email
+from app.services.espaces import (
+    erreur_sous_domaine, generer_sous_domaine, normaliser_sous_domaine, sous_domaine_libre, url_espace,
+)
 from app.services.email_templates import email_acces_cree, lien_connexion
 from app.services.security import (
     generate_password,
@@ -135,6 +139,8 @@ def _presenter_cabinet(db: Session, proprietaire: Utilisateur) -> CabinetOut:
         telephone=proprietaire.cabinet_telephone,
         ville=proprietaire.cabinet_ville,
         type_cabinet=proprietaire.type_cabinet or TYPE_CABINET,
+        sous_domaine=proprietaire.sous_domaine,
+        url_espace=url_espace(proprietaire.sous_domaine) if proprietaire.sous_domaine else None,
         suspendu=bool(proprietaire.cabinet_suspendu),
         is_active=bool(proprietaire.is_active),
         membres=membres + 1,
@@ -156,6 +162,7 @@ def _creer_admin(
     cabinet_telephone: str | None,
     cabinet_ville: str | None,
     type_cabinet: str = TYPE_CABINET,
+    sous_domaine: str | None = None,
 ) -> tuple[Utilisateur, str | None, bool, str | None]:
     email = donnees.email.strip().lower()
     if _email_deja_pris(db, email):
@@ -190,9 +197,11 @@ def _creer_admin(
         cabinet_ville=cabinet_ville,
         cabinet_suspendu=False,
     )
-    # Le type n'est porté que par le propriétaire ; les membres en héritent.
+    # Le type et le sous-domaine ne sont portés que par le propriétaire ; les
+    # membres en héritent.
     if cabinet_owner_id is None:
         compte.type_cabinet = type_cabinet
+        compte.sous_domaine = sous_domaine
     db.add(compte)
     db.flush()
 
@@ -204,7 +213,7 @@ def _creer_admin(
         compte.email,
         pwd,
         None,
-        lien_connexion(),
+        lien_connexion(sous_domaine),
         changement_requis=must_change,
         espace_libelle="Espace Entreprise" if entreprise else "Espace Cabinet",
         espace_usage=(
@@ -269,6 +278,7 @@ def creer_cabinet(
     email = payload.administrateur.email.strip().lower()
     if _email_deja_pris(db, email):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cette adresse email est déjà utilisée.")
+    sous_domaine = _sous_domaine_valide(db, payload.sous_domaine) if payload.sous_domaine else generer_sous_domaine(db, nom_cabinet)
 
     proprietaire, mot_de_passe, envoye, motif = _creer_admin(
         db,
@@ -278,6 +288,7 @@ def creer_cabinet(
         cabinet_telephone=payload.cabinet_telephone,
         cabinet_ville=payload.cabinet_ville,
         type_cabinet=payload.type_cabinet,
+        sous_domaine=sous_domaine,
     )
     # Le compte vient d'être créé : il devient sa propre racine.
     proprietaire.cabinet_owner_id = None
@@ -318,6 +329,7 @@ def ajouter_administrateur(
         cabinet_telephone=proprietaire.cabinet_telephone,
         cabinet_ville=proprietaire.cabinet_ville,
         type_cabinet=proprietaire.type_cabinet or TYPE_CABINET,
+        sous_domaine=proprietaire.sous_domaine,
     )
     db.commit()
     db.refresh(compte)
@@ -329,6 +341,39 @@ def ajouter_administrateur(
         email_envoye=envoye,
         email_message=None if envoye else motif,
     )
+
+
+def _sous_domaine_valide(db: Session, valeur: str, sauf_id: int | None = None) -> str:
+    sous_domaine = normaliser_sous_domaine(valeur)
+    erreur = erreur_sous_domaine(sous_domaine)
+    if erreur:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=erreur)
+    if not sous_domaine_libre(db, sous_domaine, sauf_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Le sous-domaine « {sous_domaine} » est déjà utilisé par un autre cabinet.",
+        )
+    return sous_domaine
+
+
+@router.put("/cabinets/{cabinet_id}/sous-domaine", response_model=CabinetOut)
+def changer_sous_domaine(
+    cabinet_id: int,
+    payload: CabinetSousDomaineUpdate,
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user),
+):
+    """Change l'adresse de connexion d'un cabinet.
+
+    Les sessions ouvertes sur l'ancienne adresse ne sont plus valables : les
+    comptes du cabinet devront se reconnecter à la nouvelle.
+    """
+    require_admin(current_user)
+    proprietaire = _proprietaire_ou_404(db, cabinet_id)
+    proprietaire.sous_domaine = _sous_domaine_valide(db, payload.sous_domaine, sauf_id=proprietaire.id)
+    db.commit()
+    db.refresh(proprietaire)
+    return _presenter_cabinet(db, proprietaire)
 
 
 @router.put("/cabinets/{cabinet_id}/statut", response_model=CabinetOut)

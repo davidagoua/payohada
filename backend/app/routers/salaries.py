@@ -9,6 +9,7 @@ from app.models.models import Salarie, Etablissement, Dossier, Utilisateur
 from app.schemas.salarie import SalarieCreate, SalarieUpdate, SalarieOut
 from app.services.email import send_email
 from app.services.email_templates import email_acces_cree, lien_connexion
+from app.services.espaces import sous_domaine_du_dossier
 from app.services.security import (
     generate_password,
     get_current_user,
@@ -151,7 +152,7 @@ def _envoyer_identifiants_salarie(salarie: Salarie, mot_de_passe: str) -> tuple[
         salarie.email,
         mot_de_passe,
         dossier.nom_dossier if dossier else None,
-        lien_connexion(),
+        lien_connexion(sous_domaine_du_dossier(dossier)),
         changement_requis=True,
         espace_libelle="Espace Salarié",
         espace_usage="consulter vos bulletins de paie et suivre vos réclamations",

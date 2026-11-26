@@ -26,6 +26,7 @@ from app.schemas.utilisateur import (
 )
 from app.services.email import send_email
 from app.services.email_templates import email_acces_cree, lien_connexion
+from app.services.espaces import sous_domaine_du_compte
 from app.services.permissions import (
     ROLE_CABINET,
     ROLE_GESTIONNAIRE_PAIE,
@@ -181,7 +182,7 @@ def creer_utilisateur(
         compte.email,
         pwd,
         None,
-        lien_connexion(),
+        lien_connexion(sous_domaine_du_compte(compte, db)),
         changement_requis=must_change,
         espace_libelle="Espace Cabinet",
         espace_usage=(

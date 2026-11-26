@@ -15,6 +15,7 @@ from app.schemas.utilisateur import (
 )
 from app.services.email import send_email
 from app.services.email_templates import email_acces_cree, lien_connexion
+from app.services.espaces import sous_domaine_du_dossier
 from app.services.security import (
     get_current_user, get_password_hash, generate_password, validate_password_strength,
 )
@@ -308,7 +309,7 @@ def _envoyer_identifiants(
         compte.email,
         mot_de_passe,
         dossier.nom_dossier if dossier else None,
-        lien_connexion(),
+        lien_connexion(sous_domaine_du_dossier(dossier)),
         changement_requis=changement_requis,
         espace_libelle=espace_libelle,
         espace_usage=espace_usage,

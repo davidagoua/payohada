@@ -69,6 +69,11 @@ class Settings(BaseSettings):
     #: URL publique du frontend, utilisée pour construire le lien envoyé par
     #: email (ex. https://app.payohada.cloud).
     FRONTEND_BASE_URL: str = "http://localhost:3000"
+    #: Domaines de base du cloisonnement par cabinet, séparés par des virgules
+    #: (ex. « payohada.cloud »). Vide : cloisonnement désactivé. Le cabinet
+    #: `cabinet-x` est alors servi sur cabinet-x.payohada.cloud, le domaine nu
+    #: (et app./www.) étant réservé à l'administrateur plateforme.
+    DOMAINES_PLATEFORME: str = ""
 
     # Téléversement de documents
     MAX_UPLOAD_SIZE_BYTES: int = 10 * 1024 * 1024  # 10 Mo

@@ -22,6 +22,10 @@ from app.services.email import send_email
 from app.services.email_templates import email_reinitialisation_mot_de_passe
 from app.models.models import Utilisateur
 from app.services.permissions import accueil_cabinet_entreprise, type_cabinet
+from app.services.espaces import (
+    cle_jeton_du_compte, compte_autorise_sur, espace_de_la_requete, generer_sous_domaine,
+    sous_domaine_du_compte, url_espace,
+)
 from app.database import get_db
 import uuid
 
@@ -43,6 +47,15 @@ def _find_user_by_email(db: Session, email: str) -> Utilisateur | None:
         .filter(func.lower(Utilisateur.email) == email.strip().lower())
         .first()
     )
+
+
+def _donnees_jeton(db: Session, user: Utilisateur) -> dict:
+    """Contenu du jeton de session : l'espace (`dom`) le lie à l'adresse du cabinet."""
+    donnees = {"sub": user.supabase_uid, "email": user.email}
+    espace = cle_jeton_du_compte(user, db)
+    if espace:
+        donnees["dom"] = espace
+    return donnees
 
 
 def _infos_cabinet(db: Session, user: Utilisateur) -> dict:
@@ -95,6 +108,34 @@ def read_current_user(
     return user_out
 
 
+@router.get("/espace")
+def espace_courant(http_request: Request, db: Session = Depends(get_db)):
+    """Espace désigné par l'adresse (sans authentification), pour la page de connexion.
+
+    `local` : cloisonnement inactif ; `plateforme` : domaine principal ;
+    `cabinet` : sous-domaine d'un cabinet, dont le nom est renvoyé. Un
+    sous-domaine sans cabinet répond 404.
+    """
+    espace = espace_de_la_requete(http_request)
+    if espace.type == "inconnu":
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Adresse inconnue.")
+    if espace.type != "cabinet":
+        return {"type": espace.type, "sous_domaine": None, "cabinet_nom": None, "type_cabinet": None}
+    cabinet = (
+        db.query(Utilisateur)
+        .filter(Utilisateur.sous_domaine == espace.sous_domaine, Utilisateur.is_admin.is_(False))
+        .first()
+    )
+    if cabinet is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Cabinet introuvable.")
+    return {
+        "type": "cabinet",
+        "sous_domaine": cabinet.sous_domaine,
+        "cabinet_nom": cabinet.cabinet_nom,
+        "type_cabinet": cabinet.type_cabinet or "cabinet",
+    }
+
+
 @router.post("/login")
 def login(request: LoginRequest, http_request: Request, db: Session = Depends(get_db)):
     """Connexion par email et mot de passe (cabinet, client ou salarié)."""
@@ -126,6 +167,15 @@ def login(request: LoginRequest, http_request: Request, db: Session = Depends(ge
     else:
         motif = user
 
+    if motif is not None and not compte_autorise_sur(user, espace_de_la_requete(http_request), db):
+        # Cloisonnement : même réponse qu'un mot de passe faux, pour ne pas
+        # révéler qu'un compte existe dans un autre cabinet.
+        logger.warning(
+            "Connexion refusée : le compte %s n'appartient pas à l'espace %s",
+            email, http_request.headers.get("host"),
+        )
+        motif = None
+
     if motif is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -146,9 +196,7 @@ def login(request: LoginRequest, http_request: Request, db: Session = Depends(ge
 
     compte_rate_limiter.reset(f"login:email:{email}")
 
-    access_token = create_access_token(
-        data={"sub": user.supabase_uid, "email": user.email}
-    )
+    access_token = create_access_token(data=_donnees_jeton(db, user))
 
     nom_dossier = None
     if user.dossier_id and user.dossier_client:
@@ -235,9 +283,19 @@ def forgot_password(
     password_reset.purger_jetons_obsoletes(db)
     db.commit()
 
+    if utilisateur and not compte_autorise_sur(utilisateur, espace_de_la_requete(http_request), db):
+        # Cloisonnement : un compte d'un autre cabinet est traité comme inconnu.
+        logger.info(
+            "Demande de réinitialisation hors de l'espace du compte %s (%s) : ignorée.",
+            utilisateur.email, http_request.headers.get("host"),
+        )
+        utilisateur = None
+
     if utilisateur and utilisateur.is_active:
         jeton = password_reset.creer_jeton(db, utilisateur, adresse_ip=source)
-        lien = password_reset.construire_lien_reinitialisation(jeton)
+        lien = password_reset.construire_lien_reinitialisation(
+            jeton, url_espace(sous_domaine_du_compte(utilisateur, db))
+        )
         sujet, contenu = email_reinitialisation_mot_de_passe(
             utilisateur.prenom,
             utilisateur.nom,
@@ -384,15 +442,18 @@ def signup_cabinet(
         cabinet_ville=request.cabinet_ville,
     )
     db.add(new_user)
+    db.flush()
+    # Le cabinet reçoit son sous-domaine : il se connectera désormais à cette adresse.
+    new_user.sous_domaine = generer_sous_domaine(db, request.cabinet_nom or email.split("@")[0])
     db.commit()
     db.refresh(new_user)
 
-    access_token = create_access_token(
-        data={"sub": new_user.supabase_uid, "email": new_user.email}
-    )
+    access_token = create_access_token(data=_donnees_jeton(db, new_user))
 
     return {
         "access_token": access_token,
+        #: Adresse de l'espace du cabinet : le frontend y redirige si besoin.
+        "url_espace": url_espace(new_user.sous_domaine),
         "token_type": "bearer",
         "user": _build_user_payload(new_user, db=db),
     }

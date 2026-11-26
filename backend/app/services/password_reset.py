@@ -139,7 +139,10 @@ def purger_jetons_obsoletes(db: Session, jours: int = 7) -> int:
     return supprimes
 
 
-def construire_lien_reinitialisation(jeton: str) -> str:
-    """URL à envoyer par email vers la page frontend de réinitialisation."""
-    base = (settings.FRONTEND_BASE_URL or "").rstrip("/")
+def construire_lien_reinitialisation(jeton: str, base: Optional[str] = None) -> str:
+    """URL à envoyer par email vers la page frontend de réinitialisation.
+
+    `base` : adresse de l'espace du compte (sous-domaine de son cabinet).
+    """
+    base = (base or settings.FRONTEND_BASE_URL or "").rstrip("/")
     return f"{base}/reset-password?token={jeton}"
