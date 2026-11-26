@@ -44,10 +44,10 @@ export const ESPACES = [
  * Routes ouvertes à l'administrateur plateforme. Il pilote le SaaS (cabinets,
  * référentiels, indicateurs) et n'accède à aucun espace de paie des cabinets.
  */
-export const ROUTES_PLATEFORME = ['/admin', '/admin/cabinets', '/admin/constantes', '/admin/plan-paie', '/admin/modes-paiement', '/simulation']
+export const ROUTES_PLATEFORME = ['/admin', '/admin/cabinets', '/admin/constantes', '/admin/plan-paie', '/admin/modes-paiement', '/admin/administrateurs', '/simulation']
 
 /** Écrans de l'espace /admin réservés à la plateforme (fermés au cabinet). */
-export const ROUTES_PLATEFORME_SEULEMENT = ['/admin/cabinets', '/admin/modes-paiement']
+export const ROUTES_PLATEFORME_SEULEMENT = ['/admin/cabinets', '/admin/modes-paiement', '/admin/administrateurs']
 
 /**
  * Compte entreprise : un cabinet qui gère la paie de sa seule société. Il

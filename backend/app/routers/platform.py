@@ -21,6 +21,9 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.models import BulletinPaie, Dossier, Etablissement, Salarie, Utilisateur
 from app.schemas.platform import (
+    AdminPlateformeCreationOut,
+    AdminPlateformeOut,
+    AdminPlateformeStatutUpdate,
     CabinetAdminCreate,
     CabinetAdminCreationOut,
     CabinetAdminOut,
@@ -399,6 +402,129 @@ def changer_statut_cabinet(
     db.commit()
     db.refresh(proprietaire)
     return _presenter_cabinet(db, proprietaire)
+
+
+# ─────────────────────────────────────────
+#  Administrateurs de la plateforme
+# ─────────────────────────────────────────
+
+def _presenter_admin_plateforme(compte: Utilisateur, moi: Utilisateur) -> AdminPlateformeOut:
+    return AdminPlateformeOut(
+        id=compte.id,
+        email=compte.email,
+        prenom=compte.prenom or "",
+        nom=compte.nom or "",
+        is_active=bool(compte.is_active),
+        must_change_password=bool(compte.must_change_password),
+        est_moi=compte.id == moi.id,
+        created_at=compte.created_at,
+    )
+
+
+@router.get("/administrateurs", response_model=list[AdminPlateformeOut])
+def lister_admins_plateforme(
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user),
+):
+    """Comptes administrateurs de la plateforme."""
+    require_admin(current_user)
+    comptes = (
+        db.query(Utilisateur)
+        .filter(Utilisateur.is_admin.is_(True))
+        .order_by(Utilisateur.created_at, Utilisateur.id)
+        .all()
+    )
+    return [_presenter_admin_plateforme(compte, current_user) for compte in comptes]
+
+
+@router.post("/administrateurs", response_model=AdminPlateformeCreationOut, status_code=status.HTTP_201_CREATED)
+def creer_admin_plateforme(
+    payload: CabinetAdminCreate,
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user),
+):
+    """Crée un administrateur de la plateforme, avec les mêmes droits que soi.
+
+    Le compte n'est rattaché à aucun cabinet : il se connecte sur l'adresse
+    principale. Un mot de passe peut être fourni ou généré et envoyé par email.
+    """
+    require_admin(current_user)
+    email = payload.email.strip().lower()
+    if _email_deja_pris(db, email):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"L'adresse {email} est déjà utilisée par un compte.")
+
+    mot_de_passe_initial = None
+    if payload.password:
+        validate_password_strength(payload.password, minimum=8)
+        pwd = payload.password
+    else:
+        pwd = mot_de_passe_initial = generate_password()
+
+    compte = Utilisateur(
+        email=email,
+        nom=payload.nom.strip(),
+        prenom=payload.prenom.strip(),
+        hashed_password=get_password_hash(pwd),
+        supabase_uid=f"local-admin-{uuid.uuid4()}",
+        is_active=True,
+        is_admin=True,
+        must_change_password=mot_de_passe_initial is not None,
+        role=ROLE_CABINET,
+    )
+    db.add(compte)
+    db.commit()
+    db.refresh(compte)
+
+    sujet, contenu = email_acces_cree(
+        compte.prenom,
+        compte.nom,
+        compte.email,
+        pwd,
+        "PayOHADA",
+        lien_connexion(),
+        changement_requis=mot_de_passe_initial is not None,
+        espace_libelle="Administration",
+        espace_usage="administrer la plateforme PayOHADA et ses cabinets",
+    )
+    envoye, motif = send_email(compte.email, sujet, contenu)
+    return AdminPlateformeCreationOut(
+        **_presenter_admin_plateforme(compte, current_user).model_dump(),
+        mot_de_passe_initial=mot_de_passe_initial,
+        email_envoye=envoye,
+        email_message=None if envoye else motif,
+    )
+
+
+@router.put("/administrateurs/{admin_id}/statut", response_model=AdminPlateformeOut)
+def changer_statut_admin_plateforme(
+    admin_id: int,
+    payload: AdminPlateformeStatutUpdate,
+    db: Session = Depends(get_db),
+    current_user: Utilisateur = Depends(get_current_user),
+):
+    """Désactive ou réactive un administrateur de la plateforme."""
+    require_admin(current_user)
+    compte = (
+        db.query(Utilisateur)
+        .filter(Utilisateur.id == admin_id, Utilisateur.is_admin.is_(True))
+        .first()
+    )
+    if not compte:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Administrateur introuvable.")
+    if not payload.actif:
+        if compte.id == current_user.id:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Vous ne pouvez pas désactiver votre propre compte.")
+        actifs = (
+            db.query(func.count(Utilisateur.id))
+            .filter(Utilisateur.is_admin.is_(True), Utilisateur.is_active.is_(True), Utilisateur.id != compte.id)
+            .scalar()
+        )
+        if not actifs:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="La plateforme doit garder au moins un administrateur actif.")
+    compte.is_active = payload.actif
+    db.commit()
+    db.refresh(compte)
+    return _presenter_admin_plateforme(compte, current_user)
 
 
 def _derniers_mois(nombre: int, reference: date) -> list[tuple[int, int]]:

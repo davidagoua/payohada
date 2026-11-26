@@ -148,6 +148,10 @@ verifier('admin accède aux modes de paiement',
   deciderRedirection({ chemin: '/admin/modes-paiement', aJeton: true, utilisateur: ADMIN }), laisser)
 verifier('cabinet n\'ouvre pas les modes de paiement de la plateforme',
   deciderRedirection({ chemin: '/admin/modes-paiement', aJeton: true, utilisateur: CABINET }), vers('/dossiers'))
+verifier('admin gère les administrateurs de la plateforme',
+  deciderRedirection({ chemin: '/admin/administrateurs', aJeton: true, utilisateur: ADMIN }), laisser)
+verifier('cabinet n\'ouvre pas les administrateurs de la plateforme',
+  deciderRedirection({ chemin: '/admin/administrateurs', aJeton: true, utilisateur: CABINET }), vers('/dossiers'))
 verifier('cabinet n\'ouvre pas la gestion des cabinets',
   deciderRedirection({ chemin: '/admin/cabinets', aJeton: true, utilisateur: CABINET }), vers('/dossiers'))
 verifier('admin connecté quittant /login va sur son tableau de bord',

@@ -125,6 +125,7 @@ const RUBRIQUES_PLATEFORME = [
   { label: 'Constantes', to: '/admin/constantes' },
   { label: 'Plan de paie', to: '/admin/plan-paie' },
   { label: 'Modes de paiement', to: '/admin/modes-paiement' },
+  { label: 'Administrateurs', to: '/admin/administrateurs' },
   { label: 'Simulateur de paie', to: '/simulation' }
 ]
 

@@ -51,6 +51,29 @@ class CabinetAdminCreationOut(CabinetAdminOut):
     email_message: Optional[str] = None
 
 
+class AdminPlateformeOut(BaseModel):
+    """Administrateur de la plateforme (`is_admin`)."""
+    id: int
+    email: str
+    prenom: str
+    nom: str
+    is_active: bool
+    must_change_password: bool = False
+    #: Le compte connecté (on ne peut pas se désactiver soi-même).
+    est_moi: bool = False
+    created_at: Optional[datetime] = None
+
+
+class AdminPlateformeCreationOut(AdminPlateformeOut):
+    mot_de_passe_initial: Optional[str] = None
+    email_envoye: Optional[bool] = None
+    email_message: Optional[str] = None
+
+
+class AdminPlateformeStatutUpdate(BaseModel):
+    actif: bool
+
+
 class CabinetOut(BaseModel):
     id: int
     cabinet_nom: Optional[str] = None
